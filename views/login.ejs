@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title> Login Form</title>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/login.css">
+
+
+    <style>
+        /* Importing the font-awesome CDN  */
+    @import url(https://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css);
+    
+    /* Main container */
+    
+    .main {
+     
+        margin: 0 auto;
+    }
+    
+    h1 {
+        font-size: 30px;
+        text-align: center;
+    }
+    
+    
+    /* alert message container */
+    
+    .alert .text {
+        display: block;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 3px;
+        /* border: 1px solid rgb(180, 180, 180); */
+        background-color: rgb(244, 8, 8);
+    }
+    
+    
+    /* Styling the closing button */
+    
+    .alert .close {
+        float: right;
+        margin: 20px 20px 0px 0px;
+        cursor: pointer;
+    }
+    
+    .alert .text,
+    .alert .close {
+        color: rgb(88, 88, 88);
+    }
+    
+    .alert input {
+        display: none;
+    }
+    
+    
+    /* Adding animations to handle the checkbox */
+    
+    .alert input:checked~* {
+        animation-name: dismiss, hide;
+        animation-duration: 300ms;
+        animation-iteration-count: 1;
+        animation-timing-function: ease;
+        animation-fill-mode: forwards;
+        animation-delay: 0s, 100ms;
+    }
+    
+    
+    /* Styling the error alert */
+    
+    .alert.error .text {
+        border: 1px solid rgb(238, 211, 215);
+        background-color: rgb(242, 222, 222);
+    }
+    
+    .alert.error .text,
+    .alert.error .close {
+        color: rgb(185, 74, 72);
+    }
+    
+    
+    
+    
+    /* animations for dismissing the alert message */
+    
+    @keyframes dismiss {
+        0% {
+            opacity: 1;
+        }
+        90%,
+        100% {
+            opacity: 0;
+            font-size: 0.1px;
+            transform: scale(0);
+        }
+    }
+    
+    @keyframes hide {
+        100% {
+            height: 0px;
+            width: 0px;
+            overflow: hidden;
+            margin: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+    }
+    
+    </style>
+   
+</head>
+
+<body>
+      <% if(success!=''){ %>
+        <div class="main">
+            <!-- Alert message for displaying an error -->
+            <div class="alert error">
+                <input type="checkbox" id="alert1" />
+                <label class="close" title="close" for="alert1">
+                <i class="icon-remove"></i>
+              </label>
+                <p class="text">
+                    <strong><%=success%></strong> 
+                </p>
+            </div>
+        <% } %>
+    <div class="hero">
+        <div class="form-box" data-aos="fade-down">
+        <div class="form-top">     
+                <button id="home"><a href="/"><i class="fa-solid fa-house"></i></a></button>
+                <div class="button-box">
+                    <div id="btn"></div>
+                    <button type="button" class="toggle-btn" onclick="login()">Log In</button>
+                    <button type="button" class="toggle-btn" onclick="register()">Register</button>
+                </div>
+            </div>
+            <form action="/login" method="post"id="login" class="input-group">
+                <input type="email" name="email" class="input-field" placeholder="Email"  />
+                <input type="password" name="password" class="input-field" placeholder="Enter Password"  />
+                <input type="checkbox" class="check-box"><span>Remember Password</span>
+                <button class="submit-btnx" name="submit">Log In</button>
+                <span class="frgt"><a href="/forget">Forgot Password?</a></span>
+            </form>
+            <form action="/register" method="post" id="register" class="input-group">
+                <input type="text" name="name" class="input-field" placeholder="User Name" autocomplete="off" required>
+                <input type="text" name="number" class="input-field" placeholder="Phone Number" autocomplete="off" required>
+                <input type="email" name="email" class="input-field" placeholder="Email Id" autocomplete="off" required>
+                <input type="password" name="password" class="input-field" placeholder="Enter Password" autocomplete="off" required>
+                <input type="password" name="register_repass" class="input-field" placeholder="Re-Enter password" autocomplete="off" required>
+                <input type="checkbox" class="check-box"><span>I agree to the terms and conditions</span>
+                <button class="submit-btn">Register</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+    <script>
+        var x = document.getElementById("login");
+        var y = document.getElementById("register");
+        var z = document.getElementById("btn");
+
+        function register() {
+            x.style.left = "-400px";
+            y.style.left = "50px";
+            z.style.left = "110px"
+        }
+        function login() {
+            x.style.left = "50px";
+            y.style.left = "450px";
+            z.style.left = "0"
+        }
+    </script>
+
+</body>
+
+</html>

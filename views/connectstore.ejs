@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+    <link rel="stylesheet" href="/css/connectyourstore.css">
+    <link rel="stylesheet" href="/css/vendor/aos.min.css">
+    <script src="js/vendor/aos.min.js"></script>
+    <title>Connect Your Store</title>
+</head>
+
+<body>
+    <div class="cntyourstore">
+        <div class="page-head">
+            <img src="/images/Logo.png" id="logo">
+            <h3>CONNECT YOUR STORE</h3>
+        </div>
+        <div class="stores d-flex flex-row m-5">
+            <button class="store m-5" id="shopify-toggle" data-aos="fade-up">
+                <img src="images/shopify.png" id="str">
+                <p>Connect</p>
+            </button>
+            <button class="store m-5" id="woocommerce-toggle" data-aos="fade-up">
+                <img src="images/woo-commerce.png" id="str">
+                <p>Connect</p>
+            </button>
+        </div>
+        <div class="shopify-form">
+            <form id="shopify-data-form" action="/connect-shopify" method="post">
+                <div class="input-wrapper">
+                    <label for="store_name">Select a name for your store:</label>
+                    <input type="text" name="store_name" id="inp-s0" />
+                </div>
+                <div class="input-wrapper">
+                    <label for="store_url">Shopify Store URL (just enter domain name, no need for https://):</label>
+                    <input type="text" placeholder="yourstoredomain.com" name="store_url" id="inp-s1" />
+                </div>
+                <div class="input-wrapper">
+                    <label for="access_token">Shopify Access Token:</label>
+                    <input type="text" name="access_token" id="inp-s2" />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+        <div class="woocommerce-form">
+            <form id="woocommerce-data-form" action="/connect-woocommerce" method="post">
+                <label for="woocommerce-storename">Select a name for your store:</label>
+                <input type="text" name="shopify-storename" id="inp-w0" />
+                <label for="woocommerce-url">WooCommerce Store URL (just enter domain name, no need for https://):</label>
+                <input type="text" placeholder="yourstoredomain.com" name="woocommerce-url" id="inp-w1" />
+                <label for="woocommerce-consumerkey">WooCommerce Consumer Key:</label>
+                <input type="text" name="woocommerce-consumerkey" id="inp-w2" />
+                <label for="woocommerce-consumersecret">WooCommerce Consumer Secret:</label>
+                <input type="text" name="woocommerce-consumersecret" id="inp-w3" />
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        AOS.init();
+        const shopifyToggleBtn = document.querySelector("#shopify-toggle");
+        const woocommerceToggleBtn = document.querySelector("#woocommerce-toggle");
+        const shopifyForm = document.querySelector(".shopify-form");
+        const woocommerceForm = document.querySelector(".woocommerce-form");
+
+        shopifyToggleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            shopifyForm.style.display = "block";
+            woocommerceForm.style.display = "none"; 
+        });
+        
+        woocommerceToggleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            woocommerceForm.style.display = "block"; 
+            shopifyForm.style.display = "none";
+        });
+       
+    </script>
+</body>
+
+</html>

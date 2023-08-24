@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/home.css">
+  <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+  <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+    integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha512-Ah5hWYPzDsVHf9i2EejFBFrG2ZAPmpu4ZJtW4MfSgpZacn+M9QHDt+Hd/wL1tEkk1UgbzqepJr6KnhZjFKB+0A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+  <!-- Vendor Style Sheet -->
+  <link rel="stylesheet" href="/css/vendor/aos.min.css" />
+
+  <!-- Main Style Sheet -->
+  <link rel="stylesheet" href="/css/core.css" />
+  <link rel="stylesheet" href="/css/main.css" />
+
+  <title>PrintWear</title>
+</head>
+
+<body>
+  <!-- Navbar starts here -->
+  <nav id="nav" class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <a href="#home"><img src="/images/Logo.png" id="logo" /></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <div class="left">
+          <div class="nav-left">
+            <li class="nav-item active">
+              <a class="nav-link fw-bold" href="#products">Products <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fw-bold" href="#connect">Connect Store</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fw-bold" href="#how-it-works">How it works</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fw-bold" href="#blog">Blog</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fw-bold" href="#contact">Contact</a>
+            </li>
+          </div>
+        </div>
+        <div class="right">
+          <div class="nav-right">
+            <li class="nav-link-bt" id="nav-signup">
+              <a href="/login"><button class="signup-bt">Sign in</button></a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                EN
+              </a>
+              <div id="lang" class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">English</a>
+                <a class="dropdown-item" href="#">French</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Others</a>
+              </div>
+            </li>
+          </div>
+        </div>
+      </ul>
+    </div>
+  </nav>
+  <!-- Navbar ends here -->
+
+  <!-- Homepage starts here-->
+  <div class="banner-image w-100 vh-100 d-flex flex-column justify-content-center align-items-center" id="home">
+    <div class="head">
+      <h2 data-aos="fade-up">PRINT ON DEMAND</h2>
+      <img src="/images/Font_bg_design.png" id="font-design1" data-aos="fade-up" />
+      <h1 data-aos="fade-up" class="title text-style-1 text-offset">
+        <span class="text-1 filled tertiary-50" style="color:#F05A30;">You Think. We Print</span>
+        <span class="text-1 outline white" data-lax="inertia-top" style="width:100%;">You Think. We Print</span>
+      </h1>
+      <div class="list">
+        <div class="list-dot" data-aos="fade-up">
+          <p>.</p>
+          <li>No Inventory</li>
+        </div>
+        <div class="list-dot" data-aos="fade-up">
+          <p>.</p>
+          <li>No Upfront Fee</li>
+        </div>
+        <div class="list-dot" data-aos="fade-up">
+          <p>.</p>
+          <li>No Minimum Order</li>
+        </div>
+      </div>
+    </div>
+    <div class="carosuel-home">
+      <div class="swiper swipe">
+        <div class="swiper-wrapper carosuel-home-content">
+          <div class="swiper-slide swiper-cd"><img src="/images/Carousel_img1.png" alt="" id="carosuel-img"></div>
+          <div class="swiper-slide swiper-cd"><img src="/images/Carousel_img2.png" alt="" id="carosuel-img"></div>
+          <div class="swiper-slide swiper-cd"><img src="/images/Carousel_img3.png" alt="" id="carosuel-img"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Homepage ends here -->
+
+  <!-- What-we-do starts here -->
+  <div class="what-we-do1">
+    <div class="wwd-top">
+      <h3 data-aos="fade-up" class="typing-text one mb-5">What we do </h3>
+    </div>
+    <div class="animate-content">
+      <div data-aos="fade-up" class="wwd-points">
+        <p data-aos="fade-up">"Design can be art. Design can be aesthetic. Design is so simple, that's why it is so
+          complicated"</p>
+        <p data-aos="fade-up">Now have your favourite designs on your clothings... </p>
+        <h1 data-aos="fade-up">You <span id="sp">Think</span>. We <span id="sp">Print</span></h1>
+      </div>
+      <div data-aos="fade-up" class="animate-img">
+        <img src="/images/Add-Your-Design.gif" id="gif1" />
+      </div>
+    </div>
+  </div>
+  <div class="what-we-do">
+    <div class="wwd-top">
+      <h1 data-aos="fade-up" class="title-3 text-style-1 text-offset">
+        <span class="text-1 filled tertiary-50" style="color:#F05A30;">What we offer</span>
+        <span class="text-1 outline black" data-lax="inertia-top" style="width:100%;">What we offer</span>
+      </h1>
+    </div>
+    <div class="wwd-content">
+      <div class="wwd-content-card">
+        <div data-aos="fade-up" class="card-content">
+          <img src="/images/demand1.png" id="no">
+          <h2 data-aos="fade-up">Print On demand</h2>
+          <!-- <h1 data-aos="fade-up" class="title-3 text-style-1 text-offset">
+            <span class="text-1 filled tertiary-50" style="color:#F05A30;">Print On Demand</span>
+            <span class="text-1 outline black" data-lax="inertia-top" style="width:100%;">Print On Demand</span>
+          </h1> -->
+          <img src="/images/Font_bg_design.png" data-aos="fade-up" id="font-design2" />
+          <p data-aos="fade-up" id="para">
+            The Print on-demand revolution is here to stay, this is why
+            it's important for you to know about Printwear,
+            Online sellers who are not yet part of this movement are missing
+            out on a great opportunity. Printwear has now enabled
+            creatives to make one-of-a-kind products that can be
+            personalized, printed, or manufactured, and be delivered to
+            your customers doorstep in just a few days.
+          </p>
+        </div>
+        <div data-aos="fade-up" class="card-content">
+          <img data-aos="fade-up" src="/images/demand2.png" id="no1">
+          <h2 data-aos="fade-up">Drop shipping</h2>
+          <!-- <h1 data-aos="fade-up" class="title-3 text-style-1 text-offset">
+            <span class="text-1 filled tertiary-50" style="color:#F05A30;">Drop shipping</span>
+            <span class="text-1 outline black" data-lax="inertia-top" style="width:100%;">Drop shipping</span>
+          </h1> -->
+          <img data-aos="fade-up" src="/images/Font_bg_design.png" id="font-design3" />
+          <p data-aos="fade-up" id="para">
+            Dropshipping is a model that allows ecommerce businesses
+            to market and sell products online without manufacturing
+            or stocking inventory, Yes you heard it right, Printwear
+            opens a wide range of opportunities to all the sellers to
+            expedite the business with zero upfront fees
+          </p>
+        </div>
+      </div>
+      <div class="wwd-content-card">
+        <div data-aos="fade-up" class="card-content">
+          <img data-aos="fade-up" src="/images/demand3.png" id="no">
+          <h2 data-aos="fade-up">In house manufacturing</h2>
+          <!-- <h1 data-aos="fade-up" class="title-3 text-style-1 text-offset">
+            <span class="text-1 filled tertiary-50" style="color:#F05A30;">In house manufacturing</span>
+            <span class="text-1 outline black" id="wwd-span" data-lax="inertia-top" style="width:100%;">In house manufacturing</span>
+          </h1> -->
+          <img data-aos="fade-up" src="/images/Font_bg_design.png" id="font-design4" />
+          <p data-aos="fade-up" id="para">
+            We are the first direct manufacturer in India to provide Drop shipping & print on demand services.
+            our world class product comes at a modest price in the market.
+          </p>
+        </div>
+        <div data-aos="fade-up" class="card-content">
+          <img data-aos="fade-up" src="/images/demand4.png" id="no1">
+          <h2 data-aos="fade-up">White label with branding</h2>
+          <!-- <h1 data-aos="fade-up" class="title-3 text-style-1 text-offset">
+              <span class="text-1 filled tertiary-50" style="color:#F05A30;">White label with branding</span>
+              <span class="text-1 outline black" data-lax="inertia-top" style="width:100%;">White label with branding</span>
+            </h1> -->
+          <img data-aos="fade-up" src="/images/Font_bg_design.png" id="font-design5" />
+          <p data-aos="fade-up" id="para">
+            We are the first company in the market to provide custom label option with zero upfront fees.
+          </p>
+        </div>
+      </div>
+    </div>
+    <form action="/login"><button data-aos="fade-up" id="btn">Lets get started</button></form>
+  </div>
+  <!-- What-we-do ends here -->
+
+  <!-- Dashboard starts here -->
+  <div class="who-we-are pl-5 pr-5 text-white">
+    <!-- <h2 class="wwr-heading" data-aos="fade-up">
+      Our Dashboard
+    </h2> -->
+    <h1 data-aos="fade-up" class="title-1 text-style-1 text-offset">
+      <span class="text-1 filled tertiary-50" style="color:#F05A30;">Our Dashboard</span>
+      <span class="text-1 outline white1" data-lax="inertia-top" style="width:100%;">Our Dashboard</span>
+    </h1>
+    <img src="/images/Font_bg_design.png" id="font-design8" data-aos="fade-up" />
+    <div class="wwr-card d-flex">
+      <div class="wwr-content mt-2 mr-5" data-aos="fade-right">
+        <p data-aos="fade-up">Printwear dashboard is designed in such a way that the users can process the orders with
+          ease & it comes
+          with
+          more user friendly features, sellers can enjoy a hassle free process of delivering the products to their
+          customers.</p>
+        </p>
+        <a href="/login" style="text-decoration: none;"><button id="btn3" class="bt3"
+            data-aos="fade-up">Explore</button></a>
+      </div>
+      <div class="wwr-image col" data-aos="fade-right">
+        <img src="/images/dashboard.png" id="dashboard-image" />
+      </div>
+    </div>
+  </div>
+  <!-- Dashboard ends here -->
+
+  <!-- Products starts here -->
+  <div class="products" id="products">
+    <div class="prod-head" data-aos="fade-up">
+      <!-- <h3 id="store-head">Our Products</h3> -->
+      <h1 data-aos="fade-up" class="title-2 text-style-1 text-offset">
+        <span class="text-1 filled tertiary-50" style="color:#F05A30;">Products</span>
+        <span class="text-1 outline black" data-lax="inertia-top" style="width:100%;">Products</span>
+      </h1>
+      <img src="/images/Font_bg_design.png" id="font-design9">
+    </div>
+    <div class="prod-div" data-aos="fade-up">
+      <div class="prod-div1">
+        <div class="prod-img-div">
+          <img data-aos="fade-up" src="/images/roundneck.png" id="products-image">
+          <p>Round neck</p>
+          <a href="/login" style="text-decoration: none;"><button id="btn3">View</button></a>
+        </div>
+        <div class="prod-img-div">
+          <img data-aos="fade-up" src="images/sweatshirt.png" id="products-image">
+          <p>Sweat Shirt</p>
+          <a href="/login" style="text-decoration: none;"><button id="btn3">View</button></a>
+        </div>
+      </div>
+      <div class="prod-div1">
+        <div class="prod-img-div">
+          <img data-aos="fade-up" src="images/hoodie.png" id="products-image">
+          <p>Hoodie</p>
+          <a href="/login" style="text-decoration: none;"><button id="btn3">View</button></a>
+        </div>
+        <div class="prod-img-div">
+          <img data-aos="fade-up" src="images/raglaantshirt.png" id="products-image">
+          <p>Raglan T-shirt</p>
+          <a href="/login" style="text-decoration: none;"><button id="btn3">View</button></a>
+        </div>
+      </div>
+    </div>
+    <div class="prod-content" data-aos="fade-up">
+      <p>Printwear offers wide range of products, all the fabrics used by us are tested and certified by the
+        Industries best testing labs. We procure YARN from the best mills in the market.</p>
+      <a href="/login" style="text-decoration: none;"><button id="btn3" data-aos="fade-up">Explore</button></a>
+    </div>
+  </div>
+  <div class="prod-end" data-aos="fade-up">
+    <p>Shipping in 48 hours</p>
+    <p>Ship with your brand name</p>
+    <p>Secure checkouts</p>
+    <p>Pan India shipping available</p>
+  </div>
+  <!-- Products ends here -->
+
+  <!-- Hear-from-our-clients starts here -->
+  <div class="clients">
+    <div class="swiper mySwiper container">
+      <div class="clients-head">
+        <h1 data-aos="fade-up" class="title-4 text-style-1 text-offset">
+          <span class="text-1 filled tertiary-50" style="color:#F05A30;">Hear from our Clients</span>
+          <span class="text-1 outline white" data-lax="inertia-top" style="width:100%;">Hear from our Clients</span>
+        </h1>
+        <img data-aos="fade-up" src="images/Font_bg_design.png" id="font-design10">
+      </div>
+      <div class="swiper-wrapper content">
+        <div data-aos="fade-up" class="swiper-slide card">
+          <div class="box-card">
+            <img src="images/client1.png" id="client-img">
+            <h2>Ralph Edwards</h2>
+            <p>Printwear offers wide range of products, all the fabrics used by us are tested and certified by the
+              Industries best testing labs. We procure YARN from the best mills in the market.</p>
+            <div class="icons">
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+            </div>
+          </div>
+        </div>
+        <div data-aos="fade-up" class="swiper-slide card">
+          <div class="box-card">
+            <img src="images/client2.png" id="client-img">
+            <h2>Ralph Edwards</h2>
+            <p>Printwear offers wide range of products, all the fabrics used by us are tested and certified by the
+              Industries best testing labs. We procure YARN from the best mills in the market.</p>
+            <div class="icons">
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-regular fa-star text-warning"></i>
+              <i class="fa-regular fa-star text-warning"></i>
+            </div>
+          </div>
+        </div>
+        <div data-aos="fade-up" class="swiper-slide card">
+          <div class="box-card">
+            <img src="images/client3.png" id="client-img">
+            <h2>Ralph Edwards</h2>
+            <p>Printwear offers wide range of products, all the fabrics used by us are tested and certified by the
+              Industries best testing labs. We procure YARN from the best mills in the market.</p>
+            <div class="icons">
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-regular fa-star text-warning"></i>
+            </div>
+          </div>
+        </div>
+        <div data-aos="fade-up" class="swiper-slide card">
+          <div class="box-card">
+            <img src="images/client1.png" id="client-img">
+            <h2>Ralph Edwards</h2>
+            <p>Printwear offers wide range of products, all the fabrics used by us are tested and certified by the
+              Industries best testing labs. We procure YARN from the best mills in the market.</p>
+            <div class="icons">
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-regular fa-star text-warning"></i>
+            </div>
+          </div>
+        </div>
+        <div data-aos="fade-up" class="swiper-slide card">
+          <div class="box-card">
+            <img src="images/client2.png" id="client-img">
+            <h2>Ralph Edwards</h2>
+            <p>Printwear offers wide range of products, all the fabrics used by us are tested and certified by the
+              Industries best testing labs. We procure YARN from the best mills in the market.</p>
+            <div class="icons">
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-solid fa-star text-warning"></i>
+              <i class="fa-regular fa-star text-warning"></i>
+              <i class="fa-regular fa-star text-warning"></i>
+              <i class="fa-regular fa-star text-warning"></i>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="page">
+        <div data-aos="fade-up" class="swiper-pagination"></div>
+      </div>
+    </div>
+    <div data-aos="fade-left" class="arrow-right">
+      <i class="fa-sharp fa-solid fa-arrow-left arrow-left1"></i>
+      <i class="fa-sharp fa-solid fa-arrow-right arrow-right1"></i>
+    </div>
+  </div>
+  <!-- Hear-from-our-clients ends here -->
+
+  <!-- Connect-to-your-store starts here -->
+  <div class="connect-to-your-store" id="connect">
+    <div class="store-head">
+      <h1 data-aos="fade-up" class="title-3 text-style-1 text-offset">
+        <span class="text-1 filled tertiary-50" style="color:#F05A30;">Connect to your store</span>
+        <span class="text-1 outline black" data-lax="inertia-top" style="width:100%;">Connect to your store</span>
+      </h1>
+      <img src="images/Font_bg_design.png" id="font-design6" data-aos="fade-up" />
+      <div class="store-headc" data-aos="fade-up">
+        <p>Printwear provide API's to integrate your woo commerce & shopify stores with no upfront fees,
+          what are you waiting for? integrate your store by using the options below.</p>
+      </div>
+    </div>
+    <div class="store-img">
+      <img src="images/shopify.png" id="store-pic" data-aos="fade-up">
+      <img src="images/woo-commerce.png" id="store-pic" data-aos="fade-up">
+    </div>
+    <a href="/contact" style="text-decoration: none;"><button id="btn2" data-aos="fade-up">Contact Us</button></a>
+  </div>
+  <!-- Connect-to-your-store ends here -->
+
+  <!-- Blogs start here -->
+  <div class="blogs" id="blog">
+    <div class="store-head">
+      <h1 data-aos="fade-up" class="title-3 text-style-1 text-offset">
+        <span class="text-1 filled tertiary-50" style="color:#F05A30;">Blogs</span>
+        <span class="text-1 outline black" data-lax="inertia-top" style="width:100%;">Blogs</span>
+      </h1>
+      <img src="images/Font_bg_design.png" id="font-design7" data-aos="fade-up" />
+      <div class="store-headc" data-aos="fade-up">
+        <p>Printwear provide API's to integrate your woo commerce & shopify stores with no upfront fees,
+          what are you waiting for? integrate your store by using the options below.</p>
+      </div>
+    </div>
+    <div class="blog-img">
+      <div class="img-div">
+        <img src="images/blog1.png" id="blog-pic" data-aos="fade-up">
+        <p>Want to Build a Dropshipping Business in 2022? Here is what you have to know.</p>
+      </div>
+      <div class="img-div">
+        <img src="images/blog2.png" id="blog-pic" data-aos="fade-up">
+        <p>6 Reasons why Drop shipping is the Future of Ecommerce</p>
+      </div>
+      <div class="img-div">
+        <img src="images/blog3.png" id="blog-pic" data-aos="fade-up">
+        <p>Dropshipping guide in 2022 - Everything you need to do</p>
+      </div>
+    </div>
+    <a href="#">
+      <p id="viewmore" data-aos="fade-right">View more</p>
+    </a>
+  </div>
+  <!-- Blogs ends here -->
+
+  <!-- Shipping starts here -->
+  <div class="shipping" id="how-it-works">
+    <h2 data-aos="fade-up" id="shipping-head" style="font-family: 'Nunito';">How print-on-demand
+      drop shipping works</h2>
+    <p data-aos="fade-up" id="shipping-content">Printwear fulfilment facility helps its sellers to start a T-shirt
+      selling business without any inventory or
+      stock.</p>
+    <a href="/login" style="text-decoration: none;"><button id="btn1" data-aos="fade-up">Get Started</button></a>
+  </div>
+  <!-- Shipping ends here -->
+
+  <!-- Footer -->
+  <div class="footer" id="contact">
+    <div class="footer-head">
+      <h2 data-aos="fade-up">Printwear</h2>
+    </div>
+    <div class="footer-content">
+      <div class="footer-div" data-aos="fade-up">
+        <h2 id="f-head">Companies</h2>
+        <a href="/contact">Contact us</a>
+        <a href="/about">About us</a>
+        <a href="/delivery">Delivery information</a>
+        <a href="/blogs">Blogs</a>
+      </div>
+      <div class="footer-div" data-aos="fade-up">
+        <h2 id="f-head">Policies</h2>
+        <a href="/privacypolicy">Privacy policies</a>
+        <a href="/termsandconditions">Terms & Conditions</a>
+        <a href="/faq">FAQ's</a>
+        <a href="/shipandrefund">Shipping_refund & Refund</a>
+      </div>
+      <div class="footer-signup" data-aos="fade-up">
+        <h2 data-aos="fade-up">Sign up our Newsletter</h2>
+        <p data-aos="fade-up">Subcribe to email alerts. We promise not to spam your Inbox</p>
+        <form class="search-wrapper cf" data-aos="fade-up">
+          <input type="text" id="footer-email" placeholder="Email address" required style="box-shadow: none">
+          <button type="submit" id="btn-s">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Footer ends here -->
+
+  <!-- Vendor JavaScript -->
+  <script src="/js/vendor/aos.min.js"></script>
+  <script src="/js/vendor/lax.min.js"></script>
+
+  <!-- Main JavaScript -->
+  <script src="/js/main.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+  <script>
+    var swiper = new Swiper(".swipe", {
+      slidesPerView: 3,
+      loop: true,
+      initialSlide: 2,
+      spaceBetween: 30,
+      centeredSlides: true,
+      slideActiveClass: "active",
+      autoplay: {
+        enabled: true,
+        delay: 2000
+      }
+    });  </script>
+  <!-- initializing swiper slider -->
+  <script>
+    var swiper = new Swiper(".mySwiper", {
+      slidesPerView: 3,
+      spaceBetween: 30,
+      grabCursor: true,
+      autoplay: {
+        delay: 2500,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true,
+      },
+      slidesPerGroup: 1,
+      loop: true,
+      loopFillGroupWithBlank: true,
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+      },
+      navigation: {
+        nextEl: ".arrow-right1",
+        prevEl: ".arrow-left1",
+      },
+      breakpoints: {
+        0: {
+          slidesPerView: 1,
+        },
+        920: {
+          slidesPerView: 2,
+        },
+        1200: {
+          slidesPerView: 3,
+        },
+      }
+    });
+  </script>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script>
+    let nav = document.querySelector('nav');
+    window.addEventListener('scroll', function () {
+      if (window.pageYOffset > 100) {
+        nav.classList.add('dark', 'shadow');
+      }
+      else {
+        nav.classList.remove('dark', 'shadow');
+      }
+    });
+  </script>
+  </script>
+</body>
+
+</html>
