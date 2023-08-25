@@ -1,0 +1,382 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:600|Open+Sans:600&display=swap');
+
+@font-face{
+  font-family: myFont;
+  src:url('BaseNeueTrial-SemiBoldOblique.ttf');
+}
+* {
+  font-family: myFont;
+  margin: 0;
+  padding: 0;
+  letter-spacing: 0.14rem;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+body{
+  background-color: #EEEEEE;
+}
+
+
+.head {
+  margin-left: 90px;
+  font-weight: bold;
+  font-size: 25px;
+  margin-top: 30px;
+}
+.header{
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 10px;
+  width: 1;
+  justify-content: space-between;
+  background-color: #EEEEEE;
+}
+.main {
+  padding: 5px;
+  border-radius: 10px;
+  background-color: #fff;
+  width: 90%;
+  height: max-content;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+}
+
+.filter {
+  display: flex;
+  flex-direction: row;
+  width: max-content;
+  margin-top: 20px;
+  /* border: solid; */
+}
+
+.name {
+  border: none;
+  border-bottom: solid;
+  display: flex;
+  justify-content: space-between;
+  width: 30vw;
+  margin-right: 100px;
+  /* border: solid; */
+}
+.name i{
+  font-size: 20px;
+  padding-top: 10px;
+}
+.name input {
+  border: none;
+  width: 100%;
+  background-color: #EEEEEE;
+}
+.name input:focus,.name input:active{
+  outline: none;
+}
+.name input::placeholder{
+  background-color: #EEEEEE;
+  padding-left: 15px;
+}
+
+.filt {
+  margin-left: 20px;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+  border: none;
+  border: 2px solid gray;
+  width: 200px;
+  height: 30px;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 200px;
+  border: 2px solid gray;
+  margin-top: 5px;
+  z-index: 1;
+}
+
+.dropdown-content p {
+  display: flex;
+  justify-content: space-around;
+  width: 95%;
+  padding: 4px;
+  margin: 0 !important;
+}
+
+.dropdown i {
+  margin-right: 10px;
+  float: right;
+  display: inline-block;
+}
+
+.dropdown-content p:hover {
+  background-color: #F05A30;
+  color: #fff;
+}
+
+.dropdown p {
+  color: gray;
+  font-size: 15px;
+  margin-top: 5px;
+  margin-left: 20px;
+  cursor: pointer;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.line {
+  margin-top: 20px;
+  width: 94%;
+  /* border: solid; */
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.line hr {
+  position: relative;
+  top: 20px;
+  border: none;
+  height: 3px;
+  background: black;
+  margin-bottom: 50px;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.display-card {
+  max-width: 80%;
+  padding: 5px;
+  padding-right: 20px;
+  padding-left: 20px;
+  margin: 50px;
+  border: solid 1px #aaa;
+  background-color: #fff;
+}
+
+.display-card:hover {
+  box-shadow: 0px 2px 20px gray;
+}
+
+.card-img {
+  border: solid 1px #aaa;
+  background-color: #E2E1E1;
+  margin-top: 10px;
+  max-width: 100%;
+  display: grid;
+  place-items: center;
+}
+#img{
+  max-width: 100%;
+  max-height: 100%;
+  /* border: solid; */
+}
+
+
+.details {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  /* border: solid; */
+}
+
+.name-price{
+  text-align: center;
+}
+.name button{
+  border:none;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.name-price h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.view-btn button{
+  background-color: #F05A30;
+  width: 100px;
+  padding: 5px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  color: #fff;
+}
+.stock-avail{
+  font-size: 16px;
+  color: #40B635;
+  padding-top: 2px;
+}
+
+.sidebar header {
+  font-size: 28px;
+  color: white;
+  line-height: 60px;
+  text-align: center;
+  background: #1b1b1b;
+  user-select: none;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.sidebar a {
+  display: block;
+  height: 50px;
+  width: 100%;
+  color: white;
+  line-height: 50px;
+  padding-left: 30px;
+  box-sizing: border-box;
+  border-bottom: 1px solid black;
+  border-top: 1px solid rgba(255, 255, 255, .1);
+  border-left: 5px solid transparent;
+  font-family: 'Open Sans', sans-serif;
+  transition: all .5s ease;
+}
+
+.sidebar a:active,
+.sidebar a:hover {
+  border-left: 5px solid #7275be;
+  color: #7275be;
+  text-decoration: none;
+}
+
+.sidebar a:focus {
+  color: #7275BE;
+}
+
+.sidebar a i {
+  font-size: 20px;
+  margin-right: 16px;
+}
+
+.sidebar a span {
+  letter-spacing: 1px;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+#check {
+  display: none;
+}
+
+label #sidebar-btn,
+label #cancel {
+  position: absolute;
+  cursor: pointer;
+  color: white;
+  border-radius: 5px;
+  border: 1px solid #262626;
+  margin: 15px 30px;
+  font-size: 29px;
+  background: #262626;
+  height: 45px;
+  width: 45px;
+  text-align: center;
+  line-height: 45px;
+  transition: all .5s ease;
+}
+
+label #cancel {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#check:checked~.sidebar {
+  left: 0;
+}
+
+#check:checked~label #sidebar-btn {
+  margin-left: 305px;
+  opacity: 0;
+  visibility: hidden;
+}
+
+#check:checked~label #cancel {
+  margin-left: 305px;
+  opacity: 1;
+  visibility: visible;
+}
+
+@media(max-width : 860px) {
+  .sidebar {
+    height: auto;
+    width: 50px;
+    left: 0;
+    top: -100px;
+    margin: 100px 0;
+  }
+
+  header,
+  #sidebar-btn,
+  #cancel {
+    display: none;
+  }
+
+  span {
+    position: absolute;
+    margin-left: 23px;
+    opacity: 0;
+    width: max-content;
+    visibility: hidden;
+  }
+
+  .sidebar a {
+    height: 43px;
+  }
+
+  .sidebar a i {
+    margin-left: -20px;
+  }
+
+  a:hover {
+    width: 300px;
+    background: inherit;
+  }
+
+  .sidebar a:hover span {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Responsive */
+@media screen  and (max-width:817px){
+  /* .name{
+    height: 50px;
+    width: 300px;
+  } */
+}
+
+@media screen and (max-width:596px) {
+  .name{
+    margin-bottom: -10px !important;
+  }  
+}
+@media screen and (max-width:490px) {
+  .head{
+    font-size: 20px !important;
+  }
+  .top-icons{
+    font-size: 15px;
+  }
+  .filter{
+    height: 50px;
+  }
+  #logo{
+    width: 130px;
+  }
+}

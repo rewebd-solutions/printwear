@@ -8,14 +8,44 @@
    /* second value is a fallback value */
 }
 
+/* BASE STYLES ========================================= */
+
+* {
+   box-sizing: border-box;
+}
+
+@import url('https://fonts.googleapis.com/css?family=Montserrat:600|Open+Sans:600&display=swap');
+
 * {
    margin: 0;
    padding: 0;
    text-decoration: none;
-   box-sizing: border-box;
-   font-family: 'Arial', sans-serif;
 }
 
+* {
+   font-family: 'Nunito';
+   margin: 0;
+   padding: 0;
+}
+.btp{
+   display: block;
+   margin-left: auto;
+   margin-right: auto;
+   width: 500px;
+   border: solid;
+}
+.save:active{
+   outline: none;
+}
+.save:focus{
+   outline: none;
+}
+#bt1:focus{
+   outline: none !important;
+}
+#bt1:active{
+   outline: none !important;
+}
 #h-line {
    display: block;
    margin-left: auto;
@@ -459,13 +489,16 @@ input[type="color" i] {
 }
 
 .print-area {
-   border: 2px dashed #aaaaaa;
    width: 30%;
    height: 50%;
    position: relative;
    overflow: hidden;
    top: 0;
    left: 0;
+}
+.area{
+   border: 2px dashed #aaaaaa;
+
 }
 
 .current-design {
@@ -755,7 +788,10 @@ main h3 {
    font-size: .8em;
    text-align: center;
 }
-
+.btp a{
+   color: inherit;
+   text-decoration: none;
+}
 .save {
    /* margin: 0 auto;
    margin-top: 0.6em;
@@ -765,7 +801,8 @@ main h3 {
    padding: .8em 4em;
    border: 3px solid #F05A30;
    border-radius: 3px; */
-   width: 40%;
+   display: block;
+   width: 300px;
    padding: .8em 4em;
    margin: 0 auto;
    margin-top: 0.6em;
@@ -773,9 +810,16 @@ main h3 {
    border-radius: 10px;
    color: #fff;
    border: none;
+   text-align: center;
    cursor: pointer;
 }
-
+.save:hover{
+   transition: none;
+   /* padding-bottom: 0 !important; */
+}
+.btp a:hover{
+   text-decoration: none !important;
+}
 .chk-avail {
    display: flex;
    flex-direction: row;
@@ -810,7 +854,6 @@ main h3 {
    width: 50px;
 }
 
-.save:hover,
 .started-button:hover {
    border: 3px solid var(--logo-color);
    /* color: #e7494b; */
@@ -1240,10 +1283,7 @@ main h3 {
    .save-container{
       width: 100%;
    }
-   .main-box {
-      /* height: ;
-      width: ; */
-   }
+
 }
 
 /* FOOTER ========================= */
@@ -1406,111 +1446,6 @@ footer p {
 }
 
 /* SIDEBAR */
-.sidebar {
-   position: fixed;
-   width: 300px;
-   left: -300px;
-   height: 150%;
-   top: 0px;
-   background: #1e1e1e;
-   z-index: 1000;
-   transition: all .5s ease;
-}
-
-.logos {
-   display: flex;
-   flex-direction: row;
-   justify-content: space-between;
-   border: solid;
-}
-
-.sidebar header {
-   font-size: 28px;
-   color: white;
-   line-height: 60px;
-   text-align: center;
-   background: #1b1b1b;
-   user-select: none;
-   font-family: 'Montserrat', sans-serif;
-}
-
-.sidebar a {
-   display: block;
-   height: 50px;
-   width: 100%;
-   color: white;
-   line-height: 50px;
-   padding-left: 30px;
-   box-sizing: border-box;
-   border-bottom: 1px solid black;
-   border-top: 1px solid rgba(255, 255, 255, .1);
-   border-left: 5px solid transparent;
-   font-family: 'Open Sans', sans-serif;
-   transition: all .5s ease;
-}
-
-.sidebar a:active,
-.sidebar a:hover {
-   border-left: 5px solid #7275be;
-   color: #7275be;
-   text-decoration: none;
-}
-
-.sidebar a:focus {
-   color: #7275BE;
-}
-
-.sidebar a i {
-   font-size: 23px;
-   margin-right: 16px;
-}
-
-.sidebar a span {
-   letter-spacing: 1px;
-   text-transform: uppercase;
-}
-
-#check {
-   display: none;
-}
-
-label #sidebar-btn,
-label #cancel {
-   position: absolute;
-   cursor: pointer;
-   color: white;
-   border-radius: 5px;
-   border: 1px solid #262626;
-   margin: 13px 30px;
-   font-size: 29px;
-   background: #262626;
-   height: 45px;
-   width: 45px;
-   text-align: center;
-   line-height: 45px;
-   transition: all .5s ease;
-}
-
-label #cancel {
-   opacity: 0;
-   visibility: hidden;
-}
-
-#check:checked~.sidebar {
-   left: 0;
-}
-
-#check:checked~label #sidebar-btn {
-   margin-left: 305px;
-   opacity: 0;
-   visibility: hidden;
-}
-
-#check:checked~label #cancel {
-   margin-left: 305px;
-   opacity: 1;
-   visibility: visible;
-}
 
 @media screen and (max-width: 1200px) {
    .main-box {

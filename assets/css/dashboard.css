@@ -75,7 +75,6 @@ i.fa {
 }
 
 .chemical {
-  margin-left: auto;
   margin-top: -20px;
   border: 2px solid red transparent;
 }
@@ -192,7 +191,12 @@ p.niko:after {
   font-size: 15px;
 }
 
-
+.landing-links{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row-reverse;
+}
 
 .logos {
   display: flex;
