@@ -4,7 +4,7 @@ const connectDB=async()=>{
     try{
         mongoose.set("strictQuery", false);
 
-        mongoose.connect("mongodb://127.0.0.1:27017/BARATH");
+        mongoose.connect(process.env.MONGODB_URL || "mongodb://127.0.0.1:27017/printwear");
       //  mongoose.connect("mongodb+srv://barath:987654321@cluster0.ooxe0gr.mongodb.net/?retryWrites=true&w=majority");
 
   console.log("Connected to MongoDB");
