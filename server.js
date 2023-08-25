@@ -35,7 +35,14 @@ app.use(formidable({
 }))
 
 //connection
-connectDB();
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`server is running on http://localhost:${PORT}`);
+    })
+    }
+).catch((err) => {
+    console.log(err);
+})
 
 
 app.get('/barath', (req, res) => {
@@ -56,6 +63,3 @@ app.get('/barath', (req, res) => {
 //     // })
 // });
 
-app.listen(PORT, () => {
-    console.log(`server is running on http://localhost:${PORT}`);
-})
