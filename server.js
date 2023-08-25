@@ -2,7 +2,6 @@ const express = require('express');
 const morgan = require('morgan');
 const bodyparser = require('body-parser');
 const path = require('path');
-require('dotenv').config();
 const session = require('express-session');
 var nodemail = require('nodemailer');
 const formidable = require("express-formidable")
