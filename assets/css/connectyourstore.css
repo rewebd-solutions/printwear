@@ -17,29 +17,7 @@
     display: flex;
     flex-direction: row;
 }
-/* .woocommerce,.shopify{
-    background-color: #AAAAAA;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    width: 90%;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top:-30px;
-    padding: 30px;
-    color: #fff;
-    letter-spacing: 0.1rem;
-    text-shadow: 1px 0 #fff;
-    box-sizing: border-box;
-}
-.woocommerce h3,.shopify h3{
-    font-size: 38px;
-    text-align: left;
-}
-.woocommerce p,.shopify p{
-    font-size: 19px;
-    font-weight: 500;
-} */
+
 .titles{
     display: flex;
     border-top-right-radius: 20px;
@@ -201,7 +179,7 @@
 #shopify-data-form{
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 1rem;
 }
 input{
     padding: 0.8rem 0.5rem;
@@ -211,12 +189,16 @@ input{
     border-radius: 5px;
     background-color: #edeef1;
 }
+input::placeholder{
+    color: silver
+}
 form button{
     border: none;
     background: #F05A30;
     padding: 1rem 0.6rem;
     color: white;
     cursor: pointer;
+    font-size: 1rem;
 }
 .input-wrapper{
     display: flex;
@@ -229,6 +211,7 @@ form button{
 #woocommerce-data-form{
     display: flex;
     flex-direction: column;
+    gap: 1rem;
 }
 .store{
     cursor: pointer;
