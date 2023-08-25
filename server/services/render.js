@@ -1,6 +1,3 @@
-const session = require('express-session');
-var nodemailer = require('nodemailer');
-var multer = require('multer');
 
 exports.homeRoutes = (req, res) => {
     res.render("index");
@@ -25,6 +22,22 @@ exports.forgetRoutes = (req, res) => {
 
 exports.designgallery = (req, res) => {
     res.render('design');
+}
+
+exports.manageorder = (req, res) => {
+    res.render("manageorder");
+}
+
+exports.stock = (req, res) => {
+    res.render("stock");
+}
+
+exports.invoice = (req, res) => {
+    res.render("invoice");
+}
+
+exports.productlib = (req, res) => {
+    res.render("productlib");
 }
 
 exports.connectstore = (req, res) => {

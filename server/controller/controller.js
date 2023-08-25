@@ -118,10 +118,10 @@ exports.register=async(req,res)=>{
         .save(user)
         .then(data => {
             //res.send(data)
-            res.render("design");
+            res.redirect("/dashboard");
         })
         .catch(err =>{
-            res.render("login",{success:"USER ALREADY EXISTS"})
+            res.redirect("/login",{success:"USER ALREADY EXISTS"})
         });
 }
 

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/stock.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">    
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <title>Stock Inventory</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="stock">
+        <div class="header">
+            <div class="head">
+                <p>STOCK INVENTORY</p>
+            </div>
+            <div class="filter">
+                <div class="name">
+                    <input type="text" placeholder="Search">
+                    <button><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="main" data-aos="fade-up">
+            <!-- <div class="line">
+                <hr>
+            </div> -->
+            <div class="cards">
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Men Round Neck</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/roundneck.png" id="img">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Hoodies</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/hoodie.png" id="img">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Sweatshirt</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/sweatshirt.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Crop Top</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/raglaantshirt.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Men Oversized T-shirt</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/roundneck.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Women Round Neck</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/roundneck.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Men Vest</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/roundneck.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Men Full Sleeve</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/roundneck.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Crop Top Hoodies</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/roundneck.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="display-card">
+                    <div class="name-price">
+                        <h3>Boyfriend Tees</h3>
+                    </div>
+                    <div class="card-img">
+                        <img src="images/roundneck.png">
+                    </div>
+                    <div class="details">
+                        <div class="view-btn">
+                            <button>View</button>
+                        </div>
+                        <div class="stock-avail">
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+</body>
+
+</html>

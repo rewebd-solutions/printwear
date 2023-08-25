@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/manageorder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
+        integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
+    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <title>ManageOrder</title>
+    <script>
+        // Get a reference to the table row
+        var orderRow = document.getElementsByClassName("order-lis")
+        for (var i = 0; i < orderRow.length; i++) {
+            orderRow[i].addEventListener('click', function () {
+                // Define the behavior when a cell is clicked
+                // For example, show the modal
+                console.log("Print");
+                const modal = document.getElementById('exampleModal');
+                modal.style.display = 'block';
+            });
+        }
+
+// orderRow[0].addEventListener('click', function() {
+//         // Define the behavior when a cell is clicked
+//         // For example, show the modal
+//         const modal = document.getElementById('exampleModal');
+//         modal.style.display = 'block';
+//     });
+    </script>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="manageorder">
+        
+        <div class="mngord-head">
+            <h1>MANAGE ORDER</h1>
+
+        </div>
+
+        <div class="topnav" data-aos="fade-up">
+            <a class="active" href="#">Delivered</a>
+            <a href="#">Not Delivered</a>
+            <a href="#">Returned</a>
+            <a style="float:right; background-color:#FFFFFF; border: #EEEEEE; border-radius: 2px;">Search</a>
+            <a style="float:right"><i class="fa-solid fa-download fa-lg"></i></a>
+            <!-- <a style="float:right"><input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Search></a> -->
+        </div>
+
+        <br>
+        <table style="width:80%; margin-left:50px;" data-aos="fade-up">
+            <tr class="headings">
+                <th>S.No</th>
+                <th>Order Id</th>
+                <th>Customer Name</th>
+                <th>Product Id</th>
+                <th>Tracking Id</th>
+                <th>Status</th>
+                <th>Placed On</th>
+            </tr>
+            <tr class="order-lis" href="#exampleModal">
+                <td style="text-align:center">1</td>
+                <td style="text-align:center; margin-left:45px">2001</td>
+                <td style="text-align:center; margin-left:45px;">Santhosh</td>
+                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
+                        data-target="#exampleModal"><b>MRT90</b></button></td>
+                <td style="text-align:center; margin-left:45px;">4001</td>
+                <td style="text-align:center; margin-left:245px;">Delivered</td>
+                <td style="text-align:center">8-05-2023</td>
+            </tr>
+            <tr class="order-lis" href="#exampleModal">
+                <td style="text-align:center">1</td>
+                <td style="text-align:center; margin-left:45px">2001</td>
+                <td style="text-align:center; margin-left:45px;">Santhosh</td>
+                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
+                        data-target="#exampleModal"><b>MRT90</b></button></td>
+                <td style="text-align:center; margin-left:45px;">4001</td>
+                <td style="text-align:center; margin-left:245px;">Delivered</td>
+                <td style="text-align:center">8-05-2023</td>
+            </tr>
+            <tr class="order-lis" href="#exampleModal">
+                <td style="text-align:center">1</td>
+                <td style="text-align:center; margin-left:45px">2001</td>
+                <td style="text-align:center; margin-left:45px;">Santhosh</td>
+                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
+                        data-target="#exampleModal"><b>MRT90</b></button></td>
+                <td style="text-align:center; margin-left:45px;">4001</td>
+                <td style="text-align:center; margin-left:245px;">Delivered</td>
+                <td style="text-align:center">8-05-2023</td>
+            </tr>
+            <tr class="order-lis" href="#exampleModal">
+                <td style="text-align:center">1</td>
+                <td style="text-align:center; margin-left:45px">2001</td>
+                <td style="text-align:center; margin-left:45px;">Santhosh</td>
+                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
+                        data-target="#exampleModal"><b>MRT90</b></button></td>
+                <td style="text-align:center; margin-left:45px;">4001</td>
+                <td style="text-align:center; margin-left:245px;">Delivered</td>
+                <td style="text-align:center">8-05-2023</td>
+            </tr>
+            <tr class="order-lis" href="#exampleModal">
+                <td style="text-align:center">1</td>
+                <td style="text-align:center; margin-left:45px">2001</td>
+                <td style="text-align:center; margin-left:45px;">Santhosh</td>
+                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
+                        data-target="#exampleModal"><b>MRT90</b></button></td>
+                <td style="text-align:center; margin-left:45px;">4001</td>
+                <td style="text-align:center; margin-left:245px;">Delivered</td>
+                <td style="text-align:center">8-05-2023</td>
+            </tr>
+            <tr class="order-lis" href="#exampleModal">
+                <td style="text-align:center">1</td>
+                <td style="text-align:center; margin-left:45px">2001</td>
+                <td style="text-align:center; margin-left:45px;">Santhosh</td>
+                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
+                        data-target="#exampleModal"><b>MRT90</b></button></td>
+                <td style="text-align:center; margin-left:45px;">4001</td>
+                <td style="text-align:center; margin-left:245px;">Delivered</td>
+                <td style="text-align:center">8-05-2023</td>
+            </tr>
+            <tr class="order-list" href="#exampleModal">
+                <td style="text-align:center">1</td>
+                <td style="text-align:center; margin-left:45px">2001</td>
+                <td style="text-align:center; margin-left:45px;">Santhosh</td>
+                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
+                        data-target="#exampleModal"><b>MRT90</b></button></td>
+                <td style="text-align:center; margin-left:45px;">4001</td>
+                <td style="text-align:center; margin-left:245px;">Delivered</td>
+                <td style="text-align:center">8-05-2023</td>
+            </tr>
+        </table>
+    
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <div class="pop-left">
+                            <div class="modal-table">
+                                <div class="modal-list">
+                                    <div class="list sno1">
+                                        <p>#SKU</p>
+                                    </div>
+                                    <div class="list oid1">
+                                        <p>Image</p>
+                                    </div>
+                                    <div class="list cre1">
+                                        <p>Name</p>
+                                    </div>
+                                    <div class="list cust1">
+                                        <p>Price</p>
+                                    </div>
+                                    <div class="list ship1">
+                                        <p>Qty</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>Dis</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>Total</p>
+                                    </div>
+                                </div>
+                                <div class="modal-list">
+                                    <div class="list sno1">
+                                        <p>#S001</p>
+                                    </div>
+                                    <div class="list oid1">
+                                        <img src="images/sweatshirt.png" id="pop-img">
+                                    </div>
+                                    <div class="list cre1">
+                                        <p>casual blue</p>
+                                    </div>
+                                    <div class="list cust1">
+                                        <p>399</p>
+                                    </div>
+                                    <div class="list ship1">
+                                        <p>1</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>Dis</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>399</p>
+                                    </div>
+                                </div>
+                                <div class="modal-list">
+                                    <div class="list sno1">
+                                        <p>#L001</p>
+                                    </div>
+                                    <div class="list oid1">
+                                        <img src="images/roundneck.png" id="pop-img">
+                                    </div>
+                                    <div class="list cre1">
+                                        <p>casual blue</p>
+                                    </div>
+                                    <div class="list cust1">
+                                        <p>399</p>
+                                    </div>
+                                    <div class="list ship1">
+                                        <p>1</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>Dis</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>399</p>
+                                    </div>
+                                </div>
+                                <div class="modal-list">
+                                    <div class="list sno1">
+                                        <p>#L001</p>
+                                    </div>
+                                    <div class="list oid1">
+                                        <img src="images/roundneck.png" id="pop-img">
+                                    </div>
+                                    <div class="list cre1">
+                                        <p>casual blue</p>
+                                    </div>
+                                    <div class="list cust1">
+                                        <p>399</p>
+                                    </div>
+                                    <div class="list ship1">
+                                        <p>1</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>Dis</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>399</p>
+                                    </div>
+                                </div>
+
+                                <div class="modal-list">
+                                    <div class="list sno1">
+                                        <p>#L001</p>
+                                    </div>
+                                    <div class="list oid1">
+                                        <img src="images/roundneck.png" id="pop-img">
+                                    </div>
+                                    <div class="list cre1">
+                                        <p>casual blue</p>
+                                    </div>
+                                    <div class="list cust1">
+                                        <p>399</p>
+                                    </div>
+                                    <div class="list ship1">
+                                        <p>1</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>Dis</p>
+                                    </div>
+                                    <div class="list sts1">
+                                        <p>399</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pop-down">
+                                <div class="subtotal" id="values">
+                                    <p>Sub Total</p>
+                                    <p>798</p>
+                                </div>
+                                <div class="delivery" id="values">
+                                    <p>Delivery</p>
+                                    <p>60</p>
+                                </div>
+                                <div class="discount" id="values">
+                                    <p>Discount</p>
+                                    <p>0</p>
+                                </div>
+                                <div class="total" id="values">
+                                    <p>Total</p>
+                                    <p>858</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onClick="window.location.reload();" type="button" class="close" data-dismiss="modal"
+                            aria-label="Close">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <style>
+        td {
+            text-align: center
+        }
+    </style>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+
+</body>
+
+</html>

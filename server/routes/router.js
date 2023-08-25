@@ -22,9 +22,13 @@ route.get('/admin', services.adminpage); // it only has a form thats incomplete
 route.post('/addproduct', controller.addproduct);
 route.get("/displayproduct", controller.displayproduct);
 route.get("/designgallery", services.designgallery);
+route.get("/manageorder", services.manageorder);
+route.get("/stock", services.stock);
 route.get("/connectstore", services.connectstore);
 route.get("/contact", services.contact);
 route.get("/mockupgenerator", services.mockupgenerator);
+route.get("/productlib", services.productlib);
+route.get("/invoice", services.invoice);
 
 route.get('/cart/:id', controller.addtocartitems);
 route.get('/cart', controller.showCartItems);
