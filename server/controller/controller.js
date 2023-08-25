@@ -8,11 +8,10 @@ const algorithm = "sha256"
  var Product=require('../model/productmodel');
  var Store = require('../model/storemodel');
 // var Cart=require('../model/cartmodel');
-const axios = require('axios');
 const express = require('express');
 const session = require('express-session');
 const mongoose = require('mongoose');
-// const MongoStore = require('connect-mongo')(session);
+const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var cur_user = null;
 
 // const app = express();
@@ -142,7 +141,7 @@ exports.login=async(req, res)=>{
           // res.render("home",{username:check.name});
           cur_user = check._id ; 
           // console.log(cur_user +" askf")
-          res.render("design");
+          res.redirect("/dashboard");
           //res.redirect(307,"/showproduct"); 
           // res.render("showproduct",{object_id : check._id});
           
@@ -324,19 +323,6 @@ exports.addproduct=async (req, res) => {
 
 //////////////////////////
 //displaying product////
-exports.showproduct=(req,res) => {
-  console.log('ppppp')
-  axios.get("http://localhost:3000/displayproduct")
-  .then(function(response) {
-      // console.log(response.data);
-     res.render('product',{x: response.data});
-  // res.render("indexx");
-  })
-
-  .catch(err =>{
-        res.send(err);
-  } )
-}
 
 ///////finding product////
 exports.displayproduct = (req, res)=>{
@@ -569,24 +555,83 @@ exports.connectShopify = async (req, res) => {
     const fetchData = await fetchReq.json();
     // console.log(fetchData);
 
-    const store = new Store({
-      // _id: 
-      userid: cur_user,
-      shopifyStores: [
-        {
-          shopName: SHOPIFY_SHOP_NAME,
-          shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
-          shopifyStoreURL: SHOPIFY_SHOP_URL
-        }
-      ],
-    })
-    await store.save();
+    const store = await Store.findOneAndUpdate(
+      { userid: cur_user },
+      {
+        $set: {
+          // _id: 
+          userid: cur_user,
+          shopifyStores: [
+            {
+              shopName: SHOPIFY_SHOP_NAME,
+              shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
+              shopifyStoreURL: SHOPIFY_SHOP_URL
+            }
+          ],
+          }
+      },
+      { new: true, upsert: true }
+    )
     
-    res.status(200).json(fetchData);
+    res.status(200).json(fetchData); // idhu redirect pannidu
     return;
 
   } catch (error) {
     console.log("Error in Shopify connect " + error)
+    res.status(400).json({
+      message: error
+    })
+    return;
+  }
+}
+
+exports.connectWooCommerce = async (req, res) => {
+  const reqBody = req.body;
+  // console.log(reqBody);
+  const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
+  const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
+  const WOOCOMMERCE_SHOP_URL = reqBody.store_url
+  const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
+  
+  try {
+    //do the thing to create woo obj
+    const api = new WooCommerceRestApi({
+      url: "https://print-wear.in/",
+      consumerKey: "ck_0702bbbdb96b62819b29cb97190e17b1be8157f9",
+      consumerSecret: "cs_474830f832be9377fe371b09946e0a216b4cb90d",
+      version: "wc/v3"
+    });
+    const orders = await api.get("orders", {
+        status: 'cancelled',
+        per_page: '2',
+    });
+    // console.log(orders);
+
+    const store = await Store.findOneAndUpdate(
+      { userid: cur_user },
+      {
+        $set: {
+          // _id: 
+          userid: cur_user,
+          wooCommerceStores: [
+            {
+              shopName: WOOCOMMERCE_SHOP_NAME,
+              url: WOOCOMMERCE_SHOP_URL,
+              consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+              consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
+            }
+          ],
+          }
+      },
+      { new: true, upsert: true }
+    )
+    // await store.save();
+    
+    res.status(200).json(orders.data);
+    return;
+
+  } catch (error) {
+    console.log("Error in woocommerce connect " + error)
     res.status(400).json({
       message: error
     })

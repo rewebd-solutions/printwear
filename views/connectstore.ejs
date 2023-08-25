@@ -9,15 +9,19 @@
     <link rel="stylesheet" href="/css/connectyourstore.css">
     <link rel="stylesheet" href="/css/vendor/aos.min.css">
     <script src="js/vendor/aos.min.js"></script>
-    <title>Connect Your Store</title>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap" rel="stylesheet" />
+    <title>Connect Your Store - Printwear</title>
 </head>
 
 <body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
     <div class="cntyourstore">
-        <div class="page-head">
-            <img src="/images/Logo.png" id="logo">
-            <h3>CONNECT YOUR STORE</h3>
-        </div>
         <div class="stores d-flex flex-row m-5">
             <button class="store m-5" id="shopify-toggle" data-aos="fade-up">
                 <img src="images/shopify.png" id="str">
@@ -32,7 +36,7 @@
             <form id="shopify-data-form" action="/connect-shopify" method="post">
                 <div class="input-wrapper">
                     <label for="store_name">Select a name for your store:</label>
-                    <input type="text" name="store_name" id="inp-s0" />
+                    <input type="text" placeholder="Eg.: My mug store" name="store_name" id="inp-s0" />
                 </div>
                 <div class="input-wrapper">
                     <label for="store_url">Shopify Store URL (just enter domain name, no need for https://):</label>
@@ -40,21 +44,31 @@
                 </div>
                 <div class="input-wrapper">
                     <label for="access_token">Shopify Access Token:</label>
-                    <input type="text" name="access_token" id="inp-s2" />
+                    <input type="text" placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxx" name="access_token" id="inp-s2" />
                 </div>
                 <button type="submit">Submit</button>
             </form>
         </div>
         <div class="woocommerce-form">
             <form id="woocommerce-data-form" action="/connect-woocommerce" method="post">
-                <label for="woocommerce-storename">Select a name for your store:</label>
-                <input type="text" name="shopify-storename" id="inp-w0" />
-                <label for="woocommerce-url">WooCommerce Store URL (just enter domain name, no need for https://):</label>
-                <input type="text" placeholder="yourstoredomain.com" name="woocommerce-url" id="inp-w1" />
-                <label for="woocommerce-consumerkey">WooCommerce Consumer Key:</label>
-                <input type="text" name="woocommerce-consumerkey" id="inp-w2" />
-                <label for="woocommerce-consumersecret">WooCommerce Consumer Secret:</label>
-                <input type="text" name="woocommerce-consumersecret" id="inp-w3" />
+
+                <div class="input-wrapper">
+                    <label for="store_name">Select a name for your store:</label>
+                    <input type="text" placeholder="Eg.: My mug store" name="store_name" id="inp-w0" />
+                </div>
+                
+                <div class="input-wrapper">
+                    <label for="store_url">WooCommerce Store URL (just enter domain name, no need for https://):</label>
+                    <input type="text" placeholder="yourstoredomain.com" name="store_url" id="inp-w1" />
+                </div>
+                <div class="input-wrapper">
+                    <label for="consumer_key">WooCommerce Consumer Key:</label>
+                    <input type="text" placeholder="ck_xxxxxxxxxxxxxxxxxxxxxxxxx" name="consumer_key" id="inp-w2" />
+                </div>
+                <div class="input-wrapper">
+                    <label for="consumer_secret">WooCommerce Consumer Secret:</label>
+                    <input type="text" placeholder="cs_xxxxxxxxxxxxxxxxxxxxxxxxx" name="consumer_secret" id="inp-w3" />
+                </div>
                 <button type="submit">Submit</button>
             </form>
         </div>
