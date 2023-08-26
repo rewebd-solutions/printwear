@@ -28,7 +28,6 @@ app.use('/images', express.static(path.resolve(__dirname, 'assets/images')));
 app.use('/js', express.static(path.resolve(__dirname, 'assets/js')));
 
 app.use('/', require('./server/routes/router'))
-app.use('/forget', require('./server/routes/router'))
 
 app.use(formidable({
     multiples: true,
