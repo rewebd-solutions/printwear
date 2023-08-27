@@ -4,6 +4,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilio = require('twilio')(accountSid, authToken);
 const crypto = require("crypto")
 const algorithm = "sha256"
+const authServices = require("../services/auth");
 
 var ProductModel = require('../model/productModel');
 var StoreModel = require('../model/storeModel');
@@ -11,12 +12,12 @@ var UserModel = require("../model/userModel");
 var CartModel = require("../model/cartModel");
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
-var cur_user = null;
-
 var nodemailer = require('nodemailer');
 const otpGen = require("otp-generator")
+const storageReference = require("../services/firebase");
 
 //variables
+var cur_user = null;
 var OTP = null;
 let sec = false;
 var number = null;
@@ -45,31 +46,39 @@ exports.register = async (req, res) => {
   })
   .then(() => {
     //res.send(data)
-    res.redirect("/dashboard");
+    res.render("login", { status: "Account created. Log In"});
   })
   .catch(err => {
     console.log(err);
-    res.render("login", { status: "ERROR SAVING DATA, TRY AGAIN" })
+    res.render("login", { status: "Error saving data, try again" })
   });
 }
 
 exports.login = async (req, res) => {
-
   const check = await UserModel.findOne({ email: req.body.email })
 
   if (check === null) {
-    res.render("login", { status: "USER DOES NOT EXIST" });
+    return res.render("login", { status: "User does not exist" });
+  }
+  
+  if (check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex")) {
+    // console.log("inga vardhu")
+    const cookieToken = authServices.createToken(check._id);
+    res.cookie("actk", cookieToken, {
+      httpOnly: true,
+      secure: true
+    });
+    // console.log("cookie set");
+    return res.redirect("/dashboard");
   }
   else {
-    if (check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex")) {
-      cur_user = check._id;
-      res.redirect("/dashboard");
-    }
-    else {
-      res.render("login", { status: "INVALID DETAILS" });
-    }
+    return res.render("login", { status: "Invalid details" });
   }
 
+}
+
+exports.logout = async (req, res) => {
+    return res.clearCookie("actk").redirect("/login");
 }
 
 exports.emailverify = async (req, res) => {
@@ -171,14 +180,14 @@ exports.updatepassword = async (req, res) => {
   }
 }
 
-exports.upload = async (type, req, res) => {
-  var tmp_path = req.files.path;
-  var target_path = 'uploads/' + req.files.name;
-  fs.readFile(tmp_path, function (err, data) {
-    fs.writeFile(target_path, data, function (err) {
-      res.render('complete');
-    })
-  });
+exports.uploadimage = async (req, res) => {
+  // get files
+  // validate them
+  // get the storage firebase reference
+  // get the file URL in callback
+  // store in images
+  console.log(storageReference.child("images/"))
+  return res.send("ok");
 
 }
 

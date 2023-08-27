@@ -3,38 +3,84 @@ const mongoose = require('mongoose');
 var UserSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
-    },
-    email: {
+        required: true
+      },
+      email: {
         type: String,
         required: true,
-        unique: true
-    },
-    phone: {
-        type: Number,
-        required: true
-    },
-    password: {
+        unique: true,
+        lowercase: true,
+        trim: true
+      },
+      password: {
+        type: String,
+        required: true,
+      },
+      phone: {
         type: String,
         required: true
-    },
-    emailVerified: {
+      },
+      emailVerified: {
         type: Boolean,
         required: true
-    },
-    phoneVerified: {
+      },
+      phoneVerified: {
         type: Boolean,
         required: true
-    },
-    cartId: {
+      },
+      cartId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Cart',
-        required: false
-    },
-    image: {
-        data: Buffer,
-        contentType: String
-    }
+        ref: 'Cart'
+      },
+      billingAddress: {
+        firstName: {
+          type: String
+        },
+        lastName: {
+          type: String
+        },
+        street: {
+          type: String
+        },
+        city: {
+          type: String
+        },
+        landmark: {
+          type: String
+        },
+        state: {
+          type: String
+        },
+        pincode: {
+          type: Number,
+        }
+      },
+      shippingAddress: {
+        firstName: {
+          type: String
+        },
+        lastName: {
+          type: String
+        },
+        street: {
+          type: String
+        },
+        city: {
+          type: String
+        },
+        landmark: {
+          type: String
+        },
+        state: {
+          type: String
+        },
+        pincode: {
+          type: Number
+        }
+      },
+      profileImage: {
+        type: String
+      }
 })
 
 const UserModel = mongoose.model('User', UserSchema);

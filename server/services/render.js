@@ -5,7 +5,12 @@ exports.homeRoutes = (req, res) => {
 }
 
 exports.loginpage = (req, res) => {
+    // if (req.id) return res.redirect("/dashboard");
     res.render("login", { status: '' });
+}
+
+exports.expired = (req, res) => {
+    res.render("expired");
 }
 
 exports.dashboardpage = (req, res) => {

@@ -1,13 +1,35 @@
 const mongoose = require('mongoose');
 
 var ProductSchema = new mongoose.Schema({
-  name: String,
-  price: Number,
-  quantity: Number,
-  frontimage: String,
-  backimage: String,
-  fronttext: String,
-  backtext: String
+    SKU: String,
+    name: String,
+    category: String,
+    gender: String,
+    description: String,
+    productImage: {
+        front: String,
+        back: String
+    },
+    sizes: [String],
+    colors: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Color',
+        }
+    ],
+    price: {
+        xs: Number,
+        s: Number,
+        m: Number,
+        l: Number,
+        xl: Number,
+    },
+    canvas: {
+        startX: Number,
+        startY: Number,
+        width: Number,
+        height: Number
+    }
 });
 
 const productModel = mongoose.model('Product', ProductSchema);

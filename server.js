@@ -7,8 +7,8 @@ const session = require('express-session');
 var nodemail = require('nodemailer');
 const formidable = require("express-formidable")
 
-
 const connectDB = require('./server/database/connection');
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = process.env.PORT || 3000
 
@@ -18,6 +18,7 @@ app.use(morgan('tiny'));
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
+app.use(cookieParser());
 
 app.set('view engine', 'ejs');
 app.set('views', path.resolve(__dirname, 'views'));
@@ -45,6 +46,7 @@ connectDB().then(() => {
 
 
 app.get('/barath', (req, res) => {
+    
     res.render('mockup');
 })
 // app.post('/my-endpoint', (req, res) => {
