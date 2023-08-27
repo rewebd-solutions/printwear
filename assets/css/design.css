@@ -713,7 +713,7 @@ label #cancel {
   }
 }
 
-.content{
+.content {
   display: flex;
   flex-direction: column;
   max-width: 1366px;
@@ -726,20 +726,25 @@ label #cancel {
 .search {
   display: flex;
   margin-left: auto;
+  position: relative !important;
 }
 
-#search{
-  position: relative !important;
+#search {
   background: #F5F1F1;
   border: none;
   padding: 0.4rem 0.8rem;
+  padding-left: 2rem;
   border-radius: 5px;
 }
 
-.search i{
+.search i {
   position: absolute;
+  display: inline-block !important;
+  width: auto;
+  z-index: 0;
   right: 0;
-  top: 0.4rem;
+  top: 0.6rem;
+  left: 0.4rem
 }
 
 
@@ -762,6 +767,57 @@ label #cancel {
   color: #F05A30;
 }
 
-.image-upload>input {
+.file-input {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #F5F1F1;
+  border-radius: 10px;
+  padding: 3rem;
+  cursor: pointer;
+}
+
+#file-input {
   display: none;
+}
+
+.user-designs{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.design-image-wrapper{
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  width: 280px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #0000004b;
+}
+
+.image-settings{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.image-details{
+  font-family: 'Arial', sans-serif;
+  padding: 0.5rem;
+}
+
+.design-image{
+  width: 90%;
+  object-fit: cover;
 }

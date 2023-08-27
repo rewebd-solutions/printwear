@@ -42,7 +42,6 @@ i{
     margin-left: 60px;
 }
 .hvr{
-    /* border: solid; */
     margin-bottom: -20px;
 }
 .sub-menu{
@@ -55,7 +54,6 @@ i{
     position: absolute;
     margin-top: 15px;
     background-color: rgba(0, 0, 0, .6);
-    /* margin-left: -45px; */
 }
 .hvr:hover .sub-menu ul{
     display: flex;
@@ -136,9 +134,7 @@ i{
 
 .head h2 {
     font-size: 24px;
-    /* font-weight: 800; */
     margin: 20px;
-    /* font-family: 'Nunito'; */
     z-index: 3;
     letter-spacing: 0.1rem;
 
@@ -153,16 +149,12 @@ i{
 
 .left {
     display: block;
-    /* margin-right: auto; */
     margin-left: auto;
-    /* border: solid; */
 }
 
 .right {
     display: block;
-    /* margin-right: auto; */
     margin-left: auto;
-    /* border: solid; */
     margin-right: -20px;
 }
 
@@ -174,7 +166,7 @@ i{
 .nav-right {
     display: flex;
     flex-direction: row;
-    /* border: solid; */
+    
     margin-left: -30px;
 }
 
@@ -202,7 +194,7 @@ i{
 #gif1 {
     display: block;
     margin-left: 100px;
-    /* border: solid; */
+    
     margin-bottom: 20px;
     height: 500px;
     margin-top: -50px;
@@ -257,26 +249,20 @@ i{
 }
 .title-1 {
     font-size: 32px !important;
-    /* text-shadow: 0 1px #fff; */
-    /* font-weight: bold; */
 }
 
 .title-2 {
     font-size: 33px !important;
-    /* text-shadow: 0 1px #000; */
-    /* font-weight: bold; */
 }
 
 .title-3 {
     font-size: 33px !important;
-    /* text-shadow: 0 1px #000; */
-    /* font-weight: bold; */
+
 }
 
 .title-4 {
     font-size: 33px !important;
-    /* text-shadow: 0 1px #fff; */
-    /* font-weight: bold; */
+
 }
 
 #btn4 {
@@ -371,7 +357,7 @@ i{
 .navbar-nav {
     text-align: right !important;
     padding-right: 20px;
-    /* border: solid; */
+    
 }
 
 
@@ -389,7 +375,6 @@ i{
 
 .list-dot p {
     font-size: 50px;
-    /* font-weight: 900; */
     margin-top: -38px;
     padding-right: 3px;
 }
@@ -408,7 +393,7 @@ i{
 
 .wwr-content p {
     font-weight: 300;
-    /* border: solid; */
+    
     letter-spacing: 0.1rem;
     line-height: 33px;
     font-size: 17px;
@@ -450,7 +435,6 @@ i{
 .prod-content {
     display: block;
     margin: auto;
-    /* max-width: 1000px; */
     text-align: center;
 }
 
@@ -598,7 +582,6 @@ i{
 }
 
 .products {
-    /* height: 110vh; */
     background-color: #fff;
     color: #000;
     padding-top: 50px;
@@ -643,7 +626,7 @@ i{
 
 .animate-points p {
     font-size: 24px;
-    /* font-weight: 900; */
+   
 }
 
 .what-we-do h3 {
@@ -692,7 +675,7 @@ i{
 
 .card-content p {
     font-size: 17px;
-    /* text-shadow: 1px 0 #000; */
+   
     font-weight: bold;
     letter-spacing: 0.1rem;
 }
@@ -734,7 +717,7 @@ i{
     padding: 12px;
     padding-left: 40px;
     padding-right: 40px;
-    /* margin-left: 100px;  */
+    
     border-radius: 12px;
     background-color: #F05A30;
     border: none;
@@ -771,30 +754,29 @@ i{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* border: solid; */
+    
 }
 .shipping {
-    /* background-image: url('images/shipping.png'); */
-    /* height: 83vh; */
+  
     background-size: cover;
     background-color: #eee;
     display: flex;
     padding: 3rem;
     justify-content: center;
     align-items: center;
-    /* background-blend-mode: multiply; */
+    
 }
 .make-money{
     display: flex;
     flex-direction: row;
     
-    /* border: solid; */
+    
     background-color: #A981E3;
     border-radius: 20px;
-    /* width: 100%; */
+    
 }
 .money-content{
-    /* border: solid; */
+    
     padding-left: 50px;
     padding-right: 50px;
     border-radius: 20px 0px 0px 20px;
@@ -805,7 +787,7 @@ i{
     display: flex;
     flex-direction: column;
     margin-top: 40px;
-    /* border: solid; */
+    
     padding: 20px;
     border-radius: 20px;
     background-color: #624F82;
@@ -813,13 +795,13 @@ i{
 .t-price{
     display: flex;
     flex-direction: row;
-    /* border: solid; */
+    
     padding-bottom: 0 !important;
     align-items: center;
     width: 100%;
 }
 .t-price p{
-    /* border: solid; */
+    
     text-align: center;
     width: 100%;
     margin-bottom: 0 !important;
@@ -830,11 +812,11 @@ i{
 }
 .lft{
     width: 70% !important;
-    /* border: solid; */
+    
 }
 .ryt{
     width: 30% !important;
-    /* border: solid; */
+    
 }
 .money-content h3{
     font-size: 34px;
@@ -842,7 +824,7 @@ i{
 }
 .money-img{
     background-color: transparent;
-    /* border: solid; */
+    
     background-color: #624F82;
     border-radius: 20px;
     max-width: max-content;
@@ -872,7 +854,7 @@ i{
     padding-top: 80px;
     padding-left: 100px;
     font-size: 28px;
-    /* font-weight: 900; */
+    
     letter-spacing: 0.1rem;
     max-width: 500px;
     line-height: 50px;
@@ -886,7 +868,7 @@ i{
     font-weight: 800;
     letter-spacing: 0.1rem;
     max-width: 800px;
-    /* padding-top: 20px; */
+    
     line-height: 40px;
 }
 
@@ -1443,9 +1425,24 @@ i{
         margin-right: 60px !important;
     }
 }
-
+@media screen and (max-width:1260px){
+    #logo{
+        margin-left: 30px;
+    }
+    .nav-link{
+        margin-left: 35px;
+        margin-right: 35px;
+    }
+}
 @media screen and (max-width:1220px) {
 
+    .nav-link{
+        margin-left: 50px;
+        margin-right: 50px;
+    }
+    .nav-link-bt{
+        margin-right: 20px;
+    }
     /* Products */
     .prod-div {
         flex-direction: column !important;
@@ -1518,14 +1515,14 @@ i{
     .nav-link {
         font-size: 15px;
         width: max-content;
-        /* border: solid; */
+        
         margin-left: 0;
     }
 
     .nav-item {
         margin-left: 0;
         width: fit-content;
-        /* border: solid; */
+        
         padding-left: 0 !important;
         padding-left: 10px !important;
     }
@@ -1543,19 +1540,34 @@ i{
 }
 
 @media screen and (max-width:1044px) {
-
+    .footer-head{
+        margin-left: 20px;
+    }
+    .footer-content{
+        width: 100%;
+    }
+    .footer-div{
+        margin-right: 5px;
+    }
+    #logo{
+        margin-left: 20px;
+    }
+    .nav-link{
+        margin-left: 30px;
+        margin-right: 30px;
+    }
     /* Navbar */
     .nav-link {
         font-size: 15px;
         width: max-content;
-        /* border: solid; */
+        
         margin-left: 0;
     }
 
     .nav-item {
         margin-left: 0;
         width: fit-content;
-        /* border: solid; */
+        
         padding-left: 0 !important;
         padding-left: 10px !important;
     }
@@ -1625,11 +1637,6 @@ i{
         width: 100vw !important;
     }
 
-    /* .navbar ul {
-        flex-direction: column !important;
-        margin-right: 20px;
-        align-items: flex-end !important;
-    } */
 
     .nav-left {
         flex-direction: column !important;
@@ -1780,19 +1787,19 @@ i{
 
 @media screen and (max-width:930px) {
     #font-design2 {
-        margin-top: -75px;
+        margin-top: -50px;
     }
 
     #font-design3 {
-        margin-top: -75px;
+        margin-top: -50px;
     }
 
     #font-design4 {
-        margin-top: -75px;
+        margin-top: -50px;
     }
 
     #font-design5 {
-        margin-top: -75px;
+        margin-top: -50px;
     }
 
     #no1 {
@@ -1823,6 +1830,9 @@ i{
 }
 
 @media screen and (max-width:850px) {
+    .list{
+        width: 100%;
+    }
     #car1 {
         height: 260px !important;
         width: 280px !important;
@@ -1845,7 +1855,7 @@ i{
         width: 100% !important;
         margin-left: 0px !important;
         padding-left: 0px !important;
-        /* border: solid; */
+        
     }
 
     .what-we-do {
@@ -1860,7 +1870,7 @@ i{
     .wwd-top {
         display: inline-block !important;
         text-align: center !important;
-        /* border: solid; */
+        
         width: 100%;
     }
 
@@ -1982,10 +1992,30 @@ i{
     .wwd-points {
         margin-top: 20px !important;
     }
+    .footer-head h2{
+        margin-left: 70px;
+    }
+    .footer-signup{
+        display: none;
+    }
+    .money-img{
+        display: none;
+    }
+    .money-content{
+        width: 90%;
+    }
+    .sell-btn{
+        display: block;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
 }
 
 @media screen and (max-width:781px) {
 
+    #logo{
+        margin-left: 20px;
+    }
     /* Client Page */
     .arrow-right {
         display: none;
@@ -2064,7 +2094,7 @@ i{
     .wwd-top {
         display: inline-block !important;
         text-align: center !important;
-        /* border: solid; */
+        
         width: 100%;
     }
 
@@ -2281,7 +2311,7 @@ i{
         margin-left: 0px !important;
         padding-left: 0px !important;
         margin-bottom: 30px;
-        /* border: solid; */
+        
     }
 
     .what-we-do {
@@ -2296,7 +2326,7 @@ i{
     .wwd-top {
         display: inline-block !important;
         text-align: center !important;
-        /* border: solid; */
+        
         width: 100%;
     }
 
@@ -2466,6 +2496,16 @@ i{
         overflow-x: hidden !important;
         width: 100vw !important;
     }
+    .list{
+        display: grid;
+        place-items: center;
+    }
+    .money-content{
+        width: 100%;
+    }
+    #sell-btn{
+        margin-left: 20px !important;
+    }
 
     /* Home Page */
     .head {
@@ -2503,7 +2543,7 @@ i{
         margin-left: 0px !important;
         padding-left: 0px !important;
         margin-bottom: 30px;
-        /* border: solid; */
+        
     }
 
     .what-we-do {
@@ -2774,7 +2814,7 @@ i{
         width: 100% !important;
         margin-left: 5px !important;
         padding-left: 0px !important;
-        /* border: solid; */
+        
     }
 
     .what-we-do {
@@ -2789,7 +2829,7 @@ i{
     .wwd-top {
         display: inline-block !important;
         text-align: center !important;
-        /* border: solid; */
+        
         width: 100%;
     }
 
@@ -2946,7 +2986,7 @@ i{
         width: 100% !important;
         margin-left: 0px !important;
         padding-left: 0px !important;
-        /* border: solid; */
+        
         margin-top: 30px;
     }
 
@@ -2962,7 +3002,7 @@ i{
     .wwd-top {
         display: inline-block !important;
         text-align: center !important;
-        /* border: solid; */
+        
         width: 100%;
     }
 
@@ -3061,7 +3101,9 @@ i{
 }
 
 @media screen and (max-width:380px) {
-
+    .head h1{
+        font-size: 25px;
+    }
     /* Client Page */
     .swiper {
         max-width: 350px !important;
@@ -3174,7 +3216,7 @@ i{
         width: 100% !important;
         margin-left: 0px !important;
         padding-left: 0px !important;
-        /* border: solid; */
+        
     }
 
     .what-we-do {
@@ -3189,7 +3231,7 @@ i{
     .wwd-top {
         display: inline-block !important;
         text-align: center !important;
-        /* border: solid; */
+        
         width: 100%;
     }
 
