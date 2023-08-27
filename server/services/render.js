@@ -26,7 +26,7 @@ exports.forgetRoutes = (req, res) => {
 }
 
 exports.designgallery = (req, res) => {
-    res.render('design');
+    res.render('design', { status: "" });
 }
 
 exports.manageorder = (req, res) => {

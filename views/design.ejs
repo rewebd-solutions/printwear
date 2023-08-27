@@ -24,6 +24,48 @@
 </head>
 
 <body>
+    <!-- <% if (status != '') { %>
+        <style>
+            .status-box{
+                padding: 1rem;
+                border-left: 6px solid rgb(255, 81, 81);
+                background-color: rgb(255, 159, 159);
+                color: white;
+                position: absolute;
+                top: 2rem;
+                left: 2rem;
+                border-radius: 3px;
+                z-index: 10;
+                font-size: 0.8rem !important;
+                transition: opacity 0.5s ease;
+            }
+            .dismiss{
+                border: none;
+                border-radius: 50%;
+                padding: 0.6rem;
+                cursor: pointer;
+                top: 0.5rem;
+                right: 0.5rem;
+                display: inline-grid;
+                place-items: center;
+                transform: scale(0.6);
+            }
+            .delete-popup{
+                opacity: 0;
+            }
+        </style>
+        <div class="status-box">
+            <h2><%=status%><button class="dismiss"><img src="/images/close-icon.webp" width="20" alt=""></button></h2>
+        </div>
+        <script>
+            const removePopup = () =>  document.querySelector(".status-box").classList.add("delete-popup");
+            const removePopupTimer = setInterval(() => {
+                removePopup();
+                document.querySelector(".status-box").remove();
+            }, 2000);
+            document.querySelector(".dismiss").addEventListener("click", removePopup);
+        </script>
+    <% } %>  -->
     <!-- Navbar starts here -->
     <div class="banner">
         <%- include('partials/side-logo.ejs') %>
@@ -39,42 +81,109 @@
         <h1><span class="Title_1half">DESIGN</span>&nbsp;<span class="Title_2half">GALLERY</span></h1>
         <div class="content-main ">
             <div class="cards d-flex flex-column">
-                <div class="cd2">
-                    <div class="cd" data-aos="fade-up">
-                        <div class="image-upload">
-                            <label for="file-input">
-                                <i class="fa-solid fa-circle-plus fa-5x"></i>
-                            </label>
-
-                            <input id="file-input" type="file" accept="image/png" />
-                        </div>
-                        <h5>Upload your designs</h5>
-                        <p>Drop your designs here or click to browse</p>
-                    </div>
+                <div class="image-upload" data-aos="fade-up">
+                    <form action="/uploadimage" method="post" enctype="multipart/form-data">
+                        <label for="file-input" class="file-input">
+                            <i class="fa-solid fa-circle-plus fa-5x"></i>
+                            <h5>Upload your designs</h5>
+                            <p>Drop your designs here or click to browse</p>
+                        </label>
+                        <input id="file-input" type="file" onchange="form.submit()" name="image" accept="image/png" />
+                    </form>
                 </div>
-                hi
             </div>
         </div>
-        <div class="user-designs">
-            <!-- cards to display them -->
+        <div class="user-designs" data-aos="fade-up">
+            <div class="design-image-wrapper">
+                <button class="image-settings "><i class="fa fa-ellipsis-v"></i></button>
+                <div
+                    style="width: 280px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
+                    <img class="design-image" src="images/flaming-bunny.png" alt="" />
+                </div>
+                <div class="image-details">
+                    <h3>imgname</h3>
+                    <h5>1000 x 1000</h5>
+                    <div class="design-image-meta">
+                        <p>png</p>
+                        <p>124.5 KB</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
-    </script>
-    <script>
-        let nav = document.querySelector('nav');
-        window.addEventListener('scroll', function () {
-            if (window.pageYOffset > 100) {
-                nav.classList.add('dark', 'shadow');
+
+        const userImageWrapper = document.querySelector(".user-designs");
+
+        const fetchImageAndPopulate = async () => {
+            try {
+                const imageFetch = await fetch("/obtainimages");
+                const imageData = await imageFetch.json();
+                console.log(imageData);
+                return imageData;
+            } catch(err) {
+                console.log(err);
+                return err;
             }
-            else {
-                nav.classList.remove('dark', 'shadow');
-            }
-        });
+        }
+
+        let imageDOMString = ``;
+        fetchImageAndPopulate().then(data => {
+            data.map(imageItem => {
+                const image = new Image();
+
+                image.src = imageItem.front;
+                image.onload = () => {
+                    const properties = {
+                        width: image.width,
+                        height: image.height,
+                      };
+                      imageDOMString += `
+                          <div class="design-image-wrapper">
+                              <button class="image-settings "><i class="fa fa-ellipsis-v"></i></button>
+                              <div
+                                  style="width: 280px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
+                                  <img class="design-image" src="${imageItem.front}.png" alt="" />
+                              </div>
+                              <div class="image-details">
+                                  <h3>imgname</h3>
+                                  <h5>${properties.width + 'x' + properties.height}</h5>
+                                  <div class="design-image-meta">
+                                      <p>png</p>
+                                      <p>124.5 KB</p>
+                                  </div>
+                              </div>
+                          </div>
+                      `;
+                      userImageWrapper.innerHTML += imageDOMString;
+                }
+
+            });
+        }).catch((err) => {
+            console.log(err);
+            imageDOMString = `An error occured while fetching the data, please try again.`;
+            userImageWrapper.innerHTML = imageDOMString;
+        })
     </script>
+    <!-- <script>
+        const fileInput = document.querySelector("#file-input");
+        fileInput.addEventListener("change", async (e) => {
+            // console.log(e.target.files[0].size/1000);
+            const imageFile = e.target.files[0];
+            const fileData = new FormData();
+            fileData.append('file', imageFile);
+            //console.log(fileData.entries().next());
+            const status = await fetch("/uploadimage", {
+                method: 'POST',
+                body: fileData,
+            });
+            const result = status.status;
+            console.log(result)
+        })
+    </script> -->
 </body>
 
 </html>

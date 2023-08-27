@@ -10,6 +10,7 @@ var ProductModel = require('../model/productModel');
 var StoreModel = require('../model/storeModel');
 var UserModel = require("../model/userModel");
 var CartModel = require("../model/cartModel");
+var ImageModel = require("../model/imageModel")
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var nodemailer = require('nodemailer');
@@ -55,6 +56,7 @@ exports.register = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
+  // console.log(req.body);
   const check = await UserModel.findOne({ email: req.body.email })
 
   if (check === null) {
@@ -181,14 +183,34 @@ exports.updatepassword = async (req, res) => {
 }
 
 exports.uploadimage = async (req, res) => {
-  // get files
-  // validate them
-  // get the storage firebase reference
-  // get the file URL in callback
-  // store in images
-  console.log(storageReference.child("images/"))
-  return res.send("ok");
+  try {
+    // console.log(req.file.originalname);
+    const fileBuffer = req.file.buffer;
+    const fileReference = storageReference.child(`images/${req.file.originalname}`);
+    await fileReference.put(fileBuffer);
+    const fileDownloadURL = await fileReference.getDownloadURL();
+    // console.log(fileDownloadURL);
+    const fileSave = await ImageModel.create({
+      userId: req.userId,
+      front: fileDownloadURL
+    });
+    // console.log(fileSave);
+    res.status(200).redirect("designgallery");
+  } catch (error) {
+    console.log(error);
+    res.status(500);
+  }
+}
 
+exports.obtainimages = async (req, res) => {
+    const userId = req.userId;
+    try {
+      const imageData = await ImageModel.find({ userId: userId });
+      res.status(200).json(imageData);
+    } catch (error) {
+      console.log(error);
+      res.status(404).json({"message": "Not found!"});
+    }
 }
 
 exports.verify = (req, res) => {

@@ -1,8 +1,12 @@
 const express = require('express')
+const multer = require("multer");
 const route = express.Router()
 const services = require('../services/render')
 const controller = require('../controller/controller');
 const authServices = require("../services/auth");
+
+const upload = multer({ storage: multer.memoryStorage() });
+
 route.get('/', services.homeRoutes)
 
 route.post('/register', controller.register);
@@ -19,7 +23,8 @@ route.get('/forget', services.forgetRoutes);
 
 route.post('/verify', controller.verify);
 route.post('/updatepassword', controller.updatepassword);
-route.post('/uploadimage', controller.uploadimage);
+route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), controller.uploadimage);
+route.get("/obtainimages", authServices.authorizeToken, controller.obtainimages);
 
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
 route.post('/addproduct', controller.addproduct);
