@@ -740,7 +740,7 @@ label #cancel {
 .search i {
   position: absolute;
   display: inline-block !important;
-  width: auto;
+  width: 20px;
   z-index: 0;
   right: 0;
   top: 0.6rem;
@@ -792,9 +792,19 @@ label #cancel {
   display: flex;
   position: relative;
   flex-direction: column;
-  width: 280px;
+  width: 250px;
+  height: fit-content;
   border-radius: 10px;
   box-shadow: 0 0 10px #0000004b;
+}
+
+.image-menu {
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  padding: 0.5rem 1rem;
+  top: 1.7rem;
+  right: 0.2rem;
 }
 
 .image-settings{
@@ -812,12 +822,23 @@ label #cancel {
   font-weight: bold;
 }
 
-.image-details{
+
+.image-settings-2 {
+  right: 2.9rem;
+}
+
+.image-details > h5, h6, p{
   font-family: 'Arial', sans-serif;
-  padding: 0.5rem;
+  letter-spacing: normal;
+  padding: 0.3rem;
+}
+
+.design-image-meta {
+  display: flex;
+  justify-content: space-between;
 }
 
 .design-image{
-  width: 90%;
-  object-fit: cover;
+  width: 100%;
+  object-fit: contain;
 }
