@@ -25,6 +25,7 @@ route.post('/verify', controller.verify);
 route.post('/updatepassword', controller.updatepassword);
 route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), controller.uploadimage);
 route.get("/obtainimages", authServices.authorizeToken, controller.obtainimages);
+route.post("/deleteimage", authServices.authorizeToken, controller.deleteimage);
 
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
 route.post('/addproduct', controller.addproduct);

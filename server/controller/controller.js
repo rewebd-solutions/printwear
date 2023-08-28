@@ -184,15 +184,20 @@ exports.updatepassword = async (req, res) => {
 
 exports.uploadimage = async (req, res) => {
   try {
-    // console.log(req.file.originalname);
+    // console.log(req.file);
     const fileBuffer = req.file.buffer;
-    const fileReference = storageReference.child(`images/${req.file.originalname}`);
+    const fileReference = storageReference.child(`images/${req.userId + "_" + req.file.originalname}`);
     await fileReference.put(fileBuffer);
     const fileDownloadURL = await fileReference.getDownloadURL();
     // console.log(fileDownloadURL);
     const fileSave = await ImageModel.create({
       userId: req.userId,
-      front: fileDownloadURL
+      front: {
+        url: fileDownloadURL,
+        name: req.file.originalname,
+        size: req.file.size/1000,
+        format: req.file.mimetype.split("/")[1],
+      }
     });
     // console.log(fileSave);
     res.status(200).redirect("designgallery");
@@ -211,6 +216,24 @@ exports.obtainimages = async (req, res) => {
       console.log(error);
       res.status(404).json({"message": "Not found!"});
     }
+}
+
+exports.deleteimage = async (req, res) => {
+  const userId = req.body.imageId;
+  const imageName = req.body.imageName;
+  const imageId = req.body.imageIdX;
+  console.log(imageId);
+  try {
+    const fileReference = storageReference.child(`images/${userId + "_" + imageName}`);
+    await fileReference.delete();
+    await ImageModel.findOneAndDelete({ _id: imageId });
+    res.status(200);
+    res.redirect("/designgallery");
+  } catch (error) {
+    console.log(error);
+    res.redirect("/designgallery");
+  }
+
 }
 
 exports.verify = (req, res) => {

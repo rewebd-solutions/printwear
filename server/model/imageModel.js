@@ -5,8 +5,18 @@ const ImageSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    front: String,
-    back: String
+    front: {
+        url: String,
+        name: String,
+        size: Number,
+        format: String
+    },
+    back: {
+        url: String,
+        name: String,
+        size: Number,
+        format: String
+    },
 });
 
 const imageModel = mongoose.model("Image", ImageSchema);

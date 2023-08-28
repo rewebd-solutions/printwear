@@ -94,21 +94,22 @@
             </div>
         </div>
         <div class="user-designs" data-aos="fade-up">
-            <div class="design-image-wrapper">
-                <button class="image-settings "><i class="fa fa-ellipsis-v"></i></button>
+            <!-- <div class="design-image-wrapper">
+                <button class="image-settings"><i class="fa fa-download"></i></button>
+                <button class="image-settings image-settings-2"><i class="fa fa-trash"></i></button>
                 <div
-                    style="width: 280px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
+                    style="width: 250px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
                     <img class="design-image" src="images/flaming-bunny.png" alt="" />
                 </div>
                 <div class="image-details">
-                    <h3>imgname</h3>
-                    <h5>1000 x 1000</h5>
+                    <h5>imgname</h5>
+                    <h6>1000 x 1000</h6>
                     <div class="design-image-meta">
                         <p>png</p>
                         <p>124.5 KB</p>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </main>
 
@@ -130,60 +131,73 @@
             }
         }
 
-        let imageDOMString = ``;
+        const deleteImageHandler = async (imageid, imagename, imageidx) => {
+            console.log(imageid, imagename);
+            await fetch("/deleteimage", {
+                method: "post",
+                headers: {
+                    'Content-Type': "application/json"
+                },
+                body: JSON.stringify({
+                    imageId: imageid,
+                    imageName: imagename,
+                    imageIdX: imageidx
+                })
+            });
+            location.reload();
+        }
+
+
         fetchImageAndPopulate().then(data => {
             data.map(imageItem => {
                 const image = new Image();
+                image.src = imageItem.front.url;
 
-                image.src = imageItem.front;
-                image.onload = () => {
-                    const properties = {
+                image.addEventListener("load", () => {
+                    const imageProperties = {
                         width: image.width,
                         height: image.height,
-                      };
-                      imageDOMString += `
-                          <div class="design-image-wrapper">
-                              <button class="image-settings "><i class="fa fa-ellipsis-v"></i></button>
-                              <div
-                                  style="width: 280px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
-                                  <img class="design-image" src="${imageItem.front}.png" alt="" />
-                              </div>
-                              <div class="image-details">
-                                  <h3>imgname</h3>
-                                  <h5>${properties.width + 'x' + properties.height}</h5>
-                                  <div class="design-image-meta">
-                                      <p>png</p>
-                                      <p>124.5 KB</p>
-                                  </div>
-                              </div>
-                          </div>
-                      `;
-                      userImageWrapper.innerHTML += imageDOMString;
-                }
+                    };
+    
+                    const imageDOMString = `
+                        <div class="design-image-wrapper">
+                            <button class="image-settings"><a href="${imageItem.front.url}" target="_blank"><i class="fa fa-download"></i></a></button>
+                            <button class="image-settings image-settings-2" data-imageid="${imageItem.userId}" data-imageidx="${imageItem._id}" data-imagename="${imageItem.front.name}"><i class="fa fa-trash"></i></button>
+                            <div
+                                style="width: 250px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
+                                <img class="design-image" src="${imageItem.front.url}" alt="" />
+                            </div>
+                            <div class="image-details">
+                                <h5>${imageItem.front.name}</h5>
+                                <h6>${imageProperties.width + 'x' + imageProperties.height}</h6>
+                                <div class="design-image-meta">
+                                    <p>${imageItem.front.format}</p>
+                                    <p>${imageItem.front.size} KB</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    userImageWrapper.innerHTML += imageDOMString;
 
+                    //const deleteBtn = document.querySelector(`button[data-imageid="${imageItem._id}"]`);
+                    //console.log(deleteBtn);
+                    //deleteBtn.addEventListener("click", () => deleteImageHandler(imageItem._id));
+                })
             });
+            
         }).catch((err) => {
             console.log(err);
-            imageDOMString = `An error occured while fetching the data, please try again.`;
+            const imageDOMString = `An error occured while fetching the data, please try again.`;
             userImageWrapper.innerHTML = imageDOMString;
-        })
+        });
+
+        userImageWrapper.addEventListener("click", (e) => {
+            const deleteBtn = e.target.closest(".image-settings-2");
+            if(deleteBtn) {
+                deleteImageHandler(deleteBtn.dataset.imageid, deleteBtn.dataset.imagename, deleteBtn.dataset.imageidx);
+            }
+        });
     </script>
-    <!-- <script>
-        const fileInput = document.querySelector("#file-input");
-        fileInput.addEventListener("change", async (e) => {
-            // console.log(e.target.files[0].size/1000);
-            const imageFile = e.target.files[0];
-            const fileData = new FormData();
-            fileData.append('file', imageFile);
-            //console.log(fileData.entries().next());
-            const status = await fetch("/uploadimage", {
-                method: 'POST',
-                body: fileData,
-            });
-            const result = status.status;
-            console.log(result)
-        })
-    </script> -->
 </body>
 
 </html>
