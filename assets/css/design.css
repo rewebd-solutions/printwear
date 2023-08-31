@@ -781,14 +781,14 @@ label #cancel {
   display: none;
 }
 
-.user-designs{
+.user-designs {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   padding: 2rem;
 }
 
-.design-image-wrapper{
+.design-image-wrapper {
   display: flex;
   position: relative;
   flex-direction: column;
@@ -807,7 +807,7 @@ label #cancel {
   right: 0.2rem;
 }
 
-.image-settings{
+.image-settings {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -827,7 +827,9 @@ label #cancel {
   right: 2.9rem;
 }
 
-.image-details > h5, h6, p{
+.image-details>h5,
+h6,
+p {
   font-family: 'Arial', sans-serif;
   letter-spacing: normal;
   padding: 0.3rem;
@@ -838,7 +840,7 @@ label #cancel {
   justify-content: space-between;
 }
 
-.design-image{
+.design-image {
   width: 100%;
   object-fit: contain;
 }

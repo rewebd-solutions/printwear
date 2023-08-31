@@ -14,34 +14,18 @@
 }
 
 body{
-  background-color: #EEEEEE;
+  background-color: #fff;
 }
 
 
 .head {
-  margin-left: 90px;
   font-weight: bold;
   font-size: 25px;
-  margin-top: 30px;
 }
 .header{
   display: flex;
-  flex-direction: row;
-  margin-bottom: 10px;
-  width: 1;
   justify-content: space-between;
-  background-color: #EEEEEE;
-}
-.main {
-  padding: 5px;
-  border-radius: 10px;
-  background-color: #fff;
-  width: 90%;
-  height: max-content;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 10px;
+  align-items: center;
 }
 
 .filter {
@@ -82,108 +66,160 @@ body{
   margin-left: 20px;
 }
 
-.dropdown {
-  position: relative;
-  display: inline-block;
-  border: none;
-  border: 2px solid gray;
-  width: 200px;
-  height: 30px;
-}
+/*deleted dropdown class*/
 
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 200px;
-  border: 2px solid gray;
-  margin-top: 5px;
-  z-index: 1;
-}
-
-.dropdown-content p {
-  display: flex;
-  justify-content: space-around;
-  width: 95%;
-  padding: 4px;
-  margin: 0 !important;
-}
-
-.dropdown i {
-  margin-right: 10px;
-  float: right;
-  display: inline-block;
-}
-
-.dropdown-content p:hover {
-  background-color: #F05A30;
-  color: #fff;
-}
-
-.dropdown p {
-  color: gray;
-  font-size: 15px;
-  margin-top: 5px;
-  margin-left: 20px;
-  cursor: pointer;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.line {
-  margin-top: 20px;
-  width: 94%;
-  /* border: solid; */
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.line hr {
-  position: relative;
-  top: 20px;
-  border: none;
-  height: 3px;
-  background: black;
-  margin-bottom: 50px;
-}
 
 .cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  gap: 1rem;
 }
 
 .display-card {
-  max-width: 80%;
-  padding: 5px;
-  padding-right: 20px;
-  padding-left: 20px;
-  margin: 50px;
-  border: solid 1px #aaa;
-  background-color: #fff;
+  border: solid 1px #aaaaaa86;
+  background-color: #eee;
+  box-shadow: 0px 0px 0px rgba(77, 77, 77, 0.207);
+  transition: box-shadow 0.1s;
+  border-radius: 5px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  width: 250px
 }
 
 .display-card:hover {
-  box-shadow: 0px 2px 20px gray;
+  box-shadow: 0px 0px 20px rgba(77, 77, 77, 0.207);
 }
 
 .card-img {
-  border: solid 1px #aaa;
-  background-color: #E2E1E1;
-  margin-top: 10px;
+  background: url('/images/transp-checker.jpg');
+  background-size: 120%;
   max-width: 100%;
   display: grid;
   place-items: center;
-}
-#img{
-  max-width: 100%;
-  max-height: 100%;
-  /* border: solid; */
+  justify-content: center;
+  padding: 1rem;
 }
 
+#img {
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+}
+
+.search {
+  display: flex;
+  margin-left: auto;
+  position: relative !important;
+}
+
+#search {
+  background: #F5F1F1;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  padding-left: 2rem;
+  border-radius: 5px;
+}
+
+.search i {
+  position: absolute;
+  display: inline-block !important;
+  width: 20px;
+  z-index: 0;
+  right: 0;
+  top: 0.6rem;
+  left: 0.4rem
+}
+
+.product-modal-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  background-color: #42424265;
+}
+
+.product-modal {
+  display: flex;
+  width: 70%;
+  background-color: white;
+  padding: 2rem;
+  position: relative;
+}
+
+.product-modal-details {
+  display: flex;
+  flex-direction: column;
+  gap :1rem;
+}
+
+.product-sizes, .product-colors {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.product-modal-image {
+  width: 50%;
+}
+
+.product-modal-image img{
+  width: 100%;
+}
+
+.product-price-button {
+  display: flex;
+  margin-top: auto;
+  justify-content: space-between;
+}
+
+.product-price-button button {
+  padding: 0.5rem 1rem;
+}
+
+.product-category-gender {
+  display: flex;
+  gap: 1rem;
+}
+
+.product-sizes h4, .product-category-gender h5 {
+  background: #EEEEEE;
+  border-radius: 12px;
+  padding: 0.3rem 0.5rem;
+}
+
+.color-disc {
+  width: 1rem;
+  height: 1rem;
+  background: red;
+  border-radius: 50%;
+  border: 1px solid #00000040;
+}
+
+.modal-close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 2rem;
+  border: none;
+  cursor: pointer;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+
+.stock {
+  display: flex;
+  flex-direction: column;
+  max-width: 1280px;
+  padding: 1rem;
+  gap: 1rem;
+  margin: auto;
+}
 
 .details {
   display: flex;
