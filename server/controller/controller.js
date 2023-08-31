@@ -11,6 +11,7 @@ var StoreModel = require('../model/storeModel');
 var UserModel = require("../model/userModel");
 var CartModel = require("../model/cartModel");
 var ImageModel = require("../model/imageModel")
+var ColorModel = require("../model/colorModel");
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var nodemailer = require('nodemailer');
@@ -24,6 +25,7 @@ let sec = false;
 var number = null;
 var idemail = null;
 
+// common auth endpoints
 exports.register = async (req, res) => {
 
   // validate request
@@ -45,14 +47,14 @@ exports.register = async (req, res) => {
     emailVerified: false,
     phoneVerified: false
   })
-  .then(() => {
-    //res.send(data)
-    res.render("login", { status: "Account created. Log In"});
-  })
-  .catch(err => {
-    console.log(err);
-    res.render("login", { status: "Error saving data, try again" })
-  });
+    .then(() => {
+      //res.send(data)
+      res.render("login", { status: "Account created. Log In" });
+    })
+    .catch(err => {
+      console.log(err);
+      res.render("login", { status: "Error saving data, try again" })
+    });
 }
 
 exports.login = async (req, res) => {
@@ -62,7 +64,7 @@ exports.login = async (req, res) => {
   if (check === null) {
     return res.render("login", { status: "User does not exist" });
   }
-  
+
   if (check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex")) {
     // console.log("inga vardhu")
     const cookieToken = authServices.createToken(check._id);
@@ -80,9 +82,10 @@ exports.login = async (req, res) => {
 }
 
 exports.logout = async (req, res) => {
-    return res.clearCookie("actk").redirect("/login");
+  return res.clearCookie("actk").redirect("/login");
 }
 
+// endpoints for verification OTP and authentication
 exports.emailverify = async (req, res) => {
   console.log("EmailVerify method");
 
@@ -105,7 +108,7 @@ exports.sendotp = (req, res) => {
   // console.log(email.toString());
   send_otp(email);
 }
-//OTP FUNCTIONS DON'T TOUCH 
+
 function GenOTP() {
   OTP = Math.floor(1000 + Math.random() * 9000).toString();
   // console.log('Generated OTP:', OTP);  
@@ -160,11 +163,19 @@ function send_otp(email) {
 }
 startime();
 
-////////////////////////////////////////////////////////////////////////
-
-
-
-//////////////////////////
+exports.verify = (req, res) => {
+  var username = req.body.OTP;
+  if (!sec) {
+    if (username === OTP) {
+      // console.log("entered the forgot_password page");
+      res.render("newpassword", { success: "" });
+    } else {
+      res.render("forgetpassword", { success: "Please Enter a Valid OTP" });
+    }
+  } else {
+    console.log("time finished")
+  }
+}
 
 exports.updatepassword = async (req, res) => {
   console.log(idemail);
@@ -182,6 +193,9 @@ exports.updatepassword = async (req, res) => {
   }
 }
 
+
+
+// for CRD on designgallery images
 exports.uploadimage = async (req, res) => {
   try {
     // console.log(req.file);
@@ -195,7 +209,7 @@ exports.uploadimage = async (req, res) => {
       front: {
         url: fileDownloadURL,
         name: req.file.originalname,
-        size: req.file.size/1000,
+        size: req.file.size / 1000,
         format: req.file.mimetype.split("/")[1],
       }
     });
@@ -208,21 +222,21 @@ exports.uploadimage = async (req, res) => {
 }
 
 exports.obtainimages = async (req, res) => {
-    const userId = req.userId;
-    try {
-      const imageData = await ImageModel.find({ userId: userId });
-      res.status(200).json(imageData);
-    } catch (error) {
-      console.log(error);
-      res.status(404).json({"message": "Not found!"});
-    }
+  const userId = req.userId;
+  try {
+    const imageData = await ImageModel.find({ userId: userId });
+    res.status(200).json(imageData);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ "message": "Not found!" });
+  }
 }
 
 exports.deleteimage = async (req, res) => {
   const userId = req.body.imageId;
   const imageName = req.body.imageName;
   const imageId = req.body.imageIdX;
-  console.log(imageId);
+  // console.log(imageId);
   try {
     const fileReference = storageReference.child(`images/${userId + "_" + imageName}`);
     await fileReference.delete();
@@ -236,56 +250,177 @@ exports.deleteimage = async (req, res) => {
 
 }
 
-exports.verify = (req, res) => {
-  var username = req.body.OTP;
-  if (!sec) {
-    if (username === OTP) {
-      // console.log("entered the forgot_password page");
-      res.render("newpassword", { success: "" });
-    } else {
-      res.render("forgetpassword", { success: "Please Enter a Valid OTP" });
+
+// for adding products and getting products data
+exports.addproduct = async (req, res) => {
+  const productData = req.body;
+
+  const mockData = { // this mockData should be parsed from the req.body and not hard coded
+    colors: [
+      {
+        colorName: "white",
+        colorSKU: "WHT",
+        colorCode: "#fff",
+        colorImage: {
+          front: "obtainfromfirebasecloud",
+          back: "jadad"
+        },
+        sizes: [
+          {
+            sizeSKU: "MD",
+            size: "M",
+            stock: 5
+          },
+          {
+            sizeSKU: "SM",
+            size: "S",
+            stock: 7
+          },
+          {
+            sizeSKU: "LG",
+            size: "L",
+            stock: 12
+          },
+        ]
+      },
+      {
+        colorName: "black",
+        colorSKU: "BLK",
+        colorCode: "#000",
+        colorImage: {
+          front: "obtainfromfirebasecloud",
+          back: "jadad"
+        },
+        sizes: [
+          {
+            sizeSKU: "XSM",
+            size: "XS",
+            stock: 15
+          },
+          {
+            sizeSKU: "SM",
+            size: "S",
+            stock: 17
+          },
+          {
+            sizeSKU: "MD",
+            size: "M",
+            stock: 16
+          },
+          {
+            sizeSKU: "XLG",
+            size: "XL",
+            stock: 10
+          }
+        ],
+
+      },
+      {
+        colorName: "red",
+        colorSKU: "RED",
+        colorCode: "#ff000",
+        colorImage: {
+          front: "obtainfromfirebasecloud",
+          back: "jadad"
+        },
+        sizes: [
+          {
+            sizeSKU: "SM",
+            size: "S",
+            stock: 1
+          },
+          {
+            sizeSKU: "MD",
+            size: "M",
+            stock: 0
+          },
+          {
+            sizeSKU: "LG",
+            size: "L",
+            stock: 11
+          }
+        ],
+
+      },
+    ],
+    product: {
+      SKU: "TEE",
+      name: "Test TShirt",
+      category: "TShirts",
+      gender: "M",
+      description: "This is a test shirt that is currently used for testing purposes",
+      productImage: {
+        front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2",
+        back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmaleback.png?alt=media&token=c923de8e-a570-4fc1-9a95-d3ff060d961c",
+      },
+      price: {
+        xs: 300,
+        s: 350,
+        m: 400,
+        l: 450,
+        xl: 500
+      },
+      colors: [],
+      canvas: {
+        front: {
+          startX: 524,
+          startY: 359,
+          width: 490,
+          height: 950
+        },
+        back: {
+          startX: 245,
+          startY: 163,
+          width: 230,
+          height: 450
+        }
+      }
     }
-  } else {
-    console.log("time finished")
   }
+
+  const productSave = new ProductModel(mockData.product);
+  // console.log(productSave);
+  for (let colorEntry of mockData.colors) {
+    let colorData = new ColorModel(colorEntry);
+    colorData.productId = productSave._id;
+    productSave.colors.push(colorData._id)
+    await colorData.save();
+    // console.log(productSave);
+  }
+  await productSave.save();
+  res.status(200).send("ok");
 }
 
+exports.getproducts = async (req, res) => {
+  try {
+    const productData = await ProductModel.find();
+    const colorsData = {};
 
-exports.addproduct = async (req, res) => {
-  const product = new ProductModel(({
-    name: req.body.name,
-    price: req.body.price,
-    quantity: req.body.quantity
-  }))
-  await product.save();
-  // console.log(product);
-  // req.flash('message','product added', {ttl:5000} );  
-
-  ProductModel.find({}, function (err, data) {
-    res.render('product', {
-      // message:req.flash('message'),
-      x: data
+    for (let products of productData) {
+      colorsData[products._id] = await ColorModel.find({ productId: products._id });
+    }
+    // console.log(productData, colorsData);
+    res.status(200).json({
+      productData,
+      colorsData
     });
+  } catch (error) {
+    console.log(err);
+    res.status(500).send("error");
+  }
+
+}
+
+exports.getproduct = async (req, res) => {
+  const productData = ProductModel.findOne({ _id: req.body.productId });
+  const colorsData = ColorModel.find({ productId: productData._id });
+  res.status(200).json({
+    productData,
+    colorsData
   });
 }
 
-//////////////////////////
-//displaying product////
 
-///////finding product////
-exports.displayproduct = (req, res) => {
-
-    ProductModel.find()
-    .then(user => {
-      res.send(user)
-    })
-    .catch(err => {
-      res.status(500).send({ message: err.message || "Error Occurred while retriving user information" })
-    })
-  // }
-
-
-}
 let FRONTIMAGE = null;
 let BACKIMAGE = null;
 let num = 0;

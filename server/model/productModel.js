@@ -10,7 +10,7 @@ var ProductSchema = new mongoose.Schema({
         front: String,
         back: String
     },
-    sizes: [String],
+    // sizes: [String], 
     colors: [
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -25,10 +25,18 @@ var ProductSchema = new mongoose.Schema({
         xl: Number,
     },
     canvas: {
-        startX: Number,
-        startY: Number,
-        width: Number,
-        height: Number
+        front: {
+            startX: Number,
+            startY: Number,
+            width: Number,
+            height: Number
+        },
+        back: {
+            startX: Number,
+            startY: Number,
+            width: Number,
+            height: Number
+        }
     }
 });
 

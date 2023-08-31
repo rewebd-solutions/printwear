@@ -15,23 +15,25 @@ route.get('/login', authServices.authorizeLogin, services.loginpage);
 route.get("/expired", services.expired);
 route.get("/logout", controller.logout);
 
-route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
-
 route.post('/emailverify', controller.emailverify);
 route.post('/sendingotp', controller.sendotp);
 route.get('/forget', services.forgetRoutes);
-
 route.post('/verify', controller.verify);
 route.post('/updatepassword', controller.updatepassword);
+
 route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), controller.uploadimage);
 route.get("/obtainimages", authServices.authorizeToken, controller.obtainimages);
 route.post("/deleteimage", authServices.authorizeToken, controller.deleteimage);
 
+route.post('/addproduct', controller.addproduct); // adding a product by us, not user
+route.get("/getproducts", controller.getproducts);// get request that retrieves all product info → for use in stock inventory
+route.get("/getproduct", controller.getproduct);
+
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
-route.post('/addproduct', controller.addproduct);
-route.get("/displayproduct", authServices.authorizeToken, controller.displayproduct);
-route.get("/designgallery", authServices.authorizeToken, services.designgallery);
-route.get("/manageorder", authServices.authorizeToken, services.manageorder);
+
+route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
+route.get("/designgallery", authServices.authorizeToken, services.designgallery); // user oda uploaded images kaatum
+route.get("/manageorder", authServices.authorizeToken, services.manageorder); 
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
 route.get("/contact", authServices.authorizeToken, services.contact);

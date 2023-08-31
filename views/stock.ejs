@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <link rel="stylesheet" href="/css/stock.css">
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">    
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <title>Stock Inventory</title>
 </head>
@@ -24,184 +24,472 @@
             <div class="head">
                 <p>STOCK INVENTORY</p>
             </div>
-            <div class="filter">
-                <div class="name">
-                    <input type="text" placeholder="Search">
-                    <button><i class="fa-solid fa-magnifying-glass"></i></button>
-                </div>
+            <div class="search" data-aos="fade-up">
+                <input type="search" id="search" />
+                <i class="fa-solid fa-magnifying-glass"></i>
             </div>
         </div>
-        <div class="main" data-aos="fade-up">
-            <!-- <div class="line">
-                <hr>
-            </div> -->
-            <div class="cards">
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Men Round Neck</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/roundneck.png" id="img">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
+        <div class="cards" data-aos="fade-up">
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Men Round Neck</h3>
                 </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Hoodies</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/hoodie.png" id="img">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
+                <div class="card-img">
+                    <img src="images/roundneck.png" id="img">
                 </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Sweatshirt</h3>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
                     </div>
-                    <div class="card-img">
-                        <img src="images/sweatshirt.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Crop Top</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/raglaantshirt.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Men Oversized T-shirt</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/roundneck.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Women Round Neck</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/roundneck.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Men Vest</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/roundneck.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Men Full Sleeve</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/roundneck.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Crop Top Hoodies</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/roundneck.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="display-card">
-                    <div class="name-price">
-                        <h3>Boyfriend Tees</h3>
-                    </div>
-                    <div class="card-img">
-                        <img src="images/roundneck.png">
-                    </div>
-                    <div class="details">
-                        <div class="view-btn">
-                            <button>View</button>
-                        </div>
-                        <div class="stock-avail">
-                            <p>In Stock</p>
-                        </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
                     </div>
                 </div>
             </div>
+            <!-- <div class="display-card">
+                <div class="name-price">
+                    <h3>Hoodies</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/hoodie.png" id="img">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Sweatshirt</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/sweatshirt.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Crop Top</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/raglaantshirt.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Men Oversized T-shirt</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/roundneck.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Women Round Neck</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/roundneck.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Men Vest</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/roundneck.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Men Full Sleeve</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/roundneck.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Crop Top Hoodies</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/roundneck.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="display-card">
+                <div class="name-price">
+                    <h3>Boyfriend Tees</h3>
+                </div>
+                <div class="card-img">
+                    <img src="images/roundneck.png">
+                </div>
+                <div class="details">
+                    <div class="view-btn">
+                        <button>View</button>
+                    </div>
+                    <div class="stock-avail">
+                        <p>In Stock</p>
+                    </div>
+                </div>
+            </div> -->
         </div>
     </div>
+
+    <!-- <div class="product-modal-wrapper">
+        <div class="product-modal">
+            <button class="modal-close">
+                <i class="fa fa-close"></i>
+            </button>
+            <div class="product-modal-image">
+                <img src="https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2"
+                    alt="">
+            </div>
+            <div class="product-modal-details">
+                <h2 class="product-name">Test T Shirt</h2>
+                <div class="product-category-gender">
+                    <h5>Category</h5>
+                    <h5>Gender</h5>
+                </div>
+                <p class="product-description">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur, dignissimos?
+                </p>
+                <div class="product-colors">
+                    <p>Colors: </p>
+                    <div class="color-disc"></div>
+                    <div class="color-disc"></div>
+                    <div class="color-disc"></div>
+                </div>
+                <div class="product-sizes">
+                    <p>Sizes: </p>
+                    <h4>S</h4>
+                    <h4>M</h4>
+                    <h4>L</h4>
+                </div>
+                <div class="product-price-button">
+                    <h4>Starts from ₹340</h4>
+                    <button>Design now</button>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
+
+        const cardsContainer = document.querySelector(".cards");
+
+        // dummyData should be fetched from the server
+        const dummyData = {
+            productData: [
+                {
+                    productImage: {
+                        front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmalefront.png?alt=media&token=43ea8927-fc6b-4afe-92c1-51b1c7476298",
+                        back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2"
+                    },
+                    price: {
+                        xs: 300,
+                        s: 350,
+                        m: 400,
+                        l: 450,
+                        xl: 500
+                    },
+                    canvas: {
+                        front: {
+                            startX: 524,
+                            startY: 359,
+                            width: 490,
+                            height: 950
+                        },
+                        back: {
+                            startX: 245,
+                            startY: 163,
+                            width: 230,
+                            height: 450
+                        }
+                    },
+                    _id: "64ee9f448f9647d63b8f1a93",
+                    SKU: "TEE",
+                    name: "Test TShirt",
+                    category: "TShirts",
+                    gender: "M",
+                    description: "This is a test shirt that is currently used for testing purposes",
+                    colors: [
+                        "64ee9f448f9647d63b8f1a94",
+                        "64ee9f448f9647d63b8f1a99",
+                        "64ee9f448f9647d63b8f1a9f"
+                    ],
+                    __v: 0
+                }
+            ],
+            colorsData: {
+                "64ee9f448f9647d63b8f1a93": [
+                    {
+                        "colorImage": {
+                            "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmalefront.png?alt=media&token=43ea8927-fc6b-4afe-92c1-51b1c7476298",
+                            "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2"
+                        },
+                        "_id": "64ee9f448f9647d63b8f1a94",
+                        "colorName": "white",
+                        "colorSKU": "WHT",
+                        "sizes": [
+                            {
+                                "sizeSKU": "MD",
+                                "size": "M",
+                                "stock": 5,
+                                "_id": "64ee9f448f9647d63b8f1a95"
+                            },
+                            {
+                                "sizeSKU": "SM",
+                                "size": "S",
+                                "stock": 7,
+                                "_id": "64ee9f448f9647d63b8f1a96"
+                            },
+                            {
+                                "sizeSKU": "LG",
+                                "size": "L",
+                                "stock": 12,
+                                "_id": "64ee9f448f9647d63b8f1a97"
+                            }
+                        ],
+                        "productId": "64ee9f448f9647d63b8f1a93",
+                        "__v": 0,
+                        "colorCode": "#fff"
+                    },
+                    {
+                        "colorImage": {
+                            "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmalefrontblack.png?alt=media&token=fa49f21f-4e3e-4eeb-9706-79a1899348a2",
+                            "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmalebackblack.png?alt=media&token=596538fb-5625-434d-846d-f3fdccb612bf"
+                        },
+                        "_id": "64ee9f448f9647d63b8f1a99",
+                        "colorName": "black",
+                        "colorSKU": "BLK",
+                        "sizes": [
+                            {
+                                "sizeSKU": "XSM",
+                                "size": "XS",
+                                "stock": 15,
+                                "_id": "64ee9f448f9647d63b8f1a9a"
+                            },
+                            {
+                                "sizeSKU": "SM",
+                                "size": "S",
+                                "stock": 17,
+                                "_id": "64ee9f448f9647d63b8f1a9b"
+                            },
+                            {
+                                "sizeSKU": "MD",
+                                "size": "M",
+                                "stock": 16,
+                                "_id": "64ee9f448f9647d63b8f1a9c"
+                            },
+                            {
+                                "sizeSKU": "XLG",
+                                "size": "XL",
+                                "stock": 10,
+                                "_id": "64ee9f448f9647d63b8f1a9d"
+                            }
+                        ],
+                        "productId": "64ee9f448f9647d63b8f1a93",
+                        "__v": 0,
+                        "colorCode": "#000"
+                    },
+                    {
+                        "colorImage": {
+                            "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmalefrontred.png?alt=media&token=5376a01a-8801-4885-b118-f1f69176bd1c",
+                            "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmalebackred.png?alt=media&token=7cb894bc-3456-4647-8fcc-46ab256dc3d3"
+                        },
+                        "_id": "64ee9f448f9647d63b8f1a9f",
+                        "colorName": "red",
+                        "colorSKU": "RED",
+                        "sizes": [
+                            {
+                                "sizeSKU": "SM",
+                                "size": "S",
+                                "stock": 1,
+                                "_id": "64ee9f448f9647d63b8f1aa0"
+                            },
+                            {
+                                "sizeSKU": "MD",
+                                "size": "M",
+                                "stock": 0,
+                                "_id": "64ee9f448f9647d63b8f1aa1"
+                            },
+                            {
+                                "sizeSKU": "LG",
+                                "size": "L",
+                                "stock": 11,
+                                "_id": "64ee9f448f9647d63b8f1aa2"
+                            }
+                        ],
+                        "productId": "64ee9f448f9647d63b8f1a93",
+                        "__v": 0,
+                        "colorCode": "#ff0000"
+                    }
+                ]
+            }
+        }
+
+        const getProducts = async () => {
+            try {
+                const productsDataReq = await fetch("/getproducts");
+                const productsData = await productsDataReq.json();
+                console.log(productsData);
+                return productsData;
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        const openProductModal = (productId) => {
+            const productData = dummyData.productData.find(product => product._id === productId);
+            const colorsData = dummyData.colorsData[productId];
+            console.log(colorsData);
+            let productModalDOMString = `
+                <div class="product-modal-wrapper">
+                    <div class="product-modal">
+                        <button class="modal-close">
+                            <i class="fa fa-close"></i>
+                        </button>
+                        <div class="product-modal-image">
+                            <img src="${productData.productImage.front}"
+                                alt="${productData.name}">
+                        </div>
+                        <div class="product-modal-details">
+                            <h2 class="product-name">${productData.name}</h2>
+                            <div class="product-category-gender">
+                                <h5>${productData.category}</h5>
+                                <h5>${productData.gender}</h5>
+                            </div>
+                            <p class="product-description">
+                                ${productData.description}
+                            </p>
+                            <div class="product-colors">
+                                <p>Colors: </p>
+                                ${colorsData.map(color => {
+                                        return `<div class="color-disc" data-color="${color.colorName}"></div>`
+                                    }).join("\n")
+                                }
+                            </div>
+                            <div class="product-sizes">
+                                <p>Sizes: </p>
+                                ${colorsData.map(color => {
+                                    return color.sizes.map(colorSize => {
+                                            return `<h4>${colorSize.size}</h4>`
+                                        }).join('\n')
+                                    }).join('\n')
+                                }
+                            </div>
+                            <div class="product-price-button">
+                                <h4>Starts from ₹${productData.price.xs}</h4>
+                                <button>Design now</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.querySelector(".stock").insertAdjacentHTML("afterend", productModalDOMString);
+
+            const closeModalButton = document.querySelector(".modal-close");
+            closeModalButton.addEventListener("click", (e) => {
+                document.body.removeChild(document.querySelector(".product-modal-wrapper"))
+            })
+
+        }
+
+        const populateData = (productsData) => {
+            let cardDataDOMString = ``;
+            dummyData.productData.map(product => {
+                cardDataDOMString = `
+                    <div class="display-card">
+                        <div class="name-price">
+                            <h3>${product.name}</h3>
+                        </div>
+                        <div class="card-img">
+                            <img src="${product.productImage.front}" id="img">
+                        </div>
+                        <div class="details">
+                            <div class="view-btn">
+                                <button class="toggle-modal" data-productid="${product._id}">View</button>
+                            </div>
+                            <div class="stock-avail">
+                                <p>In Stock</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                // add an eventlistener for that button to put popup modal on click
+                cardsContainer.innerHTML += cardDataDOMString;
+
+                var openModalButton = document.querySelector(".toggle-modal");
+                openModalButton.addEventListener("click", (e) => {
+                    openProductModal(e.target.dataset.productid);
+                })
+            });
+
+        }
+
+        populateData(dummyData);
+        // getProducts();
     </script>
 </body>
 

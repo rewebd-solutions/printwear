@@ -34,7 +34,7 @@ exports.manageorder = (req, res) => {
 }
 
 exports.stock = (req, res) => {
-    res.render("stock");
+    res.render("stock", { value: 1});
 }
 
 exports.invoice = (req, res) => {
