@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script> -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>TalkInTee</title>
+		
+	<link href="/css/normalize.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+	
+    <!-- Bootstrap core CSS -->
+    <link href="/css/vendor/bootstrap.min.css" rel="stylesheet">
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/jquery-ui.css" />
+	<link href='https://fonts.googleapis.com/css?family=Nosifer|League+Script|Yellowtail|Permanent+Marker|Codystar|Eater|Molle:400italic|Snowburst+One|Shojumaru|Frijole|Gloria+Hallelujah|Calligraffitti|Tangerine|Monofett|Monoton|Arbutus|Chewy|Playball|Black+Ops+One|Rock+Salt|Pinyon+Script|Orbitron|Sacramento|Sancreek|Kranky|UnifrakturMaguntia|Creepster|Pirata+One|Seaweed+Script|Miltonian|Herr+Von+Muellerhoff|Rye|Jacques+Francois+Shadow|Montserrat+Subrayada|Akronim|Faster+One|Megrim|Cedarville+Cursive|Ewert|Plaster' rel='stylesheet' type='text/css'>
+	
+	<link href="/css/api.css" rel="stylesheet">
+
+		<script src="/js/jquery-1.10.2.js">	</script>
+		<script src="/js/bootstrap.js">		</script>
+		
+		<style>
+		
+</style>
+
+</head>
+
+<body>
+	
+	<div class="banner">
+		<%- include('partials/side-logo.ejs') %>
+		  <%- include('partials/top.ejs') %>
+	  </div>
+	<div id="maindiv">
+
+
+<script type="text/javascript" src="/js/html22canvas.js"></script>
+
+<script src="/js/jquery.form.js"></script>
+<script src="/js/mainapp.js"></script>
+
+<script src="/js/jquery-ui.js"></script>
+
+<script type="text/javascript">
+	function changeval() {
+		$total = parseInt($("#small").val()) + parseInt($("#medium").val()) + parseInt($("#large").val()) + parseInt($("#xlarge").val()) + parseInt($("#xxlarge").val());
+		//alert($total);
+		$('.small').val($("#small").val());
+		$('.medium').val($("#medium").val());
+		$('.large').val($("#large").val());
+		$('.xlarge').val($("#xlarge").val());
+		$('.xxlarge').val($("#xxlarge").val());
+		$('.total').val($total);
+	}
+
+	function changeval2() {
+		$total = parseInt($("#small2").val()) + parseInt($("#medium2").val()) + parseInt($("#large2").val()) + parseInt($("#xlarge2").val()) + parseInt($("#xxlarge2").val());
+		//alert($total);
+		$('.small').val($("#small2").val());
+		$('.medium').val($("#medium2").val());
+		$('.large').val($("#large2").val());
+		$('.xlarge').val($("#xlarge2").val());
+		$('.xxlarge').val($("#xxlarge2").val());
+		$('.total').val($total);
+	}
+
+	function b() {
+		$('#custom_text').toggleClass('bold_text');
+		$("#bold_button").toggleClass('box-shadow', '0 0 10px inset #3c3c3c');
+	}
+
+	function i() {
+		$('#custom_text').toggleClass('italic_text');
+	}
+
+	function changeFont(_name) {
+		$('#custom_text').css("font-family", _name);
+	}
+
+	function changeFontSize(_size) {
+		$('#custom_text').css("font-size", _size);
+	}
+
+	function changeColor(_color) {
+		$('#custom_text').css("color", _color);
+	}
+</script>
+<div class="container design_api_container cnt">
+	<div class='design_api'>
+		<!--=============================================================-->
+		<div id="menu">
+			<div class="menu_option sel_type sel">
+				<img src="/images/mockup/menu_icons/tee.png">
+			</div>
+			<div class="menu_option sel_color">
+				<i class="fa fa-paint-brush fa-2x"></i>
+			</div>
+			<div class="menu_option sel_art">
+				<i class="fa fa-camera-retro fa-2x"></i>
+			</div>
+			<div class="menu_option sel_custom_icon">
+				<i class="fa-solid fa-upload" fa-2x></i>
+			</div>
+			<div class="menu_option sel_text">
+				<i class="fa fa-font fa-2x"></i>
+
+			</div>
+		</div>
+		<!--=============================================================-->
+		<div id='options'>
+			<div class="T_type">
+				<div id="radio1" ><img src="/images/mockup/menu_icons/submenu/tee.png" width="100%" height="100%" />
+				</div>
+				<!--<div id="radio2" ><img src="tdesignAPI/images/menu_icons/submenu/collar.jpg" width="100%" height="100%" />
+				</div>-->
+				<div id="radio3" ><img src="/images/mockup/menu_icons/submenu/hoodie.jpg" width="100%" height="100%" />
+				</div>
+			</div>
+
+			<div class="color_pick">
+				<div class="color_radio_div" id="red"></div>
+				<div class="color_radio_div" id="black"></div>
+				<div class="color_radio_div" id="white"></div>
+				<div class="color_radio_div" id="navy"></div>
+				<div class="color_radio_div" id="green"></div>
+			</div>
+			<div class="default_samples">
+				<div class="sample_icons"><img src="/images/mockup/Images/flaming-bunny.png" id="des"></div>
+				<div class="sample_icons"><img src="/images/mockup/Images/geo-flower.png" id="des"></div>
+				<div class="sample_icons"><img src="/images/mockup/Images/sugar-skull.svg" id="des"></div>
+				
+
+			</div>
+			<div class="custom_icon">
+				<form id="form1" runat="server">
+					<span class="btn btn-default btn-file upd"> Browse
+						<input type='file' id="imgInp" />
+					</span>
+
+				</form>
+			</div>
+
+			<div class="custom_font">
+
+				<select id="fs" onchange="changeFont(this.value);">
+					<option value="arial">Arial</option>
+					<option value="Nosifer, cursive">Nosifer</option>
+					<option value="League Script, cursive">League Script</option>
+					<option value="Yellowtail, cursive">Yellowtail</option>
+					<option value="Permanent Marker, cursive">Permanent Marker</option>
+					<option value="Codystar, cursive">Codystar</option>
+					<option value="'Eater', cursive">Eater</option>
+					<option value="Molle, cursive">Molle</option>
+					<option value="Snowburst One, cursive">Snowburst One</option>
+					<option value="Shojumaru, cursive">Shojumaru</option>
+					<option value="Frijole, cursive">Frijole</option>
+					<option value="Gloria Hallelujah, cursive">Gloria Hallelujah</option>
+					<option value="Calligraffitti, cursive">Calligraffitti</option>
+					<option value="Tangerine, cursive">Tangerine</option>
+					<option value="Monofett, cursive">Monofett</option>
+					<option value="Monoton, cursive">Monoton</option>
+					<option value="Arbutus, cursive">Arbutus</option>
+					<option value="Chewy, cursive">Chewy</option>
+					<option value="Playball, cursive">Playball</option>
+					<option value="Black Ops One, cursive">Black Ops One</option>
+					<option value="'Rock Salt', cursive">Rock Salt</option>
+					<option value=" 'Pinyon Script', cursive">Pinyon Script</option>
+					<option value="'Orbitron', sans-serif">Orbitron</option>
+					<option value="'Sacramento', cursive">acramento</option>
+					<option value="'Sancreek', cursive">Sancreek</option>
+					<option value="'Kranky', cursive">Kranky</option>
+					<option value="'UnifrakturMaguntia', cursive">UnifrakturMaguntia</option>
+					<option value="'Creepster', cursive">Creepster</option>
+					<option value="'Pirata One', cursive">Pirata One</option>
+					<option value=" 'Seaweed Script', cursive">Seaweed Script</option>
+					<option value=" 'Miltonian', cursive">Miltonian</option>
+					<option value=" 'Herr Von Muellerhoff', cursive">Herr Von Muellerhoff</option>
+					<option value=" 'Rye', cursive"> 'Rye'</option>
+					<option value=" 'Jacques Francois Shadow', cursive">Jacques Francois Shadow</option>
+					<option value=" 'Montserrat Subrayada', sans-serif">Montserrat Subrayada</option>
+					<option value=" 'Akronim', cursive">Akronim</option>
+					<option value=" 'Faster One', cursive">Faster One</option>
+					<option value=" 'Megrim', cursive">Megrim</option>
+					<option value=" 'Cedarville Cursive', cursive">Cedarville Cursive</option>
+					<option value=" 'Ewert', cursive">Ewert</option>
+					<option value="'Plaster', cursive">Plaster</option>
+					<option value="verdana">Verdana</option>
+					<option value="impact">Impact</option>
+					<option value="ms comic sans">MS Comic Sans</option>
+				</select>
+				<input type="color" name="favcolor" onChange="changeColor(this.value);" placeholder="Color Name" />
+				<div class="font_styling">
+
+					<span id="bold_button" onclick="b();"><b>B</b></span>
+					<span id="italic_button" onclick="i();"><i>I</i></span>
+
+					<select id="font_size" onchange="changeFontSize(this.value);">
+						<option value="10px">10px</option>
+						<option value="20px">20px</option>
+						<option value="30px">30px</option>
+						<option value="40px">40px</option>
+						<option value="50px">50px</option>
+						<option value="60px">60px</option>
+						<option value="70px">70px</option>
+						<option value="80px">80px</option>
+						<option value="90px">90px</option>
+						<option value="100px">100px</option>
+						<option value="110px">110px</option>
+					</select>
+				</div>
+				<textarea id="custom_tex" placeholder="Create Your Custom Text."></textarea>
+				<button type="button" class="btn btn-primary prv" id="apply_text">
+					Apply
+				</button>
+
+			</div>
+		</div>
+		<!--=============================================================-->
+		<!--=========================preview start====================================-->
+
+		<div id='preview_t'>
+			<div id="preview_front">
+				<div class="front_print">
+
+				</div>
+			</div>
+			<div id="preview_back">
+				<div class="back_print">
+
+				</div>
+			</div>
+
+		</div>
+		<!--=============================================================-->
+		<!--======================view start=======================================-->
+
+		<div id='view_mode'>
+			<div  class="mode mf sel"><img id="o_front" src="/images/mockup/product/tee/black/black_front.png" width="100%" height="80%" />FRONT
+			</div>
+			<div  class="mode mb"><img id="o_back" src="/images/mockup/product/tee/black/black_back.png" width="100%" height="80%" />BACK
+			</div>
+			<div class="mode">
+				<i class="fa fa-binoculars fa-4x preview_images" id="preview_images" data-toggle="modal" data-target=".bs-example-modal-lg"></i>Preview
+			</div>
+		</div>
+		<!--=====================View Ends========================================-->
+		<div id="overview">
+			<div class="">
+
+				<table class="table">
+					<tr>
+						<th>Size</th>
+						<th>Quantity</th>
+					</tr>
+					<tr>
+						<td><b>S</b></td>
+						<td>
+						<input id="small"  onchange="changeval()" name="small" type="number" value="1" class="form-control small input-md" min=0 max=99999 />
+						</td>
+					</tr>
+					<tr>
+						<td><b>M</b></td>
+						<td>
+						<input id="medium"  onchange="changeval()" name="medium" type="number" value="0" class="form-control medium input-md" min=0 max=99999 />
+						</td>
+					</tr>
+					<tr>
+						<td><b>L</b></td>
+						<td>
+						<input id="large" onchange="changeval()"  name="large" type="number" value="0" class="form-control large input-md" min=0 max=99999 />
+						</td>
+					</tr>
+					<tr>
+						<td><b>XL</b></td>
+						<td>
+						<input id="xlarge"  onchange="changeval()" name="xlarge" type="number" value="0" class="form-control xlarge input-md" min=0 max=99999 />
+						</td>
+					</tr>
+					<tr>
+						<td><b>XXL</b></td>
+						<td>
+						<input id="xxlarge" onchange="changeval()"  name="xxlarge" type="number" value="0" class="form-control xxlarge input-md" min=0 max=99999 />
+						</td>
+					</tr>
+					<tr>
+						<td><b>Total</b></td>
+						<td>
+						<input id="total" name="total" type="number" value="1" class="form-control total input-md" disabled min=1 max=99999 />
+						</td>
+					</tr>
+
+				</table>
+
+				<button type="button" class="btn btn-primary btn-block preview_images prv"  data-toggle="modal" data-target=".bs-example-modal-lg">
+					Proceed
+				</button>
+				
+			</div>
+		</div>
+	</div>
+
+	<!-- Large modal -->
+	<!--
+	<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+	<div class="modal-content"> -->
+
+	<div class="layer">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close close_img" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span><span class="sr-only close_img">Close</span>
+				</button>
+				<h4 class="modal-title">Showcase</h4>
+			</div>
+			<div class="modal-body" id="modal-body">
+
+				<div id="image_reply"></div>
+				<div class="modal-footer">
+					<!--	<span > Price : </span>
+
+					<form method="POST" enctype="multipart/form-data" id="imageFileForm" action="">
+					<input type="hidden" name="img_front" id="img_front" value="" />
+					<input type="hidden" name="img_back" id="img_back" value="" />
+					<button type="submit" class="btn btn-primary">Proceed</button>
+					</form>-->
+					<div class="row">
+						<form method="POST" enctype="multipart/form-data" id="imageFileForm" action="">
+							<div class="col-md-1">
+								<button type="button" class="btn btn-default close_img" data-dismiss="modal">
+									Close
+								</button>
+							</div>
+							<div class="col-md-2">
+								Price :545/-
+							</div>
+
+							<div class="col-md-6">
+								<center>
+									<table class="table">
+
+										<tr>
+											<td><b>S</b></td>
+											<td><b>M</b></td>
+											<td><b>L</b></td>
+											<td><b>XL</b></td>
+											<td><b>XXL</b></td>
+											<td><b>Total</b></td>
+										</tr>
+										<tr>
+											<td>
+											<input id="small2" onchange="changeval2()"  name="small" type="number" value="1" class="form-control small input-md" min=0 max=99999 />
+											</td>
+
+											<td>
+											<input id="medium2" onchange="changeval2()"  name="medium" type="number" value="0" class="form-control medium input-md" min=0 max=99999 />
+											</td>
+
+											<td>
+											<input id="large2" onchange="changeval2()"  name="large" type="number" value="0" class="form-control large input-md" min=0 max=99999 />
+											</td>
+
+											<td>
+											<input id="xlarge2" onchange="changeval2()"  name="xlarge" type="number" value="0" class="form-control xlarge input-md" min=0 max=99999 />
+											</td>
+
+											<td>
+											<input id="xxlarge2" onchange="changeval2()"  name="xxlarge" type="number" value="0" class="form-control xxlarge input-md" min=0 max=99999 />
+											</td>
+
+											<td>
+											<input id="total2" name="total" type="number" value="1" class="form-control total input-md" disabled min=1 max=99999 />
+											</td>
+										</tr>
+
+								</center>
+								</table>
+							</div>
+							<div class="col-md-2">
+								<input type="hidden" name="img_front" id="img_front" value="" />
+								<input type="hidden" name="img_back" id="img_back" value="" />
+								<button type="submit" class="btn btn-primary prv">
+									Buy Now!
+								</button>
+								<button type="button" class="btn dwn prv" id="dwn">
+									Download
+								</button>
+							</div>
+						</form>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	
+	</div> -->
+
+</div>
+<script>
+	document.getElementById("dwn").addEventListener("click", function () {
+html2canvas(document.getElementById("modal-body")).then(function (canvas) {
+// Convert the canvas to an image URL
+var screenshotUrl = canvas.toDataURL("image/png");
+
+// Create a temporary anchor element to trigger the download
+var downloadLink = document.createElement("a");
+downloadLink.href = screenshotUrl;
+downloadLink.download = "screenshot.png";
+downloadLink.click();
+});
+});
+</script>
+<script>
+	
+	//$('input[type=file]').bootstrapFileInput();
+	//$('.file-inputs').bootstrapFileInput();
+	function readURL(input) {
+		if (input.files && input.files[0]) {
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				image_icon(e.target.result);
+			}
+
+			reader.readAsDataURL(input.files[0]);
+		}
+	}
+
+
+	$("#imgInp").change(function() {
+		readURL(this);
+	});
+	
+</script>
+
+		
+	</div>
+	
+</body>
+
+
+		
+</html>
