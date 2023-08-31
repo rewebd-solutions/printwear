@@ -25,6 +25,8 @@ let sec = false;
 var number = null;
 var idemail = null;
 
+const SHIPROCKET_BASE_URL = "https://apiv2.shiprocket.in/v1/external";
+
 // common auth endpoints
 exports.register = async (req, res) => {
 
@@ -85,7 +87,7 @@ exports.logout = async (req, res) => {
   return res.clearCookie("actk").redirect("/login");
 }
 
-// endpoints for verification OTP and authentication
+// endpoints for verification OTP and authentication not sure if it works
 exports.emailverify = async (req, res) => {
   console.log("EmailVerify method");
 
@@ -421,6 +423,89 @@ exports.getproduct = async (req, res) => {
 }
 
 
+// endpoints for creating orders in shiprocket
+exports.createshiporder = async (req, res) => {
+  // every 10 days token refersh.. thru .env manually
+  // write code to obtain orders data from my mongo
+  // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection
+  try {
+    const createShipOrderReq = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: 'Bearer ' + process.env.SHIPTKN
+      },
+      method: "POST",
+      body: JSON.stringify({ // for this obtain data from ordersModel from mongo and populate respectively
+        order_id: "threatofcumblast",
+        order_date: "2023-08-31 14:50",
+        pickup_location: "Primary",
+        channel_id: "",
+        comment: "Reseller: Sachin",
+        billing_customer_name: "Sachin",
+        billing_last_name: "Sharon",
+        billing_address: "No.8, 10th Street, Vinobaji Nagar, Hastinapuram",
+        billing_address_2: "Near Hokage House",
+        billing_city: "Kanchipuram",
+        billing_pincode: "600064",
+        billing_state: "Tamil Nadu",
+        billing_country: "India",
+        billing_email: "sreesachin11226@gmail.com",
+        billing_phone: "9362667920",
+        shipping_is_billing: true,
+        shipping_customer_name: "",
+        shipping_last_name: "",
+        shipping_address: "",
+        shipping_address_2: "",
+        shipping_city: "",
+        shipping_pincode: "",
+        shipping_country: "",
+        shipping_state: "",
+        shipping_email: "",
+        shipping_phone: "",
+        order_items: [
+          {
+            name: "MyDesign",
+            sku: "TEEWHTXS",
+            units: 2,
+            selling_price: "320",
+            discount: "",
+            tax: "",
+            hsn: 441122
+          }
+        ],
+        payment_method: "Prepaid",
+        shipping_charges: 0,
+        giftwrap_charges: 0,
+        transaction_charges: 0,
+        total_discount: 0,
+        sub_total: 640,
+        length: 10,
+        breadth: 15,
+        height: 20,
+        weight: 2.5
+      })
+    });
+
+    const createShipOrderData = await createShipOrderReq.json();
+    res.status(200).json(createShipOrderData);
+
+  } catch (error) {
+    res.status(500).json(error);
+  }
+
+  /* {
+  "order_id": 398711668,
+  "shipment_id": 396917638,
+  "status": "NEW",
+  "status_code": 1,
+  "onboarding_completed_now": 0,
+  "awb_code": "",
+  "courier_company_id": "",
+  "courier_name": ""
+  }*/ // once order is done, its the returned value
+  
+}
+
 let FRONTIMAGE = null;
 let BACKIMAGE = null;
 let num = 0;
@@ -603,6 +688,8 @@ exports.cart_clone = async (req, res) => {
 
 };
 
+
+// endpoints for connecting stores
 exports.connectShopify = async (req, res) => {
   const reqBody = req.body;
   // console.log(reqBody);

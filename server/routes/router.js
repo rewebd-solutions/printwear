@@ -48,6 +48,8 @@ route.get('/cart_item_del/:id', controller.cart_item_del);
 route.get('/cart_clone/:id', controller.cart_clone);
 route.post('/my-endpoint', controller.addtocartMock);
 
+route.post("/create-ship-order", controller.createshiporder);
+
 route.post("/connect-shopify", controller.connectShopify);
 route.post("/connect-woocommerce", controller.connectWooCommerce);
 
