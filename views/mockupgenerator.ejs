@@ -452,6 +452,8 @@
 
 		$("#buy").click(async function(e){
 			console.log("clik")
+			$(this).text('Loading...');
+			$(this).prop('disabled', true);
 			const canvases = document.querySelector("#image_reply").childNodes;
 			const frontImage = canvases[1].toDataURL("image/png");
 			const backImage = canvases[0].toDataURL("image/png");
