@@ -204,30 +204,24 @@ span.glyphicon {
 }
 
 .default_samples {
-	margin-left: 2px;
-	width: 220px;
-	height: 590px;
+	width: 250px;
+	display: flex;
+	flex-wrap: wrap;
 	/* background-color: rgba(140, 140, 140, 0.5); */
-	overflow: hidden;
 }
 
 #des {
-	width: 60px;
-	height: 60px;
-	margin-inline: 25px 20px;
-	writing-mode:horizontal-tb;
+	width: 100%;
+	object-fit: contain;
 }
 
 .sample_icons,
 .dir_icons {
-	height: 70px;
-	cursor: pointer;
-	margin-inline: 5px 0px;
-	padding-inline: 15px 70px;
-	writing-mode: vertical-rl;
-	display: inline;
-	background-color: #3c3c3c;
-	/* box-shadow: 0 0 5px #3c3c3c; */
+	width: 100px;
+	height: 100px;
+    cursor: pointer;
+    display: flex;
+    padding: 0.4rem;
 }
 
 
@@ -382,7 +376,7 @@ div.upload input {
 .back_print {
 	width: 470px;
 	height: 500px;
-	//border:1px solid #acacac;
+	border:1px solid #acacac;
 	position: absolute;
 	padding: 5px;
 }

@@ -41,8 +41,7 @@ body{
   border-bottom: solid;
   display: flex;
   justify-content: space-between;
-  width: 30vw;
-  margin-right: 100px;
+  width: 200px;
   /* border: solid; */
 }
 .name i{
@@ -52,14 +51,9 @@ body{
 .name input {
   border: none;
   width: 100%;
-  background-color: #EEEEEE;
-}
+  }
 .name input:focus,.name input:active{
   outline: none;
-}
-.name input::placeholder{
-  background-color: #EEEEEE;
-  padding-left: 15px;
 }
 
 .filt {
@@ -192,10 +186,13 @@ body{
   padding: 0.3rem 0.5rem;
 }
 
+.product-sizes h4 {
+  color: gainsboro
+}
+
 .color-disc {
   width: 1rem;
   height: 1rem;
-  background: red;
   border-radius: 50%;
   border: 1px solid #00000040;
 }

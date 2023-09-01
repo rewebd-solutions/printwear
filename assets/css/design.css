@@ -833,6 +833,9 @@ p {
   font-family: 'Arial', sans-serif;
   letter-spacing: normal;
   padding: 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .design-image-meta {

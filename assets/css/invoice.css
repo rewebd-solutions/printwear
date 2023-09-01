@@ -13,34 +13,6 @@
   text-decoration: none;
 }
 
-html {
-  background-color: #F3E8FF;
-}
-
-.top {
-  display: flex;
-  flex-direction: row;
-  margin-left: 90px;
-  justify-content: space-between;
-}
-.top-icons {
-  display: flex;
-  justify-content: space-evenly;
-  /* border: solid; */
-  width: 300px;
-  font-size: 20px;
-  margin-top: 30px;
-  color: #000;
-}
-
-.top-icons p {
-  margin-top: -10px !important;
-}
-
-#logo {
-  margin-top: 15px;
-}
-
 .head {
   margin-left: 90px;
   font-weight: bold;
@@ -69,6 +41,10 @@ html {
 .choice-cnt {
   display: flex;
   justify-content: center;
+}
+
+.main-cnt > div {
+  background-color: #eee;
 }
 
 .choice p {
@@ -163,7 +139,6 @@ html {
 }
 .dropdown i{
   margin-right: 10px;
-  float: right;
   display: inline-block;
 }
 .dropdown-content p:hover{
@@ -379,7 +354,15 @@ label #cancel {
   border: none;
   letter-spacing: 0.05rem;
   margin-right: 20px;
+  cursor: pointer;
 }
+
+.bt-1:active {
+  color: #F05A30;
+  background-color: #fff;
+  border: 2px solid #F05A30
+}
+
 .bt-2{
   padding: 8px;
   padding-left: 30px;
@@ -389,6 +372,7 @@ label #cancel {
   border-radius: 5px;
   border: 2px solid #F05A30;
   letter-spacing: 0.05rem;
+  cursor: pointer
 }
 .cnts{
   display: flex;

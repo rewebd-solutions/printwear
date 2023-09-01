@@ -1,4 +1,4 @@
-var $type="tee",$color="black",$y_pos="front",$nos_icons=0,$nos_text=0,$custom_img=0;
+var $type="tee",$color="white",$y_pos="front",$nos_icons=0,$nos_text=0,$custom_img=0;
 $(document).ready(function(){
 	
 	//ONLOAD
@@ -185,19 +185,20 @@ function getContentDiagonal() {
  */
 
 	$('#apply_text').click(function(){
+		console.log("working?");
 		
-		var text_val = jQuery("textarea#custom_text").val();
+		var text_val = $("textarea#custom_text").val();
 		if(!text_val)
 			return false;
 		
-			$("."+$y_pos+"_print").append("<div id=text"+($nos_text)+" class='new_text'  onmouseover='show_delete_btn(this);' onmouseout='hide_delete_btn(this);'><span class='drag_text property_icon'  ></span><textarea id='text_style' >"+text_val+"</textarea><span class='delete_text property_icon' onClick='delete_text(this);' ></span></div>");
-			$( "#text"+($nos_text)+"" ).draggable({ containment: "parent" });
-			$( "#text"+($nos_text)+"" ).resizable({
-				maxHeight: 480,
-				maxWidth: 450,
-				minHeight: 60,
-				minWidth: 60
-			});
+		$("."+$y_pos+"_print").append("<div id=text"+($nos_text)+" class='new_text'  onmouseover='show_delete_btn(this);' onmouseout='hide_delete_btn(this);'><span class='drag_text property_icon'  ></span><textarea id='text_style' >"+text_val+"</textarea><span class='delete_text property_icon' onClick='delete_text(this);' ></span></div>");
+		$( "#text"+($nos_text)+"" ).draggable({ containment: "parent" });
+		$( "#text"+($nos_text)+"" ).resizable({
+			maxHeight: 480,
+			maxWidth: 450,
+			minHeight: 60,
+			minWidth: 60
+		});
 
 		var $font_			=$('#custom_text').css("font-family");
 		var $font_size		=$('#custom_text').css("font-size");
@@ -266,6 +267,7 @@ function capture() {
 
 });
 // $("#dwn").click(function() {
+// 	console.log("comes here");
 //     html2canvas($("#image_reply"), {
 //       onrendered: function(canvas) {
 //         saveAs(canvas.toDataURL(), 'canvas.png');

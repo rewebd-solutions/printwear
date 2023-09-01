@@ -94,7 +94,7 @@
 .right {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 2rem;
 }
 
 .righttop,
@@ -103,7 +103,6 @@
     flex-direction: column;
     padding: 30px;
     border-radius: 18px;
-    width: 400px;
 }
 .det{
     margin: 5px;
