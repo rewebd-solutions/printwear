@@ -436,18 +436,29 @@ exports.getproduct = async (req, res) => {
   });
 }
 
-
 // temporary dummy endpoints for mockup to cart
 exports.dummycheckout = async (req, res) => {
-  const frontImage = req.body.frontImage;
-  const backImage = req.body.backImage;
-  const frontBuffer = Uint8Array.from(Buffer.from(frontImage, "base64")); 
-  console.log(frontBuffer);
-  const fileReference = storageReference.child(`products/${req.userId + "_" + req.body.designName + '.png'}`);
-  await fileReference.put(frontBuffer);
-  const fileDownloadURL = await fileReference.getDownloadURL();
-  console.log(fileDownloadURL);
-  res.redirect("mycart"); // res.render dhaan
+  const frontImage = req.body.frontImage.substring(req.body.frontImage.indexOf(',')+1);
+  const backImage = req.body.backImage.substring(req.body.backImage.indexOf(',')+1);
+
+  try {
+    const frontImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_front'+ '.png'}`);
+    await frontImageReference.putString(frontImage, 'base64',{ContentType:'image/png'});
+    const frontImageDownloadURL = await frontImageReference.getDownloadURL();
+    const backImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_back'+ '.png'}`);
+    await backImageReference.putString(backImage, 'base64',{ContentType:'image/png'});
+    const backImageDownloadURL = await backImageReference.getDownloadURL();
+    console.log(frontImageDownloadURL, backImageDownloadURL);
+    const cartData = {
+      frontImageURL: encodeURIComponent(frontImageDownloadURL),
+      backImageURL: encodeURIComponent(backImageDownloadURL),
+    }
+    res.json(cartData);
+    return;
+  } catch (error) {
+    
+  }
+   // res.render dhaan
 }
 
 // endpoints for creating orders in shiprocket

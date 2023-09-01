@@ -408,7 +408,7 @@
                             <div class="product-colors">
                                 <p>Colors: </p>
                                 ${colorsData.map(color => {
-                                        return `<div class="color-disc" data-color="${color.colorName}"></div>`
+                                        return `<div class="color-disc" data-color="${color.colorName}" style="background: ${color.colorCode}"></div>`
                                     }).join("\n")
                                 }
                             </div>
@@ -416,14 +416,14 @@
                                 <p>Sizes: </p>
                                 ${colorsData.map(color => {
                                     return color.sizes.map(colorSize => {
-                                            return `<h4>${colorSize.size}</h4>`
+                                            return `<h4 style="background: ${color.colorCode}">${colorSize.size}</h4>`
                                         }).join('\n')
                                     }).join('\n')
                                 }
                             </div>
                             <div class="product-price-button">
                                 <h4>Starts from ₹${productData.price.xs}</h4>
-                                <button>Design now</button>
+                                <button><a href="/mockupgenerator">Design now</a></button>
                             </div>
                         </div>
                     </div>

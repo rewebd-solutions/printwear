@@ -19,6 +19,7 @@
     integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
     crossorigin="anonymous"></script>
   <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+  <script src="js/vendor/jquery.min.js"></script>
   <title>My Cart - Printwear</title>
 </head>
 
@@ -66,9 +67,9 @@
       <h4 class="product-design-name">
         My Custom Design
       </h4>
-      <div>
+      <div style="display: flex; ">
         <div class="product-image">
-          <img src="" alt=""> <!-- design URL -->
+          <img src="<%= data.front %>" data-back="<%= data.back %>" alt=""> <!-- design URL -->
         </div>
         <div class="product-details">
           <h4 class="product-detail">Product: Test TShirt</h4>
@@ -85,31 +86,31 @@
             </tr>
             <tr>
               <td>
-                <input id="small2" onchange="changeval2()" name="small"
+                <input id="small2" onchange="changeval2(this)" name="small"
                   type="number" value="1" class="form-control small input-md"
                   min=0 max=99999 />
               </td>
 
               <td>
-                <input id="medium2" onchange="changeval2()" name="medium"
+                <input id="medium2" onchange="changeval2(this)" name="medium"
                   type="number" value="0" class="form-control medium input-md"
                   min=0 max=99999 />
               </td>
 
               <td>
-                <input id="large2" onchange="changeval2()" name="large"
+                <input id="large2" onchange="changeval2(this)" name="large"
                   type="number" value="0" class="form-control large input-md"
                   min=0 max=99999 />
               </td>
 
               <td>
-                <input id="xlarge2" onchange="changeval2()" name="xlarge"
+                <input id="xlarge2" onchange="changeval2(this)" name="xlarge"
                   type="number" value="0" class="form-control xlarge input-md"
                   min=0 max=99999 />
               </td>
 
               <td>
-                <input id="xxlarge2" onchange="changeval2()" name="xxlarge"
+                <input id="xxlarge2" onchange="changeval2(this)" name="xxlarge"
                   type="number" value="0"
                   class="form-control xxlarge input-md" min=0 max=99999 />
               </td>
@@ -122,16 +123,21 @@
             </tr>
 
         </center>
-        </table>
+          </table>
+          <h4 class="product-detail">SKU: TEE-WHT-M</h4>
+          <h4 class="product-details" id="base-price">Price: 300</h4>
+          <label for="deliver_address">Enter Delivery Address:</label>
+          <textarea name="address" id="deliver_address" class="form-control" cols="60"></textarea>
+          <br>
+          <label for="phone">Enter Phone Number:</label>
+          <input type="text" inputmode="numeric" id="phone" placeholder="+91 XXXXXXXXXXX" class="form-control"/>
       </div>
       </div>
     </div>
     <!-- Button trigger modal -->
     <div class="pageend">
-      <div>
         <h1>Total: 
         </h1>
-      </div>
 
       <button type="button" data-toggle="modal" data-target="#exampleModal" id="btn-chkout">
         CHECKOUT
@@ -150,7 +156,7 @@
             <p>All your items in your cart will be checked out once you proceed. Are you sure?
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-primary" id="btn-yes"><a href="https://payments-test.cashfree.com/links/Q5d5svb9dv60"> Yes</a></button>
+            <button type="button" class="btn btn-primary" id="btn-yes"><a href="https://payments-test.cashfree.com/links/G5e7kl6gi5bg"> Yes</a></button>
             <button type="button" class="btn btn-secondary" id="btn-no" data-dismiss="modal">No</button>
           </div>
         </div>
@@ -158,5 +164,36 @@
     </div>
   </div>
 
+  <script>
+    const URLs = [$('.product-image img').attr('src'), $('.product-image img').data('back')];
+    //console.log(URLs);
+    const productImage = document.querySelector('.product-image img');
+    productImage.addEventListener("click", (e) => {
+      if (productImage.src === URLs[0]) {
+        productImage.src = URLs[1];
+      } else {
+        productImage.src = URLs[0];
+      }
+    });
+
+    let productCost = 300;
+    let totalCost = document.querySelector(".pageend h1");
+
+    totalCost.innerHTML = 'Total: ' + productCost;
+
+    const changeval2 = (e) => {
+      console.log(e.value)
+      let totalQuantity = parseInt($("#small2").val()) + parseInt($("#medium2").val()) + parseInt($("#large2").val()) + parseInt($("#xlarge2").val()) + parseInt($("#xxlarge2").val());
+      //alert($total);
+      $('.small').val($("#small2").val());
+      $('.medium').val($("#medium2").val());
+      $('.large').val($("#large2").val());
+      $('.xlarge').val($("#xlarge2").val());
+      $('.xxlarge').val($("#xxlarge2").val());
+      $('#total2').val(totalQuantity);
+      $('#base-price').html('Price: '+totalQuantity*productCost);
+      totalCost.innerHTML = 'Total: ' + totalQuantity*productCost;
+    } 
+  </script>
 </body>
 </html>

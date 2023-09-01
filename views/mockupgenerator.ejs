@@ -456,7 +456,7 @@
 			const frontImage = canvases[1].toDataURL("image/png");
 			const backImage = canvases[0].toDataURL("image/png");
 			console.log(frontImage);
-			await fetch("/dummycheckout", {
+			const waiting = await fetch("/dummycheckout", {
 				headers: {
 					"Content-Type": "application/json"
 				},
@@ -465,8 +465,11 @@
 					designName: "My Custom Design",
 					frontImage: frontImage,
 					backImage: backImage
-				})
-			})
+				}),
+				redirect: "follow"
+			});
+			const data = await waiting.json();
+			location.href = `/mycart?f=${data.frontImageURL}&b=${data.backImageURL}`
 		})
 	</script>
 	<script>
