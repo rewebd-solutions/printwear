@@ -34,13 +34,18 @@ route.get('/admin', services.adminpage); // it only has a form thats incomplete
 route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
 route.get("/designgallery", authServices.authorizeToken, services.designgallery); // user oda uploaded images kaatum
 route.get("/manageorder", authServices.authorizeToken, services.manageorder); 
+route.get("/placeorder", authServices.authorizeToken, services.placeorder);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
 route.get("/contact", authServices.authorizeToken, services.contact);
 route.get("/mockupgenerator", authServices.authorizeToken, services.mockupgenerator);
 route.get("/productlib", authServices.authorizeToken, services.productlib);
 route.get("/invoice", authServices.authorizeToken, services.invoice);
-route.get("/profile", authServices.authorizeToken, services.profilepage)
+route.get("/profile", authServices.authorizeToken, controller.profilepage);
+
+route.get("/mycart", authServices.authorizeToken, services.mycart);
+
+route.post("/dummycheckout", authServices.authorizeToken, controller.dummycheckout);
 
 route.get('/cart/:id', controller.addtocartitems);
 route.get('/cart', controller.showCartItems);
@@ -51,7 +56,7 @@ route.post('/my-endpoint', controller.addtocartMock);
 
 route.post("/create-ship-order", controller.createshiporder);
 
-route.post("/connect-shopify", controller.connectShopify);
-route.post("/connect-woocommerce", controller.connectWooCommerce);
+route.post("/connect-shopify", authServices.authorizeToken, controller.connectShopify);
+route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
 
 module.exports = route

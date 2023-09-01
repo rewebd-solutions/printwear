@@ -24,48 +24,6 @@
 </head>
 
 <body>
-    <!-- <% if (status != '') { %>
-        <style>
-            .status-box{
-                padding: 1rem;
-                border-left: 6px solid rgb(255, 81, 81);
-                background-color: rgb(255, 159, 159);
-                color: white;
-                position: absolute;
-                top: 2rem;
-                left: 2rem;
-                border-radius: 3px;
-                z-index: 10;
-                font-size: 0.8rem !important;
-                transition: opacity 0.5s ease;
-            }
-            .dismiss{
-                border: none;
-                border-radius: 50%;
-                padding: 0.6rem;
-                cursor: pointer;
-                top: 0.5rem;
-                right: 0.5rem;
-                display: inline-grid;
-                place-items: center;
-                transform: scale(0.6);
-            }
-            .delete-popup{
-                opacity: 0;
-            }
-        </style>
-        <div class="status-box">
-            <h2><%=status%><button class="dismiss"><img src="/images/close-icon.webp" width="20" alt=""></button></h2>
-        </div>
-        <script>
-            const removePopup = () =>  document.querySelector(".status-box").classList.add("delete-popup");
-            const removePopupTimer = setInterval(() => {
-                removePopup();
-                document.querySelector(".status-box").remove();
-            }, 2000);
-            document.querySelector(".dismiss").addEventListener("click", removePopup);
-        </script>
-    <% } %>  -->
     <!-- Navbar starts here -->
     <div class="banner">
         <%- include('partials/side-logo.ejs') %>

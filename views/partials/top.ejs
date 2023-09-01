@@ -1,8 +1,13 @@
 <style>
+    @font-face {
+      font-family: myFont;
+      src: url('/css/BaseNeueTrial-SemiBoldOblique.ttf');
+    }
     .top {
         display: flex;
         justify-content: space-between;
         padding: 20px;
+        font-family: myFont, 'sans-serif';
       }
       
       .top-icons {
@@ -11,6 +16,10 @@
         /* border: solid; */
         font-size: 20px;
         color: #000;
+      }
+
+      .logo {
+        margin-left: 3rem !important;
       }
       
       .icon {
@@ -38,8 +47,8 @@
         <i style="color:red;font-size: 18px;" class="fa-solid fa-circle-plus"></i>
         <i style="color:red;font-size: 18px;" class="fa fa-inr" aria-hidden="true"></i>
         <i style="color:red;font-size: 18px; ">0.00</i>
-        <i style="color:red;font-size: 18px;" class="fa fa-refresh" aria-hidden="true"></i>
+        <a href="/mycart"><i style="color:red;font-size: 18px;" class="fa fa-shopping-cart" aria-hidden="true"></i></a>
         <i style="color:red;font-size: 18px;" class="fa-solid fa-bell"></i>
-        <i style="color:red;font-size: 18px; padding-left:10px;margin-left: 5px;" class="fa-solid fa-user"></i><br>
+        <a href="/profile"><i style="color:red;font-size: 18px; padding-left:10px;margin-left: 5px;" class="fa-solid fa-user"></i></a> 
     </div>
 </div>

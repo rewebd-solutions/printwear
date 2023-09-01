@@ -1,4 +1,9 @@
 <style>
+  @font-face {
+    font-family: myFont;
+    src: url('/css/BaseNeueTrial-SemiBoldOblique.ttf');
+  }
+
     i.fa {
         margin: 0px 10px 0px 10px;
       }
@@ -12,6 +17,7 @@
         background: #1e1e1e;
         transition: all .5s ease;
         z-index: 5;
+        font-family: myFont, 'sans-serif';
       }
       .sidebar header {
         font-size: 28px;
@@ -123,7 +129,7 @@
             <i class="fa-regular fa-image"></i>
             <span>Design Gallery</span>
         </a>
-        <a href="/cart">
+        <a href="/placeorder">
             <i class="fa-solid fa-square-plus"></i>
             <span>Place Order</span>
         </a>

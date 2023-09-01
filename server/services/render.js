@@ -29,12 +29,20 @@ exports.designgallery = (req, res) => {
     res.render('design', { status: "" });
 }
 
+exports.placeorder = (req, res) => {
+    res.render("placeorder");
+}
+
 exports.manageorder = (req, res) => {
     res.render("manageorder");
 }
 
 exports.stock = (req, res) => {
     res.render("stock", { value: 1});
+}
+
+exports.mycart = (req, res) => {
+    res.render("cart");
 }
 
 exports.invoice = (req, res) => {
@@ -46,7 +54,7 @@ exports.productlib = (req, res) => {
 }
 
 exports.connectstore = (req, res) => {
-    res.render('connectstore');
+    res.render('connectstore',  { status: ''});
 }
 exports.contact = (req, res) => {
     res.render("contact");
@@ -55,20 +63,3 @@ exports.contact = (req, res) => {
 exports.mockupgenerator = (req, res) => {
     res.render('mockupgenerator');
 }
-
-exports.profilepage = (req, res) => {
-    // write code to get req.userId and findOne and SSR the page
-    res.render("profile");
-}
-
-//OTP FUNCTIONS DON'T TOUCH 
-
-//verifying otp
-
-
-////finding number with email id
-
-
-
-
-///finding number with email id

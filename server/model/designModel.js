@@ -11,8 +11,8 @@ const DesignSchema = mongoose.Schema({
     color: String,
     size: String,
     designImage: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Image'
+        front: String,
+        back: String
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

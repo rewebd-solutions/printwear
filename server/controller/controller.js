@@ -47,7 +47,8 @@ exports.register = async (req, res) => {
     password: crypto.createHash(algorithm).update(req.body.password).digest("hex"),
     phone: '+91' + num.toString(),
     emailVerified: false,
-    phoneVerified: false
+    phoneVerified: false,
+    profileImage: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'
   })
     .then(() => {
       //res.send(data)
@@ -86,6 +87,19 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
   return res.clearCookie("actk").redirect("/login");
 }
+
+
+exports.profilepage = async (req, res) => {
+  // write code to get req.userId and findOne and SSR the page
+  const userData = await UserModel.findOne({ _id: req.userId });
+  const storeData = await StoreModel.findOne({ userid: req.userId });
+  const data = {
+    userData: userData,
+    storeData: storeData
+  }
+  res.render("profile", { data: data });
+}
+
 
 // endpoints for verification OTP and authentication not sure if it works
 exports.emailverify = async (req, res) => {
@@ -423,6 +437,19 @@ exports.getproduct = async (req, res) => {
 }
 
 
+// temporary dummy endpoints for mockup to cart
+exports.dummycheckout = async (req, res) => {
+  const frontImage = req.body.frontImage;
+  const backImage = req.body.backImage;
+  const frontBuffer = Uint8Array.from(Buffer.from(frontImage, "base64")); 
+  console.log(frontBuffer);
+  const fileReference = storageReference.child(`products/${req.userId + "_" + req.body.designName + '.png'}`);
+  await fileReference.put(frontBuffer);
+  const fileDownloadURL = await fileReference.getDownloadURL();
+  console.log(fileDownloadURL);
+  res.redirect("mycart"); // res.render dhaan
+}
+
 // endpoints for creating orders in shiprocket
 exports.createshiporder = async (req, res) => {
   // every 10 days token refersh.. thru .env manually
@@ -692,7 +719,7 @@ exports.cart_clone = async (req, res) => {
 // endpoints for connecting stores
 exports.connectShopify = async (req, res) => {
   const reqBody = req.body;
-  // console.log(reqBody);
+  // console.log(req.userId);
   const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
   const SHOPIFY_SHOP_URL = reqBody.store_url
   const SHOPIFY_SHOP_NAME = reqBody.store_name
@@ -710,11 +737,11 @@ exports.connectShopify = async (req, res) => {
     // console.log(fetchData);
 
     const store = await StoreModel.findOneAndUpdate(
-      { userid: cur_user },
+      { userid: req.userId },
       {
         $set: {
           // _id: 
-          userid: cur_user,
+          userid: req.userId,
           shopifyStores: [
             {
               shopName: SHOPIFY_SHOP_NAME,
@@ -727,7 +754,7 @@ exports.connectShopify = async (req, res) => {
       { new: true, upsert: true }
     )
 
-    res.status(200).json(fetchData); // idhu redirect pannidu
+    res.status(200).render('connectstore', { status: "Added Shopify Store"}); // idhu redirect pannidu
     return;
 
   } catch (error) {
@@ -750,9 +777,9 @@ exports.connectWooCommerce = async (req, res) => {
   try {
     //do the thing to create woo obj
     const api = new WooCommerceRestApi({
-      url: "https://print-wear.in/",
-      consumerKey: "ck_0702bbbdb96b62819b29cb97190e17b1be8157f9",
-      consumerSecret: "cs_474830f832be9377fe371b09946e0a216b4cb90d",
+      url: "https://" + WOOCOMMERCE_SHOP_URL + "/",
+      consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+      consumerSecret: WOOCOMMERCE_CONSUMER_SECRET,
       version: "wc/v3"
     });
     const orders = await api.get("orders", {
@@ -762,11 +789,11 @@ exports.connectWooCommerce = async (req, res) => {
     // console.log(orders);
 
     const store = await StoreModel.findOneAndUpdate(
-      { userid: cur_user },
+      { userid: req.userId },
       {
         $set: {
           // _id: 
-          userid: cur_user,
+          userid: req.userId,
           wooCommerceStores: [
             {
               shopName: WOOCOMMERCE_SHOP_NAME,
@@ -781,7 +808,7 @@ exports.connectWooCommerce = async (req, res) => {
     )
     // await store.save();
 
-    res.status(200).json(orders.data);
+    res.status(200).render('connectstore', { status: "Added WooCommerce Store"});
     return;
 
   } catch (error) {

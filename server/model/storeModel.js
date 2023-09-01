@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 
 const StoreSchema = new mongoose.Schema({
     // _id: mongoose.Schema.Types.ObjectId, 
-    userid: { type: String, required: true },
+    userid: { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+     },
     shopifyStores: [
         {
             shopName: { type: String },
