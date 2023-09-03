@@ -1,14 +1,14 @@
 @font-face{
     font-family: myFont;
-    src:url('BaseNeueTrial-SemiBoldOblique.ttf');
+    src:url('/css/BaseNeueTrial-SemiBoldOblique.ttf');
 }
 
 
 * {
     font-family: myFont;
+    font-weight: 500;
     margin: 0;
     padding: 0;
-    letter-spacing: 0.14rem;
     box-sizing: border-box;
 }
 

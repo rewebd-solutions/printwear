@@ -1,9 +1,37 @@
-body {
-	height: 100vh;
+* {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
 }
+
+.loader {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	position: relative;
+	animation: rotate 1s linear infinite
+  }
+  .loader::before {
+	content: "";
+	box-sizing: border-box;
+	position: absolute;
+	inset: 0px;
+	border-radius: 50%;
+	border: 5px solid #FFF;
+	animation: prixClipFix 2s linear infinite ;
+  }
+
+  @keyframes rotate {
+	100%   {transform: rotate(360deg)}
+  }
+
+  @keyframes prixClipFix {
+	  0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+	  25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+	  50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+	  75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+	  100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+  }
 .design_api_container {
 	display: grid !important;
 	place-items: center;
@@ -22,6 +50,7 @@ span.glyphicon {
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
+	position: relative;
 	/* border:1px solid #3c3c3c; */
 }
 .dwn{
@@ -39,6 +68,18 @@ span.glyphicon {
 	display: grid;
 	place-items: center;
 	transform: scale(1.1) translateX(5%);
+}
+
+.loader-wrapper {
+	position: absolute;
+	display: flex;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	justify-content: center;
+	align-items: center;
+	background-color: #acacacc4;
 }
 
 #menu,
@@ -270,7 +311,6 @@ div.upload input {
 .custom_font {
 	background: #acacac;
 	width: 220px;
-	height: 100px; 
 }
 
 .custom_font textarea {
@@ -400,7 +440,7 @@ div.upload input {
 .delete_icon,
 .delete_text {
 	right: -12px;
-	background-image: url(../images2/del.jpg);
+	background-image: url('/images/mockup/del.jpg');
 	background-size: 20px 20px;
 }
 

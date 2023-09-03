@@ -9,51 +9,8 @@
     font-family: myFont;
     margin: 0;
     padding: 0;
-    letter-spacing: 0.14rem;
+    letter-spacing: 0.05rem;
     box-sizing: border-box;
-}
-
-
-@media(max-width : 860px) {
-    .sidebar {
-        height: auto;
-        width: 50px;
-        left: 0;
-        top: -100px;
-        margin: 100px 0;
-    }
-
-    header,
-    #sidebar-btn,
-    #cancel {
-        display: none !important;
-    }
-
-    span {
-        position: absolute;
-        margin-left: 23px;
-        opacity: 0;
-        width: max-content;
-        visibility: hidden;
-    }
-
-    .sidebar a {
-        height: 43px;
-    }
-
-    .sidebar a i {
-        margin-left: -20px;
-    }
-
-    a:hover {
-        width: 300px;
-        background: inherit;
-    }
-
-    .sidebar a:hover span {
-        opacity: 1;
-        visibility: visible;
-    }
 }
 
 

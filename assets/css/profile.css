@@ -1,28 +1,31 @@
 @font-face {
     font-family: myFont;
-    src: url('BaseNeueTrial-SemiBoldOblique.ttf');
+    src: url('/css/BaseNeueTrial-SemiBoldOblique.ttf');
 }
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    letter-spacing: 0.05rem;
+}
 
 .profile {
     display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    margin-top: 100px;
-    margin-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 1100px;
-    height: 520px;
-    font-family:  'Nunito', sans-serif;
-    font-weight: 600;
+    justify-content: center;
+    margin: auto;
+    gap: 1rem;
+    padding-left: 300px;
+    padding-top: 6rem;
 }
+
 .img {
-    border-radius: 55px;
+    border-radius: 50%;
 }
 .left,.rightbot,.righttop{
     background-color: #eee;
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1)
 }
 #pht {
     background-color: black;
@@ -35,8 +38,6 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    width: 400px;
-    
 }
 .prof h2{
     font-size: 27px;
@@ -45,7 +46,7 @@
     display: flex;
     flex-direction: column;
     border-radius: 20px;
-    padding: 20px;
+    padding: 2rem;
 }
 
 .details {
