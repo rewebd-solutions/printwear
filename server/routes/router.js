@@ -12,7 +12,6 @@ route.get('/', services.homeRoutes)
 route.post('/register', controller.register);
 route.post('/login', controller.login);
 route.get('/login', authServices.authorizeLogin, services.loginpage);
-route.get("/expired", services.expired);
 route.get("/logout", controller.logout);
 
 route.post('/emailverify', controller.emailverify);
@@ -27,18 +26,18 @@ route.post("/deleteimage", authServices.authorizeToken, controller.deleteimage);
 
 route.post('/addproduct', controller.addproduct); // adding a product by us, not user
 route.get("/getproducts", controller.getproducts);// get request that retrieves all product info → for use in stock inventory
-route.get("/getproduct", controller.getproduct);
+route.get("/getproduct/:id", controller.getproduct);
 
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
 
 route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
-route.get("/designgallery", authServices.authorizeToken, services.designgallery); // user oda uploaded images kaatum
+route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
 route.get("/manageorder", authServices.authorizeToken, services.manageorder); 
 route.get("/placeorder", authServices.authorizeToken, services.placeorder);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
 route.get("/contact", authServices.authorizeToken, services.contact);
-route.get("/mockupgenerator", authServices.authorizeToken, services.mockupgenerator);
+route.get("/designgenerator", authServices.authorizeToken, services.designgenerator);
 route.get("/productlib", authServices.authorizeToken, services.productlib);
 route.get("/invoice", authServices.authorizeToken, services.invoice);
 route.get("/profile", authServices.authorizeToken, controller.profilepage);

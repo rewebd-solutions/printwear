@@ -278,14 +278,40 @@ exports.addproduct = async (req, res) => {
         colorSKU: "WHT",
         colorCode: "#fff",
         colorImage: {
-          front: "obtainfromfirebasecloud",
-          back: "jadad"
+          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontwhite.png?alt=media&token=6b8377cc-7820-4510-ad56-6a48b9d5b254",
+          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackwhite.png?alt=media&token=7d3ec7ea-6860-4fb9-81e4-82c8f514618e"
         },
         sizes: [
           {
+            sizeSKU: "SM",
+            size: "S",
+            stock: 3
+          },
+          {
             sizeSKU: "MD",
             size: "M",
-            stock: 5
+            stock: 9
+          },
+          {
+            sizeSKU: "LG",
+            size: "L",
+            stock: 10
+          },
+        ]
+      },
+      {
+        colorName: "black",
+        colorSKU: "BLK",
+        colorCode: "#313131",
+        colorImage: {
+          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontblack.png?alt=media&token=8500e6ef-77fc-4449-8044-45b5ba248c45",
+          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackblack.png?alt=media&token=b8f3c471-a0d9-4999-966e-a89e87b6b476"
+        },
+        sizes: [
+          {
+            sizeSKU: "XSM",
+            size: "XS",
+            stock: 10
           },
           {
             sizeSKU: "SM",
@@ -293,40 +319,9 @@ exports.addproduct = async (req, res) => {
             stock: 7
           },
           {
-            sizeSKU: "LG",
-            size: "L",
-            stock: 12
-          },
-        ]
-      },
-      {
-        colorName: "black",
-        colorSKU: "BLK",
-        colorCode: "#000",
-        colorImage: {
-          front: "obtainfromfirebasecloud",
-          back: "jadad"
-        },
-        sizes: [
-          {
-            sizeSKU: "XSM",
-            size: "XS",
-            stock: 15
-          },
-          {
-            sizeSKU: "SM",
-            size: "S",
-            stock: 17
-          },
-          {
             sizeSKU: "MD",
             size: "M",
-            stock: 16
-          },
-          {
-            sizeSKU: "XLG",
-            size: "XL",
-            stock: 10
+            stock: 6
           }
         ],
 
@@ -334,47 +329,47 @@ exports.addproduct = async (req, res) => {
       {
         colorName: "red",
         colorSKU: "RED",
-        colorCode: "#ff000",
+        colorCode: "#f24660",
         colorImage: {
-          front: "obtainfromfirebasecloud",
-          back: "jadad"
+          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontred.png?alt=media&token=fe6afdd3-eacf-47a3-8814-8113b3b78971",
+          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackred.png?alt=media&token=67474d4f-e96c-4e8e-919b-91725d58689b"
         },
         sizes: [
           {
             sizeSKU: "SM",
             size: "S",
-            stock: 1
+            stock: 4
           },
           {
             sizeSKU: "MD",
             size: "M",
-            stock: 0
+            stock: 9
           },
           {
             sizeSKU: "LG",
             size: "L",
-            stock: 11
+            stock: 0
           }
         ],
 
       },
     ],
     product: {
-      SKU: "TEE",
-      name: "Test TShirt",
-      category: "TShirts",
+      SKU: "HOOD",
+      name: "Test Hoodie",
+      category: "Hoodies",
       gender: "M",
-      description: "This is a test shirt that is currently used for testing purposes",
+      description: "This is a test hoodie that is currently used for testing purposes",
       productImage: {
-        front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2",
-        back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmaleback.png?alt=media&token=c923de8e-a570-4fc1-9a95-d3ff060d961c",
+        front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontwhite.png?alt=media&token=6b8377cc-7820-4510-ad56-6a48b9d5b254",
+        back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackwhite.png?alt=media&token=7d3ec7ea-6860-4fb9-81e4-82c8f514618e",
       },
       price: {
-        xs: 300,
-        s: 350,
-        m: 400,
-        l: 450,
-        xl: 500
+        xs: 400,
+        s: 450,
+        m: 500,
+        l: 550,
+        xl: 600
       },
       colors: [],
       canvas: {
@@ -428,12 +423,19 @@ exports.getproducts = async (req, res) => {
 }
 
 exports.getproduct = async (req, res) => {
-  const productData = ProductModel.findOne({ _id: req.body.productId });
-  const colorsData = ColorModel.find({ productId: productData._id });
-  res.status(200).json({
-    productData,
-    colorsData
-  });
+  console.log(req.params.id);
+  try {
+    const productData = await ProductModel.findOne({ _id: req.params.id });
+    const colorsData = await ColorModel.find({ productId: productData._id });
+    res.status(200).json({
+      productData,
+      colorsData
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).send("Product not found!");
+  }
+  
 }
 
 // temporary dummy endpoints for mockup to cart

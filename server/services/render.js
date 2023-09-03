@@ -25,8 +25,8 @@ exports.forgetRoutes = (req, res) => {
     res.render('forgetpassword', { success: "" });
 }
 
-exports.designgallery = (req, res) => {
-    res.render('design', { status: "" });
+exports.productgallery = (req, res) => {
+    res.render('productgallery', { status: "" });
 }
 
 exports.placeorder = (req, res) => {
@@ -63,6 +63,6 @@ exports.contact = (req, res) => {
     res.render("contact");
 }
 
-exports.mockupgenerator = (req, res) => {
-    res.render('mockupgenerator');
+exports.designgenerator = (req, res) => {
+    res.render('designgenerator');
 }

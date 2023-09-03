@@ -4,171 +4,100 @@
     src: url('/css/BaseNeueTrial-SemiBoldOblique.ttf');
   }
 
-    i.fa {
-        margin: 0px 10px 0px 10px;
-      }
-      
-      .sidebar {
-        position: fixed;
-        width: 300px;
-        left: -300px;
-        height: 150%;
-        top: 0px;
-        background: #1e1e1e;
-        transition: all .5s ease;
-        z-index: 5;
-        font-family: myFont, 'sans-serif';
-      }
-      .sidebar header {
-        font-size: 28px;
-        color: white;
-        line-height: 60px;
-        text-align: center;
-        background: #1b1b1b;
-        user-select: none;
-        font-family: 'Montserrat', sans-serif;
-      }
-      
-      .sidebar a {
-        display: block;
-        height: 50px;
-        width: 100%;
-        color: white;
-        line-height: 50px;
-        padding-left: 30px;
-        box-sizing: border-box;
-        border-bottom: 1px solid black;
-        border-top: 1px solid rgba(255, 255, 255, .1);
-        border-left: 5px solid transparent;
-        font-family: 'Open Sans', sans-serif;
-        transition: all .5s ease;
-        text-decoration: none;
-      }
-      
-      .sidebar a:active,
-      .sidebar a:hover {
-        border-left: 5px solid #7275be;
-        color: #7275be;
-        text-decoration: none;
-      }
-      
-      .sidebar a:focus {
-        color: #7275BE;
-      }
-      
-      .sidebar a i {
-        font-size: 20px;
-        margin-right: 16px;
-      }
-      
-      .sidebar a span {
-        letter-spacing: 1px;
-        font-size: 13px;
-        text-transform: uppercase;
-      }
-      
-      #check {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-      }
-      
-      label #sidebar-btn,
-      label #cancel {
-        position: fixed;
-        cursor: pointer;
-        color: white;
-        border-radius: 5px;
-        border: 1px solid #262626;
-        margin: 15px 30px;
-        font-size: 29px;
-        background: #262626;
-        height: 45px;
-        width: 45px;
-        text-align: center;
-        line-height: 45px;
-        transition: all .5s ease;
-      }
-      
-      label #cancel {
-        opacity: 0;
-        visibility: hidden;
-      }
-      
-      #check:checked~.sidebar {
-        left: 0;
-      }
-      
-      #check:checked~label #sidebar-btn {
-        margin-left: 305px;
-        opacity: 0;
-        visibility: hidden;
-      }
-      
-      #check:checked~label #cancel {
-        margin-left: 305px;
-        opacity: 1;
-        visibility: visible;
-      }
-</style>
-<div class="side-logo">
-    <input type="checkbox" id="check">
-    <label for="check">
-        <i class="fa-sharp fa-solid fa-bars fa-3x" id="sidebar-btn"></i>
-        <i class="fas fa-bars" id="sidebar-btn"></i>
-        <i class="fas fa-times" id="cancel"></i>
-    </label>
-    <div class="sidebar">
-        <header style="color:#F05A30">Printwear</header>
-        <a href="/dashboard" class="active">
-            <i class="fas fa-qrcode"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="/designgallery">
-            <i class="fa-regular fa-image"></i>
-            <span>Design Gallery</span>
-        </a>
-        <a href="/placeorder">
-            <i class="fa-solid fa-square-plus"></i>
-            <span>Place Order</span>
-        </a>
-        <a href="/manageorder">
-            <i class="fa-solid fa-rectangle-list"></i>
-            <span>Order Management</span>
-        </a>
-        <a href="/stock">
-            <i class="fa-solid fa-chart-simple"></i>
-            <span>Stock Inventory</span>
-        </a>
-        <a href="/mockupgenerator">
-            <i class="fa-regular fa-image"></i>
-            <span>Mockup Generator</span>
-        </a>
-        <a href="/productlib">
+  .sidebar {
+    position: fixed;
+    padding-right: 2rem;
+    left: 0;
+    height: 100vh;
+    top: 4rem;
+    background: white;
+    z-index: 5;
+    font-family: myFont, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.05rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding-top: 2rem;
+  }
 
-            <i class="fa-regular fa-bags-shopping"></i>
-            <span>Product Library</span>
-        </a>
-        <a href="/connectstore">
-            <i class="fa-solid fa-store"></i>
-            <span>Connect your Store</span>
-        </a>
-        <a href="/invoice">
-            <i class="fa-solid fa-briefcase"></i>
-            <span>Invoicing</span>
-        </a>
-        <a href="https://data.gov.in/files/ogdpv2dms/s3fs-public/dataurl31052019/Pincode_30052019.csv" target="_blank">
-            <i class="fa-solid fa-location-dot"></i>
-            <span>Serviceable PIN codes</span>
-        </a>
-        <a href="/profile">
-            <i class="fa-solid fa-gear"></i>
-            <span>Configuration</span>
-        </a>
-        <a href="/logout" class="logout-link">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Logout</span>
-        </a>
-    </div>
+  .sidebar a {
+    color: #3f3f3f;
+    line-height: 50px;
+    padding-left: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.19);
+    border-left: 5px solid transparent;
+    text-decoration: none;
+  }
+
+  .sidebar a:active,
+  .sidebar a:hover,
+  .sidebar a:focus {
+    border-left: 5px solid #F05A30;
+    color: #F05A30;
+  }
+
+  .sidebar a i {
+    font-size: 20px;
+    margin-right: 16px;
+  }
+
+  .sidebar a span {
+    letter-spacing: 1px;
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+
+</style>
+<div class="side-menu">
+  <div class="sidebar">
+    <a href="/dashboard">
+      <i class="fas fa-qrcode"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="/productgallery">
+      <i class="fa-regular fa-image"></i>
+      <span>Product Gallery</span>
+    </a>
+    <a href="/placeorder">
+      <i class="fa-solid fa-square-plus"></i>
+      <span>Create Order</span>
+    </a>
+    <a href="/manageorder">
+      <i class="fa-solid fa-rectangle-list"></i>
+      <span>Order Management</span>
+    </a>
+    <a href="/stock">
+      <i class="fa-solid fa-chart-simple"></i>
+      <span>Stock Inventory</span>
+    </a>
+    <a href="/designgenerator">
+      <i class="fa-regular fa-image"></i>
+      <span>Design Generator</span>
+    </a>
+    <a href="/productlib">
+      <i class="fa-regular fa-bags-shopping"></i>
+      <span>Product Library</span>
+    </a>
+    <a href="/connectstore">
+      <i class="fa-solid fa-store"></i>
+      <span>Connect your Store</span>
+    </a>
+    <a href="/invoice">
+      <i class="fa-solid fa-briefcase"></i>
+      <span>Invoicing</span>
+    </a>
+    <a href="https://data.gov.in/files/ogdpv2dms/s3fs-public/dataurl31052019/Pincode_30052019.csv" target="_blank">
+      <i class="fa-solid fa-location-dot"></i>
+      <span>Serviceable PIN codes</span>
+    </a>
+    <a href="/profile">
+      <i class="fa-solid fa-gear"></i>
+      <span>Configuration</span>
+    </a>
+    <a href="/logout" class="logout-link">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span>Logout</span>
+    </a>
+  </div>
 </div>
