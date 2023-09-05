@@ -434,7 +434,7 @@ exports.getproduct = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(404).send("Product not found!");
+    res.status(404).json({error:"Product not found!"});
   }
   
 }
@@ -473,6 +473,30 @@ exports.adddesign = async (req, res) => {
     res.status(500).send("Server Error", error);
   }
 }
+
+exports.getdesigns = async (req, res) => {
+  try {
+    const designsData = await DesignModel.find({ createdBy: req.userId });
+    const productDataIDs = new Set(designsData.map(designData => designData.baseProductId + ''));
+    const productData = await ProductModel.find({ _id: {$in: [...productDataIDs]}});
+    const colorIDs = new Set(designsData.map(designData => designData.color));
+    const colorsData = await ColorModel.find({ _id: {$in: [...colorIDs]}});
+    // console.log(colorsData);
+    const newDesignsData = designsData.map(design => {
+      return {
+        design: design,
+        product: productData.find(product => product._id+'' === design.baseProductId+''),
+        color: colorsData.find(color => color._id+'' === design.color+'')
+      }
+    })
+    // console.log(newDesignsData);
+    res.json(newDesignsData);
+  } catch (error) {
+    console.log(error);
+    res.json({error});
+  }
+}
+
 
 // temporary dummy endpoints for mockup to cart
 exports.dummycheckout = async (req, res) => {

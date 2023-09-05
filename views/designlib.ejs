@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Import Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Import custom CSS file -->
+  <link rel="stylesheet" href="/css/designlib.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+  <title>Design Library - Printwear</title>
+</head>
+
+<body>
+
+  <!-- navbar -->
+  <!-- Navbar starts here -->
+  <div class="banner">
+    <%- include('partials/side-logo.ejs') %>
+      <%- include('partials/top.ejs') %>
+  </div>
+  <!-- navbar  -->
+
+
+  <main class="product-lib">
+    <div class="heading-row">
+      <h2>Design Library</h2>
+      <p>Start creating your designs and save them for reordering quickly.<br>
+        You can also push them to your online store once you connect your store with Printwear</p>
+    </div>
+    <!-- <div class="col-8" data-aos="fade-up">
+
+      <img src="/images/pdtlib.png" id="pdt">
+      <p>Start creating your designs and save them for reordering quickly.<br>
+        You can also push them to your online store once you connect your store with Printwear</p>
+      <button type="button" class="btn-orange">Add Product</button>
+    </div> -->
+    <div class="designs-choice-container">
+      <button class="choice-btn active-btn" id="printwear-designs">Printwear</button>
+      <button class="choice-btn" id="shopify-designs">Shopify</button>
+      <button class="choice-btn" id="woo-designs">WooCommerce</button>
+    </div>
+    <div class="designs-wrapper">
+      <div class="designs-container">
+        <span class="loader"></span>
+        <h4>Products are loading...</h4>
+      </div>
+      <div class="shopify-designs-container">
+        <span class="loader"></span>
+        <h4>Products are loading...</h4>
+      </div>
+      <div class="woocommerce-designs-container">
+        <span class="loader"></span>
+        <h4>Products are loading...</h4>
+      </div>
+    </div>
+
+    <!-- <div class="product-modal-wrapper">
+      <div class="product-modal">
+        <button class="modal-close">
+          <i class="fa fa-close"></i>
+        </button>
+        <div class="product-modal-image">
+          <img
+            src="https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2"
+            alt="">
+        </div>
+        <div class="product-modal-details">
+          <h2 class="product-name">Test T Shirt</h2>
+          <div class="product-category-gender">
+            <h6>Category</h6>
+            <h6>Gender</h6>
+          </div>
+          <p class="product-description">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur, dignissimos?
+          </p>
+          <div class="product-colors">
+            <p>Colors: </p>
+            <div class="color-disc"></div>
+            <div class="color-disc"></div>
+            <div class="color-disc"></div>
+          </div>
+          <div class="product-sizes">
+            <p>Sizes: </p>
+            <h4>S</h4>
+            <h4>M</h4>
+            <h4>L</h4>
+          </div>
+          <div class="product-price-button">
+            <h4>Starts from ₹340</h4>
+            <button>Design now</button>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+  </main>
+
+  <!-- const mockData = [
+  {
+    "designImage": {
+      "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_Printwear%20standard%20logo_front.png?alt=media&token=3192c9ef-d7ae-420d-a18e-a911836cd17b",
+      "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_Printwear%20standard%20logo_back.png?alt=media&token=a907e8da-b766-4a5a-9b54-a3a081f91b96"
+    },
+    "_id": "64f6a6d8a232c60953077b8b",
+    "designName": "Printwear standard logo",
+    "baseProductId": "64f2b13f54f25afcf4534bb4",
+    "color": "",
+    "createdBy": "64f175edd683cd124e440f23",
+    "createdAt": "2023-09-05T03:56:08.688Z",
+    "__v": 0
+  },
+  {
+    "designImage": {
+      "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_test_front.png?alt=media&token=d4a3bc6e-ba62-4292-b046-704872358e50",
+      "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_test_back.png?alt=media&token=f9828441-e7e0-4309-a5d9-d12996a55b9c"
+    },
+    "_id": "64f6af3818e815a1802cfa21",
+    "designName": "test",
+    "baseProductId": "64f2b13f54f25afcf4534bb4",
+    "color": "",
+    "createdBy": "64f175edd683cd124e440f23",
+    "createdAt": "2023-09-05T04:31:52.392Z",
+    "__v": 0
+  }
+] -->
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init();
+
+    const designsContainter = document.querySelector(".designs-container");
+    const shopifyDesignsContainer = document.querySelector(".shopify-designs-container");
+    const wooCommerceDesignsContainer = document.querySelector(".woocommerce-designs-container");
+
+    shopifyDesignsContainer.style.display = "none";
+    wooCommerceDesignsContainer.style.display = "none";
+
+    const designsBtn = document.querySelector("#printwear-designs");
+    const shopifyDesignsBtn = document.querySelector("#shopify-designs");
+    const wooCommerceDesignsBtn = document.querySelector("#woo-designs");
+
+    designsBtn.onclick = (e) => {
+      designsBtn.classList.add("active-btn")
+      shopifyDesignsBtn.classList.remove("active-btn")
+      wooCommerceDesignsBtn.classList.remove("active-btn")
+      designsContainter.style.display = "flex";
+      shopifyDesignsContainer.style.display = "none";
+      wooCommerceDesignsContainer.style.display = "none";
+    }
+
+    shopifyDesignsBtn.onclick = (e) => {
+      designsBtn.classList.remove("active-btn")
+      shopifyDesignsBtn.classList.add("active-btn")
+      wooCommerceDesignsBtn.classList.remove("active-btn")
+      designsContainter.style.display = "none";
+      shopifyDesignsContainer.style.display = "flex";
+      wooCommerceDesignsContainer.style.display = "none";
+    }
+
+    wooCommerceDesignsBtn.onclick = (e) => {
+      designsBtn.classList.remove("active-btn")
+      shopifyDesignsBtn.classList.remove("active-btn")
+      wooCommerceDesignsBtn.classList.add("active-btn")
+      designsContainter.style.display = "none";
+      shopifyDesignsContainer.style.display = "none";
+      wooCommerceDesignsContainer.style.display = "flex";
+    }
+
+    const openModal = (designId) => {
+      const designModalData = designsResponseData.find(designData => designData.design._id === designId);
+      console.log(designModalData);
+      const designModalDOMString = `
+        <div class="product-modal-wrapper">
+          <div class="product-modal">
+            <button class="modal-close">
+              <i class="fa fa-close"></i>
+            </button>
+            <div class="product-modal-image">
+              <img
+                src="${designModalData.design.designImage.front}"
+                alt="Design front image">
+            </div>
+            <div class="product-modal-details">
+              <h2 class="product-name">${designModalData.design.designName}</h2>
+              <!-- <div class="product-category-gender">
+                <h6>${designModalData.product.category}</h6>
+                <h6>Gender</h6>
+              </div> 
+              <p class="product-description">
+                ${designModalData.product.description}
+              </p> -->
+              <div class="product-colors">
+                <p>Chosen color: </p>
+                <div class="color-disc" style="background: ${designModalData.color.colorCode}"></div>
+              </div>
+              <div class="product-sizes">
+                <p>Sizes: </p>
+                ${designModalData.color.sizes.map(size => `<h4>${size.size}</h4>`).join('\n')}
+              </div>
+              <div class="product-price-button">
+                <h4>Starts from ₹${Math.min(...Object.values(designModalData.product.price))}</h4>
+                <button>Add to Cart</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.querySelector("main").insertAdjacentHTML("beforeend", designModalDOMString);
+      document.querySelector(".product-modal-image").addEventListener("mouseover", (e) => {
+        e.target.setAttribute("src", designModalData.design.designImage.back);
+      })
+      document.querySelector(".product-modal-image").addEventListener("mouseout", (e) => {
+        e.target.setAttribute("src", designModalData.design.designImage.front);
+      })
+      const closeModalButton = document.querySelector(".modal-close");
+      closeModalButton.addEventListener("click", (e) => {
+          document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+      })
+    }
+
+    const createDesignCards = () => {
+      const designCardsDOMString = designsResponseData.map(designData => {
+        return `
+          <div class="design-card">
+            <div class="card-img">
+              <img src="${designData.design.designImage.front}">
+            </div>
+            <div class="name-price">
+              <h3>${designData.design.designName}</h3>
+            </div>
+            <div class="details">
+              <div class="view-btn">
+                <button data-designid="${designData.design._id}">View</button>
+              </div>
+            </div>
+          </div>
+        `
+      }).join('\n');
+      designsContainter.innerHTML = designCardsDOMString;
+
+      designsContainter.addEventListener("click", (e) => {
+        const openModalButton = e.target.closest(".view-btn button");
+        if (openModalButton) {
+          openModal(openModalButton.dataset.designid);
+        }
+      })
+    }
+
+    const fetchDesignsData = async () => {
+      try {
+        const designsFetchRequest = await fetch("/getdesigns");
+        designsResponseData = await designsFetchRequest.json();
+
+        console.log(designsResponseData);
+
+        if (designsResponseData.length > 0) {
+          return createDesignCards();
+        }
+        designsContainter.innerHTML = "<p> No products </p>";
+      } catch (error) {
+        designsContainter.innerHTML = `
+          <p>
+            There was an error trying to fetch data. <br>
+            ${error}
+          </p>
+        `;
+        console.log(error);
+      }
+    }
+
+    fetchDesignsData();
+  </script>
+
+</body>
+
+</html>

@@ -29,6 +29,7 @@ route.get("/getproducts", controller.getproducts);// get request that retrieves 
 route.get("/getproduct/:id", controller.getproduct);
 
 route.post("/adddesign", authServices.authorizeToken, controller.adddesign);
+route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
 
@@ -40,7 +41,7 @@ route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
 route.get("/contact", authServices.authorizeToken, services.contact);
 route.get("/designgenerator", authServices.authorizeToken, services.designgenerator);
-route.get("/productlib", authServices.authorizeToken, services.productlib);
+route.get("/designlib", authServices.authorizeToken, services.designlib);
 route.get("/invoice", authServices.authorizeToken, services.invoice);
 route.get("/profile", authServices.authorizeToken, controller.profilepage);
 

@@ -49,8 +49,8 @@ exports.invoice = (req, res) => {
     res.render("invoice");
 }
 
-exports.productlib = (req, res) => {
-    res.render("productlib");
+exports.designlib = (req, res) => {
+    res.render("designlib");
 }
 
 exports.connectstore = (req, res) => {
