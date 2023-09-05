@@ -40,10 +40,11 @@
 	</div>
 	<div id="maindiv">
 
-		<script type="text/javascript" src="/js/dom-to-image.min.js"></script>
-
+		<!-- <script type="text/javascript" src="/js/html2canvas.js"></script> -->
+		<!-- <script type="text/javascript" src="/js/html22canvas.js"></script> -->
+		<script type="text/javascript" src="/js/html2canvas.min.js"></script>
 		<script src="/js/jquery.form.js"></script>
-		<script src="/js/mainapp.js"></script>
+		
 
 		<script src="/js/jquery-ui.js"></script>
 
@@ -252,26 +253,31 @@
 	<div class="modal-content"> -->
 
 			<div class="layer">
-				<div class="modal-content">
+				<div class="modal-content-preview">
 					<div class="modal-header">
 						<button type="button" class="close close_img" data-dismiss="modal">
 							<span aria-hidden="true">&times;</span><span class="sr-only close_img">Close</span>
 						</button>
 					</div>
 					<div class="modal-body" id="modal-body">
-						<div id="image_reply"></div>
-						<div class="modal-footer">
+						<div id="image_reply">
+							
+						</div>
+						<div class="modal-footer-preview">
 							<input type="hidden" name="img_front" id="img_front" value="" />
 							<input type="hidden" name="img_back" id="img_back" value="" />
-							<button type="submit" class="btn btn-primary prv" id="buy">
-								Save Design
-							</button>
-							<button type="button" class="btn dwn prv" id="dwn">
-								Download Design	
-							</button>
-							<button type="button" class="btn dwn prv" id="add-cart">
-								Add To Cart
-							</button>
+							<input type="text" class="form-control" placeholder="Enter a design name..." name="design-name" id="design_name" />
+							<div style="display: flex; gap:1rem;">
+								<button type="submit" class="btn btn-primary prv" id="add-design">
+									Save Design
+								</button>
+								<button type="button" class="btn dwn prv" id="dwn">
+									Download Design	
+								</button>
+								<button type="button" class="btn dwn prv" id="buy">
+									Add To Cart
+								</button>
+							</div>
 						</div>
 					</div>
 
@@ -285,7 +291,7 @@
 
 
 	</div>
-
+	<script src="/js/mainapp.js"></script>
 </body>
 
 

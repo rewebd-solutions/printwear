@@ -64,12 +64,12 @@
       </div>
     </div> -->
     <div class="cart-item">
-      <h4 class="product-design-name">
+      <!-- <h4 class="product-design-name">
         My Custom Design
       </h4>
       <div style="display: flex; ">
         <div class="product-image">
-          <img src="<%= data.front %>" data-back="<%= data.back %>" alt=""> <!-- design URL -->
+          <img src="" data-back="" alt=""> 
         </div>
         <div class="product-details">
           <h4 class="product-detail">Product: Test TShirt</h4>
@@ -132,14 +132,15 @@
           <label for="phone">Enter Phone Number:</label>
           <input type="text" inputmode="numeric" id="phone" placeholder="+91 XXXXXXXXXXX" class="form-control"/>
       </div>
-      </div>
+      </div> -->
+      <h4 class="product-design-name">No items in cart currently :)</h4>
     </div>
     <!-- Button trigger modal -->
     <div class="pageend">
         <h1>Total: 
         </h1>
 
-      <button type="button" data-toggle="modal" data-target="#exampleModal" id="btn-chkout">
+      <button type="button" disabled="true" data-toggle="modal" data-target="#exampleModal" id="btn-chkout">
         CHECKOUT
       </button>
     </div>
@@ -164,7 +165,7 @@
     </div>
   </div>
 
-  <script>
+  <!-- <script>
     const URLs = [$('.product-image img').attr('src'), $('.product-image img').data('back')];
     //console.log(URLs);
     const productImage = document.querySelector('.product-image img');
@@ -194,6 +195,6 @@
       $('#base-price').html('Price: '+totalQuantity*productCost);
       totalCost.innerHTML = 'Total: ' + totalQuantity*productCost;
     } 
-  </script>
+  </script> -->
 </body>
 </html>
