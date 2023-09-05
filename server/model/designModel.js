@@ -9,7 +9,6 @@ const DesignSchema = mongoose.Schema({
         ref: 'Product'
     },
     color: String,
-    size: String,
     designImage: {
         front: String,
         back: String

@@ -42,10 +42,7 @@ exports.stock = (req, res) => {
 }
 
 exports.mycart = (req, res) => {
-    const queryParams = req.query;
-    // console.log(queryParams);
-    const data = { front: queryParams.f, back: queryParams.b }
-    res.render("cart", {data});
+    res.render("cart");
 }
 
 exports.invoice = (req, res) => {

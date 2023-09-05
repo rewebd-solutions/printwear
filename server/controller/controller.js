@@ -12,6 +12,7 @@ var UserModel = require("../model/userModel");
 var CartModel = require("../model/cartModel");
 var ImageModel = require("../model/imageModel")
 var ColorModel = require("../model/colorModel");
+var DesignModel = require("../model/designModel");
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var nodemailer = require('nodemailer');
@@ -438,6 +439,41 @@ exports.getproduct = async (req, res) => {
   
 }
 
+
+// endpoint for adding design
+exports.adddesign = async (req, res) => {
+  const reqBody = req.body;
+  const frontImage = reqBody.frontImage.substring(req.body.frontImage.indexOf(',')+1);
+  const backImage = reqBody.backImage.substring(req.body.backImage.indexOf(',')+1);
+  // check if color is null.. if null, then white only.. also for now obtain from req param of client
+  try {
+    const frontImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_front.png`);
+    await frontImageReference.putString(frontImage, 'base64',{ContentType:'image/png'});
+    const frontImageDownloadURL = await frontImageReference.getDownloadURL();
+
+    const backImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_back.png`);
+    await backImageReference.putString(backImage, 'base64',{ContentType:'image/png'});
+    const backImageDownloadURL = await backImageReference.getDownloadURL();
+    
+    console.log(frontImageDownloadURL, backImageDownloadURL);
+    const designData = new DesignModel({
+      designName: reqBody.designName || "My_design",
+      baseProductId: reqBody.productId,
+      color: reqBody.color,
+      designImage: {
+        front: frontImageDownloadURL,
+        back: backImageDownloadURL
+      },
+      createdBy: req.userId
+    });
+    await designData.save();
+    res.status(200).json(designData);
+  } catch (error) {
+    console.log(error)
+    res.status(500).send("Server Error", error);
+  }
+}
+
 // temporary dummy endpoints for mockup to cart
 exports.dummycheckout = async (req, res) => {
   const frontImage = req.body.frontImage.substring(req.body.frontImage.indexOf(',')+1);
@@ -464,7 +500,7 @@ exports.dummycheckout = async (req, res) => {
 }
 
 // endpoints for creating orders in shiprocket
-exports.createshiporder = async (req, res) => {
+exports.createshiporder = async (req, res) => {z
   // every 10 days token refersh.. thru .env manually
   // write code to obtain orders data from my mongo
   // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection

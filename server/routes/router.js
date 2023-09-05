@@ -28,6 +28,8 @@ route.post('/addproduct', controller.addproduct); // adding a product by us, not
 route.get("/getproducts", controller.getproducts);// get request that retrieves all product info → for use in stock inventory
 route.get("/getproduct/:id", controller.getproduct);
 
+route.post("/adddesign", authServices.authorizeToken, controller.adddesign);
+
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
 
 route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
