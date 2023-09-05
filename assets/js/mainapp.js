@@ -5,7 +5,8 @@ function populateDOM() {
 	colorsData = fetchProductData.colorsData;
 
 	//ONLOAD
-	$("#preview_front").css('background-image', `url('${productData.productImage.front}')`);
+	// $("#preview_front").css('background-image', `url('/images/mockup/product/tee/white/white_front.png')`);
+	$("#preview_front").css('background-image', `url(${productData.productImage.front})`);
 	$("#preview_back").css('background-image', `url('${productData.productImage.back}')`);
 	//$("#preview_front, #preview_back , #preview_left, #preview_right").css('background-color', 'blue') ;
 	$("#preview_front,.T_type").removeClass('dis_none');
@@ -72,7 +73,7 @@ function populateDOM() {
 	$(".mf").click(function () {
 		$y_pos = "front";
 		const colorImageData = colorsData.find(color => color._id === $colorId);
-		if (!colorImageData){
+		if (!colorImageData) {
 			$("#preview_front").css('background-image', `url(${productData.productImage.front})`);
 		} else {
 			$("#o_front").attr('src', `${colorImageData.colorImage.front}`);
@@ -89,7 +90,7 @@ function populateDOM() {
 	$(".mb").click(function () {
 		$y_pos = "back";
 		const colorImageData = colorsData.find(color => color._id === $colorId);
-		
+
 		if (!colorImageData) {
 			$("#preview_front").css('background-image', `url(${productData.productImage.back})`);
 		} else {
@@ -103,7 +104,7 @@ function populateDOM() {
 		$(".mf").removeClass('sel');
 	});
 
-	
+
 	/*==========================select COLOR=====================*/
 	function change_it(item) {
 		// console.log(item);
@@ -119,14 +120,16 @@ function populateDOM() {
 		updateStockQuantity(item.dataset.id);
 
 	}
+
 	const colorsSelectorDOMString = colorsData.map(color => {
 		return `<div class="color_radio_div" data-id="${color._id}" style="background: ${color.colorCode}"></div>`
 	}).join('\n');
+
 	$(".color_pick").html(colorsSelectorDOMString);
 
 	const colorBtns = colorsData.map(color => `[data-id="${color._id}"]`);
 	document.querySelector(".color_pick").addEventListener("click", e => {
-		for(let colorBtn of colorBtns){
+		for (let colorBtn of colorBtns) {
 			const elem = e.target.closest(colorBtn);
 			if (elem) {
 				change_it(elem);
@@ -136,13 +139,13 @@ function populateDOM() {
 	})
 
 	const updateStockQuantity = (id) => {
-		const colorData = id? colorsData.find(color => color._id === id): colorsData.find(color => color.colorName === "white");
+		const colorData = id ? colorsData.find(color => color._id === id) : colorsData.find(color => color.colorName === "white");
 		const quantityDOMString = `
 			<tr>
 				<th>Size</th>
 				<th>Quantity</th>
-			</tr>` 
-				+ 
+			</tr>`
+			+
 			colorData.sizes.map(colorStock => {
 				return `
 				<tr>
@@ -264,15 +267,18 @@ function populateDOM() {
 
 
 		$('.layer').css('visibility', 'hidden');
+		$("#add-design").prop("disabled", false);
+		$("#add-design").text("Save Design");
 		//$('.layer').css('visibility','hidden');
 		//$('body').css('position','relative');
 
 	});
 
+	// download btn
 	document.getElementById("dwn").addEventListener("click", function () {
-		const canvases = document.querySelector("#image_reply").childNodes;
-		const frontImage = canvases[1].toDataURL("image/png");
-		const backImage = canvases[0].toDataURL("image/png");
+		// const canvases = document.querySelector("#image_reply").childNodes;
+		const frontImage = document.querySelector("#frontImage").toDataURL("image/png");
+		const backImage = document.querySelector("#backImage").toDataURL("image/png");
 		// Create a temporary anchor element to trigger the download
 		let frontDownloadLink = document.createElement("a");
 		frontDownloadLink.href = frontImage;
@@ -285,28 +291,69 @@ function populateDOM() {
 		backDownloadLink.click();
 	});
 
+	// add to designs
+	$("#add-design").click(async function() {
+		$(this).text('Loading...');
+		$(this).prop('disabled', true);
+		// const canvases = document.querySelector("#image_reply").childNodes;
+		const frontImage = document.querySelector("#frontImage").toDataURL("image/png");
+		const backImage = document.querySelector("#backImage").toDataURL("image/png");
+		const designName = $("#design_name").val();
+		const productId = productData._id;
+		try {
+			const saveDesignRequest = await fetch("/adddesign", {
+				headers: {
+					"Content-Type": "application/json"
+				},
+				method: "POST",
+				body: JSON.stringify({
+					designName,
+					productId,
+					frontImage,
+					backImage,
+					color: $colorId // soon send as req param
+				})
+			});
+			const saveDesignResponse = await saveDesignRequest.json();
+			console.log(saveDesignResponse);
+			// console.log({
+			// 	designName,
+			// 	productId,
+			// 	frontImage,
+			// 	backImage,
+			// 	color: $colorId
+			// })
+			$(this).text('Saved successfully');
+		} catch(err) {
+			console.log(err);
+			$(this).text('Error when saving');
+		}
+	})
+
+	// buy btn fake checkout - change to add to cart
 	$("#buy").click(async function (e) {
 		// console.log("clik")
 		$(this).text('Loading...');
 		$(this).prop('disabled', true);
-		const canvases = document.querySelector("#image_reply").childNodes;
-		const frontImage = canvases[1].toDataURL("image/png");
-		const backImage = canvases[0].toDataURL("image/png");
-		// console.log(frontImage);
-		const waiting = await fetch("/dummycheckout", {
-			headers: {
-				"Content-Type": "application/json"
-			},
-			method: "POST",
-			body: JSON.stringify({
-				designName: "My Custom Design",
-				frontImage: frontImage,
-				backImage: backImage
-			}),
-			redirect: "follow"
-		});
-		const data = await waiting.json();
-		location.href = `/mycart?f=${data.frontImageURL}&b=${data.backImageURL}`
+		// const canvases = document.querySelector("#image_reply").childNodes;
+		// const frontImage = canvases[1].toDataURL("image/png");
+		// const backImage = canvases[0].toDataURL("image/png");
+		// // console.log(frontImage);
+		// const waiting = await fetch("/dummycheckout", {
+		// 	headers: {
+		// 		"Content-Type": "application/json"
+		// 	},
+		// 	method: "POST",
+		// 	body: JSON.stringify({
+		// 		designName: "My Custom Design",
+		// 		frontImage: frontImage,
+		// 		backImage: backImage
+		// 	}),
+		// 	redirect: "follow"
+		// });
+		// const data = await waiting.json();
+		// location.href = `/mycart?f=${data.frontImageURL}&b=${data.backImageURL}`
+		alert("This function is currently being worked on!");
 	})
 
 	function readURL(input) {
@@ -328,59 +375,113 @@ function populateDOM() {
 }
 
 const loadProductData = async () => {
-    try {
-        const productId = new URLSearchParams(location.search).get("id");
-        // console.log(productId);
-        if (!productId) {
-            throw new Error("URL product ID is invalid. Please select a proper product ID");
-        }
-        
-        const fetchProductRequest = await fetch("/getproduct/" + productId);
-        
-        if (!fetchProductRequest.ok) {
-            throw new Error("Failed to fetch product data. HTTP status: " + fetchProductRequest.status);
-        }
-        
-        fetchProductData = await fetchProductRequest.json();
-        // console.log(fetchProductData);
-        $(".loader-wrapper").remove();
+	try {
+		const productId = new URLSearchParams(location.search).get("id");
+		console.log(productId);
+		if (productId == null) {
+			console.log("yes")
+			document.querySelector(".loader-wrapper").innerHTML = `<p>${error.message}</p>`;
+			throw new Error("URL product ID is invalid. Please select a proper product ID");
+		}
+		console.log()
+		const fetchProductRequest = await fetch("/getproduct/" + productId);
 
-        populateDOM();
-    } catch (error) {
-        // console.log(error);
-        document.querySelector(".loader-wrapper").innerHTML = `<p>${error.message}</p>`;
-    }
+		if (!fetchProductRequest) {
+			throw new Error("Failed to fetch product data. HTTP status: " + fetchProductRequest.status);
+		}
+
+		fetchProductData = await fetchProductRequest.json();
+		// console.log(fetchProductData);
+		$(".loader-wrapper").remove();
+
+		populateDOM();
+	} catch (error) {
+		// console.log(error);
+		document.querySelector(".loader-wrapper").innerHTML = `<p>${error.message}</p>`;
+	}
 }
 
 function capture() {
 
-	$("#preview_back").removeClass('dis_none');
-	$("#preview_front").removeClass('dis_none');
+	const frontPreview = document.getElementById("preview_front");
+	frontPreview.classList.remove("dis_none");
+	const backPreview = document.getElementById("preview_back");
+	backPreview.classList.remove("dis_none");
+
 	$("#image_reply").empty();
 	$y_pos = "front";
-	// html2canvas(document.getElementById("preview_front"), {
-	// 	onrendered: function(canvas) {
-	// 		console.log(canvas);
-	// 		document.getElementById("image_reply").appendChild(canvas);
-	// 		$('#img_front').val(canvas.toDataURL("image/png"));
-	// 		console.log($("#img_front").val())
-	// 	}
-	// })
-	domtoimage.toPng(document.getElementById("preview_front")).then(function(dataURL) {
-		console.log(dataURL);
-	})
-	domtoimage.toPng(document.getElementById("preview_back")).then(function(dataURL) {
-		console.log(dataURL);
-	})
+	html2canvas(frontPreview, {
+		allowTaint : true,
+		useCORS: true,
+		width: 500,
+		height: 500,
+		logging: true
+	}).then(function (canvas) {
+		canvas.setAttribute("id","frontImage");
+		document.getElementById("image_reply").appendChild(canvas);
+		//Set hidden field's value to image data (base-64 string)
+		$('#img_front').val(canvas.toDataURL("image/png"));
+	}).catch(err => {
+		console.log(err);
+	});
 	//$('#preview_front').hide();
 	//$('#preview_back').show();
-	// html2canvas(document.getElementById("preview_back"), {
-	// 	onrendered: function(canvas) {
-	// 		document.getElementById("image_reply").appendChild(canvas);
-	// 		$('#img_back').val(canvas.toDataURL("image/png"));
-	// 		$("#preview_back").addClass('dis_none');
-	// 	}
-	// })
+	html2canvas(backPreview, {
+		allowTaint : false,
+		useCORS: true,
+		width: 500,
+		height: 500,
+		logging: true
+	}).then(function (canvas) {
+		//$('#img_back').val(canvas.toDataURL("image/png"));
+		canvas.setAttribute("id","backImage");
+		document.getElementById("image_reply").appendChild(canvas);
+		$('#img_back').val(canvas.toDataURL("image/png"));
+		$("#preview_back").addClass('dis_none');
+	}).catch(err => {
+		console.log(err);
+	});
+	// html2canvas(frontPreview).then(canvas => {
+		// 	console.log(canvas);
+		// 	document.getElementById("image_reply").appendChild(canvas);
+		// 	$('#img_front').val(canvas.toDataURL("image/png"));
+		// });
+		// const canvasFront = document.getElementById("front_canvas");
+		// const canvasCtxFront = canvasFront.getContext("2d");
+		// console.log(document.getElementById("preview_front"))
+		
+		// const canvasBack = document.getElementById("back_canvas");
+		// const canvasCtxBack = canvasBack.getContext("2d");
+		// try {
+	// 	domtoimage.toJpeg(frontPreview).then(function (dataURL) {
+	// 		const frontImage = new Image();
+	// 		frontImage.src = dataURL;
+	// 		frontImage.onload = () => {
+	// 			console.log(frontPreview);
+	// 		};
+	// 		document.getElementById("image_reply").appendChild(frontImage);
+	// 	})
+	// 	// $('#preview_front').hide();
+	// 	// $('#preview_back').show();
+	// 	domtoimage.toJpeg(backPreview).then(function (dataURL) {
+	// 		const backImage = new Image();
+	// 		backImage.src = dataURL;
+	// 		backImage.onload = () => {
+	// 			console.log(backPreview);
+	// 			backPreview.classList.add("dis_none");
+	// 		};
+	// 		document.getElementById("image_reply").appendChild(backImage);
+	// 	});
+
+	// } catch (error) {
+	// 	console.log(error)
+	// }
+
+	// html2canvas(backPreview).then(canvas => {
+	// 	document.getElementById("image_reply").appendChild(canvas);
+	// 	$('#img_back').val(canvas.toDataURL("image/png"));
+	// 	backPreview.classList.add("dis_none");
+	// });
 }
 
 function image_icon($srcimg) {
