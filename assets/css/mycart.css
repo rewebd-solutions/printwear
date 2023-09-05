@@ -12,10 +12,15 @@
     box-sizing: border-box;
 }
 
+body {
+    padding-left: 300px;
+    padding-top: 6rem;
+}
+
 .cart {
     display: flex;
     max-width: 1280px;
-    padding: 1rem;
+    padding: 2rem;
     background-color: #eee;
     border-radius: 10px;
     flex-direction: column;
