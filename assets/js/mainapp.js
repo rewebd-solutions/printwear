@@ -1,4 +1,4 @@
-var $type = "tee", $color = "white", $colorId = "", $y_pos = "front", $nos_icons = 0, $nos_text = 0, $custom_img = 0;
+var $type = "tee", $color = "white", $colorId = new URLSearchParams(location.search).get("color") || "white", $y_pos = "front", $nos_icons = 0, $nos_text = 0, $custom_img = 0;
 function populateDOM() {
 
 	productData = fetchProductData.productData;
@@ -379,15 +379,13 @@ const loadProductData = async () => {
 		const productId = new URLSearchParams(location.search).get("id");
 		console.log(productId);
 		if (productId == null) {
-			console.log("yes")
-			document.querySelector(".loader-wrapper").innerHTML = `<p>${error.message}</p>`;
 			throw new Error("URL product ID is invalid. Please select a proper product ID");
 		}
 		console.log()
 		const fetchProductRequest = await fetch("/getproduct/" + productId);
 
-		if (!fetchProductRequest) {
-			throw new Error("Failed to fetch product data. HTTP status: " + fetchProductRequest.status);
+		if (!fetchProductRequest.ok) {
+			throw new Error("Failed to fetch product data. HTTP status: " + fetchProductRequest.status +"!");
 		}
 
 		fetchProductData = await fetchProductRequest.json();
@@ -397,7 +395,7 @@ const loadProductData = async () => {
 		populateDOM();
 	} catch (error) {
 		// console.log(error);
-		document.querySelector(".loader-wrapper").innerHTML = `<p>${error.message}</p>`;
+		document.querySelector(".loader-wrapper").innerHTML = `<p>${error}</p><br />\n<p>&nbsp;  Go to PRODUCT GALLERY and choose a shirt to start</p>`;
 	}
 }
 
