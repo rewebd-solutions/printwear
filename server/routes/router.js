@@ -44,8 +44,11 @@ route.get("/designgenerator", authServices.authorizeToken, services.designgenera
 route.get("/designlib", authServices.authorizeToken, services.designlib);
 route.get("/invoice", authServices.authorizeToken, services.invoice);
 route.get("/profile", authServices.authorizeToken, controller.profilepage);
-
 route.get("/mycart", authServices.authorizeToken, services.mycart);
+
+route.post("/addtocart", authServices.authorizeToken, controller.addtocart);
+route.get("/getcart", authServices.authorizeToken, controller.getcart);
+route.get("/deletecartitem", authServices.authorizeToken, controller.deletecartitem);
 
 route.post("/dummycheckout", authServices.authorizeToken, controller.dummycheckout);
 

@@ -191,13 +191,13 @@
             </div>
             <div class="product-modal-details">
               <h2 class="product-name">${designModalData.design.designName}</h2>
-              <!-- <div class="product-category-gender">
+              <div class="product-category-gender">
                 <h6>${designModalData.product.category}</h6>
                 <h6>Gender</h6>
               </div> 
               <p class="product-description">
                 ${designModalData.product.description}
-              </p> -->
+              </p>
               <div class="product-colors">
                 <p>Chosen color: </p>
                 <div class="color-disc" style="background: ${designModalData.color.colorCode}"></div>
@@ -208,7 +208,17 @@
               </div>
               <div class="product-price-button">
                 <h4>Starts from ₹${Math.min(...Object.values(designModalData.product.price))}</h4>
-                <button>Add to Cart</button>
+                <form id="add-cart" data-designid="${designModalData.design._id}"">
+                  ${designModalData.color.sizes.map(colorSize => {
+                    return `
+                      <div>
+                        <label for="${designModalData.color.colorSKU}-${colorSize.stock}">${colorSize.size}</label>
+                        <input type="number" required id="${designModalData.color.colorSKU}-${colorSize.stock}" data-size="${colorSize.size}" min="0" max="${colorSize.stock}" class="form-control small input-md" />
+                      </div>
+                    `
+                    }).join("\n")}
+                  <button type="submit">Add to Cart</button>
+                </form>
               </div>
             </div>
           </div>
@@ -220,10 +230,47 @@
       })
       document.querySelector(".product-modal-image").addEventListener("mouseout", (e) => {
         e.target.setAttribute("src", designModalData.design.designImage.front);
+      });
+
+      const addToCartBtn = document.querySelector("#add-cart button");
+
+      const addToCartForm = document.querySelector("#add-cart");
+      
+      addToCartForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const sizeQty = {};
+        document.querySelectorAll("#add-cart input").forEach(inputItem => {
+          sizeQty[inputItem.dataset.size] = parseInt(inputItem.value) 
+        });
+        try {
+          addToCartBtn.setAttribute("disabled", true);
+          addToCartBtn.textContent = "Adding...";
+          const addToCartRequest = await fetch("/addtocart", {
+            headers: {
+              "Content-Type": "application/json"
+            },
+            method: "POST",
+            body: JSON.stringify({
+              designId: e.target.dataset.designid,
+              productId: designModalData.product._id,
+              quantity: sizeQty //soon add address box
+            })
+          });
+          const addToCartResponse = await addToCartRequest.json();
+          if (addToCartRequest.ok) {
+            addToCartBtn.textContent = "Added to cart!";
+          }
+        } catch (err) {
+          addToCartBtn.textContent = "Failed to add!";
+        }
+
       })
+
       const closeModalButton = document.querySelector(".modal-close");
       closeModalButton.addEventListener("click", (e) => {
-          document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+        addToCartBtn.setAttribute("disabled", false);
+        document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
       })
     }
 
@@ -265,7 +312,7 @@
         if (designsResponseData.length > 0) {
           return createDesignCards();
         }
-        designsContainter.innerHTML = "<p> No products </p>";
+        designsContainter.innerHTML = "<p> No designs yet! </p>";
       } catch (error) {
         designsContainter.innerHTML = `
           <p>

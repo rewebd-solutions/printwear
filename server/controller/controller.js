@@ -434,27 +434,27 @@ exports.getproduct = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(404).json({error:"Product not found!"});
+    res.status(404).json({ error: "Product not found!" });
   }
-  
+
 }
 
 
 // endpoint for adding design
 exports.adddesign = async (req, res) => {
   const reqBody = req.body;
-  const frontImage = reqBody.frontImage.substring(req.body.frontImage.indexOf(',')+1);
-  const backImage = reqBody.backImage.substring(req.body.backImage.indexOf(',')+1);
+  const frontImage = reqBody.frontImage.substring(req.body.frontImage.indexOf(',') + 1);
+  const backImage = reqBody.backImage.substring(req.body.backImage.indexOf(',') + 1);
   // check if color is null.. if null, then white only.. also for now obtain from req param of client
   try {
-    const frontImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_front.png`);
-    await frontImageReference.putString(frontImage, 'base64',{ContentType:'image/png'});
+    const frontImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_front_${otpGen.generate(4, { digits: true })}.png`);
+    await frontImageReference.putString(frontImage, 'base64', { ContentType: 'image/png' });
     const frontImageDownloadURL = await frontImageReference.getDownloadURL();
 
-    const backImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_back.png`);
-    await backImageReference.putString(backImage, 'base64',{ContentType:'image/png'});
+    const backImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_back_${otpGen.generate(4, { digits: true })}.png`);
+    await backImageReference.putString(backImage, 'base64', { ContentType: 'image/png' });
     const backImageDownloadURL = await backImageReference.getDownloadURL();
-    
+
     console.log(frontImageDownloadURL, backImageDownloadURL);
     const designData = new DesignModel({
       designName: reqBody.designName || "My_design",
@@ -478,37 +478,127 @@ exports.getdesigns = async (req, res) => {
   try {
     const designsData = await DesignModel.find({ createdBy: req.userId });
     const productDataIDs = new Set(designsData.map(designData => designData.baseProductId + ''));
-    const productData = await ProductModel.find({ _id: {$in: [...productDataIDs]}});
+    const productData = await ProductModel.find({ _id: { $in: [...productDataIDs] } });
     const colorIDs = new Set(designsData.map(designData => designData.color));
-    const colorsData = await ColorModel.find({ _id: {$in: [...colorIDs]}});
+    const colorsData = await ColorModel.find({ _id: { $in: [...colorIDs] } });
     // console.log(colorsData);
     const newDesignsData = designsData.map(design => {
       return {
         design: design,
-        product: productData.find(product => product._id+'' === design.baseProductId+''),
-        color: colorsData.find(color => color._id+'' === design.color+'')
+        product: productData.find(product => product._id + '' === design.baseProductId + ''),
+        color: colorsData.find(color => color._id + '' === design.color + '')
       }
     })
     // console.log(newDesignsData);
     res.json(newDesignsData);
   } catch (error) {
     console.log(error);
+    res.json({ error });
+  }
+}
+
+
+// cart endpoints
+exports.addtocart = async (req, res) => {
+  const cartItem = {
+    design: req.body.designId,
+    productId: req.body.productId,
+    quantity: req.body.quantity,
+  };
+  const selectedProduct = await ProductModel.findOne({ _id: cartItem.productId });
+
+  if (!selectedProduct) {
+    return res.status(404).json({ message: 'Invalid Product ID!' });
+  }
+  try {
+    let designCost = 0;
+    const designCostArray = Object.entries(cartItem.quantity).map(x => {
+      return selectedProduct.price[x[0].toLowerCase()] * x[1]
+    });
+    designCostArray.forEach(cost => designCost += cost);
+
+    cartItem.price = designCost;
+    var totalAmount = 0;
+
+    var cartData = await CartModel.findOne({ userId: req.userId })
+    if (cartData) {
+      cartData.items.push(cartItem);
+      // perform a function to calculate total product price
+      // console.log(cartData);
+      console.log(cartData);
+    } else {
+      cartData = new CartModel({
+        userId: req.userId,
+        items: [cartItem]
+      });
+      // console.log(cartData);
+    }
+
+    cartData.items.forEach(item => totalAmount += item.price);
+    cartData.totalAmount = totalAmount;
+    await cartData.save();
+
+    res.json(cartData);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong!"});
+  }
+}
+
+exports.getcart = async (req, res) => {
+  try {
+    const cartItems = await CartModel.findOne({ userId: req.userId });
+    const newCartItems = {
+      ...cartItems._doc
+    }
+    const cartProductIDs = new Set(cartItems.items.map(item => item.productId));
+    const cartDesignIDs = new Set(cartItems.items.map(item => item.design));
+    const cartProducts = await ProductModel.find({ _id: { $in: [...cartProductIDs] } });
+    const cartDesignData = await DesignModel.find({ _id: { $in: [...cartDesignIDs] } });
+
+    // pull in colors from DB and push it along
+
+    const newCartItemWithProducts = cartItems.items.map(cartItem => {
+      return {
+        ...cartItem._doc,
+        product: cartProducts.find(cartProduct => cartProduct._id+'' === cartItem.productId+''),
+        designData: cartDesignData.find(cartDesign => cartDesign._id+'' === cartItem.design+'' )
+      }
+      // console.log(x)
+    })
+    newCartItems.items = newCartItemWithProducts;
+    res.json(newCartItems);
+  } catch (error) {
+    console.log(error);
     res.json({error});
+  }
+}
+
+exports.deletecartitem = async (req, res) => {
+  const cartId = req.body.cartId;
+  const itemId = req.body.itemId;
+  try {
+    // await CartModel.updateOne({ _id: cartId }, { $pull: { _id: itemId } });
+    console.log(cartId, itemId);
+    res.status(200).json({message: "success!"});
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({error});
   }
 }
 
 
 // temporary dummy endpoints for mockup to cart
 exports.dummycheckout = async (req, res) => {
-  const frontImage = req.body.frontImage.substring(req.body.frontImage.indexOf(',')+1);
-  const backImage = req.body.backImage.substring(req.body.backImage.indexOf(',')+1);
+  const frontImage = req.body.frontImage.substring(req.body.frontImage.indexOf(',') + 1);
+  const backImage = req.body.backImage.substring(req.body.backImage.indexOf(',') + 1);
 
   try {
-    const frontImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_front'+ '.png'}`);
-    await frontImageReference.putString(frontImage, 'base64',{ContentType:'image/png'});
+    const frontImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_front' + '.png'}`);
+    await frontImageReference.putString(frontImage, 'base64', { ContentType: 'image/png' });
     const frontImageDownloadURL = await frontImageReference.getDownloadURL();
-    const backImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_back'+ '.png'}`);
-    await backImageReference.putString(backImage, 'base64',{ContentType:'image/png'});
+    const backImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_back' + '.png'}`);
+    await backImageReference.putString(backImage, 'base64', { ContentType: 'image/png' });
     const backImageDownloadURL = await backImageReference.getDownloadURL();
     console.log(frontImageDownloadURL, backImageDownloadURL);
     const cartData = {
@@ -518,13 +608,15 @@ exports.dummycheckout = async (req, res) => {
     res.json(cartData);
     return;
   } catch (error) {
-    
+
   }
-   // res.render dhaan
+  // res.render dhaan
 }
 
+
 // endpoints for creating orders in shiprocket
-exports.createshiporder = async (req, res) => {z
+exports.createshiporder = async (req, res) => {
+  z
   // every 10 days token refersh.. thru .env manually
   // write code to obtain orders data from my mongo
   // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection
@@ -603,7 +695,7 @@ exports.createshiporder = async (req, res) => {z
   "courier_company_id": "",
   "courier_name": ""
   }*/ // once order is done, its the returned value
-  
+
 }
 
 let FRONTIMAGE = null;
@@ -827,7 +919,7 @@ exports.connectShopify = async (req, res) => {
       { new: true, upsert: true }
     )
 
-    res.status(200).render('connectstore', { status: "Added Shopify Store"}); // idhu redirect pannidu
+    res.status(200).render('connectstore', { status: "Added Shopify Store" }); // idhu redirect pannidu
     return;
 
   } catch (error) {
@@ -881,7 +973,7 @@ exports.connectWooCommerce = async (req, res) => {
     )
     // await store.save();
 
-    res.status(200).render('connectstore', { status: "Added WooCommerce Store"});
+    res.status(200).render('connectstore', { status: "Added WooCommerce Store" });
     return;
 
   } catch (error) {
