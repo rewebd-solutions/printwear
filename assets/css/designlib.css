@@ -183,6 +183,7 @@ p {
 .shopify-designs-container,
 .woocommerce-designs-container {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   padding: 1rem;
 }
@@ -319,9 +320,19 @@ p {
 .product-price-button {
   display: flex;
   margin-top: auto;
-  justify-content: space-between;
+  justify-content: space-evenly;
+  flex-direction: column;
   gap: 2rem;
-  align-items: center;
+  align-items: flex-start;
+}
+
+label {
+  margin-bottom: 0 !important;
+}
+
+#add-cart {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .product-price-button button {
