@@ -1,0 +1,895 @@
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const cashfreeAppID = process.env.CASH_APP_ID;
+const cashfreeSecretKey = process.env.CASH_SECRET_KEY;
+
+const twilio = require('twilio')(accountSid, authToken);
+const crypto = require("crypto")
+const algorithm = "sha256"
+const authServices = require("../services/auth");
+
+var ProductModel = require('../model/productModel');
+var StoreModel = require('../model/storeModel');
+var UserModel = require("../model/userModel");
+var CartModel = require("../model/cartModel");
+var ImageModel = require("../model/imageModel")
+var ColorModel = require("../model/colorModel");
+var DesignModel = require("../model/designModel");
+var OrderModel = require("../model/orderModel");
+
+const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
+var nodemailer = require('nodemailer');
+const otpGen = require("otp-generator")
+const storageReference = require("../services/firebase");
+const { NewFactorInstance } = require('twilio/lib/rest/verify/v2/service/entity/newFactor');
+
+//variables
+var cur_user = null;
+var OTP = null;
+let sec = false;
+var number = null;
+var idemail = null;
+
+const SHIPROCKET_BASE_URL = "https://apiv2.shiprocket.in/v1/external";
+const CASHFREE_BASE_URL = 'https://sandbox.cashfree.com/pg';
+
+// common auth endpoints
+exports.register = async (req, res) => {
+
+  // validate request
+  if (!req.body) {
+    res.status(400).send({ message: "Content can not be emtpy!" });
+    return;
+  }
+  // new user
+  let num = req.body.number;
+
+  const existingUser = await UserModel.findOne({ name: req.body.name });
+  if (existingUser) return res.render("login", { status: "User already exists" })
+
+  const user = UserModel.create({
+    name: req.body.name,
+    email: req.body.email,
+    password: crypto.createHash(algorithm).update(req.body.password).digest("hex"),
+    phone: '+91' + num.toString(),
+    emailVerified: false,
+    phoneVerified: false,
+    profileImage: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'
+  })
+    .then(() => {
+      //res.send(data)
+      res.render("login", { status: "Account created. Log In" });
+    })
+    .catch(err => {
+      console.log(err);
+      res.render("login", { status: "Error saving data, try again" })
+    });
+}
+
+exports.login = async (req, res) => {
+  // console.log(req.body);
+  const check = await UserModel.findOne({ email: req.body.email })
+
+  if (check === null) {
+    return res.render("login", { status: "User does not exist" });
+  }
+
+  if (check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex")) {
+    // console.log("inga vardhu")
+    const cookieToken = authServices.createToken(check._id);
+    res.cookie("actk", cookieToken, {
+      httpOnly: true,
+      secure: true
+    });
+    // console.log("cookie set");
+    return res.redirect("/dashboard");
+  }
+  else {
+    return res.render("login", { status: "Invalid details" });
+  }
+
+}
+
+exports.logout = async (req, res) => {
+  return res.clearCookie("actk").redirect("/login");
+}
+
+
+exports.profilepage = async (req, res) => {
+  // write code to get req.userId and findOne and SSR the page
+  const userData = await UserModel.findOne({ _id: req.userId });
+  const storeData = await StoreModel.findOne({ userid: req.userId });
+  const data = {
+    userData: userData,
+    storeData: storeData
+  }
+  res.render("profile", { data: data });
+}
+
+
+// endpoints for verification OTP and authentication not sure if it works
+exports.emailverify = async (req, res) => {
+  console.log("EmailVerify method");
+
+  const exiting = await UserModel.findOne({ email: req.body.email });
+  if (exiting === null) {
+    res.render("forgetpassword", { success: "USER DOES NOT EXIST" });
+  }
+  else if (exiting.email === req.body.email) {
+    res.redirect(307, "/sendingotp");
+    idemail = req.body.email;
+    number = exiting.number;
+  }
+  else {
+    res.render("forgetpassword", { success: "USER DOES NOT EXIST" });
+  }
+}
+
+exports.sendotp = (req, res) => {
+  var email = req.body.email;
+  // console.log(email.toString());
+  send_otp(email);
+}
+
+function GenOTP() {
+  OTP = Math.floor(1000 + Math.random() * 9000).toString();
+  // console.log('Generated OTP:', OTP);  
+}
+function startime() {
+  timer = setInterval(() => {
+    sec = true;
+  }, 300000);
+}
+
+function send_otp(email) {
+  GenOTP();
+  console.log("gone to function")
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'sujaysy0006@gmail.com',
+      pass: 'teqcsgojmzndgupt'
+    }
+  });
+  var mailOptions = {
+    from: 'sujaysy0006@gmail.com',
+    to: email,
+    subject: 'OTP via',
+    text: 'OPT IS :' + OTP
+  };
+
+  ////sending sms
+
+  console.log(number);
+  twilio.messages
+    .create({
+      from: "+15673611428",
+      to: `${number}`,
+      body: `this is testing otp is ${OTP}`,
+    })
+    .then(function (res) { console.log("message has sent!") })
+    .catch(function (err) {
+      console.log(err);
+    });
+
+  ///sending sms
+
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
+startime();
+
+exports.verify = (req, res) => {
+  var username = req.body.OTP;
+  if (!sec) {
+    if (username === OTP) {
+      // console.log("entered the forgot_password page");
+      res.render("newpassword", { success: "" });
+    } else {
+      res.render("forgetpassword", { success: "Please Enter a Valid OTP" });
+    }
+  } else {
+    console.log("time finished")
+  }
+}
+
+exports.updatepassword = async (req, res) => {
+  console.log(idemail);
+  console.log(req.body.newpassword);
+  console.log(req.body.confirmpassword)
+
+
+  if (req.body.newpassword === req.body.confirmpassword) {
+    // exiting.password=req.body.newpassword;
+    await UserModel.findOneAndUpdate({ email: idemail, }, { password: crypto.createHash(algorithm).update(req.body.newpassword).digest("hex"), }, { upsert: true, new: true })
+    res.redirect("/loginpage");
+  }
+  else {
+    res.render("newpassword", { success: "Both the Passwords are Different" });
+  }
+}
+
+
+
+// for CRD on designgallery images
+exports.uploadimage = async (req, res) => {
+  try {
+    // console.log(req.file);
+    const fileBuffer = req.file.buffer;
+    const fileReference = storageReference.child(`images/${req.userId + "_" + req.file.originalname}`);
+    await fileReference.put(fileBuffer);
+    const fileDownloadURL = await fileReference.getDownloadURL();
+    // console.log(fileDownloadURL);
+    const fileSave = await ImageModel.create({
+      userId: req.userId,
+      front: {
+        url: fileDownloadURL,
+        name: req.file.originalname,
+        size: req.file.size / 1000,
+        format: req.file.mimetype.split("/")[1],
+      }
+    });
+    // console.log(fileSave);
+    res.status(200).redirect("designgallery");
+  } catch (error) {
+    console.log(error);
+    res.status(500);
+  }
+}
+
+exports.obtainimages = async (req, res) => {
+  const userId = req.userId;
+  try {
+    const imageData = await ImageModel.find({ userId: userId });
+    res.status(200).json(imageData);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ "message": "Not found!" });
+  }
+}
+
+exports.deleteimage = async (req, res) => {
+  const userId = req.body.imageId;
+  const imageName = req.body.imageName;
+  const imageId = req.body.imageIdX;
+  // console.log(imageId);
+  try {
+    const fileReference = storageReference.child(`images/${userId + "_" + imageName}`);
+    await fileReference.delete();
+    await ImageModel.findOneAndDelete({ _id: imageId });
+    res.status(200);
+    res.redirect("/designgallery");
+  } catch (error) {
+    console.log(error);
+    res.redirect("/designgallery");
+  }
+
+}
+
+
+// for adding products and getting products data
+exports.addproduct = async (req, res) => {
+  const productData = req.body;
+
+  const mockData = { // this mockData should be parsed from the req.body and not hard coded
+    colors: [
+      {
+        colorName: "white",
+        colorSKU: "WHT",
+        colorCode: "#fff",
+        colorImage: {
+          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontwhite.png?alt=media&token=6b8377cc-7820-4510-ad56-6a48b9d5b254",
+          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackwhite.png?alt=media&token=7d3ec7ea-6860-4fb9-81e4-82c8f514618e"
+        },
+        sizes: [
+          {
+            sizeSKU: "SM",
+            size: "S",
+            stock: 3
+          },
+          {
+            sizeSKU: "MD",
+            size: "M",
+            stock: 9
+          },
+          {
+            sizeSKU: "LG",
+            size: "L",
+            stock: 10
+          },
+        ]
+      },
+      {
+        colorName: "black",
+        colorSKU: "BLK",
+        colorCode: "#313131",
+        colorImage: {
+          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontblack.png?alt=media&token=8500e6ef-77fc-4449-8044-45b5ba248c45",
+          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackblack.png?alt=media&token=b8f3c471-a0d9-4999-966e-a89e87b6b476"
+        },
+        sizes: [
+          {
+            sizeSKU: "XSM",
+            size: "XS",
+            stock: 10
+          },
+          {
+            sizeSKU: "SM",
+            size: "S",
+            stock: 7
+          },
+          {
+            sizeSKU: "MD",
+            size: "M",
+            stock: 6
+          }
+        ],
+
+      },
+      {
+        colorName: "red",
+        colorSKU: "RED",
+        colorCode: "#f24660",
+        colorImage: {
+          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontred.png?alt=media&token=fe6afdd3-eacf-47a3-8814-8113b3b78971",
+          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackred.png?alt=media&token=67474d4f-e96c-4e8e-919b-91725d58689b"
+        },
+        sizes: [
+          {
+            sizeSKU: "SM",
+            size: "S",
+            stock: 4
+          },
+          {
+            sizeSKU: "MD",
+            size: "M",
+            stock: 9
+          },
+          {
+            sizeSKU: "LG",
+            size: "L",
+            stock: 0
+          }
+        ],
+
+      },
+    ],
+    product: {
+      SKU: "HOOD",
+      name: "Test Hoodie",
+      category: "Hoodies",
+      gender: "M",
+      description: "This is a test hoodie that is currently used for testing purposes",
+      productImage: {
+        front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontwhite.png?alt=media&token=6b8377cc-7820-4510-ad56-6a48b9d5b254",
+        back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackwhite.png?alt=media&token=7d3ec7ea-6860-4fb9-81e4-82c8f514618e",
+      },
+      price: {
+        xs: 400,
+        s: 450,
+        m: 500,
+        l: 550,
+        xl: 600
+      },
+      colors: [],
+      canvas: {
+        front: {
+          startX: 524,
+          startY: 359,
+          width: 490,
+          height: 950
+        },
+        back: {
+          startX: 245,
+          startY: 163,
+          width: 230,
+          height: 450
+        }
+      }
+    }
+  }
+
+  const productSave = new ProductModel(mockData.product);
+  // console.log(productSave);
+  for (let colorEntry of mockData.colors) {
+    let colorData = new ColorModel(colorEntry);
+    colorData.productId = productSave._id;
+    productSave.colors.push(colorData._id)
+    await colorData.save();
+    // console.log(productSave);
+  }
+  await productSave.save();
+  res.status(200).send("ok");
+}
+
+exports.getproducts = async (req, res) => {
+  try {
+    const productData = await ProductModel.find();
+    const colorsData = {};
+
+    for (let products of productData) {
+      colorsData[products._id] = await ColorModel.find({ productId: products._id });
+    }
+    // console.log(productData, colorsData);
+    res.status(200).json({
+      productData,
+      colorsData
+    });
+  } catch (error) {
+    console.log(err);
+    res.status(500).send("error");
+  }
+
+}
+
+exports.getproduct = async (req, res) => {
+  console.log(req.params.id);
+  try {
+    const productData = await ProductModel.findOne({ _id: req.params.id });
+    const colorsData = await ColorModel.find({ productId: productData._id });
+    res.status(200).json({
+      productData,
+      colorsData
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ error: "Product not found!" });
+  }
+
+}
+
+
+// endpoint for adding design
+exports.adddesign = async (req, res) => {
+  const reqBody = req.body;
+  const frontImage = reqBody.frontImage.substring(reqBody.frontImage.indexOf(',') + 1);
+  const backImage = reqBody.backImage.substring(reqBody.backImage.indexOf(',') + 1);
+  // check if color is null.. if null, then white only.. also for now obtain from req param of client
+  try {
+    const frontImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_front_${otpGen.generate(4, { digits: true })}.png`);
+    await frontImageReference.putString(frontImage, 'base64', { ContentType: 'image/png' });
+    const frontImageDownloadURL = await frontImageReference.getDownloadURL();
+
+    const backImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_back_${otpGen.generate(4, { digits: true })}.png`);
+    await backImageReference.putString(backImage, 'base64', { ContentType: 'image/png' });
+    const backImageDownloadURL = await backImageReference.getDownloadURL();
+
+    // console.log(frontImageDownloadURL, backImageDownloadURL);
+    const designData = new DesignModel({
+      designName: reqBody.designName || "My_design",
+      baseProductId: reqBody.productId,
+      color: reqBody.color,
+      designImage: {
+        front: frontImageDownloadURL,
+        back: backImageDownloadURL
+      },
+      createdBy: req.userId
+    });
+    await designData.save();
+    res.status(200).json(designData);
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({error});
+  }
+}
+
+exports.getdesigns = async (req, res) => {
+  try {
+    const designsData = await DesignModel.find({ createdBy: req.userId });
+    const productDataIDs = new Set(designsData.map(designData => designData.baseProductId + ''));
+    const productData = await ProductModel.find({ _id: { $in: [...productDataIDs] } });
+    const colorIDs = new Set(designsData.map(designData => designData.color));
+    const colorsData = await ColorModel.find({ _id: { $in: [...colorIDs] } });
+    const cartData = await CartModel.findOne({ userId: req.userId });
+    // console.log(colorsData);
+    const newDesignsData = designsData.map(design => {
+      // console.log(cartData.items.find(cartItem => cartItem.design+'' === design._id+''))
+      return {
+        design: design,
+        product: productData.find(product => product._id + '' === design.baseProductId + ''),
+        color: colorsData.find(color => color._id + '' === design.color + ''),
+        availableInCart: cartData.items.find(cartItem => cartItem.design+'' === design._id+'')? true : false
+      }
+    })
+    // console.log(newDesignsData);
+    res.json(newDesignsData);
+  } catch (error) {
+    console.log(error);
+    res.json({ error });
+  }
+}
+
+exports.deletedesign = async (req, res) => {
+  try {
+    console.log(req.userId, req.body.designId)
+    await CartModel.findOneAndUpdate({ userId: req.userId }, { $pull: { items: { design: req.body.designId }}});
+    await DesignModel.findOneAndDelete({ _id: req.body.designId });
+    // console.log("done")
+    res.status(200).json({message: "Deleted"});
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({error: err});
+  }
+}
+
+
+// cart endpoints
+exports.addtocart = async (req, res) => {
+  const cartItem = {
+    design: req.body.designId,
+    productId: req.body.productId,
+    quantity: req.body.quantity,
+  };
+  const selectedProduct = await ProductModel.findOne({ _id: cartItem.productId });
+
+  if (!selectedProduct) {
+    return res.status(404).json({ message: 'Invalid Product ID!' });
+  }
+  try {
+    let designCost = 0;
+    const designCostArray = Object.entries(cartItem.quantity).map(x => {
+      return selectedProduct.price[x[0].toLowerCase()] * x[1]
+    });
+    designCostArray.forEach(cost => designCost += cost);
+
+    cartItem.price = designCost;
+    var totalAmount = 0;
+
+    var cartData = await CartModel.findOne({ userId: req.userId })
+    if (cartData) {
+      cartData.items.push(cartItem);
+      // perform a function to calculate total product price
+      // console.log(cartData);
+    } else {
+      cartData = new CartModel({
+        userId: req.userId,
+        items: [cartItem]
+      });
+      // console.log(cartData);
+    }
+
+    cartData.items.forEach(item => totalAmount += item.price);
+    cartData.totalAmount = totalAmount;
+    await cartData.save();
+
+    res.json(cartData);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong!"});
+  }
+}
+
+exports.getcart = async (req, res) => {
+  try {
+    const cartItems = await CartModel.findOne({ userId: req.userId });
+    if (!cartItems) return res.status(200).json({items:[]});
+    const newCartItems = {
+      ...cartItems._doc
+    }
+    const cartProductIDs = new Set(cartItems.items.map(item => item.productId));
+    const cartDesignIDs = new Set(cartItems.items.map(item => item.design));
+    const cartProducts = await ProductModel.find({ _id: { $in: [...cartProductIDs] } });
+    const cartDesignData = await DesignModel.find({ _id: { $in: [...cartDesignIDs] } });
+    const cartColorIDs = new Set(cartDesignData.map(cartDesign => cartDesign.color));
+    const cartColorsData = await ColorModel.find({ _id: { $in: [...cartColorIDs] } });
+    // pull in colors from DB and push it along
+    
+    let newCartItemWithProducts = cartItems.items.map(cartItem => {
+      return {
+        ...cartItem._doc,
+        product: cartProducts.find(cartProduct => cartProduct._id+'' === cartItem.productId+''),
+        designData: cartDesignData.find(cartDesign => cartDesign._id+'' === cartItem.design+'' ),
+      }
+    })
+    newCartItems.items = newCartItemWithProducts;
+    newCartItemWithProducts = newCartItems.items.map(cartItem => {
+      return {
+        ...cartItem,
+        color: cartColorsData.find(cartColor => cartColor._id+'' === cartItem.designData.color)
+      }
+    });
+    newCartItems.items = newCartItemWithProducts;
+    newCartItemWithProducts = newCartItems.items.map(cartItem => {
+      return {
+        ...cartItem,
+        sku: `${cartItem.product.SKU}-${cartItem.color.colorSKU}`
+      }
+    })
+    newCartItems.items = newCartItemWithProducts;
+    // console.log(newCartItems);
+    res.json(newCartItems);
+  } catch (error) {
+    console.log(error);
+    res.json({error});
+  }
+}
+
+exports.deletecartitem = async (req, res) => {
+  // console.log(req.body.cartId);
+  try {
+    await CartModel.updateOne({ _id: req.body.cartId }, { $pull: { items: { _id: req.body.itemId } } });
+    const cartData = await CartModel.findOne({ _id: req.body.cartId });
+    let totalAmount =  0;
+    cartData.items.map(cartItem => totalAmount += cartItem?.price);
+    cartData.totalAmount = totalAmount;
+    await cartData.save();
+    // console.log(x)
+    res.status(200).json({message: "success!"});
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({error});
+  }
+}
+
+
+// orders ku eldhu
+exports.createorder = async (req, res) => {
+  const orderItem = req.body;
+  console.log(orderItem)
+  // obtain all items array and then add it along with calculated SKU
+  try {
+    const orderData = new OrderModel({
+      userId: req.userId,
+      cartId: orderItem.cartId,
+      items: orderItem.items,
+      totalAmount: orderItem.totalAmount
+    });
+    await orderData.save();
+    res.status(200).json({ message: "Success" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({error});
+  }
+}
+
+
+// create payment link
+exports.createpaymentlink = async (req, res) => {
+  try {
+    const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-client-id": cashfreeAppID,
+        "x-client-secret": cashfreeSecretKey,
+        "x-api-version": "2023-08-01"
+      }, 
+      body: JSON.stringify({
+        order_id: '33dnd2ds',
+        order_amount: 45.12,
+        order_currency: "INR",
+        customer_details: {
+          customer_id: '123ndf32r',
+          customer_phone: '9362712889'
+        }
+      })
+    });
+    const paymentLinkResponse = await paymentLinkRequest.json();
+    res.json(paymentLinkResponse);
+  } catch (error) {
+    console.log(error);
+    res.json({error});
+  }
+}
+
+
+// temporary dummy endpoints for mockup to cart
+exports.dummycheckout = async (req, res) => {
+  const frontImage = req.body.frontImage.substring(req.body.frontImage.indexOf(',') + 1);
+  const backImage = req.body.backImage.substring(req.body.backImage.indexOf(',') + 1);
+
+  try {
+    const frontImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_front' + '.png'}`);
+    await frontImageReference.putString(frontImage, 'base64', { ContentType: 'image/png' });
+    const frontImageDownloadURL = await frontImageReference.getDownloadURL();
+    const backImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_back' + '.png'}`);
+    await backImageReference.putString(backImage, 'base64', { ContentType: 'image/png' });
+    const backImageDownloadURL = await backImageReference.getDownloadURL();
+    console.log(frontImageDownloadURL, backImageDownloadURL);
+    const cartData = {
+      frontImageURL: encodeURIComponent(frontImageDownloadURL),
+      backImageURL: encodeURIComponent(backImageDownloadURL),
+    }
+    res.json(cartData);
+    return;
+  } catch (error) {
+
+  }
+  // res.render dhaan
+}
+
+
+// endpoints for creating orders in shiprocket
+exports.createshiporder = async (req, res) => {
+  z
+  // every 10 days token refersh.. thru .env manually
+  // write code to obtain orders data from my mongo
+  // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection
+  try {
+    const createShipOrderReq = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: 'Bearer ' + process.env.SHIPTKN
+      },
+      method: "POST",
+      body: JSON.stringify({ // for this obtain data from ordersModel from mongo and populate respectively
+        order_id: "threatofcumblast",
+        order_date: "2023-08-31 14:50",
+        pickup_location: "Primary",
+        channel_id: "",
+        comment: "Reseller: Sachin",
+        billing_customer_name: "Sachin",
+        billing_last_name: "Sharon",
+        billing_address: "No.8, 10th Street, Vinobaji Nagar, Hastinapuram",
+        billing_address_2: "Near Hokage House",
+        billing_city: "Kanchipuram",
+        billing_pincode: "600064",
+        billing_state: "Tamil Nadu",
+        billing_country: "India",
+        billing_email: "sreesachin11226@gmail.com",
+        billing_phone: "9362667920",
+        shipping_is_billing: true,
+        shipping_customer_name: "",
+        shipping_last_name: "",
+        shipping_address: "",
+        shipping_address_2: "",
+        shipping_city: "",
+        shipping_pincode: "",
+        shipping_country: "",
+        shipping_state: "",
+        shipping_email: "",
+        shipping_phone: "",
+        order_items: [
+          {
+            name: "MyDesign",
+            sku: "TEEWHTXS",
+            units: 2,
+            selling_price: "320",
+            discount: "",
+            tax: "",
+            hsn: 441122
+          }
+        ],
+        payment_method: "Prepaid",
+        shipping_charges: 0,
+        giftwrap_charges: 0,
+        transaction_charges: 0,
+        total_discount: 0,
+        sub_total: 640,
+        length: 10,
+        breadth: 15,
+        height: 20,
+        weight: 2.5
+      })
+    });
+
+    const createShipOrderData = await createShipOrderReq.json();
+    res.status(200).json(createShipOrderData);
+
+  } catch (error) {
+    res.status(500).json(error);
+  }
+
+  /* {
+  "order_id": 398711668,
+  "shipment_id": 396917638,
+  "status": "NEW",
+  "status_code": 1,
+  "onboarding_completed_now": 0,
+  "awb_code": "",
+  "courier_company_id": "",
+  "courier_name": ""
+  }*/ // once order is done, its the returned value
+
+}
+
+
+// endpoints for connecting stores
+exports.connectShopify = async (req, res) => {
+  const reqBody = req.body;
+  // console.log(req.userId);
+  const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
+  const SHOPIFY_SHOP_URL = reqBody.store_url
+  const SHOPIFY_SHOP_NAME = reqBody.store_name
+  // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
+
+  const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
+
+  try {
+    const fetchReq = await fetch(shopifyEndpoint, {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      }
+    })
+    const fetchData = await fetchReq.json();
+    // console.log(fetchData);
+
+    const store = await StoreModel.findOneAndUpdate(
+      { userid: req.userId },
+      {
+        $set: {
+          // _id: 
+          userid: req.userId,
+          shopifyStores: [
+            {
+              shopName: SHOPIFY_SHOP_NAME,
+              shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
+              shopifyStoreURL: SHOPIFY_SHOP_URL
+            }
+          ],
+        }
+      },
+      { new: true, upsert: true }
+    )
+
+    res.status(200).render('connectstore', { status: "Added Shopify Store" }); // idhu redirect pannidu
+    return;
+
+  } catch (error) {
+    console.log("Error in Shopify connect " + error)
+    res.status(400).json({
+      message: error
+    })
+    return;
+  }
+}
+
+exports.connectWooCommerce = async (req, res) => {
+  const reqBody = req.body;
+  // console.log(reqBody);
+  const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
+  const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
+  const WOOCOMMERCE_SHOP_URL = reqBody.store_url
+  const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
+
+  try {
+    //do the thing to create woo obj
+    const api = new WooCommerceRestApi({
+      url: "https://" + WOOCOMMERCE_SHOP_URL + "/",
+      consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+      consumerSecret: WOOCOMMERCE_CONSUMER_SECRET,
+      version: "wc/v3"
+    });
+    const orders = await api.get("orders", {
+      status: 'cancelled',
+      per_page: '2',
+    });
+    // console.log(orders);
+
+    const store = await StoreModel.findOneAndUpdate(
+      { userid: req.userId },
+      {
+        $set: {
+          // _id: 
+          userid: req.userId,
+          wooCommerceStores: [
+            {
+              shopName: WOOCOMMERCE_SHOP_NAME,
+              url: WOOCOMMERCE_SHOP_URL,
+              consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+              consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
+            }
+          ],
+        }
+      },
+      { new: true, upsert: true }
+    )
+    // await store.save();
+
+    res.status(200).render('connectstore', { status: "Added WooCommerce Store" });
+    return;
+
+  } catch (error) {
+    console.log("Error in woocommerce connect " + error)
+    res.status(400).json({
+      message: error
+    })
+    return;
+  }
+}
