@@ -1,0 +1,400 @@
+@font-face {
+  font-family: myFont;
+  src: url('BaseNeueTrial-SemiBoldOblique.ttf');
+}
+
+* {
+  font-family: myFont;
+  margin: 0;
+  padding: 0;
+  letter-spacing: 0.05rem;
+  box-sizing: border-box;
+}
+
+.btn-orange {
+  background-color: #F05A30;
+  color: #fff;
+  border-radius: 10px;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-orange {
+  display: block;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+
+svg {
+  display: block;
+  margin: 0 auto;
+  width: 500px;
+  height: 300px;
+  /* the size of the image should be bigger */
+}
+
+
+image {
+  width: 400px;
+  height: 400px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+/* .btn-orange:hover {
+    background-color: #F05A30;
+    color: #fff;
+    border-radius: 0;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 0 10px #ff6700;
+} */
+.btn-orange:focus {
+  outline: none;
+}
+
+.btn-orange:active {
+  outline: none;
+}
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+}
+
+.popup-content {
+  background-color: #fff;
+  max-width: 800px;
+  margin: 100px auto;
+  padding: 20px;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background-color: #555;
+  color: #fff;
+  margin-left: -20px;
+  z-index: 1;
+}
+
+.close-button:hover {
+  background-color: #333 !important;
+}
+
+.close-button:focus {
+  outline: none;
+}
+
+.close-button:active {
+  outline: none;
+}
+
+.section-title {
+  margin-top: 20px;
+}
+
+h3 {
+  text-align: center;
+}
+
+h4 {
+  margin-bottom: 0 !important;
+}
+
+img {
+  width: 100%;
+}
+
+p {
+  margin-bottom: 0 !important;
+}
+
+#pdt {
+  margin: auto;
+}
+
+.dark {
+  background-color: rgba(0, 0, 0, .3);
+}
+
+.product-lib {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  padding-left: 300px;
+  padding-top: 6rem;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.loader {
+  width: 2rem;
+  height: 2rem;
+  border: 5px solid #FFF;
+  border-bottom-color: #FF3D00;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#delete-design {
+  border: 1px solid red;
+  padding: 0.1rem 0.25rem;
+  height: 2rem;
+  border-radius: 4px;
+  color: red;
+  background: transparent;
+  cursor: pointer;
+}
+
+.product-name {
+  width: 60%;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+}
+
+.product-modal-heading-delete {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+}
+
+.designs-container,
+.shopify-designs-container,
+.woocommerce-designs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.design-card {
+  border: solid 1px #aaaaaa86;
+  background-color: #eee;
+  box-shadow: 0px 0px 0px rgba(77, 77, 77, 0.207);
+  transition: box-shadow 0.1s;
+  border-radius: 5px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  width: 300px
+}
+
+.design-card:hover {
+  box-shadow: 0px 0px 10px rgba(42, 42, 42, 0.093);
+}
+
+.card-img {
+  background: url('/images/transp-checker.jpg');
+  background-size: 120%;
+  max-width: 100%;
+  display: grid;
+  place-items: center;
+  justify-content: center;
+}
+
+#img {
+  width: 250px;
+  object-fit: cover;
+}
+
+.details {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  /* margin-bottom: 10px; */
+  /* border: solid; */
+}
+
+.name-price h3 {
+  font-size: 16px;
+  font-weight: 400;
+  margin-top: 0.3rem;
+  text-align: left;
+}
+
+.view-btn button {
+  background-color: #F05A30;
+  width: 100px;
+  padding: 5px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  color: #fff;
+}
+
+.stock-avail {
+  font-size: 16px;
+  color: #40B635;
+  padding-top: 2px;
+}
+
+.heading-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.designs-choice-container {
+  display: flex;
+  gap: 1rem;
+  background-color: rgb(231, 231, 231);
+}
+
+.choice-btn {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  background: none;
+  color: black;
+}
+
+.active-btn {
+  background: #F05A30;
+  color: white;
+}
+
+.product-modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  background-color: #42424265;
+  z-index: 105;
+}
+
+.product-modal {
+  display: flex;
+  width: 80%;
+  background-color: white;
+  padding: 2rem;
+  position: relative;
+}
+
+.product-modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.product-sizes,
+.product-colors {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.product-modal-image {
+  width: 50%;
+}
+
+.product-modal-image img {
+  width: 100%;
+}
+
+.product-price-button {
+  display: flex;
+  margin-top: auto;
+  justify-content: space-evenly;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+label {
+  margin-bottom: 0 !important;
+}
+
+#add-cart {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.product-price-button button {
+  padding: 0.5rem 1rem;
+  color: white;
+  background: #F05A30;
+  border: none;
+  border-radius: 3px;
+}
+
+.product-category-gender {
+  display: flex;
+  gap: 1rem;
+}
+
+.product-sizes h4,
+.product-category-gender h6 {
+  background: #EEEEEE;
+  border-radius: 12px;
+  padding: 0.3rem 0.5rem;
+}
+
+.product-sizes h4 {
+  color: #282828
+}
+
+.color-disc {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 1px solid #00000040;
+}
+
+.modal-close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 2rem;
+  border: none;
+  cursor: pointer;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}

@@ -1,0 +1,5 @@
+/**
+ * Preloader 1.0.0 (https://codings.dev)
+ * Copyright 2022-2023 Codings
+ */
+.preloader{position:fixed;z-index:100;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background-color:var(--color);-webkit-transition:all .4s ease-out 0s;-o-transition:all .4s ease-out 0s;-moz-transition:all .4s ease-out 0s;transition:all .4s ease-out 0s}.preloader .emblem{width:40px;height:auto;animation:scale-rotate-animation 2s ease-in infinite alternate forwards;--webkit-animation:scale-rotate-animation 2s ease-in infinite alternate forwards;opacity:0}.preloader.loaded{z-index:-1;opacity:0;pointer-events:none}.preloader.loaded:after{display:none}@keyframes scale-rotate-animation{to{opacity:0;transform:scale3d(.5,.5,1) rotate(360deg)}}@-webkit-keyframes scale-rotate-animation{to{opacity:0;transform:scale3d(.5,.5,1) rotate(360deg)}}
