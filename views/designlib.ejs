@@ -16,6 +16,8 @@
     crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
   <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
   <title>Design Library - Printwear</title>
 </head>
 
@@ -104,38 +106,10 @@
 
   </main>
 
-  <!-- const mockData = [
-  {
-    "designImage": {
-      "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_Printwear%20standard%20logo_front.png?alt=media&token=3192c9ef-d7ae-420d-a18e-a911836cd17b",
-      "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_Printwear%20standard%20logo_back.png?alt=media&token=a907e8da-b766-4a5a-9b54-a3a081f91b96"
-    },
-    "_id": "64f6a6d8a232c60953077b8b",
-    "designName": "Printwear standard logo",
-    "baseProductId": "64f2b13f54f25afcf4534bb4",
-    "color": "",
-    "createdBy": "64f175edd683cd124e440f23",
-    "createdAt": "2023-09-05T03:56:08.688Z",
-    "__v": 0
-  },
-  {
-    "designImage": {
-      "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_test_front.png?alt=media&token=d4a3bc6e-ba62-4292-b046-704872358e50",
-      "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F64f175edd683cd124e440f23_test_back.png?alt=media&token=f9828441-e7e0-4309-a5d9-d12996a55b9c"
-    },
-    "_id": "64f6af3818e815a1802cfa21",
-    "designName": "test",
-    "baseProductId": "64f2b13f54f25afcf4534bb4",
-    "color": "",
-    "createdBy": "64f175edd683cd124e440f23",
-    "createdAt": "2023-09-05T04:31:52.392Z",
-    "__v": 0
-  }
-] -->
-
   <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
   <script>
     AOS.init();
+    var notyf = new Notyf();
 
     const designsContainter = document.querySelector(".designs-container");
     const shopifyDesignsContainer = document.querySelector(".shopify-designs-container");
@@ -190,10 +164,13 @@
                 alt="Design front image">
             </div>
             <div class="product-modal-details">
-              <h2 class="product-name">${designModalData.design.designName}</h2>
+              <div class="product-modal-heading-delete">
+                <h2 class="product-name">${designModalData.design.designName}</h2>
+                <button id="delete-design" data-designid="${designModalData.design._id}"><i class="fa fa-trash" data-designid="${designModalData.design._id}"></i>Delete design</button>
+              </div>
               <div class="product-category-gender">
                 <h6>${designModalData.product.category}</h6>
-                <h6>Gender</h6>
+                <h6>${designModalData.product.gender}</h6>
               </div> 
               <p class="product-description">
                 ${designModalData.product.description}
@@ -217,7 +194,7 @@
                       </div>
                     `
                     }).join("\n")}
-                  <button type="submit">Add to Cart</button>
+                    ${designModalData.availableInCart? `<button disabled="true" type="submit">Already in cart</button>`: `<button type="submit">Add to Cart</button>` }
                 </form>
               </div>
             </div>
@@ -232,13 +209,49 @@
         e.target.setAttribute("src", designModalData.design.designImage.front);
       });
 
+      const deleteDesignBtn = document.querySelector("#delete-design");
+      deleteDesignBtn.addEventListener("click", async (e) => {
+        deleteDesignBtn.setAttribute("disabled", true);
+        deleteDesignBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
+        console.log(e.target.dataset.designid);
+        try {
+          const deleteDesignRequest = await fetch("/deletedesign", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              designId: e.target.dataset.designid
+            })
+          });
+          if (deleteDesignRequest.ok){
+            deleteDesignBtn.textContent = "Design deleted";
+            // toastify cart item deleted
+            notyf.success({
+              message: "Design deleted",
+              dimissible: true
+            })
+            document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"));
+            fetchDesignsData();
+          };
+          //location.reload();
+        } catch (err) {
+          console.log(err);
+          notyf.error({
+            message: "Couln't delete due to error!",
+            dimissible: true
+          })
+          // toastify something went wrong
+        }
+      })
+
       const addToCartBtn = document.querySelector("#add-cart button");
 
       const addToCartForm = document.querySelector("#add-cart");
       
       addToCartForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-
+        addToCartBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
         const sizeQty = {};
         document.querySelectorAll("#add-cart input").forEach(inputItem => {
           sizeQty[inputItem.dataset.size] = parseInt(inputItem.value) 
@@ -260,9 +273,19 @@
           const addToCartResponse = await addToCartRequest.json();
           if (addToCartRequest.ok) {
             addToCartBtn.textContent = "Added to cart!";
+            notyf.success({
+              message: "Added to cart",
+              dimissible: true
+            })
+            fetchDesignsData();
           }
         } catch (err) {
+          console.log(err);
           addToCartBtn.textContent = "Failed to add!";
+          notyf.error({
+            message: "Couldn't add to cart",
+            dimissible: true
+          })
         }
 
       })

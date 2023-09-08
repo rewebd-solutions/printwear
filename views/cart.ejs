@@ -7,11 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
   <link rel="stylesheet" href="/css/mycart.css">
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-    crossorigin="anonymous"></script>
-  <script src="js/vendor/jquery.min.js"></script>
   <title>My Cart - Printwear</title>
 </head>
 
@@ -28,13 +26,14 @@
     <!-- <h4 class="cart-title">No items in cart currently :)</h4> -->
     <div class="cart-items-wrapper">
       <span class="loader"></span>
+
     </div>
     <!-- Button trigger modal -->
     <div class="pageend">
       <h4>Total:
       </h4>
 
-      <button type="button" disabled="true" id="btn-chkout">
+      <button type="button" id="btn-chkout">
         Proceed to checkout
       </button>
     </div>
@@ -43,18 +42,104 @@
   </div>
 
   <script>
+    var notyf = new Notyf();
+
     const cartItemsContainer = document.querySelector(".cart-items-wrapper");
+
+    const checkoutBtn = document.querySelector("#btn-chkout");
+
+    checkoutBtn.addEventListener("click", async (e) => {
+      const orderData = {
+        cartId: fetchCartReponse._id,
+        totalAmount: fetchCartReponse.totalAmount,
+        items: [],
+      }
+      // get all the items and put it in an array with SKU, cartItemId
+      const formsData = document.forms;
+      for(const eachItem of formsData){
+        let itemId = eachItem.name.split("_")[1];
+        // console.log(itemId)
+        if (!eachItem.reportValidity()) break;
+        orderData.items.push({
+          cartItemId: itemId,
+          shippingAddress: {
+            firstName: eachItem[`firstName_${itemId}`].value,
+            lastName: eachItem[`lastName_${itemId}`].value,
+            mobile: eachItem[`mobile_${itemId}`].value,
+            email: eachItem[`email_${itemId}`].value,
+            streetLandmark: eachItem[`streetLandmark_${itemId}`].value,
+            city: eachItem[`city_${itemId}`].value,
+            pincode: eachItem[`pincode_${itemId}`].value,
+            state: eachItem[`state_${itemId}`].value,
+            country: eachItem[`country_${itemId}`].value
+          }
+        })
+      }
+      console.log(orderData);
+      // delivery address for now, each and every order only
+      try {
+        const createOrderRequest = await fetch("/createorder", {
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "POST",
+          body: JSON.stringify(orderData)
+        });
+      } catch (error) {
+        console.log(error);
+        notyf.error({
+          message: "Something went wrong!",
+          dismissible: true
+        })
+      }
+    })
+
+    const deleteCartItem = async (itemId) => {
+      try {
+        const deleteItemRequest = await fetch("/deletecartitem", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            cartId: fetchCartReponse._id,
+            itemId
+          })
+        });
+        if (deleteItemRequest.ok) {
+          notyf.success({
+            message: "Cart item deleted successfully",
+            duration: 2000,
+            dismissible: true
+          })
+          fetchCartData();
+        }
+      } catch (error) {
+        console.log(error);
+        notyf.error({
+          message: "Couldn't remove from cart due to error",
+          duration: 2000,
+          dismissible: true
+        })
+      }
+    }
 
     const createCartItems = () => {
       const cartItemsDOMString = fetchCartReponse.items.map(cartItem => {
         return `
         <div class="cart-item">
-          <h5 class="product-design-name">
-            ${cartItem.designData.designName}
-          </h5>
+          <div class="product-title-delete">
+            <h5 class="product-design-name">
+              ${cartItem.designData.designName}
+            </h5>
+            <button class="delete-item" data-itemid="${cartItem._id}"><i class="fa fa-trash"></i>&nbsp;Remove from cart</button>
+          </div>
           <div style="display: flex; ">
             <div class="product-image">
-              <img src="${cartItem.designData.designImage.front}" data-back="${cartItem.designData.designImage.back}" alt="${cartItem.designData.designName}">
+              <img
+                src="${cartItem.designData.designImage.front}"
+                data-back="${cartItem.designData.designImage.back}"
+                alt="${cartItem.designData.designName}">
             </div>
             <div class="product-details">
               <h5 class="product-detail">Product: ${cartItem.product.name}</h5>
@@ -71,28 +156,120 @@
                   ${Object.entries(cartItem.quantity).map((sizeQty, i) => {
                     return `
                       <td>
-                        <input id="inp_${cartItem._id}_${i}" type="number" value="${sizeQty[1]}" min="0" max="${1}" />
+                        <input id="inp_${cartItem._id}_${sizeQty[0]}" type="number" value="${sizeQty[1]}" min="0" max="${cartItem.color.sizes.find(s => s.size.toLowerCase() === sizeQty[0].toLowerCase()).stock}" />
                       </td>
                     `;
                   }).join("\n")}
                 </tr>
               </table>
-              <!-- <p class="product-detail">SKU: TEE-WHT-M</p> map over the colors -->
-              <p class="product-details">Price: ${cartItem.price}</p>
-              <label for="deliver_address_${cartItem._id}">Enter Delivery Address:</label>
-              <textarea name="address" id="deliver_address_${cartItem._id}" class="deliver_address" rows="5" cols="60"></textarea>
-              <br>
-              <label for="phone_${cartItem._id}">Enter Phone Number:</label>
-              <input type="text" inputmode="numeric" id="phone_${cartItem._id}" placeholder="+91 XXXXXXXXXXX" />
+              <h5 class="product-detail">SKU: ${cartItem.sku}</h5>
+              <h5 class="product-details">Price: ₹${cartItem.price}</h5>
+              <form name="̥delivery_${cartItem._id}">
+                <div class="form-group">
+                  <div>
+                    <label for="firstName_${cartItem._id}">First name:</label>
+                    <input type="text" id="firstName_${cartItem._id}" name="firstName_${cartItem._id}" required>
+                  </div>
+  
+                  <div>
+                    <label for="lastName_${cartItem._id}">Last name:</label>
+                    <input type="text" id="lastName_${cartItem._id}" name="lastName_${cartItem._id}" required>
+                  </div>
+                </div>
+  
+                <div class="form-group">
+                  <div>
+                    <label for="mobile_${cartItem._id}">Mobile:</label>
+                    <input type="text" pattern="^[0-9]{10}" title="Mobile number invalid" id="mobile_${cartItem._id}" name="mobile_${cartItem._id}" inputmode="numeric" required>
+                  </div>
+  
+                  <div>
+                    <label for="email_${cartItem._id}">Email:</label>
+                    <input type="email" id="email_${cartItem._id}" name="email_${cartItem._id}" required>
+                  </div>
+                </div>
+  
+                <div class="form-group full-width">
+                  <label for="streetLandmark_${cartItem._id}">Street, Landmark:</label>
+                  <input type="text" id="streetLandmark_${cartItem._id}" name="streetLandmark_${cartItem._id}" required>
+                </div>
+  
+                <div class="form-group">
+                  <div>
+                    <label for="city_${cartItem._id}">City:</label>
+                    <input type="text" id="city_${cartItem._id}" name="city_${cartItem._id}" required>
+                  </div>
+  
+                  <div>
+                    <label for="pincode_${cartItem._id}">Pincode:</label>
+                    <input type="text" pattern="^[0-9]{6}" title="Pincode invalid" id="pincode_${cartItem._id}" inputmmode="numeric" name="pincode_${cartItem._id}" required>
+                  </div>
+                </div>
+  
+                <div class="form-group full-width">
+                  <label for="state_${cartItem._id}">State:</label>
+                  <select id="state_${cartItem._id}" name="state_${cartItem._id}" required>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Bihar">Bihar</option>
+                    <option value="Chhattisgarh">Chhattisgarh</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Haryana">Haryana</option>
+                    <option value="Himachal Pradesh">Himachal Pradesh</option>
+                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                    <option value="Jharkhand">Jharkhand</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Manipur">Manipur</option>
+                    <option value="Meghalaya">Meghalaya</option>
+                    <option value="Mizoram">Mizoram</option>
+                    <option value="Nagaland">Nagaland</option>
+                    <option value="Odisha">Odisha</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                    <option value="Sikkim">Sikkim</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Tripura">Tripura</option>
+                    <option value="Uttarakhand">Uttarakhand</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="West Bengal">West Bengal</option>
+                    <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                    <option value="Chandigarh">Chandigarh</option>
+                    <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                    <option value="Daman and Diu">Daman and Diu</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Lakshadweep">Lakshadweep</option>
+                    <option value="Puducherry">Puducherry</option>
+                  </select>
+                </div>
+  
+                <div class="form-group full-width">
+                  <label for="country">Country:</label>
+                  <input type="text" id="country_${cartItem._id}" name="country" value="India" disabled>
+                </div>
+              </form>
             </div>
           </div>
         </div>
         `;
-
-        // create a del cart item btn
-
       }).join("\n");
       cartItemsContainer.innerHTML = cartItemsDOMString;
+
+      cartItemsContainer.addEventListener("click", async e => {
+        const cartDelBtn = e.target.closest(".delete-item");
+        if (cartDelBtn) {
+          cartDelBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
+          deleteCartItem(cartDelBtn.dataset.itemid);
+        }
+      });
+
+      document.querySelector(".pageend h4").textContent = 'Total: ₹' + fetchCartReponse.totalAmount;
+
     }
 
     const fetchCartData = async () => {
@@ -100,6 +277,10 @@
         const fetchCartRequest = await fetch("/getcart");
         fetchCartReponse = await fetchCartRequest.json();
         console.log(fetchCartReponse);
+        if (fetchCartReponse.items.length === 0) {
+          return cartItemsContainer.innerHTML = "<h5>Your cart seems empty.</h5>"
+        }
+
         createCartItems();
       } catch (err) {
         console.log(err);
