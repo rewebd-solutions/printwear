@@ -695,7 +695,7 @@ exports.createorder = async (req, res) => {
         "x-api-version": "2022-09-01"
       },
       body: JSON.stringify({
-        order_id: `${orderItem.billingAddress.firstName}${orderItem.billingAddress.lastName}_${orderData._id}_${otpGen.generate(6, { specialChars: false })}`,
+        order_id: `${orderItem.billingAddress.firstName.split(" ").join("_")}_${orderItem.billingAddress.lastName.split(" ").join("_")}_${orderData._id}_${otpGen.generate(6, { specialChars: false })}`,
         order_amount: orderData.totalAmount,
         order_currency: "INR",
         order_note: `Payment for Order: ${orderData._id}`,
@@ -780,13 +780,13 @@ exports.createshiporder = async (req, res) => {
   // write code to obtain orders data from my mongo
   // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection
   console.log(req.body);
+  const statusType = req.body.type;
   
   if (statusType === 'PAYMENT_CHARGES_WEBHOOK') return res.status(200).send("OK");
   
   
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
     const orderId = req.body.data.order.order_id;
-    const statusType = req.body.type;
 
     const orderData = await OrderModel.findOne({ myOrderId: orderId });
     const cartData = await CartModel.findOne({ _id: orderData.cartId  });
@@ -795,7 +795,7 @@ exports.createshiporder = async (req, res) => {
     orderData.amountPaid = orderData.totalAmount;
     res.status(200).send("OK");
     await orderData.save();
-    
+
   // write function to hit shiprocket API
     try {
       const shipAccReq = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
@@ -817,7 +817,8 @@ exports.createshiporder = async (req, res) => {
       // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
 
       const shipRocketOrderRequests = orderData.items.map(async item => {
-        let orderId = item.cartItemId + "_" + otpGen.generate(6, {specialChars: false})
+        let orderId = item.cartItemId + "_" + otpGen.generate(6, {specialChars: false});
+        let currCartItem = cartData.items.find({ _id: item.cartId });
         let reqData = {
           "order_id": orderId,
           "order_date": formatDate(new Date()),
