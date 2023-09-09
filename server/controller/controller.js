@@ -3,6 +3,8 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const cashfreeAppID = process.env.CASH_APP_ID;
 const cashfreeSecretKey = process.env.CASH_SECRET_KEY;
 
+const WEBHOOK_URL = "https://eed0-2401-4900-3606-1972-e161-fac7-b8ed-6c63.ngrok-free.app/";
+
 const twilio = require('twilio')(accountSid, authToken);
 const crypto = require("crypto")
 const algorithm = "sha256"
@@ -21,7 +23,6 @@ const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var nodemailer = require('nodemailer');
 const otpGen = require("otp-generator")
 const storageReference = require("../services/firebase");
-const { NewFactorInstance } = require('twilio/lib/rest/verify/v2/service/entity/newFactor');
 
 //variables
 var cur_user = null;
@@ -475,7 +476,7 @@ exports.adddesign = async (req, res) => {
     res.status(200).json(designData);
   } catch (error) {
     console.log(error)
-    res.status(500).json({error});
+    res.status(500).json({ error });
   }
 }
 
@@ -494,7 +495,7 @@ exports.getdesigns = async (req, res) => {
         design: design,
         product: productData.find(product => product._id + '' === design.baseProductId + ''),
         color: colorsData.find(color => color._id + '' === design.color + ''),
-        availableInCart: cartData.items.find(cartItem => cartItem.design+'' === design._id+'')? true : false
+        availableInCart: cartData?.items.find(cartItem => cartItem.design + '' === design._id + '') ? true : false
       }
     })
     // console.log(newDesignsData);
@@ -508,13 +509,13 @@ exports.getdesigns = async (req, res) => {
 exports.deletedesign = async (req, res) => {
   try {
     console.log(req.userId, req.body.designId)
-    await CartModel.findOneAndUpdate({ userId: req.userId }, { $pull: { items: { design: req.body.designId }}});
+    await CartModel.findOneAndUpdate({ userId: req.userId }, { $pull: { items: { design: req.body.designId } } });
     await DesignModel.findOneAndDelete({ _id: req.body.designId });
     // console.log("done")
-    res.status(200).json({message: "Deleted"});
+    res.status(200).json({ message: "Deleted" });
   } catch (err) {
     console.log(err);
-    res.status(500).json({error: err});
+    res.status(500).json({ error: err });
   }
 }
 
@@ -561,14 +562,14 @@ exports.addtocart = async (req, res) => {
     res.json(cartData);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Something went wrong!"});
+    res.status(500).json({ message: "Something went wrong!" });
   }
 }
 
 exports.getcart = async (req, res) => {
   try {
     const cartItems = await CartModel.findOne({ userId: req.userId });
-    if (!cartItems) return res.status(200).json({items:[]});
+    if (!cartItems) return res.status(200).json({ items: [] });
     const newCartItems = {
       ...cartItems._doc
     }
@@ -579,19 +580,19 @@ exports.getcart = async (req, res) => {
     const cartColorIDs = new Set(cartDesignData.map(cartDesign => cartDesign.color));
     const cartColorsData = await ColorModel.find({ _id: { $in: [...cartColorIDs] } });
     // pull in colors from DB and push it along
-    
+
     let newCartItemWithProducts = cartItems.items.map(cartItem => {
       return {
         ...cartItem._doc,
-        product: cartProducts.find(cartProduct => cartProduct._id+'' === cartItem.productId+''),
-        designData: cartDesignData.find(cartDesign => cartDesign._id+'' === cartItem.design+'' ),
+        product: cartProducts.find(cartProduct => cartProduct._id + '' === cartItem.productId + ''),
+        designData: cartDesignData.find(cartDesign => cartDesign._id + '' === cartItem.design + ''),
       }
     })
     newCartItems.items = newCartItemWithProducts;
     newCartItemWithProducts = newCartItems.items.map(cartItem => {
       return {
         ...cartItem,
-        color: cartColorsData.find(cartColor => cartColor._id+'' === cartItem.designData.color)
+        color: cartColorsData.find(cartColor => cartColor._id + '' === cartItem.designData.color)
       }
     });
     newCartItems.items = newCartItemWithProducts;
@@ -606,7 +607,7 @@ exports.getcart = async (req, res) => {
     res.json(newCartItems);
   } catch (error) {
     console.log(error);
-    res.json({error});
+    res.json({ error });
   }
 }
 
@@ -615,15 +616,15 @@ exports.deletecartitem = async (req, res) => {
   try {
     await CartModel.updateOne({ _id: req.body.cartId }, { $pull: { items: { _id: req.body.itemId } } });
     const cartData = await CartModel.findOne({ _id: req.body.cartId });
-    let totalAmount =  0;
+    let totalAmount = 0;
     cartData.items.map(cartItem => totalAmount += cartItem?.price);
     cartData.totalAmount = totalAmount;
     await cartData.save();
     // console.log(x)
-    res.status(200).json({message: "success!"});
+    res.status(200).json({ message: "success!" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({error});
+    res.status(500).json({ error });
   }
 }
 
@@ -631,161 +632,287 @@ exports.deletecartitem = async (req, res) => {
 // orders ku eldhu
 exports.createorder = async (req, res) => {
   const orderItem = req.body;
-  console.log(orderItem)
   // obtain all items array and then add it along with calculated SKU
+
   try {
+    const userData = await UserModel.findOne({ _id: req.userId });
+
+    if (!userData) throw new Error("Invalid User");
+
+    const cartData = await CartModel.findOne({ userId: userData._id });
+
+    let cartQtyChange = orderItem.items.map(item => {
+      return {
+        quantity: item.quantity,
+        cartItemId: item.cartItemId,
+        price: item.price,
+      }
+    });
+
+    let x = cartData.items.map(item => {
+      let thatItem = cartQtyChange.find(cq => cq.cartItemId === item._id + '')
+      return {
+        ...item._doc,
+        quantity: thatItem.quantity,
+        price: thatItem.price
+      }
+    });
+
+    // console.log(cartQtyChange, x);
+
+    cartData.items = x;
+
+    cartData.totalAmount = orderItem.totalAmount;
+
+    await cartData.save();
+
+    // console.log(cartData);
+
     const orderData = new OrderModel({
       userId: req.userId,
       cartId: orderItem.cartId,
-      items: orderItem.items,
-      totalAmount: orderItem.totalAmount
+      items: orderItem.items.map(item => {
+        return {
+          cartItemId: item.cartItemId,
+          shippingAddress: item.shippingAddress,
+          sku: item.sku
+        }
+      }),
+      totalAmount: orderItem.totalAmount,
+      billingAddress: orderItem.billingAddress
     });
-    await orderData.save();
-    res.status(200).json({ message: "Success" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({error});
-  }
-}
 
+    let expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 2);
+    expiryDate = expiryDate.toISOString();
 
-// create payment link
-exports.createpaymentlink = async (req, res) => {
-  try {
     const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-client-id": cashfreeAppID,
         "x-client-secret": cashfreeSecretKey,
-        "x-api-version": "2023-08-01"
-      }, 
+        "x-api-version": "2022-09-01"
+      },
       body: JSON.stringify({
-        order_id: '33dnd2ds',
-        order_amount: 45.12,
+        order_id: `${orderItem.billingAddress.firstName}${orderItem.billingAddress.lastName}_${orderData._id}_${otpGen.generate(6, { specialChars: false })}`,
+        order_amount: orderData.totalAmount,
         order_currency: "INR",
+        order_note: `Payment for Order: ${orderData._id}`,
         customer_details: {
-          customer_id: '123ndf32r',
-          customer_phone: '9362712889'
-        }
+          customer_id: req.userId,
+          customer_name: userData.name,
+          customer_phone: userData.phone,
+          customer_email: userData.email
+        },
+        order_expiry_time: expiryDate
+        // link_meta: {
+        //   notify_url: WEBHOOK_URL + "createshiporder"
+        // }
       })
     });
     const paymentLinkResponse = await paymentLinkRequest.json();
-    res.json(paymentLinkResponse);
+    console.log(paymentLinkResponse)
+    orderData.CFOrderId = paymentLinkResponse.cf_order_id;
+    orderData.myOrderId = paymentLinkResponse.order_id;
+    // // orderData.paymentLinkId = paymentLinkResponse.link_id;
+
+    await orderData.save();
+    res.status(200).json(paymentLinkResponse);
   } catch (error) {
     console.log(error);
-    res.json({error});
+    res.status(500).json({ error });
   }
 }
 
 
-// temporary dummy endpoints for mockup to cart
-exports.dummycheckout = async (req, res) => {
-  const frontImage = req.body.frontImage.substring(req.body.frontImage.indexOf(',') + 1);
-  const backImage = req.body.backImage.substring(req.body.backImage.indexOf(',') + 1);
+// create payment link
+// exports.createpaymentlink = async (req, res) => {
+//   try {
+//     const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/links", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "x-client-id": cashfreeAppID,
+//         "x-client-secret": cashfreeSecretKey,
+//         "x-api-version": "2023-08-01"
+//       }, 
+//       body: JSON.stringify({
+//         link_id: '33dnd2ds',
+//         link_amount: 45.12,
+//         link_currency: "INR",
+//         link_purpose: "payment",
+//         customer_details: {
+//           customer_name: '123ndf32r',
+//           customer_phone: '9150940153'
+//         },
+//         link_partial_payments: false,
+//         link_notify: {
+//           send_email: false,
+//           send_sms: true
+//         }
+//       })
+//     });
+//     const paymentLinkResponse = await paymentLinkRequest.json();
+//     res.json(paymentLinkResponse);
+//   } catch (error) {
+//     console.log(error);
+//     res.json({error});
+//   }
+// }
 
-  try {
-    const frontImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_front' + '.png'}`);
-    await frontImageReference.putString(frontImage, 'base64', { ContentType: 'image/png' });
-    const frontImageDownloadURL = await frontImageReference.getDownloadURL();
-    const backImageReference = storageReference.child(`designs/${req.userId + "_" + req.body.designName + '_back' + '.png'}`);
-    await backImageReference.putString(backImage, 'base64', { ContentType: 'image/png' });
-    const backImageDownloadURL = await backImageReference.getDownloadURL();
-    console.log(frontImageDownloadURL, backImageDownloadURL);
-    const cartData = {
-      frontImageURL: encodeURIComponent(frontImageDownloadURL),
-      backImageURL: encodeURIComponent(backImageDownloadURL),
-    }
-    res.json(cartData);
-    return;
-  } catch (error) {
 
-  }
-  // res.render dhaan
+// utils 
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Adding 1 to month since it's zero-based
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
 
 // endpoints for creating orders in shiprocket
 exports.createshiporder = async (req, res) => {
-  z
   // every 10 days token refersh.. thru .env manually
   // write code to obtain orders data from my mongo
   // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection
-  try {
-    const createShipOrderReq = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: 'Bearer ' + process.env.SHIPTKN
-      },
-      method: "POST",
-      body: JSON.stringify({ // for this obtain data from ordersModel from mongo and populate respectively
-        order_id: "threatofcumblast",
-        order_date: "2023-08-31 14:50",
-        pickup_location: "Primary",
-        channel_id: "",
-        comment: "Reseller: Sachin",
-        billing_customer_name: "Sachin",
-        billing_last_name: "Sharon",
-        billing_address: "No.8, 10th Street, Vinobaji Nagar, Hastinapuram",
-        billing_address_2: "Near Hokage House",
-        billing_city: "Kanchipuram",
-        billing_pincode: "600064",
-        billing_state: "Tamil Nadu",
-        billing_country: "India",
-        billing_email: "sreesachin11226@gmail.com",
-        billing_phone: "9362667920",
-        shipping_is_billing: true,
-        shipping_customer_name: "",
-        shipping_last_name: "",
-        shipping_address: "",
-        shipping_address_2: "",
-        shipping_city: "",
-        shipping_pincode: "",
-        shipping_country: "",
-        shipping_state: "",
-        shipping_email: "",
-        shipping_phone: "",
-        order_items: [
-          {
-            name: "MyDesign",
-            sku: "TEEWHTXS",
-            units: 2,
-            selling_price: "320",
-            discount: "",
-            tax: "",
-            hsn: 441122
-          }
-        ],
-        payment_method: "Prepaid",
-        shipping_charges: 0,
-        giftwrap_charges: 0,
-        transaction_charges: 0,
-        total_discount: 0,
-        sub_total: 640,
-        length: 10,
-        breadth: 15,
-        height: 20,
-        weight: 2.5
+  console.log(req.body);
+  const orderId = req.body.data.order.order_id;
+  const statusType = req.body.type;
+  
+  if (statusType === 'PAYMENT_CHARGES_WEBHOOK') return res.status(200).send("OK");
+
+  const orderData = await OrderModel.findOne({ myOrderId: orderId });
+  const cartData = await CartModel.findOne({ _id: orderData.cartId  });
+
+  if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
+    orderData.paymentStatus = "success";
+    orderData.amountPaid = orderData.totalAmount;
+    res.status(200).send("OK");
+    await orderData.save();
+  // write function to hit shiprocket API
+    try {
+      const shipAccReq = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
+        headers: {
+          "Content-Type": "application/json"
+        }, 
+        method: "POST",
+        body: JSON.stringify({
+          "email": "printwearshiprocket@gmail.com",
+          "password": "shiprocketpassword"
+        })
+      });
+
+      const shipAccResponse = await shipAccReq.json();
+
+      const SHIPROCKET_COMPANY_ID = shipAccResponse.company_id;
+      const SHIPROCKET_ACC_TKN = shipAccResponse.token;
+
+      // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
+
+      const shipRocketOrderRequests = orderData.items.map(async item => {
+        let orderId = item.cartItemId + "_" + otpGen.generate(6, {specialChars: false})
+        let reqData = {
+          "order_id": orderId,
+          "order_date": formatDate(new Date()),
+          "pickup_location": "Primary",
+          "channel_id": 4248923,
+          "comment": `Order for ${orderData.billingAddress.firstName} ${orderData.billingAddress.lastName}`,
+          "billing_customer_name": `${orderData.billingAddress.firstName}`,
+          "billing_last_name": `${orderData.billingAddress.lastName}`,
+          "billing_address": `${orderData.billingAddress.streetLandmark}`,
+          "billing_address_2": "",
+          "billing_city": `${orderData.billingAddress.city}`,
+          "billing_pincode": `${orderData.billingAddress.pincode}`,
+          "billing_state": `${orderData.billingAddress.state}`,
+          "billing_country": `India`,
+          "billing_email": `${orderData.billingAddress.email}`,
+          "billing_phone": `${orderData.billingAddress.mobile}`,
+          "shipping_is_billing": false,
+          "shipping_customer_name": `${item.shippingAddress.firstName}`,
+          "shipping_last_name": `${item.shippingAddress.lastName}`,
+          "shipping_address": `${item.shippingAddress.streetLandmark}`,
+          "shipping_address_2": "",
+          "shipping_city": `${item.shippingAddress.city}`,
+          "shipping_pincode": `${item.shippingAddress.pincode}`,
+          "shipping_country": `India`,
+          "shipping_state": `${item.shippingAddress.state}`,
+          "shipping_email": `${item.shippingAddress.email}`,
+          "shipping_phone": `${item.shippingAddress.mobile}`,
+          "order_items": [
+            {
+              "name": `${item.sku}`,
+              "sku": `${item.sku}`,
+              "units": 10,
+              "selling_price": 500,
+              "discount": "",
+              "tax": "",
+              "hsn": 441122
+            }
+          ],
+          "payment_method": "Prepaid",
+          "shipping_charges": 0,
+          "giftwrap_charges": 0,
+          "transaction_charges": 0,
+          "total_discount": 0,
+          "sub_total": orderData.totalAmount,
+          "length": 10,
+          "breadth": 15,
+          "height": 20,
+          "weight": 2.5
+        }
+        console.log(reqData);
+        try {
+          const response = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+            },
+            method: "POST",
+            body: JSON.stringify(reqData)
+          });
+          if (!response.ok) throw new Error("Failed to create order");
+          const orderResponse = await response.json();
+          console.log(orderResponse);
+          let indexToModify = orderData.items.findIndex(x => x.cartItemId ===  item.cartItemId)
+          orderData.items[indexToModify].SRorderId = orderResponse.order_id;
+          await orderData.save();
+          return orderResponse;
+        } catch (error) {
+          console.error('Error creating order:', error);
+          throw error;
+        }
       })
-    });
 
-    const createShipOrderData = await createShipOrderReq.json();
-    res.status(200).json(createShipOrderData);
+      Promise.allSettled(shipRocketOrderRequests).then(results => {
+        console.log(results);
+        const allFulfilled = results.every(result => result.status === 'fulfilled');
+        
+        if (allFulfilled) {
+          // All orders were created successfully
+          console.log('All orders created successfully.');
+          // Send a 200 response here
+        } else {
+          // At least one order failed to create
+          console.error('One or more orders failed to create.');
+          // Send an error response here
+        }
+      });
 
-  } catch (error) {
-    res.status(500).json(error);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({error});
+    }
   }
 
-  /* {
-  "order_id": 398711668,
-  "shipment_id": 396917638,
-  "status": "NEW",
-  "status_code": 1,
-  "onboarding_completed_now": 0,
-  "awb_code": "",
-  "courier_company_id": "",
-  "courier_name": ""
-  }*/ // once order is done, its the returned value
+  if (statusType === 'PAYMENT_FAILED_WEBHOOK') {
+    orderData.paymentStatus = "failed";
+    res.status(200).send("OK");
+    return await orderData.save();
+  }
 
 }
 

@@ -64,46 +64,6 @@
         <h4>Products are loading...</h4>
       </div>
     </div>
-
-    <!-- <div class="product-modal-wrapper">
-      <div class="product-modal">
-        <button class="modal-close">
-          <i class="fa fa-close"></i>
-        </button>
-        <div class="product-modal-image">
-          <img
-            src="https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2"
-            alt="">
-        </div>
-        <div class="product-modal-details">
-          <h2 class="product-name">Test T Shirt</h2>
-          <div class="product-category-gender">
-            <h6>Category</h6>
-            <h6>Gender</h6>
-          </div>
-          <p class="product-description">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur, dignissimos?
-          </p>
-          <div class="product-colors">
-            <p>Colors: </p>
-            <div class="color-disc"></div>
-            <div class="color-disc"></div>
-            <div class="color-disc"></div>
-          </div>
-          <div class="product-sizes">
-            <p>Sizes: </p>
-            <h4>S</h4>
-            <h4>M</h4>
-            <h4>L</h4>
-          </div>
-          <div class="product-price-button">
-            <h4>Starts from ₹340</h4>
-            <button>Design now</button>
-          </div>
-        </div>
-      </div>
-    </div> -->
-
   </main>
 
   <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -256,6 +216,14 @@
         document.querySelectorAll("#add-cart input").forEach(inputItem => {
           sizeQty[inputItem.dataset.size] = parseInt(inputItem.value) 
         });
+        if (Object.entries(sizeQty).every(size => size[1] === '' || size[1] === 0)) {
+          notyf.error({
+            message: "Quantity cannot be 0",
+            dismissible: true,
+          });
+          addToCartBtn.innerHTML = `Add to Cart`;
+          return;
+        }
         try {
           addToCartBtn.setAttribute("disabled", true);
           addToCartBtn.textContent = "Adding...";
@@ -275,7 +243,7 @@
             addToCartBtn.textContent = "Added to cart!";
             notyf.success({
               message: "Added to cart",
-              dimissible: true
+              dismissible: true
             })
             fetchDesignsData();
           }
@@ -284,7 +252,7 @@
           addToCartBtn.textContent = "Failed to add!";
           notyf.error({
             message: "Couldn't add to cart",
-            dimissible: true
+            dismissible: true
           })
         }
 

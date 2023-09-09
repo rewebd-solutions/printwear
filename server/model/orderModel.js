@@ -21,10 +21,23 @@ var OrderSchema = new mongoose.Schema({
                 city: String,
                 pincode: Number,
                 state: String,
-                Country: String
-            }
+                country: String
+            },
+            sku: String,
+            SRorderId: String,
         }
     ],
+    billingAddress: {
+        firstName: String,
+        lastName: String,
+        mobile: String,
+        email: String,
+        streetLandmark: String,
+        city: String,
+        pincode: Number,
+        state: String,
+        country: String
+    },
     totalAmount: Number,
     amountPaid: {
         default: 0,
@@ -33,12 +46,16 @@ var OrderSchema = new mongoose.Schema({
     paymentStatus: {
         type: String,
         default: "pending",
-        enum: ["pending", "delivered", "cancelled"]
+        enum: ["pending", "success", "failed"]
     },
     deliveryStatus: {
         type: String,
         default: "placed"
-    }
+    },
+    paymentLink: String,
+    paymentLinkId: String,
+    CFOrderId: String,
+    myOrderId: String
 });
 
 const orderModel = new mongoose.model("Order", OrderSchema);

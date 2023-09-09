@@ -53,11 +53,7 @@ route.post("/deletecartitem", authServices.authorizeToken, controller.deletecart
 
 route.post("/createorder", authServices.authorizeToken, controller.createorder);
 
-route.post("/createpaymentlink", controller.createpaymentlink); // add authservices
-
-route.post("/dummycheckout", authServices.authorizeToken, controller.dummycheckout);
-
-route.post("/create-ship-order", controller.createshiporder);
+route.post("/createshiporder", controller.createshiporder);
 
 route.post("/connect-shopify", authServices.authorizeToken, controller.connectShopify);
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
