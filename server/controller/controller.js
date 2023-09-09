@@ -782,7 +782,7 @@ exports.createshiporder = async (req, res) => {
   console.log(req.body);
   const statusType = req.body.type;
 
-  if (statusType === 'WEBHOOK') return res.status(200).send("OK);
+  if (statusType === 'WEBHOOK') return res.status(200).send("OK");
   
   if (statusType === 'PAYMENT_CHARGES_WEBHOOK') return res.status(200).send("OK");
   
