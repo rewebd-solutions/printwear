@@ -780,19 +780,22 @@ exports.createshiporder = async (req, res) => {
   // write code to obtain orders data from my mongo
   // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection
   console.log(req.body);
-  const orderId = req.body.data.order.order_id;
-  const statusType = req.body.type;
   
   if (statusType === 'PAYMENT_CHARGES_WEBHOOK') return res.status(200).send("OK");
-
-  const orderData = await OrderModel.findOne({ myOrderId: orderId });
-  const cartData = await CartModel.findOne({ _id: orderData.cartId  });
-
+  
+  
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
+    const orderId = req.body.data.order.order_id;
+    const statusType = req.body.type;
+
+    const orderData = await OrderModel.findOne({ myOrderId: orderId });
+    const cartData = await CartModel.findOne({ _id: orderData.cartId  });
+
     orderData.paymentStatus = "success";
     orderData.amountPaid = orderData.totalAmount;
     res.status(200).send("OK");
     await orderData.save();
+    
   // write function to hit shiprocket API
     try {
       const shipAccReq = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
