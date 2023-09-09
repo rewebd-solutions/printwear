@@ -127,6 +127,14 @@ h5 {
     cursor: pointer;
 }
 
+.billing-address-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    width: 70%;
+}
+
 .form-group {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -198,7 +198,8 @@ p {
 .product-modal-heading-delete {
   display: flex;
   gap: 2rem;
-  justify-content: space-between;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .designs-container,
