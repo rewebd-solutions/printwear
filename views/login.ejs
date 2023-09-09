@@ -60,12 +60,12 @@
                 <input type="password" name="password" class="input-field" placeholder="Enter Password" />
                 <input type="checkbox" class="check-box"><span>Remember Password</span>
                 <button class="submit-btnx">Log In</button>
-                <span class="frgt"><a href="/forget">Forgot Password?</a></span>
+                <!-- <span class="frgt"><a href="/forget">Forgot Password?</a></span> -->
             </form>
             <form id="register" class="input-group" action="/register" method="post">
                 <input type="text" name="name" class="input-field" placeholder="User Name" required>
-                <input type="text" name="number" class="input-field" inputmode="numeric" placeholder="Phone Number" required>
-                <input type="email" name="email" class="input-field" placeholder="Email Id" required>
+                <input type="text" name="number" pattern="^[0-9]{10}" class="input-field" inputmode="numeric" placeholder="Phone Number" required>
+                <input type="email" name="email" class="input-field" placeholder="Email ID" required>
                 <input type="password" name="password" class="input-field" placeholder="Enter Password" required>
                 <input type="password" name="register_repass" class="input-field" placeholder="Re-Enter password" required>
                 <input type="checkbox" class="check-box" required><span>I agree to the terms and conditions</span>
