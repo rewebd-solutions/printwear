@@ -781,6 +781,8 @@ exports.createshiporder = async (req, res) => {
   // apo ordersModel nu onnu create panni, once checkout is done, put the stuff in that collection
   console.log(req.body);
   const statusType = req.body.type;
+
+  if (statusType === 'WEBHOOK') return res.status(200).send("OK);
   
   if (statusType === 'PAYMENT_CHARGES_WEBHOOK') return res.status(200).send("OK");
   
