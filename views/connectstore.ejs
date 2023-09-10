@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
     <link rel="stylesheet" href="/css/connectyourstore.css">
     <link rel="stylesheet" href="/css/vendor/aos.min.css">
     <script src="js/vendor/aos.min.js"></script>
@@ -13,43 +12,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <title>Connect Your Store - Printwear</title>
 </head>
 
 <body>
-    <% if (status != '') { %>
-        <style>
-            .status-box{
-                padding: 1rem;
-                border-left: 6px solid rgb(27, 164, 66);
-                background-color: rgb(46, 222, 75);
-                color: white;
-                position: absolute;
-                top: 2rem;
-                left: 2rem;
-                border-radius: 3px;
-                z-index: 10;
-                font-size: 0.8rem !important;
-            }
-            .dismiss{
-                border: none;
-                border-radius: 50%;
-                padding: 0.6rem;
-                cursor: pointer;
-                top: 0.5rem;
-                right: 0.5rem;
-                display: inline-grid;
-                place-items: center;
-                transform: scale(0.6);
-            }
-        </style>
-        <div class="status-box">
-            <h2><%=status%><button class="dismiss"><img src="/images/close-icon.webp" width="20" alt=""></button></h2>
-        </div>
-        <script>
-            document.querySelector(".dismiss").addEventListener("click", e => document.querySelector(".status-box").style.display = "none");
-        </script>
-    <% } %> 
     <div class="banner">
         <%- include('partials/side-logo.ejs') %>
             <%- include('partials/top.ejs') %>
@@ -106,8 +74,19 @@
             </form>
         </div>
     </div>
+    <% var status1 = status;  %>
     <script>
         AOS.init();
+        var notyf = new Notyf();
+        let success = "<%= status1 %>";
+
+        if (success != '') {
+            notyf.success({
+                message: "Added Shopify Store",
+                dismissible: true,
+            });
+        }
+        
         const shopifyToggleBtn = document.querySelector("#shopify-toggle");
         const woocommerceToggleBtn = document.querySelector("#woocommerce-toggle");
         const shopifyForm = document.querySelector(".shopify-form");

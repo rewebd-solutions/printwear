@@ -423,7 +423,7 @@ exports.getproducts = async (req, res) => {
       colorsData
     });
   } catch (error) {
-    console.log(err);
+    console.log(error);
     res.status(500).send("error");
   }
 
@@ -783,27 +783,27 @@ exports.createshiporder = async (req, res) => {
   const statusType = req.body.type;
 
   if (statusType === 'WEBHOOK') return res.status(200).send("OK");
-  
+
   if (statusType === 'PAYMENT_CHARGES_WEBHOOK') return res.status(200).send("OK");
-  
-  
+
+
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
     const orderId = req.body.data.order.order_id;
 
     const orderData = await OrderModel.findOne({ myOrderId: orderId });
-    const cartData = await CartModel.findOne({ _id: orderData.cartId  });
+    const cartData = await CartModel.findOne({ _id: orderData.cartId });
 
     orderData.paymentStatus = "success";
     orderData.amountPaid = orderData.totalAmount;
     res.status(200).send("OK");
     await orderData.save();
 
-  // write function to hit shiprocket API
+    // write function to hit shiprocket API
     try {
       const shipAccReq = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
         headers: {
           "Content-Type": "application/json"
-        }, 
+        },
         method: "POST",
         body: JSON.stringify({
           "email": "printwearshiprocket@gmail.com",
@@ -819,7 +819,7 @@ exports.createshiporder = async (req, res) => {
       // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
 
       const shipRocketOrderRequests = orderData.items.map(async item => {
-        let orderId = item.cartItemId + "_" + otpGen.generate(6, {specialChars: false});
+        let orderId = item.cartItemId + "_" + otpGen.generate(6, { specialChars: false });
         let currCartItem = cartData.items.find({ _id: item.cartId });
         let reqData = {
           "order_id": orderId,
@@ -883,7 +883,7 @@ exports.createshiporder = async (req, res) => {
           if (!response.ok) throw new Error("Failed to create order");
           const orderResponse = await response.json();
           console.log(orderResponse);
-          let indexToModify = orderData.items.findIndex(x => x.cartItemId ===  item.cartItemId)
+          let indexToModify = orderData.items.findIndex(x => x.cartItemId === item.cartItemId)
           orderData.items[indexToModify].SRorderId = orderResponse.order_id;
           await orderData.save();
           return orderResponse;
@@ -896,7 +896,7 @@ exports.createshiporder = async (req, res) => {
       Promise.allSettled(shipRocketOrderRequests).then(results => {
         console.log(results);
         const allFulfilled = results.every(result => result.status === 'fulfilled');
-        
+
         if (allFulfilled) {
           // All orders were created successfully
           console.log('All orders created successfully.');
@@ -910,7 +910,7 @@ exports.createshiporder = async (req, res) => {
 
     } catch (error) {
       console.log(error);
-      res.status(500).json({error});
+      res.status(500).json({ error });
     }
   }
 
@@ -923,106 +923,157 @@ exports.createshiporder = async (req, res) => {
 }
 
 
+// endpoints for querying shopify stores
+exports.getshopifystock = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const shopifyStoreDetails = await StoreModel.findOne({ userid: userId });
+    const shopifyStoreData = shopifyStoreDetails.shopifyStores;
+
+    var shopifyShopStockData = [];
+
+    for (let store of shopifyStoreData) {
+      const SHOPIFY_ACCESS_TOKEN = store.shopifyAccessToken;
+      const SHOPIFY_SHOP_URL = store.shopifyStoreURL;
+      const SHOPIFY_SHOP_NAME = store.shopName;
+
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products.json?fields=id,title,vendor,product_type,tags,variants,options`;
+
+      try {
+        const shopifyStoreStockRequest = await fetch(shopifyEndpoint, {
+          headers: {
+            'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+          }
+        })
+        const shopifyStoreStockResponse = await shopifyStoreStockRequest.json();
+        shopifyShopStockData.push({
+          shopName: SHOPIFY_SHOP_NAME,
+          products: shopifyStoreStockResponse.products.filter(product => product.product_type === 'tshirt').map(product => {
+            return {
+              id: product.id,
+              name: product.title,
+              tags: product.tags,
+              // colors: product.options.find(option => option.name === 'Color'),
+              variants: product.variants
+            }
+          })
+        });
+      } catch (error) {
+        console.log(error);
+        shopifyShopStockData.push({
+          shopName: SHOPIFY_SHOP_NAME,
+          error
+        });
+      }
+    }
+    res.json(shopifyShopStockData);
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({ error });
+    }
+  }
+
 // endpoints for connecting stores
 exports.connectShopify = async (req, res) => {
-  const reqBody = req.body;
-  // console.log(req.userId);
-  const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
-  const SHOPIFY_SHOP_URL = reqBody.store_url
-  const SHOPIFY_SHOP_NAME = reqBody.store_name
-  // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
+    const reqBody = req.body;
+    // console.log(req.userId);
+    const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
+    const SHOPIFY_SHOP_URL = reqBody.store_url
+    const SHOPIFY_SHOP_NAME = reqBody.store_name
+    // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
 
-  const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
 
-  try {
-    const fetchReq = await fetch(shopifyEndpoint, {
-      headers: {
-        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
-      }
-    })
-    const fetchData = await fetchReq.json();
-    // console.log(fetchData);
-
-    const store = await StoreModel.findOneAndUpdate(
-      { userid: req.userId },
-      {
-        $set: {
-          // _id: 
-          userid: req.userId,
-          shopifyStores: [
-            {
-              shopName: SHOPIFY_SHOP_NAME,
-              shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
-              shopifyStoreURL: SHOPIFY_SHOP_URL
-            }
-          ],
+    try {
+      const fetchReq = await fetch(shopifyEndpoint, {
+        headers: {
+          'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
         }
-      },
-      { new: true, upsert: true }
-    )
+      })
+      const fetchData = await fetchReq.json();
+      // console.log(fetchData);
 
-    res.status(200).render('connectstore', { status: "Added Shopify Store" }); // idhu redirect pannidu
-    return;
+      const store = await StoreModel.findOneAndUpdate(
+        { userid: req.userId },
+        {
+          $set: {
+            // _id: 
+            userid: req.userId,
+            shopifyStores: [
+              {
+                shopName: SHOPIFY_SHOP_NAME,
+                shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
+                shopifyStoreURL: SHOPIFY_SHOP_URL
+              }
+            ],
+          }
+        },
+        { new: true, upsert: true }
+      )
 
-  } catch (error) {
-    console.log("Error in Shopify connect " + error)
-    res.status(400).json({
-      message: error
-    })
-    return;
+      res.status(200).render('connectstore', { status: "Added Shopify Store" }); // idhu redirect pannidu
+      return;
+
+    } catch (error) {
+      console.log("Error in Shopify connect " + error)
+      res.status(400).json({
+        message: error
+      })
+      return;
+    }
   }
-}
 
-exports.connectWooCommerce = async (req, res) => {
-  const reqBody = req.body;
-  // console.log(reqBody);
-  const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
-  const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
-  const WOOCOMMERCE_SHOP_URL = reqBody.store_url
-  const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
+  exports.connectWooCommerce = async (req, res) => {
+    const reqBody = req.body;
+    // console.log(reqBody);
+    const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
+    const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
+    const WOOCOMMERCE_SHOP_URL = reqBody.store_url
+    const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
 
-  try {
-    //do the thing to create woo obj
-    const api = new WooCommerceRestApi({
-      url: "https://" + WOOCOMMERCE_SHOP_URL + "/",
-      consumerKey: WOOCOMMERCE_CONSUMER_KEY,
-      consumerSecret: WOOCOMMERCE_CONSUMER_SECRET,
-      version: "wc/v3"
-    });
-    const orders = await api.get("orders", {
-      status: 'cancelled',
-      per_page: '2',
-    });
-    // console.log(orders);
+    try {
+      //do the thing to create woo obj
+      const api = new WooCommerceRestApi({
+        url: "https://" + WOOCOMMERCE_SHOP_URL + "/",
+        consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+        consumerSecret: WOOCOMMERCE_CONSUMER_SECRET,
+        version: "wc/v3"
+      });
+      const orders = await api.get("orders", {
+        status: 'cancelled',
+        per_page: '2',
+      });
+      // console.log(orders);
 
-    const store = await StoreModel.findOneAndUpdate(
-      { userid: req.userId },
-      {
-        $set: {
-          // _id: 
-          userid: req.userId,
-          wooCommerceStores: [
-            {
-              shopName: WOOCOMMERCE_SHOP_NAME,
-              url: WOOCOMMERCE_SHOP_URL,
-              consumerKey: WOOCOMMERCE_CONSUMER_KEY,
-              consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
-            }
-          ],
-        }
-      },
-      { new: true, upsert: true }
-    )
-    // await store.save();
+      const store = await StoreModel.findOneAndUpdate(
+        { userid: req.userId },
+        {
+          $set: {
+            // _id: 
+            userid: req.userId,
+            wooCommerceStores: [
+              {
+                shopName: WOOCOMMERCE_SHOP_NAME,
+                url: WOOCOMMERCE_SHOP_URL,
+                consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+                consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
+              }
+            ],
+          }
+        },
+        { new: true, upsert: true }
+      )
+      // await store.save();
 
-    res.status(200).render('connectstore', { status: "Added WooCommerce Store" });
-    return;
+      res.status(200).render('connectstore', { status: "Added WooCommerce Store" });
+      return;
 
-  } catch (error) {
-    console.log("Error in woocommerce connect " + error)
-    res.status(400).json({
-      message: error
-    })
-    return;
+    } catch (error) {
+      console.log("Error in woocommerce connect " + error)
+      res.status(400).json({
+        message: error
+      })
+      return;
+    }
   }
-}

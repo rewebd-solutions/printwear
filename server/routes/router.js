@@ -55,6 +55,8 @@ route.post("/createorder", authServices.authorizeToken, controller.createorder);
 
 route.post("/createshiporder", controller.createshiporder);
 
+route.get("/getshopifystock", authServices.authorizeToken, controller.getshopifystock);
+
 route.post("/connect-shopify", authServices.authorizeToken, controller.connectShopify);
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
 

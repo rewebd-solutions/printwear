@@ -58,6 +58,6 @@ var OrderSchema = new mongoose.Schema({
     myOrderId: String
 });
 
-const orderModel = new mongoose.model("Order", OrderSchema);
+const orderModel = mongoose.model("Order", OrderSchema);
 
 module.exports = orderModel;

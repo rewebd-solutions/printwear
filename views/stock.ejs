@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" href="/css/stock.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <title>Stock Inventory</title>
 </head>
 
@@ -17,48 +19,272 @@
             <%- include('partials/top.ejs') %>
     </div>
     <div class="stock">
-        <h1>Stock inventory coming soon.. </h1>
+        <h2>Stock inventory</h2>
+        <div class="stock-choice-container">
+            <button class="choice-btn active-btn" id="printwear-stock-btn">Printwear</button>
+            <button class="choice-btn" id="shopify-stock-btn">Shopify</button>
+            <button class="choice-btn" id="woo-stock-btn">WooCommerce</button>
+        </div>
+        <div class="stock-table" data-aos="fade-up">
+            <table id="printwear-stock">
+                <!-- <span class="loader"></span> -->
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th data-stream="printwear">Stock</th>
+                        <th>SKU</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody id="printwear-productTableBody">
+
+                </tbody>
+            </table>
+            <table id="shopify-stock">
+                <!-- <span class="loader"></span> -->
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th data-stream="shopify">Stock</th>
+                        <th>SKU</th>
+                    </tr>
+                </thead>
+                <tbody id="shopify-productTableBody">
+
+                </tbody>
+            </table>
+            <table id="woo-stock">
+                <!-- <span class="loader"></span> -->
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th data-stream="woo">Stock</th>
+                        <th>SKU</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody id="woo-productTableBody">
+
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- <div class="product-modal-wrapper">
-        <div class="product-modal">
-            <button class="modal-close">
-                <i class="fa fa-close"></i>
-            </button>
-            <div class="product-modal-image">
-                <img src="https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Ftshirtmale.png?alt=media&token=c8b089e4-5e4d-43a8-9912-db50c7b34dd2"
-                    alt="">
-            </div>
-            <div class="product-modal-details">
-                <h2 class="product-name">Test T Shirt</h2>
-                <div class="product-category-gender">
-                    <h5>Category</h5>
-                    <h5>Gender</h5>
-                </div>
-                <p class="product-description">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur, dignissimos?
-                </p>
-                <div class="product-colors">
-                    <p>Colors: </p>
-                    <div class="color-disc"></div>
-                    <div class="color-disc"></div>
-                    <div class="color-disc"></div>
-                </div>
-                <div class="product-sizes">
-                    <p>Sizes: </p>
-                    <h4>S</h4>
-                    <h4>M</h4>
-                    <h4>L</h4>
-                </div>
-                <div class="product-price-button">
-                    <h4>Starts from ₹340</h4>
-                    <button>Design now</button>
-                </div>
-            </div>
-        </div>
-    </div> -->
-
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+        // Sample data (replace with your own data)
+        var printwearStockDataResponse = {};
+        var shopifyStockDataResponse = {};
+        var wooCommerceStockDataResponse = {};
+
+        var hasShopifyLoaded = false;
+        var hasWooCommerceLoaded = false;
+
+        const printwearTableBody = document.getElementById("printwear-productTableBody");
+        const shopifyTableBody = document.getElementById("shopify-productTableBody");
+        const wooTableBody = document.getElementById("woo-productTableBody");
+
+        const printwearTableContainer = document.getElementById("printwear-stock");
+        const shopifyTableContainer = document.getElementById("shopify-stock");
+        const wooTableContainer = document.getElementById("woo-stock");
+
+        var tableMap = {
+            printwear: printwearTableBody,
+            shopify: shopifyTableBody,
+            woo: wooTableBody
+        }
+
+        var columnSortOrder = 0;
+
+        shopifyTableContainer.style.display = "none";
+        wooTableContainer.style.display = "none";
+
+        const printwearStockBtn = document.querySelector("#printwear-stock-btn");
+        const shopifyStockBtn = document.querySelector("#shopify-stock-btn");
+        const wooCommerceStockBtn = document.querySelector("#woo-stock-btn");
+
+        printwearStockBtn.onclick = (e) => {
+            printwearStockBtn.classList.add("active-btn")
+            shopifyStockBtn.classList.remove("active-btn")
+            wooCommerceStockBtn.classList.remove("active-btn")
+            printwearTableContainer.style.display = "table";
+            shopifyTableContainer.style.display = "none";
+            wooTableContainer.style.display = "none";
+        }
+
+        shopifyStockBtn.onclick = async (e) => {
+            printwearStockBtn.classList.remove("active-btn")
+            shopifyStockBtn.classList.add("active-btn")
+            wooCommerceStockBtn.classList.remove("active-btn")
+            printwearTableContainer.style.display = "none";
+            shopifyTableContainer.style.display = "table";
+            wooTableContainer.style.display = "none";
+
+            if (!hasShopifyLoaded) await fetchAndPopulateShopifyTable();
+        }
+
+        wooCommerceStockBtn.onclick = (e) => {
+            printwearStockBtn.classList.remove("active-btn")
+            shopifyStockBtn.classList.remove("active-btn")
+            wooCommerceStockBtn.classList.add("active-btn")
+            printwearTableContainer.style.display = "none";
+            shopifyTableContainer.style.display = "none";
+            wooTableContainer.style.display = "table";
+        }
+
+        const sortTableByColumn = (tableBody, columnIndex) => {
+            const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+            if (columnSortOrder === 0) {
+                columnSortOrder = 1;
+                rows.sort((a, b) => {
+                    const cellA = a.cells[columnIndex].textContent;
+                    const cellB = b.cells[columnIndex].textContent;
+
+                    return cellA.localeCompare(cellB, undefined, { numeric: true });
+                });
+            } else {
+                columnSortOrder = 0;
+                rows.sort((a, b) => {
+                    const cellA = a.cells[columnIndex].textContent;
+                    const cellB = b.cells[columnIndex].textContent;
+
+                    return cellB.localeCompare(cellA, undefined, { numeric: true });
+                });
+            }
+
+            tableBody.innerHTML = "";
+
+            rows.forEach((row) => {
+                tableBody.appendChild(row);
+            });
+        }
+
+        const createTableRow = (product, colors) => {
+            colors.forEach(color => {
+                color.sizes.forEach(size => {
+                    const row = document.createElement("tr");
+
+                    const productNameCell = document.createElement("td");
+                    productNameCell.textContent = product.name;
+
+                    const colorCell = document.createElement("td");
+                    colorCell.textContent = color.colorName;
+
+                    const sizeCell = document.createElement("td");
+                    sizeCell.textContent = size.size;
+
+                    const stockCell = document.createElement("td");
+                    stockCell.textContent = size.stock;
+
+                    const skuCell = document.createElement("td");
+                    skuCell.textContent = product.SKU + '-' + color.colorSKU + '-' + size.sizeSKU;
+
+                    const linkCell = document.createElement("td");
+                    linkCell.innerHTML = `<a href="/productgallery?product=${product._id}">Details</a>`;
+
+                    row.appendChild(productNameCell);
+                    row.appendChild(colorCell);
+                    row.appendChild(sizeCell);
+                    row.appendChild(stockCell);
+                    row.appendChild(skuCell);
+                    row.appendChild(linkCell);
+                    printwearTableBody.appendChild(row);
+
+                })
+            })
+
+
+        }
+
+        document.querySelectorAll("thead th")[3].addEventListener("click", (e) => {
+            sortTableByColumn(tableMap[e.target.dataset.stream], 3);
+        })
+
+        const populateTable = () => {
+            printwearStockDataResponse.productData.forEach(product => {
+                createTableRow(product, printwearStockDataResponse.colorsData[product._id]);
+            })
+        }
+
+        const fetchStockData = async () => {
+            try {
+                const fetchStockDataRequest = await fetch("/getproducts");
+                printwearStockDataResponse = await fetchStockDataRequest.json();
+                console.log(printwearStockDataResponse);
+                populateTable();
+            } catch (error) {
+                console.log(error);
+                document.querySelector(".stock-table").innerHTML = `<h3>Error: Unable to fetch data. Please refresh`;
+                notyf.error({
+                    message: "Error fetching stock details",
+                    dismissible: true
+                })
+            }
+        }
+
+        fetchStockData();
+
+        const createShopifyTableRow = (products) => {
+            console.log(products)
+            products.forEach(product => product.variants.forEach(variant => {
+                const row = document.createElement("tr");
+
+                const productNameCell = document.createElement("td");
+                productNameCell.textContent = product.name;
+
+                const colorCell = document.createElement("td");
+                colorCell.textContent = variant.title.split("/")[1];
+
+                const sizeCell = document.createElement("td");
+                sizeCell.textContent = variant.title.split("/")[1];
+
+                const stockCell = document.createElement("td");
+                stockCell.textContent = variant.inventory_quantity;
+
+                const skuCell = document.createElement("td");
+                skuCell.textContent = variant.sku;
+
+                row.appendChild(productNameCell);
+                row.appendChild(colorCell);
+                row.appendChild(sizeCell);
+                row.appendChild(stockCell);
+                row.appendChild(skuCell);
+
+                shopifyTableBody.appendChild(row);
+            })
+            )
+        }
+
+        const populateShopifyTable = () => {
+            shopifyStockDataResponse.forEach(shopifyStore => createShopifyTableRow(shopifyStore.products));
+        }
+
+        const fetchAndPopulateShopifyTable = async () => {
+            try {
+                const shopifyStockDataRequest = await fetch("/getshopifystock");
+                shopifyStockDataResponse = await shopifyStockDataRequest.json();
+                hasShopifyLoaded = true;
+                console.log(shopifyStockDataResponse);
+                populateShopifyTable();
+            } catch (error) {
+                console.log(error);
+                notyf.error({
+                    message: "Error fetching Shopify details",
+                    dismissible: true
+                })
+            }
+        }
+
+    </script>
 </body>
 
 </html>
