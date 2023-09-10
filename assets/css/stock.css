@@ -1,7 +1,100 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    letter-spacing: 0.05rem;
+@font-face {
+    font-family: myFont;
+    src: url('BaseNeueTrial-SemiBoldOblique.ttf');
 }
 
+* {
+    font-family: myFont;
+    margin: 0;
+    padding: 0;
+    letter-spacing: 0.05rem;
+    box-sizing: border-box;
+    text-decoration: none;
+}
+
+.stock {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    padding-top: 6rem;
+    padding-left: 300px;
+    gap: 1rem;
+    margin: auto;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid #ddd;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 8px;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#printwear-stock thead th:nth-child(4) {
+    cursor: pointer;
+}
+
+table a {
+    color: rgb(66, 66, 204) !important;
+}
+
+table a:hover {
+    text-decoration: underline;
+}
+
+table a:visited {
+    color: initial;
+}
+
+.choice-btn {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    background: none;
+    color: black;
+    cursor: pointer;
+}
+
+.active-btn {
+    background: #F05A30;
+    color: white;
+}
+
+.stock-choice-container {
+    display: flex;
+    gap: 1rem;
+    background-color: rgb(231, 231, 231);
+    margin: auto;
+}
+
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #FFF;
+    border-bottom-color: #FF3D00;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

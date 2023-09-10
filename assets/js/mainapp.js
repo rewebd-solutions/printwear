@@ -1,4 +1,5 @@
 var $type = "tee", $color = "white", $colorId = new URLSearchParams(location.search).get("color") || "white", $y_pos = "front", $nos_icons = 0, $nos_text = 0, $custom_img = 0, globalDesignId = null;
+var notyf = new Notyf();
 function populateDOM() {
 
 	productData = fetchProductData.productData;
@@ -339,9 +340,19 @@ function populateDOM() {
 			globalDesignId = saveDesignResponse._id;
 			$("#buy").prop("disabled", false);
 			$(this).text('Saved successfully');
+			$('.close_img').click();
+			notyf.success({
+				message: "Design saved!",
+				dismissible: true
+			});
 		} catch(err) {
 			console.log(err);
 			$(this).text('Error when saving');
+			$('.close_img').click();
+			notyf.error({
+				message: "Couldn't save design!",
+				dismissible: true
+			});
 		}
 	})
 
@@ -366,11 +377,22 @@ function populateDOM() {
 				const addToCartResponse = await addToCartRequest.json();
 				if (addToCartRequest.ok) {
 					$(this).text('Added to cart...');
-					$(this).prop('disabled', true);
+					$(this).prop('disabled', false);
+					$('.close_img').click();
+					$("#add-design").text("Save Design");
+					notyf.success({
+						message: "Added to cart",
+						dismissible: true
+					});				
 				}
 			} catch (err) { 
 				console.log(err);
 				$(this).text("Something went wrong!");
+				$('.close_img').click();
+				notyf.error({
+					message: "Added to cart",
+					dismissible: true
+				});
 			}
 		} else {
 			// save the design first and then add to cart
