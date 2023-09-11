@@ -820,7 +820,7 @@ exports.createshiporder = async (req, res) => {
 
       const shipRocketOrderRequests = orderData.items.map(async item => {
         let orderId = item.cartItemId + "_" + otpGen.generate(6, { specialChars: false });
-        let currCartItem = cartData.items.find({ _id: item.cartId });
+       // let currCartItem = cartData.items.find({ _id: item.cartId });
         let reqData = {
           "order_id": orderId,
           "order_date": formatDate(new Date()),
@@ -852,7 +852,7 @@ exports.createshiporder = async (req, res) => {
             {
               "name": `${item.sku}`,
               "sku": `${item.sku}`,
-              "units": 10,
+              "units": 1,
               "selling_price": 500,
               "discount": "",
               "tax": "",
@@ -885,13 +885,13 @@ exports.createshiporder = async (req, res) => {
           console.log(orderResponse);
           let indexToModify = orderData.items.findIndex(x => x.cartItemId === item.cartItemId)
           orderData.items[indexToModify].SRorderId = orderResponse.order_id;
-          await orderData.save();
           return orderResponse;
         } catch (error) {
           console.error('Error creating order:', error);
           throw error;
         }
       })
+      await orderData.save();
 
       Promise.allSettled(shipRocketOrderRequests).then(results => {
         console.log(results);
@@ -972,7 +972,49 @@ exports.getshopifystock = async (req, res) => {
       console.log(error);
       res.status(500).json({ error });
     }
-  }
+}
+
+exports.getshopifyorders = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const shopifyStoreDetails = await StoreModel.findOne({ userid: userId });
+    const shopifyStoreData = shopifyStoreDetails.shopifyStores;
+
+    var shopifyShopOrderData = [];
+
+    for (let store of shopifyStoreData) {
+      const SHOPIFY_ACCESS_TOKEN = store.shopifyAccessToken;
+      const SHOPIFY_SHOP_URL = store.shopifyStoreURL;
+      const SHOPIFY_SHOP_NAME = store.shopName;
+
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json`;
+
+      try {
+        const shopifyStoreOrderRequest = await fetch(shopifyEndpoint, {
+          headers: {
+            'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+          }
+        })
+        const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
+        shopifyShopOrderData.push({
+          shopName: SHOPIFY_SHOP_NAME,
+          orders: shopifyStoreOrderResponse.orders // → idha paathu maathu
+        });
+      } catch (error) {
+        console.log(error);
+        shopifyShopOrderData.push({
+          shopName: SHOPIFY_SHOP_NAME,
+          error
+        });
+      }
+    }
+    res.json(shopifyShopOrderData);
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({ error });
+    }  
+}
 
 // endpoints for connecting stores
 exports.connectShopify = async (req, res) => {

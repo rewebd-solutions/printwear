@@ -416,7 +416,7 @@
         const cartDelBtn = e.target.closest(".delete-item");
         if (cartDelBtn) {
           cartDelBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
-          deleteCartItem(cartDelBtn.dataset.itemid);
+          deleteCartItem(cartDelBtn.dataset.itemid); // change this to have id based delete btn
         }
       });
 

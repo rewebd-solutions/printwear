@@ -37,15 +37,15 @@
             <form id="shopify-data-form" action="/connect-shopify" method="post">
                 <div class="input-wrapper">
                     <label for="store_name">Select a name for your store:</label>
-                    <input type="text" placeholder="Eg.: My mug store" name="store_name" id="inp-s0" />
+                    <input required type="text" placeholder="Eg.: My mug store" name="store_name" id="inp-s0" />
                 </div>
                 <div class="input-wrapper">
                     <label for="store_url">Shopify Store URL (just enter domain name, no need for https://):</label>
-                    <input type="text" placeholder="yourstoredomain.com" name="store_url" id="inp-s1" />
+                    <input required type="text" placeholder="yourstoredomain.com" name="store_url" id="inp-s1" />
                 </div>
                 <div class="input-wrapper">
                     <label for="access_token">Shopify Access Token:</label>
-                    <input type="text" placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxx" name="access_token" id="inp-s2" />
+                    <input required type="text" placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxx" name="access_token" id="inp-s2" />
                 </div>
                 <button type="submit">Submit</button>
             </form>
@@ -55,20 +55,20 @@
 
                 <div class="input-wrapper">
                     <label for="store_name">Select a name for your store:</label>
-                    <input type="text" placeholder="Eg.: My mug store" name="store_name" id="inp-w0" />
+                    <input required type="text" placeholder="Eg.: My mug store" name="store_name" id="inp-w0" />
                 </div>
                 
                 <div class="input-wrapper">
                     <label for="store_url">WooCommerce Store URL (just enter domain name, no need for https://):</label>
-                    <input type="text" placeholder="yourstoredomain.com" name="store_url" id="inp-w1" />
+                    <input required type="text" placeholder="yourstoredomain.com" name="store_url" id="inp-w1" />
                 </div>
                 <div class="input-wrapper">
                     <label for="consumer_key">WooCommerce Consumer Key:</label>
-                    <input type="text" placeholder="ck_xxxxxxxxxxxxxxxxxxxxxxxxx" name="consumer_key" id="inp-w2" />
+                    <input required type="text" placeholder="ck_xxxxxxxxxxxxxxxxxxxxxxxxx" name="consumer_key" id="inp-w2" />
                 </div>
                 <div class="input-wrapper">
                     <label for="consumer_secret">WooCommerce Consumer Secret:</label>
-                    <input type="text" placeholder="cs_xxxxxxxxxxxxxxxxxxxxxxxxx" name="consumer_secret" id="inp-w3" />
+                    <input required type="text" placeholder="cs_xxxxxxxxxxxxxxxxxxxxxxxxx" name="consumer_secret" id="inp-w3" />
                 </div>
                 <button type="submit">Submit</button>
             </form>

@@ -46,22 +46,9 @@
                 <!-- <span class="loader"></span> -->
                
             </div>
-            <table id="woo-stock">
-                <!-- <span class="loader"></span> -->
-                <thead>
-                    <tr>
-                        <th>Product Name</th>
-                        <th>Color</th>
-                        <th>Size</th>
-                        <th data-stream="woo">Stock</th>
-                        <th>SKU</th>
-                        <th>Link</th>
-                    </tr>
-                </thead>
-                <tbody id="woo-productTableBody">
-
-                </tbody>
-            </table>
+            <div id="woo-stock">
+                <h3>No products found!</h3>
+            </div>
         </div>
     </div>
 
@@ -70,6 +57,14 @@
         AOS.init();
         var notyf = new Notyf();
         // Sample data (replace with your own data)
+        notyf.options.types.forEach(typ => typ.icon = null);
+
+        notyf.success({
+            message: "Check your stock status across 3 stores",
+            duration: 5000,
+            dismissible: true
+        });
+
         var printwearStockDataResponse = {};
         var shopifyStockDataResponse = {};
         var wooCommerceStockDataResponse = {};
@@ -289,6 +284,7 @@
                 shopifyStockDataResponse = await shopifyStockDataRequest.json();
                 hasShopifyLoaded = true;
                 console.log(shopifyStockDataResponse);
+                if (shopifyStockDataResponse.length === 0) return shopifyTableContainer.innerHTML = '<h4>No products found! <a href="/connectstore">Connect your store</a> to view data.'
                 populateShopifyTable();
             } catch (error) {
                 console.log(error);
