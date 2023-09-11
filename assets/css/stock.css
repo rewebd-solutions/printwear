@@ -42,7 +42,7 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
-#printwear-stock thead th:nth-child(4) {
+thead th[data-stream]{
     cursor: pointer;
 }
 
@@ -64,6 +64,7 @@ table a:visited {
     background: none;
     color: black;
     cursor: pointer;
+    font-size: inherit;
 }
 
 .active-btn {
