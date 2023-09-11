@@ -114,7 +114,7 @@
       console.log(designModalData);
       const designModalDOMString = `
         <div class="product-modal-wrapper">
-          <div class="product-modal">
+          <div class="product-modal" data-aos="fade-up">
             <button class="modal-close">
               <i class="fa fa-close"></i>
             </button>
@@ -268,7 +268,7 @@
     const createDesignCards = () => {
       const designCardsDOMString = designsResponseData.map(designData => {
         return `
-          <div class="design-card">
+          <div class="design-card" data-aos="fade-up">
             <div class="card-img">
               <img src="${designData.design.designImage.front}">
             </div>

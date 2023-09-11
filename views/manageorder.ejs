@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="/css/manageorder.css">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <title>Manage orders - Printwear</title>
 </head>
 
@@ -19,110 +17,29 @@
             <%- include('partials/top.ejs') %>
     </div>
     <div class="manageorder">
-        
         <div class="mngord-head">
-            <h1>MANAGE ORDER</h1>
-
+            <h2>Manage Order</h2>
         </div>
 
-        <div class="topnav" data-aos="fade-up">
-            <a class="active" href="#">Delivered</a>
-            <a href="#">Not Delivered</a>
-            <a href="#">Returned</a>
-            <a style="float:right; background-color:#FFFFFF; border: #EEEEEE; border-radius: 2px;">Search</a>
-            <a style="float:right"><i class="fa-solid fa-download fa-lg"></i></a>
-            <!-- <a style="float:right"><input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Search></a> -->
+        <div class="order-choice-container">
+            <button class="choice-btn active-btn" id="printwear-order-btn">Printwear</button>
+            <button class="choice-btn" id="shopify-order-btn">Shopify</button>
+            <button class="choice-btn" id="woo-order-btn">WooCommerce</button>
+        </div>
+        <div class="order-table">
+            <div id="printwear-order">
+                <h3>No orders currently</h3>
+            </div>
+            <div id="shopify-order"></div>
+            <div id="woo-order"></div>
         </div>
 
-        <br>
-        <table style="width:80%; margin-left:50px;" data-aos="fade-up">
-            <tr class="headings">
-                <th>S.No</th>
-                <th>Order Id</th>
-                <th>Customer Name</th>
-                <th>Product Id</th>
-                <th>Tracking Id</th>
-                <th>Status</th>
-                <th>Placed On</th>
-            </tr>
-            <tr class="order-lis" href="#exampleModal">
-                <td style="text-align:center">1</td>
-                <td style="text-align:center; margin-left:45px">2001</td>
-                <td style="text-align:center; margin-left:45px;">Santhosh</td>
-                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
-                        data-target="#exampleModal"><b>MRT90</b></button></td>
-                <td style="text-align:center; margin-left:45px;">4001</td>
-                <td style="text-align:center; margin-left:245px;">Delivered</td>
-                <td style="text-align:center">8-05-2023</td>
-            </tr>
-            <tr class="order-lis" href="#exampleModal">
-                <td style="text-align:center">1</td>
-                <td style="text-align:center; margin-left:45px">2001</td>
-                <td style="text-align:center; margin-left:45px;">Santhosh</td>
-                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
-                        data-target="#exampleModal"><b>MRT90</b></button></td>
-                <td style="text-align:center; margin-left:45px;">4001</td>
-                <td style="text-align:center; margin-left:245px;">Delivered</td>
-                <td style="text-align:center">8-05-2023</td>
-            </tr>
-            <tr class="order-lis" href="#exampleModal">
-                <td style="text-align:center">1</td>
-                <td style="text-align:center; margin-left:45px">2001</td>
-                <td style="text-align:center; margin-left:45px;">Santhosh</td>
-                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
-                        data-target="#exampleModal"><b>MRT90</b></button></td>
-                <td style="text-align:center; margin-left:45px;">4001</td>
-                <td style="text-align:center; margin-left:245px;">Delivered</td>
-                <td style="text-align:center">8-05-2023</td>
-            </tr>
-            <tr class="order-lis" href="#exampleModal">
-                <td style="text-align:center">1</td>
-                <td style="text-align:center; margin-left:45px">2001</td>
-                <td style="text-align:center; margin-left:45px;">Santhosh</td>
-                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
-                        data-target="#exampleModal"><b>MRT90</b></button></td>
-                <td style="text-align:center; margin-left:45px;">4001</td>
-                <td style="text-align:center; margin-left:245px;">Delivered</td>
-                <td style="text-align:center">8-05-2023</td>
-            </tr>
-            <tr class="order-lis" href="#exampleModal">
-                <td style="text-align:center">1</td>
-                <td style="text-align:center; margin-left:45px">2001</td>
-                <td style="text-align:center; margin-left:45px;">Santhosh</td>
-                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
-                        data-target="#exampleModal"><b>MRT90</b></button></td>
-                <td style="text-align:center; margin-left:45px;">4001</td>
-                <td style="text-align:center; margin-left:245px;">Delivered</td>
-                <td style="text-align:center">8-05-2023</td>
-            </tr>
-            <tr class="order-lis" href="#exampleModal">
-                <td style="text-align:center">1</td>
-                <td style="text-align:center; margin-left:45px">2001</td>
-                <td style="text-align:center; margin-left:45px;">Santhosh</td>
-                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
-                        data-target="#exampleModal"><b>MRT90</b></button></td>
-                <td style="text-align:center; margin-left:45px;">4001</td>
-                <td style="text-align:center; margin-left:245px;">Delivered</td>
-                <td style="text-align:center">8-05-2023</td>
-            </tr>
-            <tr class="order-list" href="#exampleModal">
-                <td style="text-align:center">1</td>
-                <td style="text-align:center; margin-left:45px">2001</td>
-                <td style="text-align:center; margin-left:45px;">Santhosh</td>
-                <td style="text-align:center; margin-left:45px;"><button data-toggle="modal"
-                        data-target="#exampleModal"><b>MRT90</b></button></td>
-                <td style="text-align:center; margin-left:45px;">4001</td>
-                <td style="text-align:center; margin-left:245px;">Delivered</td>
-                <td style="text-align:center">8-05-2023</td>
-            </tr>
-        </table>
     </div>
-    </div>
+    
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
     </script>
-
 </body>
 
 </html>

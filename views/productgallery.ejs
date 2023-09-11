@@ -181,8 +181,6 @@
 
         const cardsContainer = document.querySelector(".cards");
 
-        // dummyData should be fetched from the server
-
         const getProducts = async () => {
             try {
                 const productsDataReq = await fetch("/getproducts");
@@ -199,7 +197,7 @@
             let cardDataDOMString = ``;
             productsData.productData.map(product => {
                 cardDataDOMString = `
-                    <div class="display-card">
+                    <div class="display-card" data-aos="fade-up">
                         <div class="name-price">
                             <h3>${product.name}</h3>
                         </div>
@@ -232,7 +230,7 @@
             console.log(colorsData);
             let productModalDOMString = `
                 <div class="product-modal-wrapper">
-                    <div class="product-modal">
+                    <div class="product-modal" data-aos="fade-up">
                         <button class="modal-close">
                             <i class="fa fa-close"></i>
                         </button>

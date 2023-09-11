@@ -42,21 +42,10 @@
 
                 </tbody>
             </table>
-            <table id="shopify-stock">
+            <div id="shopify-stock-container">
                 <!-- <span class="loader"></span> -->
-                <thead>
-                    <tr>
-                        <th>Product Name</th>
-                        <th>Color</th>
-                        <th>Size</th>
-                        <th data-stream="shopify">Stock</th>
-                        <th>SKU</th>
-                    </tr>
-                </thead>
-                <tbody id="shopify-productTableBody">
-
-                </tbody>
-            </table>
+               
+            </div>
             <table id="woo-stock">
                 <!-- <span class="loader"></span> -->
                 <thead>
@@ -89,18 +78,20 @@
         var hasWooCommerceLoaded = false;
 
         const printwearTableBody = document.getElementById("printwear-productTableBody");
-        const shopifyTableBody = document.getElementById("shopify-productTableBody");
+       // const shopifyTableBody = document.querySelector(".shopify-productTableBody");
         const wooTableBody = document.getElementById("woo-productTableBody");
 
         const printwearTableContainer = document.getElementById("printwear-stock");
-        const shopifyTableContainer = document.getElementById("shopify-stock");
+        const shopifyTableContainer = document.getElementById("shopify-stock-container");
         const wooTableContainer = document.getElementById("woo-stock");
 
         var tableMap = {
             printwear: printwearTableBody,
-            shopify: shopifyTableBody,
+            // shopify: shopifyTableBody,
             woo: wooTableBody
         }
+
+        const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');        
 
         var columnSortOrder = 0;
 
@@ -125,7 +116,7 @@
             shopifyStockBtn.classList.add("active-btn")
             wooCommerceStockBtn.classList.remove("active-btn")
             printwearTableContainer.style.display = "none";
-            shopifyTableContainer.style.display = "table";
+            shopifyTableContainer.style.display = "block";
             wooTableContainer.style.display = "none";
 
             if (!hasShopifyLoaded) await fetchAndPopulateShopifyTable();
@@ -205,9 +196,9 @@
 
         }
 
-        document.querySelectorAll("thead th")[3].addEventListener("click", (e) => {
+        document.querySelectorAll("thead th[data-stream]").forEach(thead => thead.addEventListener("click", (e) => {
             sortTableByColumn(tableMap[e.target.dataset.stream], 3);
-        })
+        }))
 
         const populateTable = () => {
             printwearStockDataResponse.productData.forEach(product => {
@@ -235,6 +226,23 @@
 
         const createShopifyTableRow = (products) => {
             console.log(products)
+            const shopifyTable = document.createElement("table");
+            shopifyTable.innerHTML = `
+            <table id="shopify-stock">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th data-stream="shopify">Stock</th>
+                        <th>SKU</th>
+                    </tr>
+                </thead>
+                <tbody class="shopify-productTableBody">
+
+                </tbody>
+            `;
+            // shopifyTable.id = 
             products.forEach(product => product.variants.forEach(variant => {
                 const row = document.createElement("tr");
 
@@ -259,13 +267,20 @@
                 row.appendChild(stockCell);
                 row.appendChild(skuCell);
 
-                shopifyTableBody.appendChild(row);
+                shopifyTable.children[1].appendChild(row);
             })
             )
+            return shopifyTable;
         }
 
         const populateShopifyTable = () => {
-            shopifyStockDataResponse.forEach(shopifyStore => createShopifyTableRow(shopifyStore.products));
+            shopifyStockDataResponse.forEach((shopifyStore, i) => {
+                const shopifyStoreDiv = document.createElement("div");
+                shopifyStoreDiv.id = slugify(shopifyStore.shopName);
+                shopifyStoreDiv.innerHTML = '<h3>Stock details for ' + shopifyStore.shopName + '</h3>';
+                shopifyStoreDiv.appendChild(createShopifyTableRow(shopifyStore.products));
+                shopifyTableContainer.appendChild(shopifyStoreDiv);
+            }) 
         }
 
         const fetchAndPopulateShopifyTable = async () => {
