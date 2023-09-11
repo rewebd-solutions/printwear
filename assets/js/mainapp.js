@@ -340,7 +340,7 @@ function populateDOM() {
 			globalDesignId = saveDesignResponse._id;
 			$("#buy").prop("disabled", false);
 			$(this).text('Saved successfully');
-			$('.close_img').click();
+			// $('.close_img').click();
 			notyf.success({
 				message: "Design saved!",
 				dismissible: true
@@ -348,9 +348,9 @@ function populateDOM() {
 		} catch(err) {
 			console.log(err);
 			$(this).text('Error when saving');
-			$('.close_img').click();
+			// $('.close_img').click();
 			notyf.error({
-				message: "Couldn't save design!",
+				message: "Couldn't save design! Try again!",
 				dismissible: true
 			});
 		}
@@ -376,12 +376,12 @@ function populateDOM() {
 				const addToCartRequest = await addToCart(globalDesignId, productData._id, sizeQty);
 				const addToCartResponse = await addToCartRequest.json();
 				if (addToCartRequest.ok) {
-					$(this).text('Added to cart...');
-					$(this).prop('disabled', false);
+					$(this).text('Added to cart!');
+					$(this).prop('disabled', true);
 					$('.close_img').click();
 					$("#add-design").text("Save Design");
 					notyf.success({
-						message: "Added to cart",
+						message: "Added to cart!",
 						dismissible: true
 					});				
 				}
@@ -390,7 +390,7 @@ function populateDOM() {
 				$(this).text("Something went wrong!");
 				$('.close_img').click();
 				notyf.error({
-					message: "Added to cart",
+					message: "Couldn't add to cart!",
 					dismissible: true
 				});
 			}
@@ -409,10 +409,18 @@ function populateDOM() {
 				if (addToCartRequest.ok) {
 					$(this).text('Added to cart...');
 					$(this).prop('disabled', true);
+					notyf.success({
+						message: "Added to cart!",
+						dismissible: true
+					});
 				}
 			} catch (err) { 
 				console.log(err);
 				$(this).text("Something went wrong!");
+				notyf.error({
+					message: "Couldn't add to cart!",
+					dismissible: true
+				});
 			}
 
 		}
@@ -440,7 +448,8 @@ const loadProductData = async () => {
 		const productId = new URLSearchParams(location.search).get("id");
 		console.log(productId);
 		if (productId == null) {
-			throw new Error("URL product ID is invalid. Please select a proper product ID");
+			document.querySelector(".loader-wrapper").innerHTML = `<h4 color="white">URL product ID is invalid. Please select a proper product ID</h4><br />\n<h4 color="white">&nbsp;  Go to PRODUCT GALLERY and choose a shirt to start</h4>`
+			return;
 		}
 		console.log()
 		const fetchProductRequest = await fetch("/getproduct/" + productId);
@@ -452,11 +461,15 @@ const loadProductData = async () => {
 		fetchProductData = await fetchProductRequest.json();
 		// console.log(fetchProductData);
 		$(".loader-wrapper").remove();
-
+		notyf.success({
+            message: "Start designing and unleash your creativity",
+            duration: 5000,
+            dismissible: true
+        });
 		populateDOM();
 	} catch (error) {
 		// console.log(error);
-		document.querySelector(".loader-wrapper").innerHTML = `<p>${error}</p><br />\n<p>&nbsp;  Go to PRODUCT GALLERY and choose a shirt to start</p>`;
+		document.querySelector(".loader-wrapper").innerHTML = `<p>${error}</p><br />\n<p>&nbsp;`;
 	}
 }
 
