@@ -14,12 +14,6 @@ route.post('/login', controller.login);
 route.get('/login', authServices.authorizeLogin, services.loginpage);
 route.get("/logout", controller.logout);
 
-route.post('/emailverify', controller.emailverify);
-route.post('/sendingotp', controller.sendotp);
-route.get('/forget', services.forgetRoutes);
-route.post('/verify', controller.verify);
-route.post('/updatepassword', controller.updatepassword);
-
 route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), controller.uploadimage);
 route.get("/obtainimages", authServices.authorizeToken, controller.obtainimages);
 route.post("/deleteimage", authServices.authorizeToken, controller.deleteimage);
@@ -60,5 +54,7 @@ route.get("/getshopifyorders", authServices.authorizeToken, controller.getshopif
 
 route.post("/connect-shopify", authServices.authorizeToken, controller.connectShopify);
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
+
+route.post("/getzohoproducts", controller.getZohoProducts);
 
 module.exports = route

@@ -2,10 +2,12 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const cashfreeAppID = process.env.CASH_APP_ID;
 const cashfreeSecretKey = process.env.CASH_SECRET_KEY;
+const zohoRefreshToken = process.env.ZOHO_REFRESH_TOKEN;
+const zohoClientID = process.env.ZOHO_CLIENT_ID;
+const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
 
-const WEBHOOK_URL = "https://eed0-2401-4900-3606-1972-e161-fac7-b8ed-6c63.ngrok-free.app/";
+const WEBHOOK_URL = "https://3df3-2401-4900-360f-b50-1857-ca35-3253-7725.ngrok-free.app/";
 
-const twilio = require('twilio')(accountSid, authToken);
 const crypto = require("crypto")
 const algorithm = "sha256"
 const authServices = require("../services/auth");
@@ -23,13 +25,6 @@ const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var nodemailer = require('nodemailer');
 const otpGen = require("otp-generator")
 const storageReference = require("../services/firebase");
-
-//variables
-var cur_user = null;
-var OTP = null;
-let sec = false;
-var number = null;
-var idemail = null;
 
 const SHIPROCKET_BASE_URL = "https://apiv2.shiprocket.in/v1/external";
 const CASHFREE_BASE_URL = 'https://sandbox.cashfree.com/pg';
@@ -105,115 +100,6 @@ exports.profilepage = async (req, res) => {
     storeData: storeData
   }
   res.render("profile", { data: data });
-}
-
-
-// endpoints for verification OTP and authentication not sure if it works
-exports.emailverify = async (req, res) => {
-  console.log("EmailVerify method");
-
-  const exiting = await UserModel.findOne({ email: req.body.email });
-  if (exiting === null) {
-    res.render("forgetpassword", { success: "USER DOES NOT EXIST" });
-  }
-  else if (exiting.email === req.body.email) {
-    res.redirect(307, "/sendingotp");
-    idemail = req.body.email;
-    number = exiting.number;
-  }
-  else {
-    res.render("forgetpassword", { success: "USER DOES NOT EXIST" });
-  }
-}
-
-exports.sendotp = (req, res) => {
-  var email = req.body.email;
-  // console.log(email.toString());
-  send_otp(email);
-}
-
-function GenOTP() {
-  OTP = Math.floor(1000 + Math.random() * 9000).toString();
-  // console.log('Generated OTP:', OTP);  
-}
-function startime() {
-  timer = setInterval(() => {
-    sec = true;
-  }, 300000);
-}
-
-function send_otp(email) {
-  GenOTP();
-  console.log("gone to function")
-  var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: 'sujaysy0006@gmail.com',
-      pass: 'teqcsgojmzndgupt'
-    }
-  });
-  var mailOptions = {
-    from: 'sujaysy0006@gmail.com',
-    to: email,
-    subject: 'OTP via',
-    text: 'OPT IS :' + OTP
-  };
-
-  ////sending sms
-
-  console.log(number);
-  twilio.messages
-    .create({
-      from: "+15673611428",
-      to: `${number}`,
-      body: `this is testing otp is ${OTP}`,
-    })
-    .then(function (res) { console.log("message has sent!") })
-    .catch(function (err) {
-      console.log(err);
-    });
-
-  ///sending sms
-
-
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
-  });
-}
-startime();
-
-exports.verify = (req, res) => {
-  var username = req.body.OTP;
-  if (!sec) {
-    if (username === OTP) {
-      // console.log("entered the forgot_password page");
-      res.render("newpassword", { success: "" });
-    } else {
-      res.render("forgetpassword", { success: "Please Enter a Valid OTP" });
-    }
-  } else {
-    console.log("time finished")
-  }
-}
-
-exports.updatepassword = async (req, res) => {
-  console.log(idemail);
-  console.log(req.body.newpassword);
-  console.log(req.body.confirmpassword)
-
-
-  if (req.body.newpassword === req.body.confirmpassword) {
-    // exiting.password=req.body.newpassword;
-    await UserModel.findOneAndUpdate({ email: idemail, }, { password: crypto.createHash(algorithm).update(req.body.newpassword).digest("hex"), }, { upsert: true, new: true })
-    res.redirect("/loginpage");
-  }
-  else {
-    res.render("newpassword", { success: "Both the Passwords are Different" });
-  }
 }
 
 
@@ -1119,3 +1005,26 @@ exports.connectShopify = async (req, res) => {
       return;
     }
   }
+
+
+// zoho inventory hitting
+exports.getZohoProducts = async (req, res) => {
+  try {
+    // get acctkn then hit the API
+    const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, {method:"POST"});
+    const zohoAccResponse = await zohoAccRequest.json();
+    console.log(zohoAccResponse);
+    const zohoAPIAccessToken = zohoAccResponse.access_token;
+    const zohoInventoryItemsRequest = await fetch("https://www.zohoapis.in/inventory/v1/itemgroups?organization_id=60010804173", {
+      headers: {
+        'Authorization': 'Zoho-oauthtoken ' + zohoAPIAccessToken
+      }
+    })
+    const zohoInventoryItemsResponse = await zohoInventoryItemsRequest.json();
+    console.log(zohoInventoryItemsResponse);
+    res.json(zohoInventoryItemsResponse);
+  } catch (error) {
+    console.log(error);
+    res.json({error});
+  }
+}
