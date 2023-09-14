@@ -1015,13 +1015,13 @@ exports.getZohoProducts = async (req, res) => {
     const zohoAccResponse = await zohoAccRequest.json();
     console.log(zohoAccResponse);
     const zohoAPIAccessToken = zohoAccResponse.access_token;
-    const zohoInventoryItemsRequest = await fetch("https://www.zohoapis.in/inventory/v1/itemgroups?organization_id=60010804173", {
+    const zohoInventoryItemsRequest = await fetch("https://www.zohoapis.in/inventory/v1/itemgroups/?organization_id=60010804173", {
       headers: {
         'Authorization': 'Zoho-oauthtoken ' + zohoAPIAccessToken
       }
     })
     const zohoInventoryItemsResponse = await zohoInventoryItemsRequest.json();
-    console.log(zohoInventoryItemsResponse);
+    // console.log(zohoInventoryItemsResponse);
     res.json(zohoInventoryItemsResponse);
   } catch (error) {
     console.log(error);
