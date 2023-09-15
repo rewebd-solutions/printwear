@@ -1067,6 +1067,28 @@ exports.getZohoProducts = async (req, res) => {
       "turcoise blue",
       "chocolate brown"
     ]
+    const colorHexCodes = {
+      "black": "#000000",
+      "charcoal melange": "#464646",
+      "ecru melange": "#F5F5DC",
+      "grey melange": "#808080",
+      "mustard yellow": "#FFDB58",
+      "navy blue": "#000080",
+      "red": "#FF0000",
+      "white": "#FFFFFF",
+      "army green": "#4B5320",
+      "royal blue": "#4169E1",
+      "maroon": "#800000",
+      "lemon yellow": "#FFF44F",
+      "olive green": "#556B2F",
+      "leaf green": "#228B22",
+      "beige": "#F5F5DC",
+      "yellow": "#FFFF00",
+      "navy": "#000080",
+      "turquoise": "#40E0D0",
+      "turcoise blue": "#00FFEF",
+      "chocolate brown": "#7B3F00"
+    };
     const sizeFilterKeywords = [
       "xs",
       "s",
@@ -1120,7 +1142,6 @@ exports.getZohoProducts = async (req, res) => {
         item_name: item.item_name,
         actual_available_stock: item.actual_available_stock,
         brand: item.brand,
-        group_name: item.group_name ?? 'none',
         image_document_id: item.image_document_id,
         item_id: item.item_id,
         item_name: item.item_name,
@@ -1128,6 +1149,8 @@ exports.getZohoProducts = async (req, res) => {
         sku: item.sku,
         purchase_rate: item.purchase_rate,
         rate: item.rate,
+        decription: item.description,
+        group: item.group_name
       }
     })
 
@@ -1136,7 +1159,7 @@ exports.getZohoProducts = async (req, res) => {
     });
 
     zohoInventoryItemsResponse.items.forEach(product => {
-      const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer } = product;
+      const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer, description, group } = product;
       const splitItemName = item_name.split(/\s*[- ]\s*/);
 
       // Use the regular expression to find matching colors in the item_name
@@ -1154,24 +1177,35 @@ exports.getZohoProducts = async (req, res) => {
               const size = shirtMatches[0] === "kids half sleeve"? sizeMatch: splitItemName[splitItemName.length - 1];
               const style = shirtMatches? item_name.substring(shirtMatches.index, shirtMatches[0].length) : null;
               const color = colorMatches? colorMatches[0].split(" ").map(colorWord => colorWord[0].toUpperCase()+colorWord.substring(1,)).join(' '): 'color';
-              
+              const colorCode = colorHexCodes[colorMatches?colorMatches[0]:'white'];
+
               if (!style) return;
 
               // Create the nested structure if it doesn't exist
               if (!categorizedProducts[style]) {
-              categorizedProducts[style] = {
-                  brand,
-                  manufacturer
-              };
+                categorizedProducts[style] = {
+                    brand,
+                    manufacturer,
+                    description: description??'Item available for designing',
+                    group: group? group.split(" ")[0]:'Ungrouped',
+                    baseImage: {
+                      front: '',
+                      back: ''
+                    },
+                    colors: {}
+                };
               }
-              if (!categorizedProducts[style][color]) {
-              categorizedProducts[style][color] = {
+              if (!categorizedProducts[style]['colors'][color]) {
+              categorizedProducts[style].colors[color] = {
+                  frontImage: '',
+                  backImage: '',
+                  colorCode,
                   sizes: {}
               };
           }
   
           // Update the stock quantity for the specific size and color
-          categorizedProducts[style][color].sizes[size] = {
+          categorizedProducts[style].colors[color].sizes[size] = {
               id: item_id,
               name: item_name,
               stock: actual_available_stock,
@@ -1182,11 +1216,12 @@ exports.getZohoProducts = async (req, res) => {
       }
     });
 
-    categorizedProducts["MENS ROUND NECK"] = {...categorizedProducts["MENS ROUND NECK"], ...categorizedProducts["MENS RN"], ...categorizedProducts["MEN RN"]}
+    categorizedProducts["MENS ROUND NECK"].colors = {...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors}
     delete categorizedProducts["MENS RN"];
     delete categorizedProducts["MEN RN"];
     delete categorizedProducts["HOODIE"];
     delete categorizedProducts["POLO"];
+    delete categorizedProducts["Women Boyfriend"]
 
     res.json(categorizedProducts);
   } catch (error) {
