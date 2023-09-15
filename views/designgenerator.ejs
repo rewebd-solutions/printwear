@@ -1,295 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Design Generator - Printwear</title>
+    <!-- Font Awesome Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      rel="stylesheet" />
+    <!-- Snakbox -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <!-- Global Styles -->
+    <link href="/css/api.css" rel="stylesheet" />
+    <!-- Fabric JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fabric@4.5.1/dist/fabric.min.js"></script>
+    <!-- DOM to image and File Save -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        font-family: "Raleway", sans-serif;
+      }
+      .App {
+        background-color: #d7d7d7;
+        display: flex;
+        min-height: 100vh;
+        place-items: center;
+        padding: 6rem 0 0 300px;
+      }
+      .App > * {
+        margin: 1%;
+        width: 50%;
+      }
+      .left-box > * {
+        margin-bottom: 3%;
+      }
+      .right-box {
+        display: flex;
+        flex-direction: column;
+      }
+      .heading {
+        font-weight: 300;
+        font-size: 2.3rem;
+      }
+      .position-buttons {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .position-buttons > * {
+        margin-right: 2%;
+        margin-bottom: 2%;
+        font-size: 0.8rem;
+      }
+      .design-stats {
+        margin: 3% 0;
+        font-size: 1.4rem;
+      }
+      .stats-display > p {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 200;
+      }
+      .design-input-label {
+        display: block;
+        margin-bottom: 2%;
+        width: fit-content;
+        border: 1px solid gray;
+        padding: 2% 4%;
+        cursor: pointer;
+        border-radius: 20px;
+      }
+      .color-list,
+      .size-list,
+      .list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+      .color-options,
+      .size-options {
+        display: flex;
+        flex-direction: column;
+        place-items: center;
+        width: fit-content;
+        cursor: pointer;
+        margin-right: 2%;
+      }
+      .color-circle {
+        width: 35px;
+        height: 35px;
+        border-radius: 100%;
+        border: 2px solid #6a6969;
+      }
+      .size-options {
+        border: #6a6969 1px solid;
+        border-radius: 20%;
+        width: 2.3rem;
+      }
+      .size-list > *,
+      .color-list > * {
+        margin-right: 2%;
+      }
+      .list {
+        padding: 2% 0;
+      }
+      .list > * {
+        margin-right: 4%;
+        margin-bottom: 4%;
+      }
+      .color-options > p {
+        margin-top: 5px;
+        font-size: 0.7rem;
+      }
+      .text-add {
+        width: 100%;
+        padding: 2% 0;
+      }
+      .text-add > * {
+        font-weight: 400;
+        margin-bottom: 1%;
+      }
+      .text-add > input[type="text"] {
+        width: 90%;
+        padding: 0.6rem;
+        border: none;
+        border-radius: 20px;
+      }
+      input[type="text"]:focus {
+        outline: none;
+      }
 
-<head>
-	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script> -->
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="">
-	<meta name="author" content="">
+      button {
+        width: 10rem;
+        border: none;
+        border-radius: 20px;
+        padding: 2%;
+        background-color: #E74015;
+        color: #ffffff;
+        cursor: pointer;
+      }
 
-	<title>Design Generator - Printwear</title>
+      button:hover {
+        background-color: #c62c06;
+        transform: scale(1.05);
+        transition: ease-in-out 200ms;
+      }
 
-	<link href="/css/normalize.css" rel="stylesheet">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
-		integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-	<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-	<!-- Bootstrap core CSS -->
-	<!-- <link href="/css/vendor/bootstrap.min.css" rel="stylesheet">  -->
-	<link rel="stylesheet" href="/css/jquery-ui.css" />
-	<link
-		href='https://fonts.googleapis.com/css?family=Nosifer|League+Script|Yellowtail|Permanent+Marker|Codystar|Eater|Molle:400italic|Snowburst+One|Shojumaru|Frijole|Gloria+Hallelujah|Calligraffitti|Tangerine|Monofett|Monoton|Arbutus|Chewy|Playball|Black+Ops+One|Rock+Salt|Pinyon+Script|Orbitron|Sacramento|Sancreek|Kranky|UnifrakturMaguntia|Creepster|Pirata+One|Seaweed+Script|Miltonian|Herr+Von+Muellerhoff|Rye|Jacques+Francois+Shadow|Montserrat+Subrayada|Akronim|Faster+One|Megrim|Cedarville+Cursive|Ewert|Plaster'
-		rel='stylesheet' type='text/css'>
+      div.image-container {
+        overflow: hidden;
+      }
 
-	<link href="/css/api.css" rel="stylesheet">
+      #mockup-image-canvas {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        height: 500px;
+        width: 450px;
+      }
 
-	<script src="/js/jquery-1.10.2.js">	</script>
-	<script src="/js/bootstrap.js">		</script>
+      #mockup-image-canvas > img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        height: 500px;
+        width: 450px;
+      }
 
-	<style>
+      #mockup-image-canvas canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
 
-	</style>
+      #mockup-image {
+        position: relative;
+      }
 
-</head>
+      .design-area {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
 
-<body>
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 70%;
+        background-color: #be094e;
+        border-radius: 20px;
+        height: 15px;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 30px;
+        width: 30px;
+        border: 1px solid gray;
+        border-radius: 100%;
+        background: #ffffff;
+        cursor: pointer;
+      }
+      input[type="range"]:active {
+        -webkit-appearance: none;
+        background-color: #ff0063;
+        transition: all ease-in-out 200ms;
+      }
 
-	<div class="banner">
-		<%- include('partials/side-logo.ejs') %>
-			<%- include('partials/top.ejs') %>
-	</div>
-	<div id="maindiv">
-
-		<!-- <script type="text/javascript" src="/js/html2canvas.js"></script> -->
-		<!-- <script type="text/javascript" src="/js/html22canvas.js"></script> -->
-		<script type="text/javascript" src="/js/html2canvas.min.js"></script>
-		<script src="/js/jquery.form.js"></script>
-		
-
-		<script src="/js/jquery-ui.js"></script>
-
-		<script type="text/javascript">
-			
-			function b() {
-				$('#custom_text').toggleClass('bold_text');
-				$("#bold_button").toggleClass('box-shadow', '0 0 10px inset #3c3c3c');
-			}
-
-			function i() {
-				$('#custom_text').toggleClass('italic_text');
-			}
-
-			function changeFont(_name) {
-				$('#custom_text').css("font-family", _name);
-			}
-
-			function changeFontSize(_size) {
-				$('#custom_text').css("font-size", _size);
-			}
-
-			function changeColor(_color) {
-				$('#custom_text').css("color", _color);
-			}
-		</script>
-
-		<div class="container cnt design_api_container ">
-
-			<div class='design_api'>
-				<div class="loader-wrapper">
-					<span class="loader"></span>
-				</div>
-				<!--=============================================================-->
-				<div id="menu">
-					<div class="menu_option sel_type sel">
-						<img src="/images/mockup/menu_icons/tee.png">
-					</div>
-					<div class="menu_option sel_color">
-						<i class="fa fa-paint-brush fa-2x"></i>
-					</div>
-					<div class="menu_option sel_art">
-						<i class="fa fa-camera-retro fa-2x"></i>
-					</div>
-					<div class="menu_option sel_custom_icon">
-						<i class="fa-solid fa-upload" fa-2x></i>
-					</div>
-					<div class="menu_option sel_text">
-						<i class="fa fa-font fa-2x"></i>
-
-					</div>
-				</div>
-				<!--=============================================================-->
-				<div id='options'>
-					<div class="T_type">
-						<div id="radio1"><img width="100%" height="100%" />
-						</div>
-					</div>
-
-					<div class="color_pick">
-						<!-- iter over the colors and render them -->
-						<div class="color_radio_div" id="red"></div>
-						<div class="color_radio_div" id="black"></div>
-						<div class="color_radio_div" id="white"></div>
-					</div>
-
-					<div class="default_samples">
-						<div class="sample_icons"><img src="/images/Logo.png" id="des"></div>
-						<div class="sample_icons"><img src="/images/cnt-shopify.png" id="des"></div>
-						<div class="sample_icons"><img src="/images/cnt-woocommerce.png" id="des"></div>
-					</div>
-
-					<div class="custom_icon">
-						<form id="form1" runat="server">
-							<span class="btn btn-default btn-file upd"> Browse
-								<input type='file' id="imgInp" />
-							</span>
-						</form>
-					</div>
-
-					<div class="custom_font">
-
-						<select id="fs" onchange="changeFont(this.value);">
-							<option value="arial">Arial</option>
-							<option value="Nosifer, cursive">Nosifer</option>
-							<option value="League Script, cursive">League Script</option>
-							<option value="Yellowtail, cursive">Yellowtail</option>
-							<option value="Permanent Marker, cursive">Permanent Marker</option>
-							<option value="Codystar, cursive">Codystar</option>
-							<option value="'Eater', cursive">Eater</option>
-							<option value="Molle, cursive">Molle</option>
-							<option value="Snowburst One, cursive">Snowburst One</option>
-							<option value="Shojumaru, cursive">Shojumaru</option>
-							<option value="Frijole, cursive">Frijole</option>
-							<option value="Gloria Hallelujah, cursive">Gloria Hallelujah</option>
-							<option value="Calligraffitti, cursive">Calligraffitti</option>
-							<option value="Tangerine, cursive">Tangerine</option>
-							<option value="Monofett, cursive">Monofett</option>
-							<option value="Monoton, cursive">Monoton</option>
-							<option value="Arbutus, cursive">Arbutus</option>
-							<option value="Chewy, cursive">Chewy</option>
-							<option value="Playball, cursive">Playball</option>
-							<option value="Black Ops One, cursive">Black Ops One</option>
-							<option value="'Rock Salt', cursive">Rock Salt</option>
-							<option value=" 'Pinyon Script', cursive">Pinyon Script</option>
-							<option value="'Orbitron', sans-serif">Orbitron</option>
-							<option value="'Sacramento', cursive">acramento</option>
-							<option value="'Sancreek', cursive">Sancreek</option>
-							<option value="'Kranky', cursive">Kranky</option>
-							<option value="'UnifrakturMaguntia', cursive">UnifrakturMaguntia</option>
-							<option value="'Creepster', cursive">Creepster</option>
-							<option value="'Pirata One', cursive">Pirata One</option>
-							<option value=" 'Seaweed Script', cursive">Seaweed Script</option>
-							<option value=" 'Miltonian', cursive">Miltonian</option>
-							<option value=" 'Herr Von Muellerhoff', cursive">Herr Von Muellerhoff</option>
-							<option value=" 'Rye', cursive"> 'Rye'</option>
-							<option value=" 'Jacques Francois Shadow', cursive">Jacques Francois Shadow</option>
-							<option value=" 'Montserrat Subrayada', sans-serif">Montserrat Subrayada</option>
-							<option value=" 'Akronim', cursive">Akronim</option>
-							<option value=" 'Faster One', cursive">Faster One</option>
-							<option value=" 'Megrim', cursive">Megrim</option>
-							<option value=" 'Cedarville Cursive', cursive">Cedarville Cursive</option>
-							<option value=" 'Ewert', cursive">Ewert</option>
-							<option value="'Plaster', cursive">Plaster</option>
-							<option value="verdana">Verdana</option>
-							<option value="impact">Impact</option>
-							<option value="ms comic sans">MS Comic Sans</option>
-						</select>
-
-						<input type="color" name="favcolor" onChange="changeColor(this.value);"
-							placeholder="Color Name" />
-						<div class="font_styling">
-
-							<span id="bold_button" onclick="b();"><b>B</b></span>
-							<span id="italic_button" onclick="i();"><i>I</i></span>
-
-							<select id="font_size" onchange="changeFontSize(this.value);">
-								<option value="10px">10px</option>
-								<option value="20px">20px</option>
-								<option value="30px">30px</option>
-								<option value="40px">40px</option>
-								<option value="50px">50px</option>
-								<option value="60px">60px</option>
-								<option value="70px">70px</option>
-								<option value="80px">80px</option>
-								<option value="90px">90px</option>
-								<option value="100px">100px</option>
-								<option value="110px">110px</option>
-							</select>
-						</div>
-						<textarea id="custom_text" placeholder="Create Your Custom Text."></textarea>
-						<button type="button" class="btn btn-primary prv" id="apply_text">
-							Apply
-						</button>
-
-					</div>
-				</div>
-				<!--=============================================================-->
-				<!--=========================preview start====================================-->
-
-				<div id='preview_t'>
-					<div id="preview_front">
-						<div class="front_print">
-
-						</div>
-					</div>
-					<div id="preview_back">
-						<div class="back_print">
-
-						</div>
-					</div>
-
-				</div>
-				<!--=============================================================-->
-				<!--======================view start=======================================-->
-
-				<div id='view_mode'>
-					<div class="mode mf sel"><img id="o_front" width="100%" height="80%" />FRONT
-					</div>
-					<div class="mode mb"><img id="o_back" width="100%" height="80%" />BACK
-					</div>
-					<div class="mode">
-						<i class="fa fa-binoculars fa-4x preview_images" id="preview_images" data-toggle="modal"
-							data-target=".bs-example-modal-lg"></i>Preview
-					</div>
-				</div>
-				<!--=====================View Ends========================================-->
-				<div id="overview">
-					<table class="table" id="preview-table">
-
-					</table>
-
-					<button type="button" class="btn btn-primary btn-block preview_images prv" data-toggle="modal"
-						data-target=".bs-example-modal-lg">
-						Proceed
-					</button>
-
-
-				</div>
-			</div>
-
-			<div class="layer">
-				<div class="modal-content-preview">
-					<div class="modal-header">
-						<button type="button" class="close close_img" data-dismiss="modal">
-							<span aria-hidden="true">&times;</span><span class="sr-only close_img">Close</span>
-						</button>
-					</div>
-					<div class="modal-body" id="modal-body">
-						<div id="image_reply">
-							
-						</div>
-						<div class="modal-footer-preview">
-							<input type="hidden" name="img_front" id="img_front" value="" />
-							<input type="hidden" name="img_back" id="img_back" value="" />
-							<input type="text" class="form-control" placeholder="Enter a design name..." name="design-name" id="design_name" />
-							<div style="display: flex; gap:1rem;">
-								<button type="submit" class="btn btn-primary prv" id="add-design">
-									Save Design
-								</button>
-								<button type="button" class="btn dwn prv" id="dwn">
-									Download Design	
-								</button>
-								<button type="button" class="btn dwn prv" id="buy">
-									Add To Cart
-								</button>
-							</div>
-						</div>
-					</div>
-
-				</div>
-			</div>
-
-
-		</div>
-
-	</div>
-
-
-	</div>
-	<script src="/js/mainapp.js"></script>
-</body>
-
-
-
+      @media (max-width: 900px) {
+        .App {
+          display: none;
+        }
+        .Info {
+          display: flex;
+          height: 100vh;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+        }
+        .Info > * {
+          width: 90%;
+          font-weight: 500;
+          font-size: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="banner">
+      <%- include('partials/side-logo.ejs') %> <%- include('partials/top.ejs')
+      %>
+    </div>
+    <!-- Fabric JS -->
+    <div class="App">
+      <div class="left-box">
+        <h1 class="heading">Design Library</h1>
+        <div id="product-design">
+          <div class="template-div" id="mockup-image-canvas">
+            <!-- Mockup image goes here -->
+            <img src="" alt="mockup-image" id="mockup-image" />
+          </div>
+        </div>
+      </div>
+      <div class="right-box">
+        <!-- Upload design image input -->
+        <div>
+          <label for="design-input" class="design-input-label">
+            Upload Design
+          </label>
+          <input
+            id="design-input"
+            type="file"
+            accept=".png, .jpg, .jpeg"
+            style="display: none"
+            onchange="addImageToCanvas(event)" />
+        </div>
+        <!-- Design Side -->
+        <div class="list">
+          <button onclick="changeSide('front')">Front</button>
+          <button onclick="changeSide('back')">Back</button>
+        </div>
+        <!-- Position of design image -->
+        <div>
+          <h3>Position</h3>
+          <div class="list">
+            <button onclick="setPosition('top-left')">Top Left</button>
+            <button onclick="setPosition('top-right')">Top Right</button>
+            <button onclick="setPosition('bottom-left')">Bottom Left</button>
+            <button onclick="setPosition('bottom-right')">Bottom Right</button>
+            <button onclick="setPosition('center')">Center</button>
+            <button onclick="setPosition('custom')">Custom</button>
+          </div>
+        </div>
+        <!-- Color Options Will Be Displayed -->
+        <div class="color-list"></div>
+        <!-- Size options will be displayed -->
+        <div class="size-list"></div>
+        <!-- Design Image Stats -->
+        <div class="design-stats">
+          <p class="height-design"></p>
+          <p class="width-design"></p>
+        </div>
+        <!-- Save Image -->
+        <div>
+          <button onclick="saveImage()">Save Image</button>
+        </div>
+      </div>
+    </div>
+    <script src="/js/fabric-designer.js"></script>
+  </body>
 </html>
