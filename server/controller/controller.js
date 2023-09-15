@@ -706,7 +706,7 @@ exports.createshiporder = async (req, res) => {
 
       const shipRocketOrderRequests = orderData.items.map(async item => {
         let orderId = item.cartItemId + "_" + otpGen.generate(6, { specialChars: false });
-       // let currCartItem = cartData.items.find({ _id: item.cartId });
+        // let currCartItem = cartData.items.find({ _id: item.cartId });
         let reqData = {
           "order_id": orderId,
           "order_date": formatDate(new Date()),
@@ -855,9 +855,9 @@ exports.getshopifystock = async (req, res) => {
     }
     res.json(shopifyShopStockData);
   } catch (error) {
-      console.log(error);
-      res.status(500).json({ error });
-    }
+    console.log(error);
+    res.status(500).json({ error });
+  }
 }
 
 exports.getshopifyorders = async (req, res) => {
@@ -897,134 +897,356 @@ exports.getshopifyorders = async (req, res) => {
     }
     res.json(shopifyShopOrderData);
   } catch (error) {
-      console.log(error);
-      res.status(500).json({ error });
-    }  
+    console.log(error);
+    res.status(500).json({ error });
+  }
 }
 
 // endpoints for connecting stores
 exports.connectShopify = async (req, res) => {
-    const reqBody = req.body;
-    // console.log(req.userId);
-    const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
-    const SHOPIFY_SHOP_URL = reqBody.store_url
-    const SHOPIFY_SHOP_NAME = reqBody.store_name
-    // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
+  const reqBody = req.body;
+  // console.log(req.userId);
+  const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
+  const SHOPIFY_SHOP_URL = reqBody.store_url
+  const SHOPIFY_SHOP_NAME = reqBody.store_name
+  // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
 
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
+  const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
 
-    try {
-      const fetchReq = await fetch(shopifyEndpoint, {
-        headers: {
-          'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+  try {
+    const fetchReq = await fetch(shopifyEndpoint, {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      }
+    })
+    const fetchData = await fetchReq.json();
+    // console.log(fetchData);
+
+    const store = await StoreModel.findOneAndUpdate(
+      { userid: req.userId },
+      {
+        $set: {
+          // _id: 
+          userid: req.userId,
+          shopifyStores: [
+            {
+              shopName: SHOPIFY_SHOP_NAME,
+              shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
+              shopifyStoreURL: SHOPIFY_SHOP_URL
+            }
+          ],
         }
-      })
-      const fetchData = await fetchReq.json();
-      // console.log(fetchData);
+      },
+      { new: true, upsert: true }
+    )
 
-      const store = await StoreModel.findOneAndUpdate(
-        { userid: req.userId },
-        {
-          $set: {
-            // _id: 
-            userid: req.userId,
-            shopifyStores: [
-              {
-                shopName: SHOPIFY_SHOP_NAME,
-                shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
-                shopifyStoreURL: SHOPIFY_SHOP_URL
-              }
-            ],
-          }
-        },
-        { new: true, upsert: true }
-      )
+    res.status(200).render('connectstore', { status: "Added Shopify Store" }); // idhu redirect pannidu
+    return;
 
-      res.status(200).render('connectstore', { status: "Added Shopify Store" }); // idhu redirect pannidu
-      return;
-
-    } catch (error) {
-      console.log("Error in Shopify connect " + error)
-      res.status(400).json({
-        message: error
-      })
-      return;
-    }
+  } catch (error) {
+    console.log("Error in Shopify connect " + error)
+    res.status(400).json({
+      message: error
+    })
+    return;
   }
+}
 
-  exports.connectWooCommerce = async (req, res) => {
-    const reqBody = req.body;
-    // console.log(reqBody);
-    const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
-    const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
-    const WOOCOMMERCE_SHOP_URL = reqBody.store_url
-    const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
+exports.connectWooCommerce = async (req, res) => {
+  const reqBody = req.body;
+  // console.log(reqBody);
+  const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
+  const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
+  const WOOCOMMERCE_SHOP_URL = reqBody.store_url
+  const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
 
-    try {
-      //do the thing to create woo obj
-      const api = new WooCommerceRestApi({
-        url: "https://" + WOOCOMMERCE_SHOP_URL + "/",
-        consumerKey: WOOCOMMERCE_CONSUMER_KEY,
-        consumerSecret: WOOCOMMERCE_CONSUMER_SECRET,
-        version: "wc/v3"
-      });
-      const orders = await api.get("orders", {
-        status: 'cancelled',
-        per_page: '2',
-      });
-      // console.log(orders);
+  try {
+    //do the thing to create woo obj
+    const api = new WooCommerceRestApi({
+      url: "https://" + WOOCOMMERCE_SHOP_URL + "/",
+      consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+      consumerSecret: WOOCOMMERCE_CONSUMER_SECRET,
+      version: "wc/v3"
+    });
+    const orders = await api.get("orders", {
+      status: 'cancelled',
+      per_page: '2',
+    });
+    // console.log(orders);
 
-      const store = await StoreModel.findOneAndUpdate(
-        { userid: req.userId },
-        {
-          $set: {
-            // _id: 
-            userid: req.userId,
-            wooCommerceStores: [
-              {
-                shopName: WOOCOMMERCE_SHOP_NAME,
-                url: WOOCOMMERCE_SHOP_URL,
-                consumerKey: WOOCOMMERCE_CONSUMER_KEY,
-                consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
-              }
-            ],
-          }
-        },
-        { new: true, upsert: true }
-      )
-      // await store.save();
+    const store = await StoreModel.findOneAndUpdate(
+      { userid: req.userId },
+      {
+        $set: {
+          // _id: 
+          userid: req.userId,
+          wooCommerceStores: [
+            {
+              shopName: WOOCOMMERCE_SHOP_NAME,
+              url: WOOCOMMERCE_SHOP_URL,
+              consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+              consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
+            }
+          ],
+        }
+      },
+      { new: true, upsert: true }
+    )
+    // await store.save();
 
-      res.status(200).render('connectstore', { status: "Added WooCommerce Store" });
-      return;
+    res.status(200).render('connectstore', { status: "Added WooCommerce Store" });
+    return;
 
-    } catch (error) {
-      console.log("Error in woocommerce connect " + error)
-      res.status(400).json({
-        message: error
-      })
-      return;
-    }
+  } catch (error) {
+    console.log("Error in woocommerce connect " + error)
+    res.status(400).json({
+      message: error
+    })
+    return;
   }
+}
 
 
 // zoho inventory hitting
 exports.getZohoProducts = async (req, res) => {
   try {
     // get acctkn then hit the API
-    const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, {method:"POST"});
+    const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, { method: "POST" });
     const zohoAccResponse = await zohoAccRequest.json();
     console.log(zohoAccResponse);
     const zohoAPIAccessToken = zohoAccResponse.access_token;
-    const zohoInventoryItemsRequest = await fetch("https://www.zohoapis.in/inventory/v1/itemgroups/?organization_id=60010804173", {
+
+    const zohoInventoryItemsResponse = { items: [] }
+    const dressFilterKeywords = ["shirt", "shirts", "men", "mens", "hoodie", "hoodies", "kid", "kids", "women", "womens", "tees", "tee", "polo"];
+    const shirtFilterKeywords =[
+        "bw mens",
+        "bw womens",
+        "hoodie",
+        "hoodies",
+        "kids half sleeve",
+        "men oversized",
+        "men rn",
+        "mens rn",
+        "mens round neck",
+        "mens full sleeve",
+        "mens half sleeve",
+        "mens oversize",
+        "mens raglan sleeve",
+        "oversize tees",
+        "oversized t-shirt",
+        "polo",
+        "sweatshirts",
+        "women boyfriend",
+        "womens boyfriend",
+        "womens 3/4",
+        "womens half sleeve",
+        "womens raglan sleeve",
+        "womens rn",
+        "work wear polo",
+        "workwear polo",
+    ];
+    const colorFilterKeywords = [
+      "black",
+      "charcoal melange",
+      "ecru melange",
+      "grey melange",
+      "mustard yellow",
+      "navy blue",
+      "red",
+      "white",
+      "army green",
+      "royal blue",
+      "maroon",
+      "lemon yellow",
+      "olive green",
+      "leaf green",
+      "beige",
+      "yellow",
+      "navy",
+      "turquoise",
+      "turcoise blue",
+      "chocolate brown"
+    ]
+    const colorHexCodes = {
+      "black": "#000000",
+      "charcoal melange": "#464646",
+      "ecru melange": "#F5F5DC",
+      "grey melange": "#808080",
+      "mustard yellow": "#FFDB58",
+      "navy blue": "#000080",
+      "red": "#FF0000",
+      "white": "#FFFFFF",
+      "army green": "#4B5320",
+      "royal blue": "#4169E1",
+      "maroon": "#800000",
+      "lemon yellow": "#FFF44F",
+      "olive green": "#556B2F",
+      "leaf green": "#228B22",
+      "beige": "#F5F5DC",
+      "yellow": "#FFFF00",
+      "navy": "#000080",
+      "turquoise": "#40E0D0",
+      "turcoise blue": "#00FFEF",
+      "chocolate brown": "#7B3F00"
+    };
+    const sizeFilterKeywords = [
+      "xs",
+      "s",
+      "m",
+      "l",
+      "xl",
+      "2xl",
+      "3xl",
+      "4xl",
+      "5xl",
+      "6xl",
+      "0-1yrs",
+      "12-13yrs",
+      "10-11yrs",
+      "14-15yrs",
+      "16-17yrs",
+      "2-3yrs",
+      "3-4years",
+      "4-5yrs",
+      "5-6yrs",
+      "6-7yrs",
+      "8-9yrs",
+      "9-10yrs",
+      "10-11yrs",
+      "11-12yrs",
+      "12-13yrs",
+      "13-14yrs",
+      "14-15yrs",
+      "15-16yrs",
+      "16-17yrs",
+    ]
+
+    const colorPattern = new RegExp(colorFilterKeywords.join('|'), 'i');
+    const shirtPattern = new RegExp(shirtFilterKeywords.join('|'), 'i');
+    const sizePattern = new RegExp(sizeFilterKeywords.join('|'), 'i');
+
+    const categorizedProducts = {};
+
+    for (let page of [1, 2, 3, 4, 5]) {
+      const zohoInventoryItemsRequest = await fetch(`https://www.zohoapis.in/inventory/v1/items?organization_id=60010804173&page=${page}&per_page=400`, {
+        headers: {
+          'Authorization': 'Zoho-oauthtoken ' + zohoAPIAccessToken
+        }
+      });
+      let itemsData = await zohoInventoryItemsRequest.json();
+      zohoInventoryItemsResponse.items.push(...itemsData.items);
+    }
+
+    zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.map(item => {
+      if (dressFilterKeywords.some(keyword => item.item_name.toLowerCase().includes(keyword))) return {
+        item_name: item.item_name,
+        actual_available_stock: item.actual_available_stock,
+        brand: item.brand,
+        image_document_id: item.image_document_id,
+        item_id: item.item_id,
+        item_name: item.item_name,
+        manufacturer: item.manufacturer,
+        sku: item.sku,
+        purchase_rate: item.purchase_rate,
+        rate: item.rate,
+        decription: item.description,
+        group: item.group_name
+      }
+    })
+
+    zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.filter(product => {
+      if (product != null) return product 
+    });
+
+    zohoInventoryItemsResponse.items.forEach(product => {
+      const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer, description, group } = product;
+      const splitItemName = item_name.split(/\s*[- ]\s*/);
+
+      // Use the regular expression to find matching colors in the item_name
+      // matcg other patternmds
+      let colorMatches = item_name.toLowerCase().match(colorPattern);
+      let shirtMatches = item_name.toLowerCase().match(shirtPattern);
+      let sizeMatches = splitItemName[splitItemName.length - 1].toLowerCase().match(sizePattern);
+      if (shirtMatches && shirtMatches[0] === "kids half sleeve") sizeMatches = item_name.split(" - ")[1].toLowerCase().match(sizePattern);
+
+      // console.log(shirtMatches, colorMatches, sizeMatches, product);
+      // if no product size or product size is undefined, then dont allow users to click on it
+  
+      if (sizeMatches && shirtMatches) {
+          sizeMatches.forEach(sizeMatch => {
+              const size = shirtMatches[0] === "kids half sleeve"? sizeMatch: splitItemName[splitItemName.length - 1];
+              const style = shirtMatches? item_name.substring(shirtMatches.index, shirtMatches[0].length) : null;
+              const color = colorMatches? colorMatches[0].split(" ").map(colorWord => colorWord[0].toUpperCase()+colorWord.substring(1,)).join(' '): 'color';
+              const colorCode = colorHexCodes[colorMatches?colorMatches[0]:'white'];
+
+              if (!style) return;
+
+              // Create the nested structure if it doesn't exist
+              if (!categorizedProducts[style]) {
+                categorizedProducts[style] = {
+                    brand,
+                    manufacturer,
+                    description: description??'Item available for designing',
+                    group: group? group.split(" ")[0]:'Ungrouped',
+                    baseImage: {
+                      front: '',
+                      back: ''
+                    },
+                    colors: {}
+                };
+              }
+              if (!categorizedProducts[style]['colors'][color]) {
+              categorizedProducts[style].colors[color] = {
+                  frontImage: '',
+                  backImage: '',
+                  colorCode,
+                  sizes: {}
+              };
+          }
+  
+          // Update the stock quantity for the specific size and color
+          categorizedProducts[style].colors[color].sizes[size] = {
+              id: item_id,
+              name: item_name,
+              stock: actual_available_stock,
+              price: purchase_rate,
+              sku: sku
+          };
+      });
+      }
+    });
+
+    categorizedProducts["MENS ROUND NECK"].colors = {...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors}
+    delete categorizedProducts["MENS RN"];
+    delete categorizedProducts["MEN RN"];
+    delete categorizedProducts["HOODIE"];
+    delete categorizedProducts["POLO"];
+    delete categorizedProducts["Women Boyfriend"]
+
+    res.json(categorizedProducts);
+  } catch (error) {
+    console.log(error);
+    res.json({ error });
+  }
+}
+
+exports.getZohoProductGroups = async (req, res) => {
+  try {
+    // get acctkn then hit the API
+    const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, { method: "POST" });
+    const zohoAccResponse = await zohoAccRequest.json();
+    console.log(zohoAccResponse);
+    const zohoAPIAccessToken = zohoAccResponse.access_token;
+
+    const zohoInventoryItemGroupsRequest = await fetch(`https://www.zohoapis.in/inventory/v1/itemgroups?organization_id=60010804173`, {
       headers: {
         'Authorization': 'Zoho-oauthtoken ' + zohoAPIAccessToken
       }
-    })
-    const zohoInventoryItemsResponse = await zohoInventoryItemsRequest.json();
-    // console.log(zohoInventoryItemsResponse);
-    res.json(zohoInventoryItemsResponse);
+    });
+    const zohoInventoryItemGroupsResponse = await zohoInventoryItemGroupsRequest.json();
+    res.json(zohoInventoryItemGroupsResponse);
   } catch (error) {
     console.log(error);
-    res.json({error});
+    res.json({ error });
   }
 }

@@ -55,6 +55,7 @@ route.get("/getshopifyorders", authServices.authorizeToken, controller.getshopif
 route.post("/connect-shopify", authServices.authorizeToken, controller.connectShopify);
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
 
-route.post("/getzohoproducts", controller.getZohoProducts);
+route.get("/getzohoproducts", controller.getZohoProducts);
+route.get("/getzohoproductgroups", controller.getZohoProductGroups);
 
 module.exports = route

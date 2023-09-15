@@ -29,151 +29,7 @@
             </div> -->
         </div>
         <div class="cards" data-aos="fade-up">
-
-            <!-- <div class="display-card">
-                <div class="name-price">
-                    <h3>Hoodies</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/hoodie.png" id="img">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Sweatshirt</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/sweatshirt.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Crop Top</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/raglaantshirt.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Men Oversized T-shirt</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/roundneck.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Women Round Neck</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/roundneck.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Men Vest</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/roundneck.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Men Full Sleeve</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/roundneck.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Crop Top Hoodies</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/roundneck.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div>
-            <div class="display-card">
-                <div class="name-price">
-                    <h3>Boyfriend Tees</h3>
-                </div>
-                <div class="card-img">
-                    <img src="images/roundneck.png">
-                </div>
-                <div class="details">
-                    <div class="view-btn">
-                        <button>View</button>
-                    </div>
-                    <div class="stock-avail">
-                        <p>In Stock</p>
-                    </div>
-                </div>
-            </div> -->
+            <span class="loader"></span>
         </div>
     </div>
 
@@ -184,17 +40,12 @@
 
         notyf.options.types.forEach(typ => typ.icon = null);
 
-        notyf.success({
-            message: "Explore the products and start designing!",
-            duration: 5000,
-            dismissible: true
-        });
-
         const cardsContainer = document.querySelector(".cards");
 
         const getProducts = async () => {
             try {
-                const productsDataReq = await fetch("/getproducts");
+                // const productsDataReq = await fetch("/getzohoproductgroups");
+                const productsDataReq = await fetch("/getzohoproducts");
                 const productsData = await productsDataReq.json();
                 console.log(productsData);
                 return productsData;
@@ -204,41 +55,71 @@
             }
         }
 
-        const populateData = (productsData) => {
-            let cardDataDOMString = ``;
-            productsData.productData.map(product => {
-                cardDataDOMString = `
-                    <div class="display-card" data-aos="fade-up">
-                        <div class="name-price">
-                            <h3>${product.name}</h3>
+        const calculateCardPrice = (cardProduct) => {
+            let result = 9999;
+            for(let color in cardProduct.colors){
+                const sizes = cardProduct.colors[color]['sizes'];
+                for(let size in sizes) {
+                    let sum = cardProduct.colors[color].sizes[size].price
+                    if (sum < result && sum != 0) result = sum;
+                }
+            }
+            return result;
+        }
+
+        const calculateCardStock = (cardProduct) => {
+            let sum = 0;
+            for(let color in cardProduct.colors){
+                const sizes = cardProduct.colors[color]['sizes'];
+                for(let size in sizes) {
+                    sum += cardProduct.colors[color].sizes[size].stock ?? 0
+                }
+            }
+            return sum;
+        }
+
+        const slugifyNames = (string) => string.toLowerCase().replace(/[\/\s]/g, '-').slice(0, 200);
+
+        const populateData = () => {
+            cardsContainer.innerHTML = '';
+            for (let style in productsData) {
+                let currentProduct = productsData[style];
+                let cardDataDOMString = `
+                <div class="display-card" data-aos="fade-up">
+                    <div class="name-price">
+                        <h3>${style}</h3>
+                        <h6>by ${currentProduct.brand ? currentProduct.brand: 'Brand'}</h6>
+                    </div>
+                    <div class="card-img">
+                        <img src="${currentProduct.baseImage.front}" id="img" alt="">
+                    </div>
+                    <div class="details">
+                        <div class="stock-avail">
+                            <p>Starts: ₹.${calculateCardPrice(currentProduct)}</p>
+                            <p>Stock: ${calculateCardStock(currentProduct)}</p>
                         </div>
-                        <div class="card-img">
-                            <img src="${product.productImage.front}" id="img">
-                        </div>
-                        <div class="details">
-                            <div class="view-btn">
-                                <button class="toggle-modal" data-productid="${product._id}">View</button>
-                            </div>
-                            <div class="stock-avail">
-                                <p>In Stock</p>
-                            </div>
+                        <div class="view-btn">
+                            <button class="toggle-modal" data-productid="${slugifyNames(style)}">View</button>
                         </div>
                     </div>
+                </div>
                 `;
-                // add an eventlistener for that button to put popup modal on click
                 cardsContainer.innerHTML += cardDataDOMString;
-            });
+            }
             cardsContainer.addEventListener("click", (e) => {
-                const openModalButton = e.target.closest(".toggle-modal");
-                if(openModalButton) openProductModal(e.target.dataset.productid);
+                let toggleModalBtn = e.target.closest(".toggle-modal");
+                if(toggleModalBtn) {
+                    let styleToOpen = Object.keys(productsData).find(product => slugifyNames(e.target.dataset.productid) == slugifyNames(product));
+                    openProductModal(styleToOpen);
+                    return
+                }
             })
         }
         
-        const openProductModal = (productId) => {
-            console.log(productsData);
-            const productData = productsData.productData.find(product => product._id === productId);
-            const colorsData = productsData.colorsData[productId];
-            console.log(colorsData);
+        const openProductModal = (style) => {
+            const productData = productsData[style];
+            const anyColorForSizes = Object.keys(productData.colors)[0];
+            console.log(productData);
             let productModalDOMString = `
                 <div class="product-modal-wrapper">
                     <div class="product-modal" data-aos="fade-up">
@@ -246,37 +127,35 @@
                             <i class="fa fa-close"></i>
                         </button>
                         <div class="product-modal-image">
-                            <img src="${productData.productImage.front}"
-                                alt="${productData.name}">
+                            <img src="${productData.baseImage.front}"
+                                alt="${style}">
                         </div>
                         <div class="product-modal-details">
-                            <h2 class="product-name">${productData.name}</h2>
+                            <h2 class="product-name">${style}</h2>
                             <div class="product-category-gender">
-                                <h5>${productData.category}</h5>
-                                <h5>${productData.gender}</h5>
+                                <h5>${productData.group}</h5>
                             </div>
                             <p class="product-description">
                                 ${productData.description}
                             </p>
                             <div class="product-colors">
                                 <p>Colors: </p>
-                                ${colorsData.map(color => {
-                                        return `<div class="color-disc" data-color="${color.colorName}" style="background: ${color.colorCode}"></div>`
+                                ${Object.keys(productData.colors).map(color => {
+                                        return `<div class="color-disc" data-color="${color}" title="${color}" style="background: ${productData.colors[color].colorCode}"></div>`
                                     }).join("\n")
                                 }
                             </div>
                             <div class="product-sizes">
                                 <p>Sizes: </p>
-                                ${colorsData.map(color => {
-                                    return color.sizes.map(colorSize => {
-                                            return `<h4 style="background: ${color.colorCode}">${colorSize.size}</h4>`
-                                        }).join('\n')
+                                ${
+                                    Object.keys(productData.colors[anyColorForSizes].sizes).map(size => {
+                                        return `<h4 style="background: #ebebeb">${size}</h4>`
                                     }).join('\n')
                                 }
                             </div>
                             <div class="product-price-button">
-                                <h4>Starts from ₹${productData.price.xs}</h4>
-                                <a href="/designgenerator?id=${productData._id}&color=${colorsData.find(color => color.colorName === "white")._id}"><button>Design now</button></a>
+                                <h4>Starts from ₹${calculateCardPrice(productData)}</h4>
+                                <a href="/designgenerator"><button>Design now</button></a>
                             </div>
                         </div>
                     </div>
@@ -287,19 +166,37 @@
 
             const closeModalButton = document.querySelector(".modal-close");
             closeModalButton.addEventListener("click", (e) => {
-                document.body.removeChild(document.querySelector(".product-modal-wrapper"))
+                document.body.removeChild(document.querySelector(".product-modal-wrapper"));
+                return;
             })
 
         }
 
+        // test
         getProducts().then(data => {
             productsData = data;
-            let productIdFromURL = new URLSearchParams(location.search).get("product");
-            if (productIdFromURL) openProductModal(productIdFromURL);
+            populateData();
+             //console.log(data);
+             /* Object.entries(productsData).map(item => (
+                {
+                    style: item[0],
+                    brand: item[1].brand,
+                    manufacturer: item[1].manufacturer,
+                    colors: Object.entries(item[1].colors).map(color => ({
+                        color: color[0],
+                        sizes: Object.entries(color[1].sizes).map(size => ({
+                            size: size[0],
+                            ...size[1]
+                        }))
+                    }))
+                }
+            )) */
+            //let productIdFromURL = new URLSearchParams(location.search).get("product");
+            //if (productIdFromURL) openProductModal(productIdFromURL);
             populateData(productsData);
         }).catch(error => {
             console.log(error);
-        })
+        }) 
 
     </script>
 </body>
