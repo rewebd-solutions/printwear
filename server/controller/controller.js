@@ -1235,12 +1235,12 @@ exports.getZohoProducts = async (req, res) => {
         };
       });
       // grouping logical products together
-      categorizedProducts["MENS ROUND NECK"].colors = { ...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors }
-      delete categorizedProducts["MENS RN"];
-      delete categorizedProducts["MEN RN"];
-      delete categorizedProducts["HOODIE"];
-      delete categorizedProducts["POLO"];
-      delete categorizedProducts["Women Boyfriend"]
+      if (categorizedProducts["MENS ROUND NECK"]) categorizedProducts["MENS ROUND NECK"].colors = { ...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors }
+      if (categorizedProducts["MENS RN"]) delete categorizedProducts["MENS RN"];
+      if (categorizedProducts["MEN RN"]) delete categorizedProducts["MEN RN"];
+      if (categorizedProducts["HOODIE"]) delete categorizedProducts["HOODIE"];
+      if (categorizedProducts["POLO"]) delete categorizedProducts["POLO"];
+      if (categorizedProducts["Women Boyfriend"]) delete categorizedProducts["Women Boyfriend"]
 
       res.json(categorizedProducts);
     })

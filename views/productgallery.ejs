@@ -38,8 +38,6 @@
         AOS.init();
         var notyf = new Notyf();
 
-        notyf.options.types.forEach(typ => typ.icon = null);
-
         const cardsContainer = document.querySelector(".cards");
 
         const getProducts = async () => {
@@ -181,6 +179,10 @@
             //if (productIdFromURL) openProductModal(productIdFromURL);
         }).catch(error => {
             console.log(error);
+            notyf.error({
+                message: "There was an error trying to fetch data",
+                dismissible: true
+            });
         }) 
 
     </script>
