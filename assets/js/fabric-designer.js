@@ -356,7 +356,32 @@ const setPosition = (position) => {
   fabricCanvas.renderAll();
 };
 
-console.log("Hello");
+// Add text to canvas
+const addTextToCanvas = () => {
+  const text = document.getElementById("canvas-text-input").value;
+  if (text.trim() === "" || !fabricCanvas) return;
+
+  const fontName = document.getElementById("text-font").value;
+  const fontWeight = document.getElementById("text-font-weight").value;
+  const textColor = document.getElementById("text-color-picker").value;
+
+  const textObj = new fabric.IText(text, {
+    left: 10,
+    top: 10,
+    fontFamily: fontName,
+    angle: 0,
+    fill: textColor,
+    scaleX: 0.5,
+    scaleY: 0.5,
+    fontWeight: fontWeight,
+    hasRotatingPoint: true,
+  });
+
+  fabricCanvas.add(textObj);
+  fabricCanvas.setActiveObject(textObj);
+  fabricCanvas.renderAll();
+};
+
 renderColors();
 loadMockupImage();
 displaySizes();

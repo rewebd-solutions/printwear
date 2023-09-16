@@ -132,8 +132,17 @@
         border: none;
         border-radius: 20px;
       }
-      input[type="text"]:focus {
+      input[type="text"]:focus,
+      select:focus {
         outline: none;
+      }
+      select {
+        width: 25%;
+        padding: 2%;
+        border-radius: 20px;
+      }
+      option {
+        padding: 2% 4%;
       }
 
       button {
@@ -141,7 +150,7 @@
         border: none;
         border-radius: 20px;
         padding: 2%;
-        background-color: #E74015;
+        background-color: #e74015;
         color: #ffffff;
         cursor: pointer;
       }
@@ -276,6 +285,28 @@
             <button onclick="setPosition('bottom-right')">Bottom Right</button>
             <button onclick="setPosition('center')">Center</button>
             <button onclick="setPosition('custom')">Custom</button>
+          </div>
+        </div>
+        <!-- Add Text -->
+        <div class="text-add">
+          <input
+            type="text"
+            id="canvas-text-input"
+            placeholder="Enter your text here..." />
+          <div class="list">
+            <select id="text-font">
+              <option value="Arial">Arial</option>
+              <option value="Sans">Sans</option>
+              <option value="Roboto">Roboto</option>
+            </select>
+            <select id="text-font-weight">
+              <option selected value="normal">Normal</option>
+              <option value="bold">Bold</option>
+              <option value="bolder">Bolder</option>
+              <option value="lighter">Lighter</option>
+            </select>
+            <input type="color" id="text-color-picker" value="#000000">
+            <button onclick="addTextToCanvas()">Add Text</button>
           </div>
         </div>
         <!-- Color Options Will Be Displayed -->
