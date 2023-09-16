@@ -382,6 +382,7 @@ const addTextToCanvas = () => {
   fabricCanvas.renderAll();
 };
 
+// Main functions called globally
 renderColors();
 loadMockupImage();
 displaySizes();
