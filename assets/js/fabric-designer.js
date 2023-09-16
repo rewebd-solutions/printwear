@@ -233,35 +233,43 @@ const addFabricCanvasToTemplateDiv = () => {
   });
 
   // Disabling scaling of canvas image element
+  // Before the initialization of the canvas:
+  let prevScaleX = 1;
+  let prevScaleY = 1;
+
   fabricCanvas.on("object:scaling", function (event) {
     var designImg = event.target;
 
     var canvasWidth = fabricCanvas.width;
     var canvasHeight = fabricCanvas.height;
+
     var imgLeft = designImg.left;
     var imgTop = designImg.top;
     var imgWidth = designImg.getScaledWidth();
     var imgHeight = designImg.getScaledHeight();
 
+    const previousHeight = designImageHeight;
+    const previousWidth = designImageWidth;
+
     // Updating sizes during scaling
     designImageHeight = designImg.height * designImg.scaleY;
     designImageWidth = designImg.width * designImg.scaleX;
     updateStats();
-    // Right Boundary
-    if (imgLeft + imgWidth > canvasWidth) {
-      designImg.scaleX = (canvasWidth - imgLeft) / designImg.width;
+    // If image draggin exceeds canvas width, setting the designWidth to last value that was inside the canvas
+    if (imgLeft + imgWidth > canvasWidth || imgLeft < 0) {
+      designImageWidth = previousWidth;
+      updateStats();
+      designImg.scaleX = prevScaleX;
+    } else {
+      prevScaleX = designImg.scaleX;
     }
-    // Left Boundary
-    if (imgLeft < 0) {
-      designImg.scaleX = (designImg.width + imgLeft) / designImg.width;
-    }
-    // Bottom Boundary
-    if (imgTop + imgHeight > canvasHeight) {
-      designImg.scaleY = (canvasHeight - imgTop) / designImg.height;
-    }
-    // Top Boundary
-    if (imgTop < 0) {
-      designImg.scaleY = (designImg.height + imgTop) / designImg.height;
+    // If image draggin exceeds canvas height, setting the designHeight to last value that was inside the canvas
+    if (imgTop + imgHeight > canvasHeight || imgTop < 0) {
+      designImageHeight = previousHeight;
+      updateStats();
+      designImg.scaleY = prevScaleY;
+    } else {
+      prevScaleY = designImg.scaleY;
     }
   });
 };
