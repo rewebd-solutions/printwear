@@ -2,294 +2,144 @@
 <html lang="en">
 
 <head>
-	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script> -->
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="">
-	<meta name="author" content="">
-
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description" content="" />
+	<meta name="author" content="" />
 	<title>Design Generator - Printwear</title>
-
-	<link href="/css/normalize.css" rel="stylesheet">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
-		integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+	<!-- Font Awesome Icons -->
+	<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+	<!-- Snakbox -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
 	<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-	<!-- Bootstrap core CSS -->
-	<!-- <link href="/css/vendor/bootstrap.min.css" rel="stylesheet">  -->
-	<link rel="stylesheet" href="/css/jquery-ui.css" />
-	<link
-		href='https://fonts.googleapis.com/css?family=Nosifer|League+Script|Yellowtail|Permanent+Marker|Codystar|Eater|Molle:400italic|Snowburst+One|Shojumaru|Frijole|Gloria+Hallelujah|Calligraffitti|Tangerine|Monofett|Monoton|Arbutus|Chewy|Playball|Black+Ops+One|Rock+Salt|Pinyon+Script|Orbitron|Sacramento|Sancreek|Kranky|UnifrakturMaguntia|Creepster|Pirata+One|Seaweed+Script|Miltonian|Herr+Von+Muellerhoff|Rye|Jacques+Francois+Shadow|Montserrat+Subrayada|Akronim|Faster+One|Megrim|Cedarville+Cursive|Ewert|Plaster'
-		rel='stylesheet' type='text/css'>
-
-	<link href="/css/api.css" rel="stylesheet">
-
-	<script src="/js/jquery-1.10.2.js">	</script>
-	<script src="/js/bootstrap.js">		</script>
-
-	<style>
-
-	</style>
-
+	<!-- Global Styles -->
+	<link href="/css/designgenerator.css" rel="stylesheet" />
+	<!-- Fabric JS -->
+	<script src="https://cdn.jsdelivr.net/npm/fabric@4.5.1/dist/fabric.min.js"></script>
+	<!-- DOM to image and File Save -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+	<!-- Goole fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fuggles&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+      rel="stylesheet" />
 </head>
 
 <body>
-
 	<div class="banner">
-		<%- include('partials/side-logo.ejs') %>
-			<%- include('partials/top.ejs') %>
+		<%- include('partials/side-logo.ejs') %> <%- include('partials/top.ejs') %>
 	</div>
-	<div id="maindiv">
-
-		<!-- <script type="text/javascript" src="/js/html2canvas.js"></script> -->
-		<!-- <script type="text/javascript" src="/js/html22canvas.js"></script> -->
-		<script type="text/javascript" src="/js/html2canvas.min.js"></script>
-		<script src="/js/jquery.form.js"></script>
-		
-
-		<script src="/js/jquery-ui.js"></script>
-
-		<script type="text/javascript">
-			
-			function b() {
-				$('#custom_text').toggleClass('bold_text');
-				$("#bold_button").toggleClass('box-shadow', '0 0 10px inset #3c3c3c');
-			}
-
-			function i() {
-				$('#custom_text').toggleClass('italic_text');
-			}
-
-			function changeFont(_name) {
-				$('#custom_text').css("font-family", _name);
-			}
-
-			function changeFontSize(_size) {
-				$('#custom_text').css("font-size", _size);
-			}
-
-			function changeColor(_color) {
-				$('#custom_text').css("color", _color);
-			}
-		</script>
-
-		<div class="container cnt design_api_container ">
-
-			<div class='design_api'>
-				<div class="loader-wrapper">
-					<span class="loader"></span>
-				</div>
-				<!--=============================================================-->
-				<div id="menu">
-					<div class="menu_option sel_type sel">
-						<img src="/images/mockup/menu_icons/tee.png">
-					</div>
-					<div class="menu_option sel_color">
-						<i class="fa fa-paint-brush fa-2x"></i>
-					</div>
-					<div class="menu_option sel_art">
-						<i class="fa fa-camera-retro fa-2x"></i>
-					</div>
-					<div class="menu_option sel_custom_icon">
-						<i class="fa-solid fa-upload" fa-2x></i>
-					</div>
-					<div class="menu_option sel_text">
-						<i class="fa fa-font fa-2x"></i>
-
-					</div>
-				</div>
-				<!--=============================================================-->
-				<div id='options'>
-					<div class="T_type">
-						<div id="radio1"><img width="100%" height="100%" />
-						</div>
-					</div>
-
-					<div class="color_pick">
-						<!-- iter over the colors and render them -->
-						<div class="color_radio_div" id="red"></div>
-						<div class="color_radio_div" id="black"></div>
-						<div class="color_radio_div" id="white"></div>
-					</div>
-
-					<div class="default_samples">
-						<div class="sample_icons"><img src="/images/Logo.png" id="des"></div>
-						<div class="sample_icons"><img src="/images/cnt-shopify.png" id="des"></div>
-						<div class="sample_icons"><img src="/images/cnt-woocommerce.png" id="des"></div>
-					</div>
-
-					<div class="custom_icon">
-						<form id="form1" runat="server">
-							<span class="btn btn-default btn-file upd"> Browse
-								<input type='file' id="imgInp" />
-							</span>
-						</form>
-					</div>
-
-					<div class="custom_font">
-
-						<select id="fs" onchange="changeFont(this.value);">
-							<option value="arial">Arial</option>
-							<option value="Nosifer, cursive">Nosifer</option>
-							<option value="League Script, cursive">League Script</option>
-							<option value="Yellowtail, cursive">Yellowtail</option>
-							<option value="Permanent Marker, cursive">Permanent Marker</option>
-							<option value="Codystar, cursive">Codystar</option>
-							<option value="'Eater', cursive">Eater</option>
-							<option value="Molle, cursive">Molle</option>
-							<option value="Snowburst One, cursive">Snowburst One</option>
-							<option value="Shojumaru, cursive">Shojumaru</option>
-							<option value="Frijole, cursive">Frijole</option>
-							<option value="Gloria Hallelujah, cursive">Gloria Hallelujah</option>
-							<option value="Calligraffitti, cursive">Calligraffitti</option>
-							<option value="Tangerine, cursive">Tangerine</option>
-							<option value="Monofett, cursive">Monofett</option>
-							<option value="Monoton, cursive">Monoton</option>
-							<option value="Arbutus, cursive">Arbutus</option>
-							<option value="Chewy, cursive">Chewy</option>
-							<option value="Playball, cursive">Playball</option>
-							<option value="Black Ops One, cursive">Black Ops One</option>
-							<option value="'Rock Salt', cursive">Rock Salt</option>
-							<option value=" 'Pinyon Script', cursive">Pinyon Script</option>
-							<option value="'Orbitron', sans-serif">Orbitron</option>
-							<option value="'Sacramento', cursive">acramento</option>
-							<option value="'Sancreek', cursive">Sancreek</option>
-							<option value="'Kranky', cursive">Kranky</option>
-							<option value="'UnifrakturMaguntia', cursive">UnifrakturMaguntia</option>
-							<option value="'Creepster', cursive">Creepster</option>
-							<option value="'Pirata One', cursive">Pirata One</option>
-							<option value=" 'Seaweed Script', cursive">Seaweed Script</option>
-							<option value=" 'Miltonian', cursive">Miltonian</option>
-							<option value=" 'Herr Von Muellerhoff', cursive">Herr Von Muellerhoff</option>
-							<option value=" 'Rye', cursive"> 'Rye'</option>
-							<option value=" 'Jacques Francois Shadow', cursive">Jacques Francois Shadow</option>
-							<option value=" 'Montserrat Subrayada', sans-serif">Montserrat Subrayada</option>
-							<option value=" 'Akronim', cursive">Akronim</option>
-							<option value=" 'Faster One', cursive">Faster One</option>
-							<option value=" 'Megrim', cursive">Megrim</option>
-							<option value=" 'Cedarville Cursive', cursive">Cedarville Cursive</option>
-							<option value=" 'Ewert', cursive">Ewert</option>
-							<option value="'Plaster', cursive">Plaster</option>
-							<option value="verdana">Verdana</option>
-							<option value="impact">Impact</option>
-							<option value="ms comic sans">MS Comic Sans</option>
-						</select>
-
-						<input type="color" name="favcolor" onChange="changeColor(this.value);"
-							placeholder="Color Name" />
-						<div class="font_styling">
-
-							<span id="bold_button" onclick="b();"><b>B</b></span>
-							<span id="italic_button" onclick="i();"><i>I</i></span>
-
-							<select id="font_size" onchange="changeFontSize(this.value);">
-								<option value="10px">10px</option>
-								<option value="20px">20px</option>
-								<option value="30px">30px</option>
-								<option value="40px">40px</option>
-								<option value="50px">50px</option>
-								<option value="60px">60px</option>
-								<option value="70px">70px</option>
-								<option value="80px">80px</option>
-								<option value="90px">90px</option>
-								<option value="100px">100px</option>
-								<option value="110px">110px</option>
-							</select>
-						</div>
-						<textarea id="custom_text" placeholder="Create Your Custom Text."></textarea>
-						<button type="button" class="btn btn-primary prv" id="apply_text">
-							Apply
-						</button>
-
-					</div>
-				</div>
-				<!--=============================================================-->
-				<!--=========================preview start====================================-->
-
-				<div id='preview_t'>
-					<div id="preview_front">
-						<div class="front_print">
-
-						</div>
-					</div>
-					<div id="preview_back">
-						<div class="back_print">
-
-						</div>
-					</div>
-
-				</div>
-				<!--=============================================================-->
-				<!--======================view start=======================================-->
-
-				<div id='view_mode'>
-					<div class="mode mf sel"><img id="o_front" width="100%" height="80%" />FRONT
-					</div>
-					<div class="mode mb"><img id="o_back" width="100%" height="80%" />BACK
-					</div>
-					<div class="mode">
-						<i class="fa fa-binoculars fa-4x preview_images" id="preview_images" data-toggle="modal"
-							data-target=".bs-example-modal-lg"></i>Preview
-					</div>
-				</div>
-				<!--=====================View Ends========================================-->
-				<div id="overview">
-					<table class="table" id="preview-table">
-
-					</table>
-
-					<button type="button" class="btn btn-primary btn-block preview_images prv" data-toggle="modal"
-						data-target=".bs-example-modal-lg">
-						Proceed
-					</button>
-
-
+	<!-- Fabric JS -->
+	<div class="App">
+		<div class="left-box">
+			<h1 class="heading">Design Generator</h1>
+			<div id="product-design">
+				<div class="template-div" id="mockup-image-canvas">
+					<!-- Mockup image goes here -->
+					<img src="" alt="mockup-image" id="mockup-image" />
 				</div>
 			</div>
-
-			<div class="layer">
-				<div class="modal-content-preview">
-					<div class="modal-header">
-						<button type="button" class="close close_img" data-dismiss="modal">
-							<span aria-hidden="true">&times;</span><span class="sr-only close_img">Close</span>
-						</button>
-					</div>
-					<div class="modal-body" id="modal-body">
-						<div id="image_reply">
-							
-						</div>
-						<div class="modal-footer-preview">
-							<input type="hidden" name="img_front" id="img_front" value="" />
-							<input type="hidden" name="img_back" id="img_back" value="" />
-							<input type="text" class="form-control" placeholder="Enter a design name..." name="design-name" id="design_name" />
-							<div style="display: flex; gap:1rem;">
-								<button type="submit" class="btn btn-primary prv" id="add-design">
-									Save Design
-								</button>
-								<button type="button" class="btn dwn prv" id="dwn">
-									Download Design	
-								</button>
-								<button type="button" class="btn dwn prv" id="buy">
-									Add To Cart
-								</button>
-							</div>
-						</div>
-					</div>
-
-				</div>
-			</div>
-
-
 		</div>
+		<div class="right-box">
+			<!-- Color Options Will Be Displayed -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-1"></i> <h4>Choose a color</h4></div>
+				<div class="color-list"></div>
+			</div>
 
+			<!-- Size options will be displayed -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-2"></i> <h4>Choose a size</h4></div>
+				<div class="size-list"></div>
+			</div>
+			
+			<!-- Upload design image input -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-3"></i> <h4>Upload your images</h4></div>
+				<div>
+					<label for="design-input" class="design-input-label">
+						<i class="fa fa-file-upload"></i>
+						Upload Design
+					</label>
+					<input id="design-input" type="file" accept=".png, .jpg, .jpeg" style="display: none"
+					onchange="addImageToCanvas(event)" />
+				</div>
+			</div>
+			<!-- Design Side -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-4"></i><h4>Creative area!</h4></div>
+				<div class="list sides-list">
+					<h3>Sides</h3>
+					<div>
+						<button onclick="changeSide(event, 'front')" class="side-btn active-btn">Front</button>
+						<button onclick="changeSide(event, 'back')" class="side-btn">Back</button>
+					</div>
+				</div>
+				<!-- Position of design image -->
+				<div>
+					<h3>Position</h3>
+					<div class="list">
+						<button onclick="setPosition(event,'top-left')" class="position-btn"><i class="fa-solid fa-arrow-up top left"></i>&nbsp;Top Left</button>
+						<button onclick="setPosition(event,'top-right')" class="position-btn"><i class="fa-solid fa-arrow-up top right"></i>&nbsp;Top Right</button>
+						<button onclick="setPosition(event,'bottom-left')" class="position-btn"><i class="fa-solid fa-arrow-up bottom right"></i>&nbsp;Bottom Left</button>
+						<button onclick="setPosition(event,'bottom-right')" class="position-btn"><i class="fa-solid fa-arrow-up bottom left"></i>&nbsp;Bottom Right</button>
+						<button onclick="setPosition(event,'center')" class="position-btn">
+							<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M9.4 9.4C21.9-3.1 42.1-3.1 54.6 9.4L160 114.7V96c0-17.7 14.3-32 32-32s32 14.3 32 32v96c0 4.3-.9 8.5-2.4 12.2c-1.6 3.7-3.8 7.3-6.9 10.3l-.1 .1c-3.1 3-6.6 5.3-10.3 6.9c-3.8 1.6-7.9 2.4-12.2 2.4H96c-17.7 0-32-14.3-32-32s14.3-32 32-32h18.7L9.4 54.6C-3.1 42.1-3.1 21.9 9.4 9.4zM256 256a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zM114.7 352H96c-17.7 0-32-14.3-32-32s14.3-32 32-32h96 0l.1 0c8.8 0 16.7 3.6 22.5 9.3l.1 .1c3 3.1 5.3 6.6 6.9 10.3c1.6 3.8 2.4 7.9 2.4 12.2v96c0 17.7-14.3 32-32 32s-32-14.3-32-32V397.3L54.6 502.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L114.7 352zM416 96c0-17.7 14.3-32 32-32s32 14.3 32 32v18.7L585.4 9.4c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3L525.3 160H544c17.7 0 32 14.3 32 32s-14.3 32-32 32H448c-8.8 0-16.8-3.6-22.6-9.3l-.1-.1c-3-3.1-5.3-6.6-6.9-10.3s-2.4-7.8-2.4-12.2l0-.1v0V96zM525.3 352L630.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L480 397.3V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V320v0c0 0 0-.1 0-.1c0-4.3 .9-8.4 2.4-12.2c1.6-3.8 3.9-7.3 6.9-10.4c5.8-5.8 13.7-9.3 22.5-9.4c0 0 .1 0 .1 0h0 96c17.7 0 32 14.3 32 32s-14.3 32-32 32H525.3z"/></svg>
+							Center
+						</button>
+						<button onclick="setPosition(event,'custom')" class="position-btn active-btn">Custom</button>
+					</div>
+				</div>
+				<!-- add text field -->
+				<div class="text-add">
+					<h3>Add custom text</h3>
+					<input
+					  type="text"
+					  id="canvas-text-input"
+					  placeholder="Enter your text here..." />
+					<div class="list">
+					  <select id="text-font" onchange="changeInputFont(event)">
+						<option value="Arial">Arial</option>
+						<option value="Sans">Sans</option>
+						<option value="Roboto">Roboto</option>
+						<option value="Fuggles">Fuggles</option>
+						<option value="Old Standard TT">Old Standard TT</option>
+						<option value="Quicksand">Quicksand</option>
+						<option value="Raleway">Raleway</option>
+						<option value="Roboto Condensed">Roboto Condensed</option>						
+					  </select>
+					  <select id="text-font-weight">
+						<option selected value="normal" onchange="changeInputFontWeight(event)">Normal</option>
+						<option value="bold">Bold</option>
+						<option value="bolder">Bolder</option>
+						<option value="lighter">Lighter</option>
+					  </select>
+					  <input type="color" id="text-color-picker" value="#000000" />
+					</div>
+					<button onclick="addTextToCanvas()">Add Text</button>
+				</div>				
+				<!-- Design Image Stats -->
+				<div class="design-stats">
+					<p class="height-design"></p>
+					<p class="width-design"></p>
+				</div>
+			</div>
+			
+			<!-- Enter design name -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-5"></i><h4>Name you design</h4></div>
+				<input type="text" placeholder="My top design..." id="design-name" class="design-name-input" required />
+			</div>
+			<!-- Save Image -->
+			<div class="action-buttons">
+				<button onclick="downloadDesign()"><i class="fa-regular fa-download"></i> Download Design</button>
+				<button onclick="saveDesign()"><i class="fa-regular fa-page"></i> Save Design</button>
+			</div>
+		</div>
 	</div>
-
-
-	</div>
-	<script src="/js/mainapp.js"></script>
+	<script src="/js/fabric-designer.js"></script>
 </body>
-
-
 
 </html>
