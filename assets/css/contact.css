@@ -1,0 +1,86 @@
+*{
+    font-family: 'Nunito';
+}
+.contactus-top{
+    margin: -10px;
+    background-color: #9772FB;
+    padding: 20px;
+    box-sizing: border-box;
+    color: #fff;
+    padding-bottom: 35px;
+}
+.contactus-top-list{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+.contactus-top h3{
+    font-size: 30px;
+    text-align: center;
+    color: #000;
+    font-weight: bold;
+    text-shadow: 2px 0 #000;
+    letter-spacing: 0.14rem;
+}
+#top-list{
+    width: 450px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.27);
+    backdrop-filter: blur(5px);
+    box-shadow: 0 1px 25px #6F38C5;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+.social-icons{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+.findus-list{
+    margin-top: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin-bottom: 50px;
+}
+.findus h2{
+    text-align: center;
+    font-size: 30px;
+}
+.fndus{
+    margin-top: 50px;
+    font-weight: bold;
+    text-shadow: 2px 0 #000;
+    letter-spacing: 0.14rem;
+}
+.mail{
+    display: flex;
+    flex-direction: column;
+}
+.mail-list{
+    display: flex;
+    width: 400px;
+    flex-direction: row;
+}
+.in-icon{
+    font-size: 30px;
+    margin-right: 70px;
+}
+.in-content{
+    display: flex;
+    flex-direction: column;
+}
+.in-content h2{
+    font-size: 15px;
+}
+.in-content p{
+    color: blue;
+}
+.contact-end{
+    text-align: center;
+    background-color: #9772FB;
+    padding: 10px;
+    margin: -10px;
+    color: #fff;
+}

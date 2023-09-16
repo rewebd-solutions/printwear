@@ -1,0 +1,115 @@
+
+@font-face {
+    font-family: myFont;
+    src: url('BaseNeueTrial-SemiBoldOblique.ttf');
+}
+
+html {
+    font-size: 16px !important;
+}
+
+* {
+    font-family: myFont;
+    margin: 0;
+    padding: 0;
+    letter-spacing: 0.05rem;
+    box-sizing: border-box;
+}
+
+.headings {
+    background-color: gray;
+    padding: 15px;
+    color: #fff;
+    display: flex;
+    flex-direction: row;
+    width: 95vw;
+    border-top-right-radius: 12px;
+    border-top-left-radius: 12px;
+    justify-content: space-around;
+    box-shadow: 0px 2px 20px gray;
+}
+
+.manageorder {
+    display: flex;
+    flex-direction: column;
+    padding-top: 6rem;
+    padding-left: 300px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid #ddd;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 8px;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+thead th[data-stream]{
+    cursor: pointer;
+}
+
+table a {
+    color: rgb(66, 66, 204) !important;
+}
+
+table a:hover {
+    text-decoration: underline;
+}
+
+table a:visited {
+    color: initial;
+}
+
+.choice-btn {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    background: none;
+    color: black;
+    cursor: pointer;
+    font-size: inherit;
+}
+
+.active-btn {
+    background: #F05A30;
+    color: white;
+}
+
+.order-choice-container {
+    display: flex;
+    gap: 1rem;
+    background-color: rgb(231, 231, 231);
+    margin: auto;
+}
+
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #FFF;
+    border-bottom-color: #FF3D00;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

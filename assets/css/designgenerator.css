@@ -1,0 +1,376 @@
+@font-face {
+   font-family: myFont;
+   src: url('BaseNeueTrial-SemiBoldOblique.ttf');
+}
+
+* {
+   font-family: myFont;
+   margin: 0;
+   padding: 0;
+   letter-spacing: 0.05rem;
+   box-sizing: border-box;
+   font-size: 16px;
+   text-decoration: none;
+}
+
+.loader {
+   width: 48px;
+   height: 48px;
+   border-radius: 50%;
+   position: relative;
+   animation: rotate 1s linear infinite
+}
+
+.loader::before {
+   content: "";
+   box-sizing: border-box;
+   position: absolute;
+   inset: 0px;
+   border-radius: 50%;
+   border: 5px solid #FFF;
+   animation: prixClipFix 2s linear infinite;
+}
+
+@keyframes rotate {
+   100% {
+      transform: rotate(360deg)
+   }
+}
+
+@keyframes prixClipFix {
+   0% {
+      clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0)
+   }
+
+   25% {
+      clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0)
+   }
+
+   50% {
+      clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%)
+   }
+
+   75% {
+      clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%)
+   }
+
+   100% {
+      clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0)
+   }
+}
+
+.App {
+   display: flex;
+   min-height: 100vh;
+   justify-content: center;
+   padding: 6rem 0 0 300px;
+}
+
+.App>* {
+   margin: 0.4%;
+   width: 50%;
+}
+
+.left-box>* {
+   margin-bottom: 3%;
+}
+
+.right-box {
+   display: flex;
+   flex-direction: column;
+   gap: 1.5rem;
+   padding-top: 4rem;
+}
+
+.heading {
+   font-weight: 300;
+   font-size: 2.3rem;
+}
+
+.position-buttons {
+   display: flex;
+   flex-wrap: wrap;
+}
+
+.position-buttons>* {
+   font-size: 0.8rem;
+}
+
+.design-stats {
+   display: flex;
+   flex-direction: column;
+   gap: 0.4rem;
+}
+
+.design-input-label {
+   display: block;
+   width: fit-content;
+   border: 1px solid gray;
+   cursor: pointer;
+   padding: 0.7rem 1rem;
+   background-color: #E74015;
+   color: white;
+   border-radius: 5px;
+}
+
+.color-list,
+.size-list,
+.list {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: flex-start;
+   gap: 0.5rem
+}
+
+.sides-list {
+   align-items: center;
+   gap: 1rem
+}
+
+.color-options,
+.size-options {
+   display: flex;
+   flex-direction: column;
+   place-items: center;
+   width: fit-content;
+   cursor: pointer;
+   margin-right: 2%;
+}
+
+.color-circle {
+   width: 2.2rem;
+   height: 2.2rem;
+   border-radius: 100%;
+   border: 2px solid #6a6969;
+}
+
+.size-options {
+   border: #6a6969 1px solid;
+   border-radius: 50%;
+   width: 2.2rem;
+   display: grid;
+   place-items: center;
+   aspect-ratio: 1;
+}
+
+.size-list>*,
+.color-list>* {
+   margin-right: 2%;
+}
+
+.color-options>p {
+   margin-top: 5px;
+   font-size: 0.7rem;
+}
+
+.text-add {
+   display: flex;
+   flex-direction: column;
+   gap: 0.5rem;
+   width: 84%;
+}
+
+.text-add > input[type="text"] {
+   padding: 0.6rem 0.8rem;
+   border: none;
+   border-radius: 5px;
+   width: 100%;
+}
+
+.text-add > button {
+   width: unset;
+}
+
+.text-add > .list {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+}
+
+input[type="text"]{
+   padding: 0.6rem 0.8rem;
+   border: none;
+   outline: 1px solid silver;
+   border-radius: 5px;
+   width: 60%;
+}
+
+select, option, input[type="color"] {
+   padding: 0.3rem 0.6rem;
+   border-radius: 5px;
+   border: none;
+   outline: 1px solid silver
+}
+
+input[type="color"] {
+   padding: 0rem 0.05rem;
+   width: 100%;
+   height: auto;
+}
+
+
+input[type="text"]:focus {
+   outline: 1px solid rgb(139, 139, 139);
+}
+
+button {
+   width: 10rem;
+   border: none;
+   border-radius: 5px;
+   padding: 2%;
+   color: #434343;
+   cursor: pointer;
+   transition: ease-in-out 200ms;
+}
+
+button:hover {
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.111);
+   outline: 2px solid #E74015;
+   background-color: #E74015;
+   color: white;
+}
+
+.active-btn {
+   transform: scale(1.02);
+   outline: 2px solid #E74015;
+   background-color: #E74015;
+   color: white;
+}
+
+.action-buttons {
+   margin-left: 2rem;
+}
+
+.action-buttons > button {
+   width: unset;
+   background-color: #E74015;
+   color: white;
+}
+
+div.image-container {
+   overflow: hidden;
+}
+
+#mockup-image-canvas {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   position: relative;
+   height: 500px;
+   width: 450px;
+}
+
+#mockup-image-canvas>img {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   height: 500px;
+   width: 450px;
+}
+
+#mockup-image-canvas canvas {
+   position: absolute;
+   top: 0;
+   left: 0;
+}
+
+#mockup-image {
+   position: relative;
+}
+
+.design-area {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+}
+
+input[type="range"] {
+   -webkit-appearance: none;
+   appearance: none;
+   width: 70%;
+   background-color: #be094e;
+   border-radius: 20px;
+   height: 15px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+   -webkit-appearance: none;
+   appearance: none;
+   height: 30px;
+   width: 30px;
+   border: 1px solid gray;
+   border-radius: 100%;
+   background: #ffffff;
+   cursor: pointer;
+}
+
+input[type="range"]:active {
+   -webkit-appearance: none;
+   appearance: none;
+   background-color: #ff0063;
+   transition: all ease-in-out 200ms;
+}
+
+.design-name {
+   display: flex;
+   flex-direction: column;
+   gap: 0.5rem;
+}
+
+.right-box-steps {
+   display: flex;
+   gap: 0.5rem;
+   align-items: center;
+}
+
+i.fa {
+   font-size: 1.5rem
+}
+
+i.top {
+   --angle: 0deg;
+}
+
+i.bottom {
+   --angle: 180deg;
+   transform: rotate(var(--angle))
+}
+
+i.right {
+   transform: rotate(calc(var(--angle) + 45deg))
+}
+
+i.left {
+   transform: rotate(calc(var(--angle) - 45deg))
+}
+
+.steps-container {
+   display: flex;
+   flex-direction: column;
+   gap: 1.2rem;
+}
+
+.steps-container > *:not(:first-child) {
+   margin-left: 2rem;
+}
+
+@media (max-width: 900px) {
+   .App {
+      display: none;
+   }
+
+   .Info {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+   }
+
+   .Info>* {
+      width: 90%;
+      font-weight: 500;
+      font-size: 2rem;
+   }
+}

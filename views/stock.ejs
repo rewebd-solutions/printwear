@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="/css/stock.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Stock Inventory</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="stock">
+        <h2>Stock inventory</h2>
+        <div class="stock-choice-container">
+            <button class="choice-btn active-btn" id="printwear-stock-btn">Printwear</button>
+            <button class="choice-btn" id="shopify-stock-btn">Shopify</button>
+            <button class="choice-btn" id="woo-stock-btn">WooCommerce</button>
+        </div>
+        <div class="stock-table" data-aos="fade-up">
+            <table id="printwear-stock">
+                <!-- <span class="loader"></span> -->
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th data-stream="printwear">Stock</th>
+                        <th>SKU</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody id="printwear-productTableBody">
+
+                </tbody>
+            </table>
+            <div id="shopify-stock-container">
+                <!-- <span class="loader"></span> -->
+               
+            </div>
+            <div id="woo-stock">
+                <h3>No products found!</h3>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+        // Sample data (replace with your own data)
+        notyf.options.types.forEach(typ => typ.icon = null);
+
+        notyf.success({
+            message: "Check your stock status across 3 stores",
+            duration: 5000,
+            dismissible: true
+        });
+
+        var printwearStockDataResponse = {};
+        var shopifyStockDataResponse = {};
+        var wooCommerceStockDataResponse = {};
+
+        var hasShopifyLoaded = false;
+        var hasWooCommerceLoaded = false;
+
+        const printwearTableBody = document.getElementById("printwear-productTableBody");
+       // const shopifyTableBody = document.querySelector(".shopify-productTableBody");
+        const wooTableBody = document.getElementById("woo-productTableBody");
+
+        const printwearTableContainer = document.getElementById("printwear-stock");
+        const shopifyTableContainer = document.getElementById("shopify-stock-container");
+        const wooTableContainer = document.getElementById("woo-stock");
+
+        var tableMap = {
+            printwear: printwearTableBody,
+            // shopify: shopifyTableBody,
+            woo: wooTableBody
+        }
+
+        const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');        
+
+        var columnSortOrder = 0;
+
+        shopifyTableContainer.style.display = "none";
+        wooTableContainer.style.display = "none";
+
+        const printwearStockBtn = document.querySelector("#printwear-stock-btn");
+        const shopifyStockBtn = document.querySelector("#shopify-stock-btn");
+        const wooCommerceStockBtn = document.querySelector("#woo-stock-btn");
+
+        printwearStockBtn.onclick = (e) => {
+            printwearStockBtn.classList.add("active-btn")
+            shopifyStockBtn.classList.remove("active-btn")
+            wooCommerceStockBtn.classList.remove("active-btn")
+            printwearTableContainer.style.display = "table";
+            shopifyTableContainer.style.display = "none";
+            wooTableContainer.style.display = "none";
+        }
+
+        shopifyStockBtn.onclick = async (e) => {
+            printwearStockBtn.classList.remove("active-btn")
+            shopifyStockBtn.classList.add("active-btn")
+            wooCommerceStockBtn.classList.remove("active-btn")
+            printwearTableContainer.style.display = "none";
+            shopifyTableContainer.style.display = "block";
+            wooTableContainer.style.display = "none";
+
+            if (!hasShopifyLoaded) await fetchAndPopulateShopifyTable();
+        }
+
+        wooCommerceStockBtn.onclick = (e) => {
+            printwearStockBtn.classList.remove("active-btn")
+            shopifyStockBtn.classList.remove("active-btn")
+            wooCommerceStockBtn.classList.add("active-btn")
+            printwearTableContainer.style.display = "none";
+            shopifyTableContainer.style.display = "none";
+            wooTableContainer.style.display = "table";
+        }
+
+        const sortTableByColumn = (tableBody, columnIndex) => {
+            const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+            if (columnSortOrder === 0) {
+                columnSortOrder = 1;
+                rows.sort((a, b) => {
+                    const cellA = a.cells[columnIndex].textContent;
+                    const cellB = b.cells[columnIndex].textContent;
+
+                    return cellA.localeCompare(cellB, undefined, { numeric: true });
+                });
+            } else {
+                columnSortOrder = 0;
+                rows.sort((a, b) => {
+                    const cellA = a.cells[columnIndex].textContent;
+                    const cellB = b.cells[columnIndex].textContent;
+
+                    return cellB.localeCompare(cellA, undefined, { numeric: true });
+                });
+            }
+
+            tableBody.innerHTML = "";
+
+            rows.forEach((row) => {
+                tableBody.appendChild(row);
+            });
+        }
+
+        const createTableRow = (product, colors) => {
+            colors.forEach(color => {
+                color.sizes.forEach(size => {
+                    const row = document.createElement("tr");
+
+                    const productNameCell = document.createElement("td");
+                    productNameCell.textContent = product.name;
+
+                    const colorCell = document.createElement("td");
+                    colorCell.textContent = color.colorName;
+
+                    const sizeCell = document.createElement("td");
+                    sizeCell.textContent = size.size;
+
+                    const stockCell = document.createElement("td");
+                    stockCell.textContent = size.stock;
+
+                    const skuCell = document.createElement("td");
+                    skuCell.textContent = product.SKU + '-' + color.colorSKU + '-' + size.sizeSKU;
+
+                    const linkCell = document.createElement("td");
+                    linkCell.innerHTML = `<a href="/productgallery?product=${product._id}">Details</a>`;
+
+                    row.appendChild(productNameCell);
+                    row.appendChild(colorCell);
+                    row.appendChild(sizeCell);
+                    row.appendChild(stockCell);
+                    row.appendChild(skuCell);
+                    row.appendChild(linkCell);
+                    printwearTableBody.appendChild(row);
+
+                })
+            })
+
+
+        }
+
+        document.querySelectorAll("thead th[data-stream]").forEach(thead => thead.addEventListener("click", (e) => {
+            sortTableByColumn(tableMap[e.target.dataset.stream], 3);
+        }))
+
+        const populateTable = () => {
+            printwearStockDataResponse.productData.forEach(product => {
+                createTableRow(product, printwearStockDataResponse.colorsData[product._id]);
+            })
+        }
+
+        const fetchStockData = async () => {
+            try {
+                const fetchStockDataRequest = await fetch("/getproducts");
+                printwearStockDataResponse = await fetchStockDataRequest.json();
+                console.log(printwearStockDataResponse);
+                populateTable();
+            } catch (error) {
+                console.log(error);
+                document.querySelector(".stock-table").innerHTML = `<h3>Error: Unable to fetch data. Please refresh`;
+                notyf.error({
+                    message: "Error fetching stock details",
+                    dismissible: true
+                })
+            }
+        }
+
+        fetchStockData();
+
+        const createShopifyTableRow = (products) => {
+            console.log(products)
+            const shopifyTable = document.createElement("table");
+            shopifyTable.innerHTML = `
+            <table id="shopify-stock">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Color</th>
+                        <th>Size</th>
+                        <th data-stream="shopify">Stock</th>
+                        <th>SKU</th>
+                    </tr>
+                </thead>
+                <tbody class="shopify-productTableBody">
+
+                </tbody>
+            `;
+            // shopifyTable.id = 
+            products.forEach(product => product.variants.forEach(variant => {
+                const row = document.createElement("tr");
+
+                const productNameCell = document.createElement("td");
+                productNameCell.textContent = product.name;
+
+                const colorCell = document.createElement("td");
+                colorCell.textContent = variant.title.split("/")[1];
+
+                const sizeCell = document.createElement("td");
+                sizeCell.textContent = variant.title.split("/")[1];
+
+                const stockCell = document.createElement("td");
+                stockCell.textContent = variant.inventory_quantity;
+
+                const skuCell = document.createElement("td");
+                skuCell.textContent = variant.sku;
+
+                row.appendChild(productNameCell);
+                row.appendChild(colorCell);
+                row.appendChild(sizeCell);
+                row.appendChild(stockCell);
+                row.appendChild(skuCell);
+
+                shopifyTable.children[1].appendChild(row);
+            })
+            )
+            return shopifyTable;
+        }
+
+        const populateShopifyTable = () => {
+            shopifyStockDataResponse.forEach((shopifyStore, i) => {
+                const shopifyStoreDiv = document.createElement("div");
+                shopifyStoreDiv.id = slugify(shopifyStore.shopName);
+                shopifyStoreDiv.innerHTML = '<h3>Stock details for ' + shopifyStore.shopName + '</h3>';
+                shopifyStoreDiv.appendChild(createShopifyTableRow(shopifyStore.products));
+                shopifyTableContainer.appendChild(shopifyStoreDiv);
+            }) 
+        }
+
+        const fetchAndPopulateShopifyTable = async () => {
+            try {
+                const shopifyStockDataRequest = await fetch("/getshopifystock");
+                shopifyStockDataResponse = await shopifyStockDataRequest.json();
+                hasShopifyLoaded = true;
+                console.log(shopifyStockDataResponse);
+                if (shopifyStockDataResponse.length === 0) return shopifyTableContainer.innerHTML = '<h4>No products found! <a href="/connectstore">Connect your store</a> to view data.'
+                populateShopifyTable();
+            } catch (error) {
+                console.log(error);
+                notyf.error({
+                    message: "Error fetching Shopify details",
+                    dismissible: true
+                })
+            }
+        }
+
+    </script>
+</body>
+
+</html>

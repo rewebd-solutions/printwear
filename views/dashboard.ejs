@@ -1,0 +1,229 @@
+<!DOCTYPE HTML>
+<html>
+<title>Dashboard - Printwear</title>
+
+<head>
+    <link href="/css/dashboard.css" type="text/css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+
+    <main class="dashboard-wrapper">
+
+        <div class="progressbar">
+            <h1>DASHBOARD<h2>
+        </div>
+
+        <div class="large" data-aos="fade-up">
+            <div>
+                <h2>Hello, USER!</h2>
+                <p>let's get you up and running with printwear</p>
+            </div>
+            <div>
+                <h3 style="text-decoration:line-through; color:red;">
+                    <i class="fa-solid fa-square-check"></i>Create a free account
+                </h3>
+                <p>Yay! You've successfully completed the first step</p>
+                <hr />
+            </div>
+
+            <div>
+
+                <h3 style="color:red;">Place your first order</h3>
+
+                <p>Let's get you started on your first order</p>
+
+                <div class="landing-links">
+                    <div class="chemical">
+                        <a href="/productgallery">Order now&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                    </div>
+                    <!-- <div class="mue"><a style=" color:red; " href="">
+                            Order now
+                            </a>
+                    </div> -->
+                </div>
+                <hr />
+            </div>
+
+
+            <div>
+
+                <h3 style="color:red;">Connect your store</h3>
+
+                <p>Connect your shopify or WooCommerce store</p>
+                <div class="landing-links">
+                    <div class="chemical">
+                        <a href="/connectstore">Connect&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></a>
+                    </div>
+                    <!-- <div class="mue"><a style="color:red;" href=""></div> -->
+                </div>
+                <hr />
+            </div>
+
+            <div>
+
+                <h3 style="color:red;">Visit your profile</h3>
+                <p>View your brand information
+                <div class="landing-links">
+                    <div class="chemical"><a href="/profile">
+                        Update&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+                    <hr />
+                    <!-- <p class="fly">Did you wish to see this guide anymore?<a style="color:red;" href="#">skip</a> -->
+                </div>
+            </div>
+        </div>
+
+        <div class="nin" data-aos="fade-up">
+            <div id="chop1">
+                <p>Here's what happening</p>
+            </div>
+            <div id="chop2">
+                <div class="blas"><i class="fa-regular fa-calendar"></i></div>
+                <p style="margin-left: -50px;">last 7 days</p>
+            </div>
+        </div>
+
+        <div class="status-wrapper" data-aos="fade-up">
+            <div class="status-left">
+                <div id="column1">
+                    <p>Orders</p>
+                    <h2 style="padding:10px 0px 10px 0px; width:200px; margin:0;"><i class="fa fa-inr"
+                            aria-hidden="true"></i>0
+                    </h2>
+                    <p
+                        style="position:relative; width:33px;  bottom:40px; left:70px; color:red; background-color:#fff2f2;">
+                        +0%
+                    </p>
+                </div>
+                <div id="column2">
+                    <p>Revenue</p>
+                    <h2 style="padding:10px 0px 10px 0px;;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
+                    <p
+                        style="position:relative; width:33px; bottom:40px; left:70px; color:red; background-color:#fff2f2;">
+                        +0%
+                    </p>
+                </div>
+                <div id="column3">
+                    <p>Expense</p>
+                    <h2 style="padding:10px 0px 10px 0px;;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
+                    <p
+                        style="position:relative; width:33px; bottom:40px; left:70px; color:red; background-color:#fff2f2;">
+                        +0%
+                    </p>
+                </div>
+            </div>
+            <div class="status-right">
+                <div class="biggie" data-aos="fade-up">
+                    <div class="neji">
+                        <p>Order Units Over time</p><br>
+                        <span>
+                            <p class="niko">1</p>
+                        </span>
+                        <br><span>
+                            <p class="niko">0.8</p>
+                        </span>
+                        <br><span>
+                            <p class="niko">0.6</p>
+                        </span>
+                        <br><span>
+                            <p class="niko">0.4</p>
+                        </span>
+                        <br><span>
+                            <p class="niko">0.2</p>
+                        </span>
+                        <br><span>
+                            <p class="jar">0</p>
+                        </span>
+                    </div>
+                    <div style="margin:20px; width:750px; height:25px; padding-left:45px;">
+                        <div style="width:700px; height:2px; background:red; position:relative; bottom:30px;">
+                            <div
+                                style="float:left; left:-10px; width:10px; height:10px; background:red; border-radius:50%; position:relative; top:-4px; margin-right:100px;">
+                            </div>
+                            <div
+                                style="float:left; left:20px; width:10px; height:10px; background:red; border-radius:50%; position:relative; top:-4px; margin-right:100px;">
+                            </div>
+                            <div
+                                style="float:left; left:20px; width:10px; height:10px; background:red; border-radius:50%; position:relative; top:-4px; margin-right:100px;">
+                            </div>
+                            <div
+                                style="float:left; left:20px; width:10px; height:10px; background:red; border-radius:50%; position:relative; top:-4px; margin-right:100px;">
+                            </div>
+                            <div
+                                style="float:left; left:15px; width:10px; height:10px; background:red; border-radius:50%; position:relative; top:-4px; margin-right:100px;">
+                            </div>
+                            <div
+                                style="float:left; left:8px; width:10px; height:10px; background:red; border-radius:50%; position:relative; top:-4px; margin-right:100px;">
+                            </div>
+                            <div
+                                style="float:right; left:100px; width:10px; height:10px; background:red; border-radius:50%; position:relative; top:-14px; margin-right:100px;">
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div style="width:750px; height:2px; position:relative; left:45px; top:-55px; padding:15px; font-size:15px;"
+                        data-aos="fade-up">
+                        <div
+                            style="float:left; width:2.5px; height:2.5px;font-size: 14px; position:relative; top:-4px;margin-left: -20px; margin-right:100px;">
+                            Sat(22/04)</div>
+                        <div
+                            style="float:left; width:2.5px; height:10px;font-size: 14px; position:relative; top:-4px; margin-right:100px;">
+                            Sun(23/04)</div>
+                        <div
+                            style="float:left; width:2.5px; height:10px; position:relative;font-size: 14px; top:-4px; margin-right:100px;">
+                            Mon(24/04)</div>
+                        <div
+                            style="float:left; width:2.5px; height:10px; position:relative; left:5px; top:-4px;font-size: 14px; margin-right:100px;">
+                            Tue(25/04)</div>
+                        <div
+                            style="float:left; width:2.5px; height:10px; position:relative; left:5px;top:-4px; margin-right:100px;font-size: 14px;">
+                            Wed(26/04)</div>
+                        <div
+                            style="float:left;font-size: 14px; width:2.5px; height:10px; position:relative; left:10px; top:-4px; margin-right:100px;">
+                            Thu(27/04)</div>
+                        <div
+                            style="float:left; width:2.5px;font-size: 14px; height:10px; position:relative; left:20px; top:-4px; margin-right:100px;">
+                            Fri(28/04)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cod-wrapper">
+            <div class="final" data-aos="fade-up">
+                <h3>COD Status</h3>
+            </div>
+            <div class="putin1" data-aos="fade-up">
+                <div class="putin">
+                    <p>Delivering Pending&#128712;</p>
+                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
+                </div>
+                <div class="putin">
+                    <p>Delivered&nbsp;&#128712;</p>
+                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
+                </div>
+                <div class="putin">
+                    <p>Remittance Available&nbsp;&#128712;</p>
+                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
+                </div>
+                <div class="putin">
+                    <p>Last Remittance&nbsp;&#128712;</p>
+                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+</body>
+
+</html>

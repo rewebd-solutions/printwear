@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/manageorder.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <title>Manage orders - Printwear</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="manageorder">
+        <div class="mngord-head">
+            <h2>Manage Order</h2>
+        </div>
+
+        <div class="order-choice-container">
+            <button class="choice-btn active-btn" id="printwear-order-btn">Printwear</button>
+            <button class="choice-btn" id="shopify-order-btn">Shopify</button>
+            <button class="choice-btn" id="woo-order-btn">WooCommerce</button>
+        </div>
+        <div class="order-table">
+            <div id="printwear-order">
+                <h3>No orders currently</h3>
+            </div>
+            <div id="shopify-order"></div>
+            <div id="woo-order"></div>
+        </div>
+
+    </div>
+    
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+</body>
+
+</html>

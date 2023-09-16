@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Import Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Import custom CSS file -->
+  <link rel="stylesheet" href="/css/designlib.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <title>Design Library - Printwear</title>
+</head>
+
+<body>
+
+  <!-- navbar -->
+  <!-- Navbar starts here -->
+  <div class="banner">
+    <%- include('partials/side-logo.ejs') %>
+      <%- include('partials/top.ejs') %>
+  </div>
+  <!-- navbar  -->
+
+
+  <main class="product-lib">
+    <div class="heading-row">
+      <h2>Design Library</h2>
+      <p>Start creating your designs and save them for reordering quickly.<br>
+        You can also push them to your online store once you connect your store with Printwear</p>
+    </div>
+    <!-- <div class="col-8" data-aos="fade-up">
+
+      <img src="/images/pdtlib.png" id="pdt">
+      <p>Start creating your designs and save them for reordering quickly.<br>
+        You can also push them to your online store once you connect your store with Printwear</p>
+      <button type="button" class="btn-orange">Add Product</button>
+    </div> -->
+    <div class="designs-choice-container">
+      <button class="choice-btn active-btn" id="printwear-designs">Printwear</button>
+      <button class="choice-btn" id="shopify-designs">Shopify</button>
+      <button class="choice-btn" id="woo-designs">WooCommerce</button>
+    </div>
+    <div class="designs-wrapper">
+      <div class="designs-container">
+        <span class="loader"></span>
+        <h4>Products are loading...</h4>
+      </div>
+      <div class="shopify-designs-container">
+        <!-- <span class="loader"></span> -->
+        <h4>No products are found</h4>
+        <!-- <h4>Products are loading...</h4> -->
+      </div>
+      <div class="woocommerce-designs-container">
+        <!-- <span class="loader"></span> -->
+        <h4>No products are found</h4>
+        <!-- <h4>Products are loading...</h4> -->
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init();
+    var notyf = new Notyf();
+
+    const designsContainter = document.querySelector(".designs-container");
+    const shopifyDesignsContainer = document.querySelector(".shopify-designs-container");
+    const wooCommerceDesignsContainer = document.querySelector(".woocommerce-designs-container");
+
+    shopifyDesignsContainer.style.display = "none";
+    wooCommerceDesignsContainer.style.display = "none";
+
+    const designsBtn = document.querySelector("#printwear-designs");
+    const shopifyDesignsBtn = document.querySelector("#shopify-designs");
+    const wooCommerceDesignsBtn = document.querySelector("#woo-designs");
+
+    designsBtn.onclick = (e) => {
+      designsBtn.classList.add("active-btn")
+      shopifyDesignsBtn.classList.remove("active-btn")
+      wooCommerceDesignsBtn.classList.remove("active-btn")
+      designsContainter.style.display = "flex";
+      shopifyDesignsContainer.style.display = "none";
+      wooCommerceDesignsContainer.style.display = "none";
+    }
+
+    shopifyDesignsBtn.onclick = (e) => {
+      designsBtn.classList.remove("active-btn")
+      shopifyDesignsBtn.classList.add("active-btn")
+      wooCommerceDesignsBtn.classList.remove("active-btn")
+      designsContainter.style.display = "none";
+      shopifyDesignsContainer.style.display = "flex";
+      wooCommerceDesignsContainer.style.display = "none";
+    }
+
+    wooCommerceDesignsBtn.onclick = (e) => {
+      designsBtn.classList.remove("active-btn")
+      shopifyDesignsBtn.classList.remove("active-btn")
+      wooCommerceDesignsBtn.classList.add("active-btn")
+      designsContainter.style.display = "none";
+      shopifyDesignsContainer.style.display = "none";
+      wooCommerceDesignsContainer.style.display = "flex";
+    }
+
+    const openModal = (designId) => {
+      const designModalData = designsResponseData.find(designData => designData.design._id === designId);
+      console.log(designModalData);
+      const designModalDOMString = `
+        <div class="product-modal-wrapper">
+          <div class="product-modal" data-aos="fade-up">
+            <button class="modal-close">
+              <i class="fa fa-close"></i>
+            </button>
+            <div class="product-modal-image">
+              <img
+                src="${designModalData.design.designImage.front}"
+                alt="Design front image">
+            </div>
+            <div class="product-modal-details">
+              <div class="product-modal-heading-delete">
+                <h2 class="product-name">${designModalData.design.designName}</h2>
+                <button id="delete-design" data-designid="${designModalData.design._id}"><i class="fa fa-trash" data-designid="${designModalData.design._id}"></i>Delete design</button>
+              </div>
+              <div class="product-category-gender">
+                <h6>${designModalData.product.category}</h6>
+                <h6>${designModalData.product.gender}</h6>
+              </div> 
+              <p class="product-description">
+                ${designModalData.product.description}
+              </p>
+              <div class="product-colors">
+                <p>Chosen color: </p>
+                <div class="color-disc" style="background: ${designModalData.color.colorCode}"></div>
+              </div>
+              <div class="product-sizes">
+                <p>Sizes: </p>
+                ${designModalData.color.sizes.map(size => `<h4>${size.size}</h4>`).join('\n')}
+              </div>
+              <div class="product-price-button">
+                <h4>Starts from ₹${Math.min(...Object.values(designModalData.product.price))}</h4>
+                <form id="add-cart" data-designid="${designModalData.design._id}"">
+                  ${designModalData.color.sizes.map(colorSize => {
+                    return `
+                      <div>
+                        <label for="${designModalData.color.colorSKU}-${colorSize.stock}">${colorSize.size}</label>
+                        <input type="number" required id="${designModalData.color.colorSKU}-${colorSize.stock}" data-size="${colorSize.size}" min="0" max="${colorSize.stock}" class="form-control small input-md" />
+                      </div>
+                    `
+                    }).join("\n")}
+                    ${designModalData.availableInCart? `<button disabled="true" type="submit">Already in cart</button>`: `<button type="submit">Add to Cart</button>` }
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.querySelector("main").insertAdjacentHTML("beforeend", designModalDOMString);
+      document.querySelector(".product-modal-image").addEventListener("mouseover", (e) => {
+        e.target.setAttribute("src", designModalData.design.designImage.back);
+      })
+      document.querySelector(".product-modal-image").addEventListener("mouseout", (e) => {
+        e.target.setAttribute("src", designModalData.design.designImage.front);
+      });
+
+      const deleteDesignBtn = document.querySelector("#delete-design");
+      deleteDesignBtn.addEventListener("click", async (e) => {
+        deleteDesignBtn.setAttribute("disabled", true);
+        deleteDesignBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
+        console.log(e.target.dataset.designid);
+        try {
+          const deleteDesignRequest = await fetch("/deletedesign", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              designId: e.target.dataset.designid
+            })
+          });
+          if (deleteDesignRequest.ok){
+            deleteDesignBtn.textContent = "Design deleted";
+            // toastify cart item deleted
+            notyf.success({
+              message: "Design deleted",
+              dimissible: true
+            })
+            document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"));
+            fetchDesignsData();
+          };
+          //location.reload();
+        } catch (err) {
+          console.log(err);
+          notyf.error({
+            message: "Couln't delete due to error!",
+            dimissible: true
+          })
+          // toastify something went wrong
+        }
+      })
+
+      const addToCartBtn = document.querySelector("#add-cart button");
+
+      const addToCartForm = document.querySelector("#add-cart");
+      
+      addToCartForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        addToCartBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
+        const sizeQty = {};
+        document.querySelectorAll("#add-cart input").forEach(inputItem => {
+          sizeQty[inputItem.dataset.size] = parseInt(inputItem.value) 
+        });
+        if (Object.entries(sizeQty).every(size => size[1] === '' || size[1] === 0)) {
+          notyf.error({
+            message: "Quantity cannot be 0",
+            dismissible: true,
+          });
+          addToCartBtn.innerHTML = `Add to Cart`;
+          return;
+        }
+        try {
+          addToCartBtn.setAttribute("disabled", true);
+          addToCartBtn.textContent = "Adding...";
+          const addToCartRequest = await fetch("/addtocart", {
+            headers: {
+              "Content-Type": "application/json"
+            },
+            method: "POST",
+            body: JSON.stringify({
+              designId: e.target.dataset.designid,
+              productId: designModalData.product._id,
+              quantity: sizeQty //soon add address box
+            })
+          });
+          const addToCartResponse = await addToCartRequest.json();
+          if (addToCartRequest.ok) {
+            addToCartBtn.textContent = "Added to cart!";
+            notyf.success({
+              message: "Added to cart",
+              dismissible: true
+            })
+            fetchDesignsData();
+          }
+        } catch (err) {
+          console.log(err);
+          addToCartBtn.textContent = "Failed to add!";
+          notyf.error({
+            message: "Couldn't add to cart",
+            dismissible: true
+          })
+        }
+
+      })
+
+      const closeModalButton = document.querySelector(".modal-close");
+      closeModalButton.addEventListener("click", (e) => {
+        addToCartBtn.setAttribute("disabled", false);
+        document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+      })
+    }
+
+    const createDesignCards = () => {
+      const designCardsDOMString = designsResponseData.map(designData => {
+        return `
+          <div class="design-card" data-aos="fade-up">
+            <div class="card-img">
+              <img src="${designData.design.designImage.front}">
+            </div>
+            <div class="name-price">
+              <h3>${designData.design.designName}</h3>
+            </div>
+            <div class="details">
+              <div class="view-btn">
+                <button data-designid="${designData.design._id}">View</button>
+              </div>
+            </div>
+          </div>
+        `
+      }).join('\n');
+      designsContainter.innerHTML = designCardsDOMString;
+
+      designsContainter.addEventListener("click", (e) => {
+        const openModalButton = e.target.closest(".view-btn button");
+        if (openModalButton) {
+          openModal(openModalButton.dataset.designid);
+        }
+      })
+    }
+
+    const fetchDesignsData = async () => {
+      try {
+        const designsFetchRequest = await fetch("/getdesigns");
+        designsResponseData = await designsFetchRequest.json();
+
+        console.log(designsResponseData);
+
+        if (designsResponseData.length > 0) {
+          return createDesignCards();
+        }
+        designsContainter.innerHTML = "<p> No designs yet! </p>";
+      } catch (error) {
+        designsContainter.innerHTML = `
+          <p>
+            There was an error trying to fetch data. <br>
+            ${error}
+          </p>
+        `;
+        console.log(error);
+      }
+    }
+
+    fetchDesignsData();
+  </script>
+
+</body>
+
+</html>

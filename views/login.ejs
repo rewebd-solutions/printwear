@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title> Login Form</title>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+
+<body>
+    <% if (status != '') { %>
+        <style>
+            .status-box{
+                padding: 1rem;
+                border-left: 6px solid rgb(255, 81, 81);
+                background-color: rgb(255, 159, 159);
+                color: white;
+                position: absolute;
+                top: 2rem;
+                left: 2rem;
+                border-radius: 3px;
+                z-index: 10;
+                font-size: 0.8rem !important;
+            }
+            .dismiss{
+                border: none;
+                border-radius: 50%;
+                padding: 0.6rem;
+                cursor: pointer;
+                top: 0.5rem;
+                right: 0.5rem;
+                display: inline-grid;
+                place-items: center;
+                transform: scale(0.6);
+            }
+        </style>
+        <div class="status-box">
+            <h2><%=status%><button class="dismiss"><img src="/images/close-icon.webp" width="20" alt=""></button></h2>
+        </div>
+        <script>
+            document.querySelector(".dismiss").addEventListener("click", e => document.querySelector(".status-box").style.display = "none");
+        </script>
+    <% } %> 
+    <div class="hero">
+        <div class="form-box" data-aos="fade-down">
+            <div class="form-top">
+                <button id="home"><a href="/"><i class="fa-solid fa-house"></i></a></button>
+                <div class="button-box">
+                    <div id="btn"></div>
+                    <button type="button" class="toggle-btn" onclick="login()">Log In</button>
+                    <button type="button" class="toggle-btn" onclick="register()">Register</button>
+                </div>
+            </div>
+            <form id="login" class="input-group" action="/login" method="post">
+                <input type="email" name="email" class="input-field" placeholder="Email" />
+                <input type="password" name="password" class="input-field" placeholder="Enter Password" />
+                <input type="checkbox" class="check-box"><span>Remember Password</span>
+                <button class="submit-btnx">Log In</button>
+                <!-- <span class="frgt"><a href="/forget">Forgot Password?</a></span> -->
+            </form>
+            <form id="register" class="input-group" action="/register" method="post">
+                <input type="text" name="name" class="input-field" placeholder="User Name" required>
+                <input type="text" name="number" pattern="^[0-9]{10}" class="input-field" inputmode="numeric" placeholder="Phone Number" required>
+                <input type="email" name="email" class="input-field" placeholder="Email ID" required>
+                <input type="password" name="password" class="input-field" placeholder="Enter Password" required>
+                <input type="password" name="register_repass" class="input-field" placeholder="Re-Enter password" required>
+                <input type="checkbox" class="check-box" required><span>I agree to the terms and conditions</span>
+                <button class="submit-btn">Register</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+    <script>
+        var x = document.getElementById("login");
+        var y = document.getElementById("register");
+        var z = document.getElementById("btn");
+
+        function register() {
+            x.style.left = "-400px";
+            y.style.left = "50px";
+            z.style.left = "110px"
+        }
+        function login() {
+            x.style.left = "50px";
+            y.style.left = "450px";
+            z.style.left = "0"
+        }
+    </script>
+
+</body>
+
+</html>

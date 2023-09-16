@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="/css/productgallery.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Product Gallery - Printwear</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="stock">
+        <div class="header">
+            <div class="head">
+                <p>Product Gallery</p>
+            </div>
+            <!-- <div class="search" data-aos="fade-up">
+                <input type="search" id="search" />
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div> -->
+        </div>
+        <div class="cards" data-aos="fade-up">
+            <span class="loader"></span>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+
+        notyf.options.types.forEach(typ => typ.icon = null);
+
+        const cardsContainer = document.querySelector(".cards");
+
+        const getProducts = async () => {
+            try {
+                // const productsDataReq = await fetch("/getzohoproductgroups");
+                const productsDataReq = await fetch("/getzohoproducts");
+                const productsData = await productsDataReq.json();
+                console.log(productsData);
+                return productsData;
+            } catch (error) {
+                console.log(error);
+                return error;
+            }
+        }
+
+        const calculateCardPrice = (cardProduct) => {
+            let result = [];
+            for(let color in cardProduct.colors){
+                const sizes = cardProduct.colors[color]['sizes'];
+                for(let size in sizes) {
+                    result.push(cardProduct.colors[color].sizes[size].price)
+                }
+            }
+            //console.log(result);
+            return result.sort((a, b) => a - b).filter(r => r != 0)[0];
+        }
+
+        const calculateCardStock = (cardProduct) => {
+            let sum = 0;
+            for(let color in cardProduct.colors){
+                const sizes = cardProduct.colors[color]['sizes'];
+                for(let size in sizes) {
+                    sum += cardProduct.colors[color].sizes[size].stock ?? 0
+                }
+            }
+            return sum;
+        }
+
+        const slugifyNames = (string) => string.toLowerCase().replace(/[\/\s]/g, '-').slice(0, 200);
+
+        const populateData = () => {
+            cardsContainer.innerHTML = '';
+            for (let style in productsData) {
+                let currentProduct = productsData[style];
+                let cardDataDOMString = `
+                <div class="display-card" data-aos="fade-up">
+                    <div class="name-price">
+                        <h3>${style}</h3>
+                        <h6>by ${currentProduct.brand ? currentProduct.brand: 'Brand'}</h6>
+                    </div>
+                    <div class="card-img">
+                        <img src="${currentProduct.baseImage.front}" id="img" alt="">
+                    </div>
+                    <div class="details">
+                        <div class="stock-avail">
+                            <p>Starts: ₹.${calculateCardPrice(currentProduct)}</p>
+                            <p>Stock: ${calculateCardStock(currentProduct)}</p>
+                        </div>
+                        <div class="view-btn">
+                            <button class="toggle-modal" data-productid="${slugifyNames(style)}">View</button>
+                        </div>
+                    </div>
+                </div>
+                `;
+                cardsContainer.innerHTML += cardDataDOMString;
+            }
+            cardsContainer.addEventListener("click", (e) => {
+                let toggleModalBtn = e.target.closest(".toggle-modal");
+                console.log("trig", toggleModalBtn);
+                if (toggleModalBtn) {
+                    let styleToOpen = Object.keys(productsData).find(product => slugifyNames(e.target.dataset.productid) == slugifyNames(product));
+                    openProductModal(styleToOpen);
+                    e.stopImmediatePropagation()
+                    return
+                }
+            })
+        }
+        
+        const openProductModal = (style) => { 
+            const productData = productsData[style];
+            const anyColorForSizes = Object.keys(productData.colors)[0];
+            console.log(productData);
+            let productModalDOMString = `
+                <div class="product-modal-wrapper">
+                    <div class="product-modal" data-aos="fade-up">
+                        <button class="modal-close">
+                            <i class="fa fa-close"></i>
+                        </button>
+                        <div class="product-modal-image">
+                            <img src="${productData.baseImage.front}"
+                                alt="${style}">
+                        </div>
+                        <div class="product-modal-details">
+                            <h2 class="product-name">${style}</h2>
+                            <div class="product-category-gender">
+                                <h5>${productData.group}</h5>
+                            </div>
+                            <p class="product-description">
+                                ${productData.description}
+                            </p>
+                            <div class="product-colors">
+                                <p>Colors: </p>
+                                ${Object.keys(productData.colors).map(color => {
+                                        return `<div class="color-disc" data-color="${color}" title="${color}" style="background: ${productData.colors[color].colorCode}"></div>`
+                                    }).join("\n")
+                                }
+                            </div>
+                            <div class="product-sizes">
+                                <p>Sizes: </p>
+                                ${
+                                    Object.keys(productData.colors[anyColorForSizes].sizes).map(size => {
+                                        return `<h4 style="background: #ebebeb">${size}</h4>`
+                                    }).join('\n')
+                                }
+                            </div>
+                            <div class="product-price-button">
+                                <h4>Starts from ₹${calculateCardPrice(productData)}</h4>
+                                <a href="/designgenerator"><button>Design now</button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.querySelector(".stock").insertAdjacentHTML("afterend", productModalDOMString);
+
+            const closeModalButton = document.querySelector(".modal-close");
+            closeModalButton.addEventListener("click", (e) => {
+                document.body.removeChild(document.querySelector(".product-modal-wrapper"));
+            })
+
+        }
+
+        // test
+        getProducts().then(data => {
+            productsData = data;
+            populateData();
+            //let productIdFromURL = new URLSearchParams(location.search).get("product");
+            //if (productIdFromURL) openProductModal(productIdFromURL);
+        }).catch(error => {
+            console.log(error);
+        }) 
+
+    </script>
+</body>
+
+</html>

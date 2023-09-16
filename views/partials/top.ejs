@@ -1,0 +1,53 @@
+<style>
+  @font-face {
+    font-family: myFont;
+    src: url('/css/BaseNeueTrial-SemiBoldOblique.ttf');
+  }
+
+  .navbar-top {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    font-family: myFont, 'sans-serif';
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: white;
+    left: 0;
+    z-index: 100;
+    letter-spacing: 0.05rem;
+  }
+
+  .top-icons {
+    display: flex;
+    justify-content: space-evenly;
+    /* border: solid; */
+    font-size: 20px;
+    color: #000;
+  }
+
+  .navbar-logo {
+    margin-left: 1rem !important;
+  }
+
+  .nav-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+  }
+</style>
+<div class="navbar-top">
+  <div class="navbar-logo">
+    <img src="images/Logo.png" id="logo">
+  </div>
+  <div class="nav-icons">
+    <!-- <i style="color:red;font-size: 18px;" class="fa-solid fa-circle-plus"></i> -->
+    <!-- <i style="color:red;font-size: 18px;" class="fa fa-inr" aria-hidden="true" style="font-family: myFont, sans-serif;">0.00</i> -->
+    <a href="/mycart"><i style="color:red;font-size: 18px;" class="fa fa-shopping-cart" aria-hidden="true"></i></a>
+    <!-- <i style="color:red;font-size: 18px;" class="fa-solid fa-bell"></i> -->
+    <a href="/profile"><i style="color:red;font-size: 18px;"
+        class="fa-solid fa-user"></i></a>
+  </div>
+</div>
