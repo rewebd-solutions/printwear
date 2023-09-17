@@ -269,14 +269,22 @@ div.image-container {
    top: 50%;
    left: 50%;
    transform: translate(-50%, -50%);
-   height: 500px;
-   width: 450px;
+   height: 100%;
+   width: 100%;
 }
 
 #mockup-image-canvas canvas {
    position: absolute;
    top: 0;
    left: 0;
+}
+
+#mockup-image-canvas, 
+#mockup-image-canvas > img, 
+#mockup-image-canvas canvas {
+    margin: 0;
+    padding: 0;
+    border: none;
 }
 
 #mockup-image {

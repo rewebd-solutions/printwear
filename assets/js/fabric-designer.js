@@ -78,156 +78,156 @@ var Product = {
 
 // actual product data obtained from fetch()
 const productData = {
-  "name": "BW MENS",
-  "brand": "BEWAKOOF",
-  "manufacturer": "PRINTWEAR",
-  "description": "Item available for designing",
-  "group": "BW",
-  "baseImage": {
-      "front": "./images/mens round neck/white-front.jpg",
-      "back": "./images/mens round neck/white-back.jpg"
+  name: "BW MENS",
+  brand: "BEWAKOOF",
+  manufacturer: "PRINTWEAR",
+  description: "Item available for designing",
+  group: "BW",
+  baseImage: {
+    front: "./images/mens round neck/white-front.jpg",
+    back: "./images/mens round neck/white-back.jpg",
   },
-  "colors": {
-      "Black": {
-          "frontImage": "./images/mens round neck/black-front.jpg",
-          "backImage": "./images/mens round neck/black-back.jpg",
-          "colorCode": "#000000",
-          "sizes": {
-              "2XL": {
-                  "id": "650580000000035017",
-                  "name": "BW MENS RN BLACK-2XL",
-                  "stock": 60,
-                  "price": 550,
-                  "sku": "BWRNBK2XL-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "3XL": {
-                  "id": "650580000000035019",
-                  "name": "BW MENS RN BLACK-3XL",
-                  "stock": 50,
-                  "price": 150,
-                  "sku": "BWRNBK3XL-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "4XL": {
-                  "id": "650580000000035021",
-                  "name": "BW MENS RN BLACK-4XL",
-                  "stock": 100,
-                  "price": 150,
-                  "sku": "BWRNBK4XL-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "5XL": {
-                  "id": "650580000000035023",
-                  "name": "BW MENS RN BLACK-5XL",
-                  "stock": 0,
-                  "price": 150,
-                  "sku": "BWRNBK5XL-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "L": {
-                  "id": "650580000000035013",
-                  "name": "BW MENS RN BLACK-L",
-                  "stock": 200,
-                  "price": 150,
-                  "sku": "BWRNBKL-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "M": {
-                  "id": "650580000000035011",
-                  "name": "BW MENS RN BLACK-M",
-                  "stock": 100,
-                  "price": 150,
-                  "sku": "BWRNBKM-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "S": {
-                  "id": "650580000000035009",
-                  "name": "BW MENS RN BLACK-S",
-                  "stock": 0,
-                  "price": 150,
-                  "sku": "BWRNBKS-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "XL": {
-                  "id": "650580000000035015",
-                  "name": "BW MENS RN BLACK-XL",
-                  "stock": 0,
-                  "price": 150,
-                  "sku": "BWRNBKXL-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              },
-              "XS": {
-                  "id": "650580000000035007",
-                  "name": "BW MENS RN BLACK-XS",
-                  "stock": 0,
-                  "price": 150,
-                  "sku": "BWRNBKXS-M",
-                  "dimensions": {
-                      "length": 28,
-                      "chest": 38,
-                      "sleeve": 7.5,
-                      "weight": 0.5
-                  }
-              }
-          }
-      }
-  },
-  "canvas": {
-      "front": {
-          "startX": 0,
-          "startY": 0,
-          "width": 13,
-          "height": 18
+  colors: {
+    Black: {
+      frontImage: "./images/mens round neck/black-front.jpg",
+      backImage: "./images/mens round neck/black-back.jpg",
+      colorCode: "#000000",
+      sizes: {
+        "2XL": {
+          id: "650580000000035017",
+          name: "BW MENS RN BLACK-2XL",
+          stock: 60,
+          price: 550,
+          sku: "BWRNBK2XL-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        "3XL": {
+          id: "650580000000035019",
+          name: "BW MENS RN BLACK-3XL",
+          stock: 50,
+          price: 150,
+          sku: "BWRNBK3XL-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        "4XL": {
+          id: "650580000000035021",
+          name: "BW MENS RN BLACK-4XL",
+          stock: 100,
+          price: 150,
+          sku: "BWRNBK4XL-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        "5XL": {
+          id: "650580000000035023",
+          name: "BW MENS RN BLACK-5XL",
+          stock: 0,
+          price: 150,
+          sku: "BWRNBK5XL-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        L: {
+          id: "650580000000035013",
+          name: "BW MENS RN BLACK-L",
+          stock: 200,
+          price: 150,
+          sku: "BWRNBKL-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        M: {
+          id: "650580000000035011",
+          name: "BW MENS RN BLACK-M",
+          stock: 100,
+          price: 150,
+          sku: "BWRNBKM-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        S: {
+          id: "650580000000035009",
+          name: "BW MENS RN BLACK-S",
+          stock: 0,
+          price: 150,
+          sku: "BWRNBKS-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        XL: {
+          id: "650580000000035015",
+          name: "BW MENS RN BLACK-XL",
+          stock: 0,
+          price: 150,
+          sku: "BWRNBKXL-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
+        XS: {
+          id: "650580000000035007",
+          name: "BW MENS RN BLACK-XS",
+          stock: 0,
+          price: 150,
+          sku: "BWRNBKXS-M",
+          dimensions: {
+            length: 28,
+            chest: 38,
+            sleeve: 7.5,
+            weight: 0.5,
+          },
+        },
       },
-      "back": {
-          "startX": 0,
-          "startY": 0,
-          "width": 13,
-          "height": 18
-      }
-  }
-}
+    },
+  },
+  canvas: {
+    front: {
+      startX: 0,
+      startY: 0,
+      width: 13,
+      height: 18,
+    },
+    back: {
+      startX: 0,
+      startY: 0,
+      width: 13,
+      height: 18,
+    },
+  },
+};
 
 // Holds the canvas instance
 let fabricCanvas = null;
@@ -249,13 +249,13 @@ const fetchProductData = async () => {
       description: productData.description,
       category: productData.group,
       colors: Object.keys(productData.colors).map((color, i) => {
-        return { 
+        return {
           _id: i,
           colorName: color,
           hex: productData.colors[color].colorCode,
           colorImage: {
             front: productData.colors[color].frontImage,
-            back: productData.colors[color].backImage
+            back: productData.colors[color].backImage,
           },
           sizes: Object.keys(productData.colors[color].sizes).map((size, i) => {
             return {
@@ -265,32 +265,33 @@ const fetchProductData = async () => {
               stock: productData.colors[color].sizes[size].stock,
               name: productData.colors[color].sizes[size].name,
               price: productData.colors[color].sizes[size].price,
-              dimensions: productData.colors[color].sizes[size].dimensions
-            }
-          })
-        }
-      })
-    }
+              dimensions: productData.colors[color].sizes[size].dimensions,
+            };
+          }),
+        };
+      }),
+    };
     console.log(Product);
 
     // Current selected color - first color is chosen as default
-    currentColor = Product.colors.find(color => color.colorName === "White")?._id || Product.colors[0]._id; // declare currentColor here like global var
+    currentColor =
+      Product.colors.find((color) => color.colorName === "White")?._id ||
+      Product.colors[0]._id; // declare currentColor here like global var
 
     // call global funcs
     renderColors();
     loadMockupImage();
     displaySizes();
     setPixelRatio();
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     new Notyf.error({
       message: "There was an error trying to fetch product details!",
       dismissible: true,
-      ripple: false
-    }) 
+      ripple: false,
+    });
   }
-}
+};
 
 // DOM select the buttons to draw border on active btn and replace other buttons with default styles
 const positionChangeButtons = document.querySelectorAll(".position-btn");
@@ -299,8 +300,8 @@ const textInputBox = document.querySelector("#canvas-text-input");
 
 // Changing current color and its image
 const changeMockup = (color, id) => {
-  let selectedMockup = Product.colors.find((color) => color._id === id)
-  const element = document.getElementById(`${color}-${id}`)
+  let selectedMockup = Product.colors.find((color) => color._id === id);
+  const element = document.getElementById(`${color}-${id}`);
   const sizeList = document.querySelector(".size-list");
   renderColorBorder(color, id);
   while (sizeList.children.length > 0) {
@@ -309,26 +310,33 @@ const changeMockup = (color, id) => {
   currentColor = id;
   element.style.border = "2px solid red";
   displaySizes();
-  if (designDirection === "front") document.getElementById("mockup-image").src = selectedMockup.colorImage.front;
-  else document.getElementById("mockup-image").src = selectedMockup.colorImage.back;
-
-}
+  if (designDirection === "front")
+    document.getElementById("mockup-image").src =
+      selectedMockup.colorImage.front;
+  else
+    document.getElementById("mockup-image").src =
+      selectedMockup.colorImage.back;
+};
 
 // func to draW border around active color
 const renderColorBorder = (color, id) => {
   const colorButtons = document.querySelectorAll(".color-circle");
   const currentColor = document.getElementById(`${color}-${id}`);
-  colorButtons.forEach(colorButton => colorButton.style.border = '2px solid #6a6969');
+  colorButtons.forEach(
+    (colorButton) => (colorButton.style.border = "2px solid #6a6969")
+  );
   currentColor.style.border = "2px solid red";
-}
+};
 
 // Displaying the colors to user
 const renderColors = () => {
-  const parent = document.querySelector(".color-list"); 
+  const parent = document.querySelector(".color-list");
   Product.colors.map((color) => {
     const child = document.createElement("div");
     const innerHTML = `
-    <div class="color-options" onclick="changeMockup(${color.colorName}, ${color._id})">
+    <div class="color-options" onclick="changeMockup(${color.colorName}, ${
+      color._id
+    })">
     <span class="color-circle" style="background: ${color.hex}; border: ${
       color._id === currentColor ? "2px solid red" : "2px solid #6a6969;"
     }" id="${color.colorName}-${color._id}"></span>
@@ -344,7 +352,9 @@ const renderColors = () => {
 // Loading first image of mockupImages
 const loadMockupImage = () => {
   const image = document.getElementById("mockup-image");
-  image.src = Product.colors.find(color => color._id === currentColor).colorImage.front;
+  image.src = Product.colors.find(
+    (color) => color._id === currentColor
+  ).colorImage.front;
 };
 
 // Display design image stats
@@ -368,9 +378,7 @@ const updateStats = () => {
 // Displaying available size of currently selected color
 const displaySizes = () => {
   const parent = document.querySelector(".size-list");
-  const current = Product.colors.filter(
-    (item) => item._id === currentColor
-  )[0];
+  const current = Product.colors.filter((item) => item._id === currentColor)[0];
   current.sizes.map((item) => {
     const child = document.createElement("div");
     const innerHTML = `
@@ -389,7 +397,9 @@ const displaySizes = () => {
   1 inch = 500/28 px
 */
 const setPixelRatio = () => {
-  const currentProductVariant = Product.colors.find(color => color._id === currentColor).sizes[0];
+  const currentProductVariant = Product.colors.find(
+    (color) => color._id === currentColor
+  ).sizes[0];
   Product.pixelToInchRatio = currentProductVariant.dimensions.length / 500;
   Product.inchToPixelRatio = 500 / currentProductVariant.dimensions.length;
   addFabricCanvasToTemplateDiv();
@@ -494,7 +504,9 @@ const addImageToCanvas = (event) => {
 
 // Change design area side
 const changeSide = (e, side) => {
-  sideChangeButtons.forEach(sideBtn => sideBtn.classList.remove("active-btn"));
+  sideChangeButtons.forEach((sideBtn) =>
+    sideBtn.classList.remove("active-btn")
+  );
   e.target.classList.add("active-btn");
 
   let selectedMockup = Product.colors.find(
@@ -511,17 +523,50 @@ const changeSide = (e, side) => {
 
 // Download Image
 const downloadDesign = () => {
+  // Deselecting active object
+  if (fabricCanvas.getActiveObject()) {
+    fabricCanvas.discardActiveObject().renderAll();
+  }
+
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
   if (!isDesignNameValid) return;
-  domtoimage
-    .toBlob(document.getElementById("product-design"))
-    .then(function (blob) {
+
+  const node = document.getElementById("product-design");
+  // Store original transformation
+  const originalTransform = node.style.transform;
+
+  // Apply the transformation to node
+  node.style.transformOrigin = "0 0";
+  node.style.transform = "scale(2)";
+
+  const config = {
+    width: 900,
+    height: 1200,
+    style: {
+      transformOrigin: "0 0",
+      transform: "scale(2)",
+    },
+  };
+
+  // Use a short delay to ensure the browser has updated the DOM with the transform
+  setTimeout(() => {
+    domtoimage.toBlob(node, config).then(function (blob) {
+      // Restore original transformation
+      node.style.transform = originalTransform;
+
       window.saveAs(
         blob,
-        "userName_" + designName.value + "_" + new Date().toLocaleTimeString() + ".png"
+        "userName_" +
+          designName.value +
+          "_" +
+          new Date().toLocaleTimeString() +
+          "-" + 
+          designDirection +
+          ".png"
       );
     });
+  }, 100);
 };
 
 // save to cloud
@@ -529,9 +574,9 @@ const saveDesign = () => {
   // generate SKU
   // upload individual images to firebase
   // upload design to firebase
-  // 
+  //
   return;
-}
+};
 
 //Set Position
 const setPosition = (e, position) => {
@@ -543,7 +588,9 @@ const setPosition = (e, position) => {
   const canvasWidth = fabricCanvas.width;
   const canvasHeight = fabricCanvas.height;
 
-  positionChangeButtons.forEach(positionBtn => positionBtn.classList.remove("active-btn"));
+  positionChangeButtons.forEach((positionBtn) =>
+    positionBtn.classList.remove("active-btn")
+  );
   e.target.classList.add("active-btn");
 
   switch (position) {
@@ -613,11 +660,11 @@ const addTextToCanvas = () => {
 // function to change input font to preview the font in input box itself
 const changeInputFont = (e) => {
   textInputBox.style.fontFamily = e.target.value;
-}
+};
 // func to change input box font weight for preview → ////// doesnt work! /////
 const changeInputFontWeight = (e) => {
   textInputBox.style.fontWeight = e.target.value;
-}
+};
 
 // globally call the functions
 // also create a fetch function to fetch the products data and obtain the specific style
