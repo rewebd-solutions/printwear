@@ -39,6 +39,7 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
+        fetch("/getshopifyorders").then(data => data.json().then(data => console.log(data))); // summa testing orders data
     </script>
 </body>
 

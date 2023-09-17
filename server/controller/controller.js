@@ -819,6 +819,7 @@ exports.getshopifystock = async (req, res) => {
 
     var shopifyShopStockData = [];
 
+    // remove this one by one method and use only Promise.all method
     for (let store of shopifyStoreData) {
       const SHOPIFY_ACCESS_TOKEN = store.shopifyAccessToken;
       const SHOPIFY_SHOP_URL = store.shopifyStoreURL;
@@ -945,9 +946,7 @@ exports.connectShopify = async (req, res) => {
 
   } catch (error) {
     console.log("Error in Shopify connect " + error)
-    res.status(400).json({
-      message: error
-    })
+    res.status(400).json({error})
     return;
   }
 }
