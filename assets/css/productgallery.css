@@ -196,7 +196,7 @@ body {
 }
 
 .product-sizes h4 {
-  color: gainsboro
+  color: rgb(106, 106, 106)
 }
 
 .color-disc {
@@ -225,18 +225,40 @@ body {
   padding-left: 300px;
   gap: 1rem;
   margin: auto;
+  color: #434343;
+}
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #FFF;
+  border-bottom-color: #FF3D00;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
 }
 
+@keyframes rotation {
+  0% {
+      transform: rotate(0deg);
+  }
+
+  100% {
+      transform: rotate(360deg);
+  }
+}
 .details {
   display: flex;
   justify-content: space-between;
+  flex-direction: column;
   margin-top: 10px;
-  margin-bottom: 10px;
+  gap: 0.5rem
   /* border: solid; */
 }
 
 .name-price {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .name button {
@@ -264,4 +286,6 @@ body {
   font-size: 16px;
   color: #40B635;
   padding-top: 2px;
+  display: flex;
+  justify-content: space-between;
 }

@@ -549,50 +549,6 @@ h4 {
   }
 }
 
-@media screen and (max-width:380px) {
-  #exampleModal {
-    height: 420px !important;
-    width: 320px !important;
-    top: 60px !important;
-    left: 40px !important;
-  }
-
-  .dropdown-menu {
-    top: 35px !important;
-    left: 20px !important;
-    width: max-content !important;
-  }
-
-  .dropdown-item {
-    width: 250px;
-    font-size: 12px;
-  }
-}
-
-@media screen and (max-width:360px) {
-  #exampleModal {
-    left: 5px !important;
-  }
-}
-
-@media screen and (max-width:320px) {
-  .sidebar {
-    height: auto;
-    width: 55px;
-    left: 0;
-    top: -100px;
-    margin: 100px 0;
-  }
-
-  #logo {
-    width: 150px;
-  }
-
-  .sidebar a {
-    height: 43px;
-  }
-}
-
 .content {
   display: flex;
   flex-direction: column;

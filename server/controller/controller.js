@@ -1013,217 +1013,238 @@ exports.getZohoProducts = async (req, res) => {
     // get acctkn then hit the API
     const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, { method: "POST" });
     const zohoAccResponse = await zohoAccRequest.json();
-    console.log(zohoAccResponse);
+    // console.log(zohoAccResponse);
     const zohoAPIAccessToken = zohoAccResponse.access_token;
 
     const zohoInventoryItemsResponse = { items: [] }
-    const dressFilterKeywords = ["shirt", "shirts", "men", "mens", "hoodie", "hoodies", "kid", "kids", "women", "womens", "tees", "tee", "polo"];
-    const shirtFilterKeywords =[
-        "bw mens",
-        "bw womens",
-        "hoodie",
-        "hoodies",
-        "kids half sleeve",
-        "men oversized",
-        "men rn",
-        "mens rn",
-        "mens round neck",
-        "mens full sleeve",
-        "mens half sleeve",
-        "mens oversize",
-        "mens raglan sleeve",
-        "oversize tees",
-        "oversized t-shirt",
-        "polo",
-        "sweatshirts",
-        "women boyfriend",
-        "womens boyfriend",
-        "womens 3/4",
-        "womens half sleeve",
-        "womens raglan sleeve",
-        "womens rn",
-        "work wear polo",
-        "workwear polo",
-    ];
-    const colorFilterKeywords = [
-      "black",
-      "charcoal melange",
-      "ecru melange",
-      "grey melange",
-      "mustard yellow",
-      "navy blue",
-      "red",
-      "white",
-      "army green",
-      "royal blue",
-      "maroon",
-      "lemon yellow",
-      "olive green",
-      "leaf green",
-      "beige",
-      "yellow",
-      "navy",
-      "turquoise",
-      "turcoise blue",
-      "chocolate brown"
-    ]
-    const colorHexCodes = {
-      "black": "#000000",
-      "charcoal melange": "#464646",
-      "ecru melange": "#F5F5DC",
-      "grey melange": "#808080",
-      "mustard yellow": "#FFDB58",
-      "navy blue": "#000080",
-      "red": "#FF0000",
-      "white": "#FFFFFF",
-      "army green": "#4B5320",
-      "royal blue": "#4169E1",
-      "maroon": "#800000",
-      "lemon yellow": "#FFF44F",
-      "olive green": "#556B2F",
-      "leaf green": "#228B22",
-      "beige": "#F5F5DC",
-      "yellow": "#FFFF00",
-      "navy": "#000080",
-      "turquoise": "#40E0D0",
-      "turcoise blue": "#00FFEF",
-      "chocolate brown": "#7B3F00"
-    };
-    const sizeFilterKeywords = [
-      "xs",
-      "s",
-      "m",
-      "l",
-      "xl",
-      "2xl",
-      "3xl",
-      "4xl",
-      "5xl",
-      "6xl",
-      "0-1yrs",
-      "12-13yrs",
-      "10-11yrs",
-      "14-15yrs",
-      "16-17yrs",
-      "2-3yrs",
-      "3-4years",
-      "4-5yrs",
-      "5-6yrs",
-      "6-7yrs",
-      "8-9yrs",
-      "9-10yrs",
-      "10-11yrs",
-      "11-12yrs",
-      "12-13yrs",
-      "13-14yrs",
-      "14-15yrs",
-      "15-16yrs",
-      "16-17yrs",
-    ]
 
-    const colorPattern = new RegExp(colorFilterKeywords.join('|'), 'i');
-    const shirtPattern = new RegExp(shirtFilterKeywords.join('|'), 'i');
-    const sizePattern = new RegExp(sizeFilterKeywords.join('|'), 'i');
-
-    const categorizedProducts = {};
-
-    for (let page of [1, 2, 3, 4, 5]) {
+    const pagePromises = [1, 2, 3, 4, 5].map(async page => {
       const zohoInventoryItemsRequest = await fetch(`https://www.zohoapis.in/inventory/v1/items?organization_id=60010804173&page=${page}&per_page=400`, {
         headers: {
           'Authorization': 'Zoho-oauthtoken ' + zohoAPIAccessToken
         }
-      });
-      let itemsData = await zohoInventoryItemsRequest.json();
-      zohoInventoryItemsResponse.items.push(...itemsData.items);
-    }
-
-    zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.map(item => {
-      if (dressFilterKeywords.some(keyword => item.item_name.toLowerCase().includes(keyword))) return {
-        item_name: item.item_name,
-        actual_available_stock: item.actual_available_stock,
-        brand: item.brand,
-        image_document_id: item.image_document_id,
-        item_id: item.item_id,
-        item_name: item.item_name,
-        manufacturer: item.manufacturer,
-        sku: item.sku,
-        purchase_rate: item.purchase_rate,
-        rate: item.rate,
-        decription: item.description,
-        group: item.group_name
-      }
+      })
+      return zohoInventoryItemsRequest.json()
     })
 
-    zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.filter(product => {
-      if (product != null) return product 
-    });
+    Promise.allSettled(pagePromises).then(results => {
+      var categorizedProducts = {};
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
 
-    zohoInventoryItemsResponse.items.forEach(product => {
-      const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer, description, group } = product;
-      const splitItemName = item_name.split(/\s*[- ]\s*/);
+          zohoInventoryItemsResponse.items.push(...result.value.items)
 
-      // Use the regular expression to find matching colors in the item_name
-      // matcg other patternmds
-      let colorMatches = item_name.toLowerCase().match(colorPattern);
-      let shirtMatches = item_name.toLowerCase().match(shirtPattern);
-      let sizeMatches = splitItemName[splitItemName.length - 1].toLowerCase().match(sizePattern);
-      if (shirtMatches && shirtMatches[0] === "kids half sleeve") sizeMatches = item_name.split(" - ")[1].toLowerCase().match(sizePattern);
+          const dressFilterKeywords = ["shirt", "shirts", "men", "mens", "hoodie", "hoodies", "kid", "kids", "women", "womens", "tees", "tee", "polo"];
 
-      // console.log(shirtMatches, colorMatches, sizeMatches, product);
-      // if no product size or product size is undefined, then dont allow users to click on it
-  
-      if (sizeMatches && shirtMatches) {
-          sizeMatches.forEach(sizeMatch => {
-              const size = shirtMatches[0] === "kids half sleeve"? sizeMatch: splitItemName[splitItemName.length - 1];
-              const style = shirtMatches? item_name.substring(shirtMatches.index, shirtMatches[0].length) : null;
-              const color = colorMatches? colorMatches[0].split(" ").map(colorWord => colorWord[0].toUpperCase()+colorWord.substring(1,)).join(' '): 'color';
-              const colorCode = colorHexCodes[colorMatches?colorMatches[0]:'white'];
+          // filtering out only valid items and only having necessary fields for each item
+          zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.map(item => {
+            if (dressFilterKeywords.some(keyword => item.item_name.toLowerCase().includes(keyword))) return {
+              item_name: item.item_name,
+              actual_available_stock: item.actual_available_stock,
+              brand: item.brand,
+              image_document_id: item.image_document_id,
+              item_id: item.item_id,
+              item_name: item.item_name,
+              manufacturer: item.manufacturer,
+              sku: item.sku,
+              purchase_rate: item.purchase_rate,
+              rate: item.rate,
+              decription: item.description,
+              group: item.group_name
+            }
+          })
 
-              if (!style) return;
+          // regex pattern string arrays
+          const shirtFilterKeywords = [
+            "bw mens",
+            "bw womens",
+            "hoodie",
+            "hoodies",
+            "kids half sleeve",
+            "men oversized",
+            "men rn",
+            "mens rn",
+            "mens round neck",
+            "mens full sleeve",
+            "mens half sleeve",
+            "mens oversize",
+            "mens raglan sleeve",
+            "oversize tees",
+            "oversized t-shirt",
+            "polo",
+            "sweatshirts",
+            "women boyfriend",
+            "womens boyfriend",
+            "womens 3/4",
+            "womens half sleeve",
+            "womens raglan sleeve",
+            "womens rn",
+            "work wear polo",
+            "workwear polo",
+          ];
+          const colorFilterKeywords = [
+            "black",
+            "pink",
+            "charcoal melange",
+            "ecru melange",
+            "grey melange",
+            "mustard yellow",
+            "navy blue",
+            "red",
+            "white",
+            "army green",
+            "royal blue",
+            "maroon",
+            "lemon yellow",
+            "olive green",
+            "leaf green",
+            "beige",
+            "yellow",
+            "navy",
+            "turquoise blue",
+            "turquoise",
+            "turcoise blue",
+            "chocolate brown",
+            "sky blue",
+          ]
+          const colorHexCodes = {
+            "black": "#000000",
+            "pink": "#ffb6c1",
+            "charcoal melange": "#464646",
+            "ecru melange": "#F5F5DC",
+            "grey melange": "#808080",
+            "mustard yellow": "#FFDB58",
+            "navy blue": "#000080",
+            "red": "#FF0000",
+            "white": "#FFFFFF",
+            "army green": "#4B5320",
+            "royal blue": "#4169E1",
+            "maroon": "#800000",
+            "lemon yellow": "#FFF44F",
+            "olive green": "#556B2F",
+            "leaf green": "#228B22",
+            "beige": "#F5F5DC",
+            "yellow": "#FFFF00",
+            "navy": "#000080",
+            "turquoise": "#40E0D0",
+            "turcoise blue": "#00FFEF",
+            "chocolate brown": "#7B3F00",
+            "sky blue": "#87CEEB"
+          };
+          const sizeFilterKeywords = [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl",
+            "2xl",
+            "3xl",
+            "4xl",
+            "5xl",
+            "6xl",
+            "0-1yrs",
+            "12-13yrs",
+            "10-11yrs",
+            "14-15yrs",
+            "16-17yrs",
+            "2-3yrs",
+            "3-4years",
+            "4-5yrs",
+            "5-6yrs",
+            "6-7yrs",
+            "8-9yrs",
+            "9-10yrs",
+            "10-11yrs",
+            "11-12yrs",
+            "12-13yrs",
+            "13-14yrs",
+            "14-15yrs",
+            "15-16yrs",
+            "16-17yrs",
+          ]
 
-              // Create the nested structure if it doesn't exist
-              if (!categorizedProducts[style]) {
-                categorizedProducts[style] = {
+          const colorPattern = new RegExp(colorFilterKeywords.join('|'), 'i');
+          const shirtPattern = new RegExp(shirtFilterKeywords.join('|'), 'i');
+          const sizePattern = new RegExp(sizeFilterKeywords.join('|'), 'i');
+
+          // filter null products
+          zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.filter(product => {
+            if (product != null) return product
+          });
+
+          // apply categorization for each product
+          zohoInventoryItemsResponse.items.forEach(product => {
+            const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer, description, group } = product;
+            const splitItemName = item_name.split(/\s*[- ]\s*/);
+
+            // Use the regular expression to find matching colors in the item_name
+            let colorMatches = item_name.toLowerCase().match(colorPattern);
+            let shirtMatches = item_name.toLowerCase().match(shirtPattern);
+            let sizeMatches = splitItemName[splitItemName.length - 1].toLowerCase().match(sizePattern);
+            if (shirtMatches && shirtMatches[0] === "kids half sleeve") sizeMatches = item_name.split(" - ")[1].toLowerCase().match(sizePattern);
+
+            // if size and shirt matches, then
+            if (sizeMatches && shirtMatches) {
+              sizeMatches.forEach((sizeMatch) => {
+                const size = shirtMatches[0] === "kids half sleeve" ? sizeMatch : splitItemName[splitItemName.length - 1];
+                const style = shirtMatches ? item_name.substring(shirtMatches.index, shirtMatches[0].length) : null;
+                const color = colorMatches ? colorMatches[0].split(" ").map(colorWord => colorWord[0].toUpperCase() + colorWord.substring(1,)).join(' ') : 'color';
+                const colorCode = colorHexCodes[colorMatches ? colorMatches[0] : 'white'];
+
+                if (!style) return;
+
+                // Create the nested structure if it doesn't exist
+                if (!categorizedProducts[style]) {
+                  categorizedProducts[style] = {
                     brand,
                     manufacturer,
-                    description: description??'Item available for designing',
-                    group: group? group.split(" ")[0]:'Ungrouped',
+                    description: description ?? 'Item available for designing',
+                    group: group ? group.split(" ")[0] : 'Ungrouped',
                     baseImage: {
                       front: '',
                       back: ''
                     },
                     colors: {}
+                  };
+                }
+
+                if (!categorizedProducts[style]['colors'][color]) {
+                  categorizedProducts[style].colors[color] = {
+                    frontImage: '',
+                    backImage: '',
+                    colorCode,
+                    sizes: {}
+                  };
+                }
+
+                // Update the stock quantity for the specific size and color
+                categorizedProducts[style].colors[color].sizes[size] = {
+                  id: item_id,
+                  name: item_name,
+                  stock: actual_available_stock,
+                  price: purchase_rate,
+                  sku: sku
                 };
-              }
-              if (!categorizedProducts[style]['colors'][color]) {
-              categorizedProducts[style].colors[color] = {
-                  frontImage: '',
-                  backImage: '',
-                  colorCode,
-                  sizes: {}
-              };
-          }
-  
-          // Update the stock quantity for the specific size and color
-          categorizedProducts[style].colors[color].sizes[size] = {
-              id: item_id,
-              name: item_name,
-              stock: actual_available_stock,
-              price: purchase_rate,
-              sku: sku
-          };
+              });
+            }
+          });
+
+        } else {
+          console.log(result.reason);
+          categorizedProducts['error'] = result.reason;
+        };
       });
-      }
-    });
+      // grouping logical products together
+      if (categorizedProducts["MENS ROUND NECK"]) categorizedProducts["MENS ROUND NECK"].colors = { ...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors }
+      if (categorizedProducts["MENS RN"]) delete categorizedProducts["MENS RN"];
+      if (categorizedProducts["MEN RN"]) delete categorizedProducts["MEN RN"];
+      if (categorizedProducts["HOODIE"]) delete categorizedProducts["HOODIE"];
+      if (categorizedProducts["POLO"]) delete categorizedProducts["POLO"];
+      if (categorizedProducts["Women Boyfriend"]) delete categorizedProducts["Women Boyfriend"]
 
-    categorizedProducts["MENS ROUND NECK"].colors = {...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors}
-    delete categorizedProducts["MENS RN"];
-    delete categorizedProducts["MEN RN"];
-    delete categorizedProducts["HOODIE"];
-    delete categorizedProducts["POLO"];
-    delete categorizedProducts["Women Boyfriend"]
+      res.json(categorizedProducts);
+    })
 
-    res.json(categorizedProducts);
   } catch (error) {
     console.log(error);
     res.json({ error });

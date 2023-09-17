@@ -38,8 +38,6 @@
         AOS.init();
         var notyf = new Notyf();
 
-        notyf.options.types.forEach(typ => typ.icon = null);
-
         const cardsContainer = document.querySelector(".cards");
 
         const getProducts = async () => {
@@ -56,15 +54,15 @@
         }
 
         const calculateCardPrice = (cardProduct) => {
-            let result = 9999;
+            let result = [];
             for(let color in cardProduct.colors){
                 const sizes = cardProduct.colors[color]['sizes'];
                 for(let size in sizes) {
-                    let sum = cardProduct.colors[color].sizes[size].price
-                    if (sum < result && sum != 0) result = sum;
+                    result.push(cardProduct.colors[color].sizes[size].price)
                 }
             }
-            return result;
+            //console.log(result);
+            return result.sort((a, b) => a - b).filter(r => r != 0)[0];
         }
 
         const calculateCardStock = (cardProduct) => {
@@ -108,15 +106,17 @@
             }
             cardsContainer.addEventListener("click", (e) => {
                 let toggleModalBtn = e.target.closest(".toggle-modal");
-                if(toggleModalBtn) {
+                console.log("trig", toggleModalBtn);
+                if (toggleModalBtn) {
                     let styleToOpen = Object.keys(productsData).find(product => slugifyNames(e.target.dataset.productid) == slugifyNames(product));
                     openProductModal(styleToOpen);
+                    e.stopImmediatePropagation()
                     return
                 }
             })
         }
         
-        const openProductModal = (style) => {
+        const openProductModal = (style) => { 
             const productData = productsData[style];
             const anyColorForSizes = Object.keys(productData.colors)[0];
             console.log(productData);
@@ -167,7 +167,6 @@
             const closeModalButton = document.querySelector(".modal-close");
             closeModalButton.addEventListener("click", (e) => {
                 document.body.removeChild(document.querySelector(".product-modal-wrapper"));
-                return;
             })
 
         }
@@ -176,26 +175,14 @@
         getProducts().then(data => {
             productsData = data;
             populateData();
-             //console.log(data);
-             /* Object.entries(productsData).map(item => (
-                {
-                    style: item[0],
-                    brand: item[1].brand,
-                    manufacturer: item[1].manufacturer,
-                    colors: Object.entries(item[1].colors).map(color => ({
-                        color: color[0],
-                        sizes: Object.entries(color[1].sizes).map(size => ({
-                            size: size[0],
-                            ...size[1]
-                        }))
-                    }))
-                }
-            )) */
             //let productIdFromURL = new URLSearchParams(location.search).get("product");
             //if (productIdFromURL) openProductModal(productIdFromURL);
-            populateData(productsData);
         }).catch(error => {
             console.log(error);
+            notyf.error({
+                message: "There was an error trying to fetch data",
+                dismissible: true
+            });
         }) 
 
     </script>

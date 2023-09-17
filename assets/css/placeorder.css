@@ -14,9 +14,10 @@
 }
 
 
-.cart {
+.order-wrapper {
     display: flex;
     flex-direction: column;
+    gap: 1rem;
     padding-left: 300px;
     padding-top: 6rem;
 }
@@ -429,17 +430,8 @@
 /* New CSS */
 .steps {
     display: flex;
-    flex-direction: row;
-    margin-top: 70px;
-}
-
-.steps i {
-    margin-top: 5px;
-}
-
-.stps {
-    display: grid;
-    place-items: center;
+    justify-content: center;
+    gap: 1rem;
 }
 
 .stp p {
@@ -448,9 +440,9 @@
 
 .stp {
     display: flex;
-    flex-direction: row;
-    margin-left: 30px;
-    margin-right: 30px;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
 }
 
 .stp i {
