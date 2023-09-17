@@ -99,6 +99,7 @@ let designDirection = "front";
 // Storing design image, and its height and width
 let designImg, designImageWidth, designImageHeight;
 
+// DOM select the buttons to draw border on active btn and replace other buttons with default styles
 const positionChangeButtons = document.querySelectorAll(".position-btn");
 const sideChangeButtons = document.querySelectorAll(".side-btn");
 const textInputBox = document.querySelector("#canvas-text-input");
@@ -161,8 +162,8 @@ const updateStats = () => {
   const heightElement = document.querySelector(".height-design");
   const widthElement = document.querySelector(".width-design");
   if (!designImageHeight && !designImageWidth) {
-    heightElement.innerHTML = "";
-    widthElement.innerHTML = "";
+    heightElement.innerHTML = "Height: 0 inches";
+    widthElement.innerHTML = "Height: 0 inches";
   }
   heightElement.innerHTML =
     "Height " +
@@ -318,7 +319,8 @@ const changeSide = (e, side) => {
     document.getElementById("mockup-image").src =
       selectedMockup.colorImage.back;
 };
-// Save Image
+
+// Download Image
 const downloadDesign = () => {
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
@@ -332,6 +334,16 @@ const downloadDesign = () => {
       );
     });
 };
+
+// save to cloud
+const saveDesign = () => {
+  // generate SKU
+  // upload individual images to firebase
+  // upload design to firebase
+  // 
+  return;
+}
+
 //Set Position
 const setPosition = (e, position) => {
   if (!fabricCanvas || !designImg) return;
@@ -413,11 +425,14 @@ const addTextToCanvas = () => {
 const changeInputFont = (e) => {
   textInputBox.style.fontFamily = e.target.value;
 }
-
+// func to change input box font weight for preview → ////// doesnt work! /////
 const changeInputFontWeight = (e) => {
   textInputBox.style.fontWeight = e.target.value;
 }
 
+// globally call the functions
+// also create a fetch function to fetch the products data and obtain the specific style
+//    based on query params passed to the route
 renderColors();
 loadMockupImage();
 displaySizes();

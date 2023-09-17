@@ -87,6 +87,11 @@
    font-size: 2.3rem;
 }
 
+#product-design {
+   position: sticky;
+   top: 7rem;
+}
+
 .position-buttons {
    display: flex;
    flex-wrap: wrap;
