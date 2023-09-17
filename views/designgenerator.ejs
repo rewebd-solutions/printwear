@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description" content="" />
+	<meta name="author" content="" />
+	<title>Design Generator - Printwear</title>
+	<!-- Font Awesome Icons -->
+	<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+	<!-- Snakbox -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+	<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+	<!-- Global Styles -->
+	<link href="/css/designgenerator.css" rel="stylesheet" />
+	<!-- Fabric JS -->
+	<script src="https://cdn.jsdelivr.net/npm/fabric@4.5.1/dist/fabric.min.js"></script>
+	<!-- DOM to image and File Save -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+	<!-- Goole fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fuggles&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;500;600;700&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+      rel="stylesheet" />
+</head>
+
+<body>
+	<div class="banner">
+		<%- include('partials/side-logo.ejs') %> <%- include('partials/top.ejs') %>
+	</div>
+	<!-- Fabric JS -->
+	<div class="App">
+		<div class="left-box">
+			<h1 class="heading">Design Generator</h1>
+			<div id="product-design">
+				<div class="template-div" id="mockup-image-canvas">
+					<!-- Mockup image goes here -->
+					<img src="" alt="mockup-image" id="mockup-image" />
+				</div>
+			</div>
+		</div>
+		<div class="right-box">
+			<!-- Color Options Will Be Displayed -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-1"></i> <h4>Choose a color</h4></div>
+				<div class="color-list"></div>
+			</div>
+
+			<!-- Size options will be displayed -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-2"></i> <h4>Choose a size</h4></div>
+				<div class="size-list"></div>
+			</div>
+			
+			<!-- Upload design image input -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-3"></i> <h4>Upload your images</h4></div>
+				<div>
+					<label for="design-input" class="design-input-label">
+						<i class="fa fa-file-upload"></i>
+						Upload Design
+					</label>
+					<input id="design-input" type="file" accept=".png, .jpg, .jpeg" style="display: none"
+					onchange="addImageToCanvas(event)" />
+				</div>
+			</div>
+			<!-- Design Side -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-4"></i><h4>Creative area!</h4></div>
+				<div class="list sides-list">
+					<h3>Sides</h3>
+					<div>
+						<button id="front-side" onclick="changeSide('front')" class="side-btn active-btn">Front</button>
+						<button id="back-side" onclick="changeSide('back')" class="side-btn">Back</button>
+					</div>
+				</div>
+				<!-- Position of design image -->
+				<div>
+					<h3>Position</h3>
+					<div class="list">
+						<button onclick="setPosition(event,'top-left')" class="position-btn"><i class="fa-solid fa-arrow-up top left"></i>&nbsp;Top Left</button>
+						<button onclick="setPosition(event,'top-right')" class="position-btn"><i class="fa-solid fa-arrow-up top right"></i>&nbsp;Top Right</button>
+						<button onclick="setPosition(event,'bottom-left')" class="position-btn"><i class="fa-solid fa-arrow-up bottom right"></i>&nbsp;Bottom Left</button>
+						<button onclick="setPosition(event,'bottom-right')" class="position-btn"><i class="fa-solid fa-arrow-up bottom left"></i>&nbsp;Bottom Right</button>
+						<button onclick="setPosition(event,'center')" class="position-btn">
+							<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 640 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M9.4 9.4C21.9-3.1 42.1-3.1 54.6 9.4L160 114.7V96c0-17.7 14.3-32 32-32s32 14.3 32 32v96c0 4.3-.9 8.5-2.4 12.2c-1.6 3.7-3.8 7.3-6.9 10.3l-.1 .1c-3.1 3-6.6 5.3-10.3 6.9c-3.8 1.6-7.9 2.4-12.2 2.4H96c-17.7 0-32-14.3-32-32s14.3-32 32-32h18.7L9.4 54.6C-3.1 42.1-3.1 21.9 9.4 9.4zM256 256a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zM114.7 352H96c-17.7 0-32-14.3-32-32s14.3-32 32-32h96 0l.1 0c8.8 0 16.7 3.6 22.5 9.3l.1 .1c3 3.1 5.3 6.6 6.9 10.3c1.6 3.8 2.4 7.9 2.4 12.2v96c0 17.7-14.3 32-32 32s-32-14.3-32-32V397.3L54.6 502.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L114.7 352zM416 96c0-17.7 14.3-32 32-32s32 14.3 32 32v18.7L585.4 9.4c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3L525.3 160H544c17.7 0 32 14.3 32 32s-14.3 32-32 32H448c-8.8 0-16.8-3.6-22.6-9.3l-.1-.1c-3-3.1-5.3-6.6-6.9-10.3s-2.4-7.8-2.4-12.2l0-.1v0V96zM525.3 352L630.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L480 397.3V416c0 17.7-14.3 32-32 32s-32-14.3-32-32V320v0c0 0 0-.1 0-.1c0-4.3 .9-8.4 2.4-12.2c1.6-3.8 3.9-7.3 6.9-10.4c5.8-5.8 13.7-9.3 22.5-9.4c0 0 .1 0 .1 0h0 96c17.7 0 32 14.3 32 32s-14.3 32-32 32H525.3z"/></svg>
+							Center
+						</button>
+						<button onclick="setPosition(event,'custom')" class="position-btn active-btn">Custom</button>
+					</div>
+				</div>
+				<!-- add text field -->
+				<div class="text-add">
+					<h3>Add custom text</h3>
+					<input
+					  type="text"
+					  id="canvas-text-input"
+					  placeholder="Enter your text here..." />
+					<div class="list">
+					  <select id="text-font" onchange="changeInputFont(event)">
+						<option value="Arial">Arial</option>
+						<option value="Sans">Sans</option>
+						<option value="Roboto">Roboto</option>
+						<option value="Fuggles">Fuggles</option>
+						<option value="Old Standard TT">Old Standard TT</option>
+						<option value="Quicksand">Quicksand</option>
+						<option value="Raleway">Raleway</option>
+						<option value="Roboto Condensed">Roboto Condensed</option>						
+					  </select>
+					  <select id="text-font-weight">
+						<option selected value="normal" onchange="changeInputFontWeight(event)">Normal</option>
+						<option value="bold">Bold</option>
+						<option value="bolder">Bolder</option>
+						<option value="lighter">Lighter</option>
+					  </select>
+					  <input type="color" id="text-color-picker" value="#000000" />
+					</div>
+					<button onclick="addTextToCanvas()">Add Text</button>
+				</div>				
+				<!-- Design Image Stats -->
+				<div class="design-stats">
+					<h3 class="height-design"></h3>
+					<h3 class="width-design"></h3>
+				</div>
+			</div>
+			
+			<!-- Enter design name -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-5"></i><h4>Name you design</h4></div>
+				<input type="text" placeholder="My top design..." id="design-name" class="design-name-input" required />
+			</div>
+			<!-- Save Image -->
+			<div class="action-buttons">
+				<button onclick="downloadDesign()"><i class="fa-regular fa-download"></i> Download Design</button>
+				<button onclick="saveDesign()"><i class="fa-regular fa-page"></i> Save Design</button>
+			</div>
+		</div>
+	</div>
+	<script src="/js/fabric-designer.js"></script>
+</body>

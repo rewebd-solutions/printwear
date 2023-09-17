@@ -184,15 +184,17 @@ let designDirection = "front";
 // Storing design image, and its height and width
 let designImg, designImageWidth, designImageHeight;
 
+// DOM select the buttons to draw border on active btn and replace other buttons with default styles
+const positionChangeButtons = document.querySelectorAll(".position-btn");
+const sideChangeButtons = document.querySelectorAll(".side-btn");
+const textInputBox = document.querySelector("#canvas-text-input");
+
 // Changing current color and its image
 const changeMockup = (id) => {
   let selectedMockup = Product.colors.find((color) => color._id === id);
   const element = document.getElementById(id);
   const sizeList = document.querySelector(".size-list");
-  if (currentColor) {
-    const previous = document.getElementById(currentColor);
-    previous.style.border = "none";
-  }
+  renderColorBorder(id);
   while (sizeList.children.length > 0) {
     sizeList.removeChild(sizeList.lastChild);
   }
@@ -200,12 +202,21 @@ const changeMockup = (id) => {
   element.style.border = "2px solid red";
   displaySizes();
   if (designDirection === "front")
-    document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.front;
-  else
-    document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.back;
+  document.getElementById("mockup-image").src =
+selectedMockup.colorImage.front;
+else
+document.getElementById("mockup-image").src =
+selectedMockup.colorImage.back;
 };
+
+// func to draW border around active color
+const renderColorBorder = (id) => {
+  const colorButtons = document.querySelectorAll(".color-circle");
+  const currentColor = document.getElementById(`${id}`);
+  colorButtons.forEach(colorButton => colorButton.style.border = '2px solid #6a6969');
+  currentColor.style.border = "2px solid red";
+}
+
 // Displaying the colors to user
 const renderColors = () => {
   const parent = document.querySelector(".color-list"); 
@@ -214,7 +225,7 @@ const renderColors = () => {
     const innerHTML = `
     <div class="color-options" onclick="changeMockup(${item._id})">
     <span class="color-circle" style="background: ${item.hex}; border: ${
-      item._id === currentColor ? "2px solid red" : "none"
+      item._id === currentColor ? "2px solid red" : "2px solid #6a6969;"
     }" id="${item._id}"></span>
     <p>${item.colorName}</p>
     </div>
@@ -236,16 +247,16 @@ const updateStats = () => {
   const heightElement = document.querySelector(".height-design");
   const widthElement = document.querySelector(".width-design");
   if (!designImageHeight && !designImageWidth) {
-    heightElement.innerHTML = "";
-    widthElement.innerHTML = "";
+    heightElement.innerHTML = "Height: 0 inches";
+    widthElement.innerHTML = "Height: 0 inches";
   }
   heightElement.innerHTML =
     "Height " +
-    Math.round(designImageHeight * Product.pixelToInchRatio) +
+    (designImageHeight * Product.pixelToInchRatio).toFixed(2) +
     " inches";
   widthElement.innerHTML =
     "Width " +
-    Math.round(designImageWidth * Product.pixelToInchRatio) +
+    (designImageWidth * Product.pixelToInchRatio).toFixed(2) +
     " inches";
 };
 
@@ -318,7 +329,6 @@ const addFabricCanvasToTemplateDiv = () => {
   });
 
   // Disabling scaling of canvas image element
-  // Before the initialization of the canvas:
   let prevScaleX = 1;
   let prevScaleY = 1;
 
@@ -340,6 +350,7 @@ const addFabricCanvasToTemplateDiv = () => {
     designImageHeight = designImg.height * designImg.scaleY;
     designImageWidth = designImg.width * designImg.scaleX;
     updateStats();
+
     // If image draggin exceeds canvas width, setting the designWidth to last value that was inside the canvas
     if (imgLeft + imgWidth > canvasWidth || imgLeft < 0) {
       designImageWidth = previousWidth;
@@ -348,7 +359,6 @@ const addFabricCanvasToTemplateDiv = () => {
     } else {
       prevScaleX = designImg.scaleX;
     }
-    // If image draggin exceeds canvas height, setting the designHeight to last value that was inside the canvas
     if (imgTop + imgHeight > canvasHeight || imgTop < 0) {
       designImageHeight = previousHeight;
       updateStats();
@@ -379,36 +389,48 @@ const addImageToCanvas = (event) => {
 };
 
 // Change design area side
-const changeSide = (side) => {
+const changeSide = (e, side) => {
+  sideChangeButtons.forEach(sideBtn => sideBtn.classList.remove("active-btn"));
+  e.target.classList.add("active-btn");
+
   let selectedMockup = Product.colors.find(
     (mockup) => mockup._id === currentColor
   );
   designDirection = side;
-  if (designDirection === "front") {
+  if (designDirection === "front")
     document.getElementById("mockup-image").src =
       selectedMockup.colorImage.front;
-    document.getElementById("front-side").classList.add("active-btn");
-    document.getElementById("back-side").classList.remove("active-btn");
-  } else {
+  else
     document.getElementById("mockup-image").src =
       selectedMockup.colorImage.back;
-    document.getElementById("back-side").classList.add("active-btn");
-    document.getElementById("front-side").classList.remove("active-btn");
-  }
 };
-// Save Image
-const saveImage = () => {
+
+// Download Image
+const downloadDesign = () => {
+  const designName = document.getElementById("design-name");
+  let isDesignNameValid = designName.reportValidity();
+  if (!isDesignNameValid) return;
   domtoimage
     .toBlob(document.getElementById("product-design"))
     .then(function (blob) {
       window.saveAs(
         blob,
-        "design-" + new Date().toLocaleTimeString() + "-design.png"
+        "userName_" + designName.value + "_" + new Date().toLocaleTimeString() + ".png"
       );
     });
 };
+
+// save to cloud
+const saveDesign = () => {
+  // generate SKU
+  // upload individual images to firebase
+  // upload design to firebase
+  // 
+  return;
+}
+
 //Set Position
-const setPosition = (position) => {
+const setPosition = (e, position) => {
   if (!fabricCanvas || !designImg) return;
   // Changing position of selected image
   const designImage = fabricCanvas.getActiveObject();
@@ -416,6 +438,9 @@ const setPosition = (position) => {
 
   const canvasWidth = fabricCanvas.width;
   const canvasHeight = fabricCanvas.height;
+
+  positionChangeButtons.forEach(positionBtn => positionBtn.classList.remove("active-btn"));
+  e.target.classList.add("active-btn");
 
   switch (position) {
     case "top-left":
@@ -478,15 +503,27 @@ const addTextToCanvas = () => {
   fabricCanvas.add(textObj);
   fabricCanvas.setActiveObject(textObj);
   fabricCanvas.renderAll();
+  updateStats();
 };
 
-// Main functions called globally
+// function to change input font to preview the font in input box itself
+const changeInputFont = (e) => {
+  textInputBox.style.fontFamily = e.target.value;
+}
+// func to change input box font weight for preview → ////// doesnt work! /////
+const changeInputFontWeight = (e) => {
+  textInputBox.style.fontWeight = e.target.value;
+}
+
+// globally call the functions
+// also create a fetch function to fetch the products data and obtain the specific style
+//    based on query params passed to the route
 renderColors();
 loadMockupImage();
 displaySizes();
 setPixelRatio();
 
-// Adding delete button listener to the fabric canvas
+// Adding delete button listener for fabric canvas
 document.addEventListener(
   "keydown",
   (e) => {
