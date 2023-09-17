@@ -396,7 +396,7 @@ loadMockupImage();
 displaySizes();
 setPixelRatio();
 
-// Adding delete button listener for fabric canvas
+// Adding delete button listener to the fabric canvas
 document.addEventListener(
   "keydown",
   (e) => {
