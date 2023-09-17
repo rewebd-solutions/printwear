@@ -94,7 +94,7 @@
                     <div class="details">
                         <div class="stock-avail">
                             <p>Starts: ₹.${calculateCardPrice(currentProduct)}</p>
-                            <p>Stock: ${calculateCardStock(currentProduct)}</p>
+                            ${calculateCardStock(currentProduct) === 0? `<p style="color:red">Out of stock!</p>`: `<p>Stock: ${calculateCardStock(currentProduct)}</p>`}
                         </div>
                         <div class="view-btn">
                             <button class="toggle-modal" data-productid="${slugifyNames(style)}">View</button>
@@ -149,7 +149,7 @@
                                 <p>Sizes: </p>
                                 ${
                                     Object.keys(productData.colors[anyColorForSizes].sizes).map(size => {
-                                        return `<h4 style="background: #ebebeb">${size}</h4>`
+                                        return productData.colors[anyColorForSizes].sizes[size].stock === 0? `<h4 title="Out of Stock" style="background: red; color: white; cursor: pointer">${size}</h4>` :`<h4 style="background: #ebebeb">${size}</h4>`
                                     }).join('\n')
                                 }
                             </div>

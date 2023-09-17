@@ -90,8 +90,93 @@ const Product = {
     },
   },
 };
+
+// actual product data obtained from fetch()
+const productData = {
+  "brand": "BEWAKOOF",
+  "manufacturer": "PRINTWEAR",
+  "description": "Item available for designing",
+  "group": "BW",
+  "baseImage": {
+      "front": "",
+      "back": ""
+  },
+  "colors": {
+      "Black": {
+          "frontImage": "",
+          "backImage": "",
+          "colorCode": "#000000",
+          "sizes": {
+              "2XL": {
+                  "id": "650580000000035017",
+                  "name": "BW MENS RN BLACK-2XL",
+                  "stock": 60,
+                  "price": 550,
+                  "sku": "BWRNBK2XL-M"
+              },
+              "3XL": {
+                  "id": "650580000000035019",
+                  "name": "BW MENS RN BLACK-3XL",
+                  "stock": 50,
+                  "price": 150,
+                  "sku": "BWRNBK3XL-M"
+              },
+              "4XL": {
+                  "id": "650580000000035021",
+                  "name": "BW MENS RN BLACK-4XL",
+                  "stock": 100,
+                  "price": 150,
+                  "sku": "BWRNBK4XL-M"
+              },
+              "5XL": {
+                  "id": "650580000000035023",
+                  "name": "BW MENS RN BLACK-5XL",
+                  "stock": 0,
+                  "price": 150,
+                  "sku": "BWRNBK5XL-M"
+              },
+              "L": {
+                  "id": "650580000000035013",
+                  "name": "BW MENS RN BLACK-L",
+                  "stock": 200,
+                  "price": 150,
+                  "sku": "BWRNBKL-M"
+              },
+              "M": {
+                  "id": "650580000000035011",
+                  "name": "BW MENS RN BLACK-M",
+                  "stock": 100,
+                  "price": 150,
+                  "sku": "BWRNBKM-M"
+              },
+              "S": {
+                  "id": "650580000000035009",
+                  "name": "BW MENS RN BLACK-S",
+                  "stock": 0,
+                  "price": 150,
+                  "sku": "BWRNBKS-M"
+              },
+              "XL": {
+                  "id": "650580000000035015",
+                  "name": "BW MENS RN BLACK-XL",
+                  "stock": 0,
+                  "price": 150,
+                  "sku": "BWRNBKXL-M"
+              },
+              "XS": {
+                  "id": "650580000000035007",
+                  "name": "BW MENS RN BLACK-XS",
+                  "stock": 0,
+                  "price": 150,
+                  "sku": "BWRNBKXS-M"
+              }
+          }
+      }
+  }
+}
+
 // Current selected color - first color is chosen as default
-let currentColor = Product.colors[0]._id;
+let currentColor = productData.colors[Object.keys(productData.colors)[0]];
 // Holds the canvas instance
 let fabricCanvas = null;
 // Starting design direction
@@ -134,7 +219,7 @@ const renderColorBorder = (id) => {
 
 // Displaying the colors to user
 const renderColors = () => {
-  const parent = document.querySelector(".color-list");
+  const parent = document.querySelector(".color-list"); 
   Product.colors.map((item) => {
     const child = document.createElement("div");
     const innerHTML = `
