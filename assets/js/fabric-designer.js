@@ -299,12 +299,17 @@ const changeSide = (side) => {
     (mockup) => mockup._id === currentColor
   );
   designDirection = side;
-  if (designDirection === "front")
+  if (designDirection === "front") {
     document.getElementById("mockup-image").src =
       selectedMockup.colorImage.front;
-  else
+    document.getElementById("front-side").classList.add("active-btn");
+    document.getElementById("back-side").classList.remove("active-btn");
+  } else {
     document.getElementById("mockup-image").src =
       selectedMockup.colorImage.back;
+    document.getElementById("back-side").classList.add("active-btn");
+    document.getElementById("front-side").classList.remove("active-btn");
+  }
 };
 // Save Image
 const saveImage = () => {
