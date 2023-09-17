@@ -1204,7 +1204,21 @@ exports.getZohoProducts = async (req, res) => {
                       front: '',
                       back: ''
                     },
-                    colors: {}
+                    colors: {},
+                    canvas: {
+                      front: {
+                        startX: 0,
+                        startY: 0,
+                        width: 13,
+                        height: 18,
+                      },
+                      back: {
+                        startX: 0,
+                        startY: 0,
+                        width: 13,
+                        height: 18,
+                      },
+                    },
                   };
                 }
 
@@ -1223,7 +1237,14 @@ exports.getZohoProducts = async (req, res) => {
                   name: item_name,
                   stock: actual_available_stock,
                   price: purchase_rate,
-                  sku: sku
+                  sku: sku,
+                  dimensions: {
+                    //Added extra data
+                    length: 28, //inches
+                    chest: 38, //inches
+                    sleeve: 7.5, //inches
+                    weight: 0.5, //kilograms
+                  }
                 };
               });
             }
