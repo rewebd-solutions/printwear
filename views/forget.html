@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OTP Authentication</title>
+</head>
+<body>
+  <h1>Login</h1>
+  <form action="/emailverify" method="POST">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    <br>
+   
+    <!-- <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br> -->
+    <input type="submit" value="send otp">
+  </form>
+
+  <h1>Verify OTP</h1>
+  <form action="/verify" method="POST">
+    <label for="OTP">OTP:</label>
+    <input type="text" id="OTP" name="OTP" required>
+    <br>
+    <input type="submit" value="Check otp">
+  </form>
+</body>
+</html>
+
+
+
