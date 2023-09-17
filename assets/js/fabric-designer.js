@@ -666,7 +666,6 @@ const changeInputFontWeight = (e) => {
   textInputBox.style.fontWeight = e.target.value;
 };
 
-// globally call the functions
 // also create a fetch function to fetch the products data and obtain the specific style
 //    based on query params passed to the route
 fetchProductData();

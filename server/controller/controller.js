@@ -1026,14 +1026,147 @@ exports.getZohoProducts = async (req, res) => {
       return zohoInventoryItemsRequest.json()
     })
 
+     // regex pattern string arrays
+     const shirtFilterKeywords = [
+      "bw mens",
+      "bw womens",
+      "hoodie",
+      "hoodies",
+      "kids half sleeve",
+      "men oversized",
+      "men rn",
+      "mens rn",
+      "mens round neck",
+      "mens full sleeve",
+      "mens half sleeve",
+      "mens oversize",
+      "mens raglan sleeve",
+      "oversize tees",
+      "oversized t-shirt",
+      "polo",
+      "sweatshirts",
+      "women boyfriend",
+      "womens boyfriend",
+      "womens 3/4",
+      "womens half sleeve",
+      "womens raglan sleeve",
+      "womens rn",
+      "work wear polo",
+      "workwear polo",
+    ];
+    const colorFilterKeywords = [
+      "black",
+      "pink",
+      "charcoal melange",
+      "ecru melange",
+      "grey melange",
+      "mustard yellow",
+      "navy blue",
+      "red",
+      "white",
+      "army green",
+      "royal blue",
+      "maroon",
+      "lemon yellow",
+      "olive green",
+      "leaf green",
+      "beige",
+      "yellow",
+      "navy",
+      "turquoise blue",
+      "turquoise",
+      "turcoise blue",
+      "chocolate brown",
+      "sky blue",
+      "bottle green",
+      "iris lavender"
+    ]
+    const colorHexCodes = {
+      "black": "#000000",
+      "pink": "#ffb6c1",
+      "charcoal melange": "#464646",
+      "ecru melange": "#F5F5DC",
+      "grey melange": "#808080",
+      "mustard yellow": "#FFDB58",
+      "navy blue": "#000080",
+      "red": "#FF0000",
+      "white": "#FFFFFF",
+      "army green": "#4B5320",
+      "royal blue": "#4169E1",
+      "maroon": "#800000",
+      "lemon yellow": "#FFF44F",
+      "olive green": "#556B2F",
+      "leaf green": "#228B22",
+      "beige": "#F5F5DC",
+      "yellow": "#FFFF00",
+      "navy": "#000080",
+      "turquoise": "#40E0D0",
+      "turcoise blue": "#00FFEF",
+      "chocolate brown": "#7B3F00",
+      "sky blue": "#87CEEB",
+      "bottle green": "#006A4E",
+      "iris lavender": "#897CAC"
+    };
+    const sizeFilterKeywords = [
+      "xs",
+      "s",
+      "m",
+      "l",
+      "xl",
+      "2xl",
+      "3xl",
+      "4xl",
+      "5xl",
+      "6xl",
+      "0-1yrs",
+      "12-13yrs",
+      "10-11yrs",
+      "14-15yrs",
+      "16-17yrs",
+      "2-3yrs",
+      "3-4years",
+      "4-5yrs",
+      "5-6yrs",
+      "6-7yrs",
+      "8-9yrs",
+      "9-10yrs",
+      "10-11yrs",
+      "11-12yrs",
+      "12-13yrs",
+      "13-14yrs",
+      "14-15yrs",
+      "15-16yrs",
+      "16-17yrs",
+    ]
+    const dressFilterKeywords = ["shirt", "shirts", "men", "mens", "hoodie", "hoodies", "kid", "kids", "women", "womens", "tees", "tee", "polo"];
+
+    const colorPattern = new RegExp(colorFilterKeywords.join('|'), 'i');
+    const shirtPattern = new RegExp(shirtFilterKeywords.join('|'), 'i');
+    const sizePattern = new RegExp(sizeFilterKeywords.join('|'), 'i');
+
+    const imageNames = await storageReference.child("products/").listAll();
+    const imageURLs = imageNames.items.map(item => ({
+      image: item._delegate._location.path_.split("/")[1],
+      url: Promise.resolve(item.getDownloadURL())
+    }));
+    const imageURLsPromise = imageURLs.map(url => url.url);
+
+    Promise.all(imageURLsPromise).then(results => {
+      results.map((result, i) => {
+        imageURLs[i].url = result
+      })
+     // console.log(imageURLs);
+    }).catch(err => console.log(err))
+
+    const imageColorMatches = imageURLs.map(color => color.image.match(colorPattern));
+    console.log(imageColorMatches);
+
     Promise.allSettled(pagePromises).then(results => {
       var categorizedProducts = {};
       results.forEach(result => {
         if (result.status === 'fulfilled') {
 
           zohoInventoryItemsResponse.items.push(...result.value.items)
-
-          const dressFilterKeywords = ["shirt", "shirts", "men", "mens", "hoodie", "hoodies", "kid", "kids", "women", "womens", "tees", "tee", "polo"];
 
           // filtering out only valid items and only having necessary fields for each item
           zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.map(item => {
@@ -1052,119 +1185,6 @@ exports.getZohoProducts = async (req, res) => {
               group: item.group_name
             }
           })
-
-          // regex pattern string arrays
-          const shirtFilterKeywords = [
-            "bw mens",
-            "bw womens",
-            "hoodie",
-            "hoodies",
-            "kids half sleeve",
-            "men oversized",
-            "men rn",
-            "mens rn",
-            "mens round neck",
-            "mens full sleeve",
-            "mens half sleeve",
-            "mens oversize",
-            "mens raglan sleeve",
-            "oversize tees",
-            "oversized t-shirt",
-            "polo",
-            "sweatshirts",
-            "women boyfriend",
-            "womens boyfriend",
-            "womens 3/4",
-            "womens half sleeve",
-            "womens raglan sleeve",
-            "womens rn",
-            "work wear polo",
-            "workwear polo",
-          ];
-          const colorFilterKeywords = [
-            "black",
-            "pink",
-            "charcoal melange",
-            "ecru melange",
-            "grey melange",
-            "mustard yellow",
-            "navy blue",
-            "red",
-            "white",
-            "army green",
-            "royal blue",
-            "maroon",
-            "lemon yellow",
-            "olive green",
-            "leaf green",
-            "beige",
-            "yellow",
-            "navy",
-            "turquoise blue",
-            "turquoise",
-            "turcoise blue",
-            "chocolate brown",
-            "sky blue",
-          ]
-          const colorHexCodes = {
-            "black": "#000000",
-            "pink": "#ffb6c1",
-            "charcoal melange": "#464646",
-            "ecru melange": "#F5F5DC",
-            "grey melange": "#808080",
-            "mustard yellow": "#FFDB58",
-            "navy blue": "#000080",
-            "red": "#FF0000",
-            "white": "#FFFFFF",
-            "army green": "#4B5320",
-            "royal blue": "#4169E1",
-            "maroon": "#800000",
-            "lemon yellow": "#FFF44F",
-            "olive green": "#556B2F",
-            "leaf green": "#228B22",
-            "beige": "#F5F5DC",
-            "yellow": "#FFFF00",
-            "navy": "#000080",
-            "turquoise": "#40E0D0",
-            "turcoise blue": "#00FFEF",
-            "chocolate brown": "#7B3F00",
-            "sky blue": "#87CEEB"
-          };
-          const sizeFilterKeywords = [
-            "xs",
-            "s",
-            "m",
-            "l",
-            "xl",
-            "2xl",
-            "3xl",
-            "4xl",
-            "5xl",
-            "6xl",
-            "0-1yrs",
-            "12-13yrs",
-            "10-11yrs",
-            "14-15yrs",
-            "16-17yrs",
-            "2-3yrs",
-            "3-4years",
-            "4-5yrs",
-            "5-6yrs",
-            "6-7yrs",
-            "8-9yrs",
-            "9-10yrs",
-            "10-11yrs",
-            "11-12yrs",
-            "12-13yrs",
-            "13-14yrs",
-            "14-15yrs",
-            "15-16yrs",
-            "16-17yrs",
-          ]
-
-          const colorPattern = new RegExp(colorFilterKeywords.join('|'), 'i');
-          const shirtPattern = new RegExp(shirtFilterKeywords.join('|'), 'i');
-          const sizePattern = new RegExp(sizeFilterKeywords.join('|'), 'i');
 
           // filter null products
           zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.filter(product => {
@@ -1189,6 +1209,8 @@ exports.getZohoProducts = async (req, res) => {
                 const style = shirtMatches ? item_name.substring(shirtMatches.index, shirtMatches[0].length) : null;
                 const color = colorMatches ? colorMatches[0].split(" ").map(colorWord => colorWord[0].toUpperCase() + colorWord.substring(1,)).join(' ') : 'color';
                 const colorCode = colorHexCodes[colorMatches ? colorMatches[0] : 'white'];
+
+                // console.log(productImageRef.getDownloadURL());
 
                 if (!style) return;
 
