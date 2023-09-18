@@ -1102,6 +1102,7 @@ exports.getZohoProducts = async (req, res) => {
       "navy": "#000080",
       "turquoise": "#40E0D0",
       "turcoise blue": "#00FFEF",
+      "turquoise blue": "#40e0d0",
       "chocolate brown": "#7B3F00",
       "sky blue": "#87CEEB",
       "bottle green": "#006A4E",
@@ -1146,26 +1147,21 @@ exports.getZohoProducts = async (req, res) => {
 
     const imageNames = await storageReference.child("products/").listAll();
     const imageURLs = imageNames.items.map(item => ({
-      image: item._delegate._location.path_.split("/")[1],
+      image: item._delegate._location.path_.split("/")[1].toLowerCase(),
       url: Promise.resolve(item.getDownloadURL())
     }));
     const imageURLsPromise = imageURLs.map(url => url.url);
 
-    Promise.all(imageURLsPromise).then(results => {
-      results.map((result, i) => {
+    const URLResults = await Promise.all(imageURLsPromise);
+    URLResults.forEach((result, i) => {
         imageURLs[i].url = result
-      })
-     // console.log(imageURLs);
-    }).catch(err => console.log(err))
-
-    const imageColorMatches = imageURLs.map(color => color.image.match(colorPattern));
-    console.log(imageColorMatches);
+    })
 
     Promise.allSettled(pagePromises).then(results => {
       var categorizedProducts = {};
+      var filterArray = {};
       results.forEach(result => {
         if (result.status === 'fulfilled') {
-
           zohoInventoryItemsResponse.items.push(...result.value.items)
 
           // filtering out only valid items and only having necessary fields for each item
@@ -1192,7 +1188,8 @@ exports.getZohoProducts = async (req, res) => {
           });
 
           // apply categorization for each product
-          zohoInventoryItemsResponse.items.forEach(product => {
+          zohoInventoryItemsResponse.items.forEach((product, i) => {
+            
             const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer, description, group } = product;
             const splitItemName = item_name.split(/\s*[- ]\s*/);
 
@@ -1201,16 +1198,15 @@ exports.getZohoProducts = async (req, res) => {
             let shirtMatches = item_name.toLowerCase().match(shirtPattern);
             let sizeMatches = splitItemName[splitItemName.length - 1].toLowerCase().match(sizePattern);
             if (shirtMatches && shirtMatches[0] === "kids half sleeve") sizeMatches = item_name.split(" - ")[1].toLowerCase().match(sizePattern);
-
+            
             // if size and shirt matches, then
-            if (sizeMatches && shirtMatches) {
+            if (colorMatches && shirtMatches && sizeMatches) {
+
               sizeMatches.forEach((sizeMatch) => {
                 const size = shirtMatches[0] === "kids half sleeve" ? sizeMatch : splitItemName[splitItemName.length - 1];
                 const style = shirtMatches ? item_name.substring(shirtMatches.index, shirtMatches[0].length) : null;
                 const color = colorMatches ? colorMatches[0].split(" ").map(colorWord => colorWord[0].toUpperCase() + colorWord.substring(1,)).join(' ') : 'color';
                 const colorCode = colorHexCodes[colorMatches ? colorMatches[0] : 'white'];
-
-                // console.log(productImageRef.getDownloadURL());
 
                 if (!style) return;
 
@@ -1276,6 +1272,7 @@ exports.getZohoProducts = async (req, res) => {
           categorizedProducts['error'] = result.reason;
         };
       });
+
       // grouping logical products together
       if (categorizedProducts["MENS ROUND NECK"]) categorizedProducts["MENS ROUND NECK"].colors = { ...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors }
       if (categorizedProducts["MENS RN"]) delete categorizedProducts["MENS RN"];
@@ -1283,7 +1280,35 @@ exports.getZohoProducts = async (req, res) => {
       if (categorizedProducts["HOODIE"]) delete categorizedProducts["HOODIE"];
       if (categorizedProducts["POLO"]) delete categorizedProducts["POLO"];
       if (categorizedProducts["Women Boyfriend"]) delete categorizedProducts["Women Boyfriend"]
+      
+      // creating regex pattern to match and find cloud image product with colors
+      const colorPatterns = {};
+      Object.keys(categorizedProducts).forEach(key => {
+        colorPatterns[key] = new RegExp(Object.keys(categorizedProducts[key].colors).join("|"), "i");
+      })
+      
+      // iterate thru each pattern and find the style and color match
+      Object.keys(colorPatterns).forEach(item => {
+        imageURLs.forEach((imageURL, i) => {
+          let nameMatch = imageURL.image.toLowerCase().match(new RegExp(item, "i"))
+          let colorMatch = imageURL.image.toLowerCase().split("-").join(" ").match(colorPatterns[item])
 
+          if(nameMatch && colorMatch){
+            let specificSelection = categorizedProducts[item]
+            let specificSelectedProduct = specificSelection.colors[Object.keys(specificSelection.colors).find(x => x.toLowerCase() === colorMatch[0])];
+
+            // match pattern la back irundhuchuna, then i assign backimage else frontimage
+            if (colorMatch.input.split(/[ .]/)[colorMatch.input.split(/[ .]/).length-2] === "back")
+              specificSelectedProduct.backImage = imageURL.url;
+            else specificSelectedProduct.frontImage = imageURL.url;
+
+            // overall style baseimage
+            specificSelection.baseImage.front = specificSelectedProduct.frontImage;
+            specificSelection.baseImage.back = specificSelectedProduct.backImage;
+          }
+        });
+
+      })
       res.json(categorizedProducts);
     })
 

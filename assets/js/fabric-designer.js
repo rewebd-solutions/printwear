@@ -551,6 +551,7 @@ const downloadDesign = () => {
 
   // Use a short delay to ensure the browser has updated the DOM with the transform
   setTimeout(() => {
+    console.log(fabricCanvas.getObjects());
     domtoimage.toBlob(node, config).then(function (blob) {
       // Restore original transformation
       node.style.transform = originalTransform;
