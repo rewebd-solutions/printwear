@@ -21,6 +21,8 @@ var ColorModel = require("../model/colorModel");
 var DesignModel = require("../model/designModel");
 var OrderModel = require("../model/orderModel");
 
+var NewDesignModel = require("../model/newDesignModel");
+
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var nodemailer = require('nodemailer');
 const otpGen = require("otp-generator")
@@ -1336,5 +1338,48 @@ exports.getZohoProductGroups = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.json({ error });
+  }
+}
+
+// endpoints for uploading design images
+exports.uploadimages = async (req, res) => {
+  try {
+    // console.log(req.file);
+    const fileBuffer = req.files;
+
+    req.body.productData = JSON.parse(req.body.productData)
+
+    let uniqueSKU = req.body.productData.product.SKU + "-" + otpGen.generate(4, { specialChars: false })
+
+    let recordOfFileNames = {};
+
+    for(let file of fileBuffer) {
+      const fileReference = storageReference.child(`images/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU + "_" + file.originalname}`);
+      await fileReference.put(file.buffer);
+      const fileDownloadURL = await fileReference.getDownloadURL();
+      recordOfFileNames[file.originalname] = fileDownloadURL;
+      console.log(fileDownloadURL);
+    }
+
+    const designSave = await NewDesignModel.findOneAndUpdate(
+      { userId: req.userId },
+      {
+        $push: { designs: {
+            product: {...req.body.productData.product},
+            designSKU: uniqueSKU,
+            designImage: {
+                front: req.body.direction === "front" && recordOfFileNames["DesignImage-"+req.body.direction+".png"],
+                back: req.body.direction === "back" && recordOfFileNames["DesignImage-"+req.body.direction+".png"]
+            }
+        }}
+      },
+      { upsert: true, new: true }
+    )
+
+    console.log(designSave);
+    res.status(200).send("OK")
+  } catch (error) {
+    console.log(error);
+    res.status(500);
   }
 }

@@ -26,6 +26,8 @@ route.post("/adddesign", authServices.authorizeToken, controller.adddesign);
 route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 route.post("/deletedesign", authServices.authorizeToken, controller.deletedesign);
 
+route.post("/uploadimages", authServices.authorizeToken, upload.array('images'), controller.uploadimages);
+
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
 
 route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);

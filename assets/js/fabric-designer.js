@@ -228,6 +228,7 @@ const fetchProductData = async () => {
     renderColors();
     loadMockupImage();
     displaySizes();
+
   } catch (error) {
     console.log(error);
     notyf.error({
@@ -242,6 +243,15 @@ const fetchProductData = async () => {
 const positionChangeButtons = document.querySelectorAll(".position-btn");
 const sideChangeButtons = document.querySelectorAll(".side-btn");
 const textInputBox = document.querySelector("#canvas-text-input");
+
+// add event listener to avoid uploading without selecting size
+document.querySelector(".design-input-label").addEventListener("click", (e) => {
+  if (!globalProductID) {
+    e.preventDefault();
+    notyf.error("Select a size before uploading");
+    return;
+  }
+})
 
 // Changing current color and its image
 const changeMockup = (color, id) => {
@@ -486,7 +496,9 @@ const downloadDesign = () => {
 
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
-  if (!isDesignNameValid) return;
+  if (!isDesignNameValid) {
+    notyf.error("Give your design a name");
+  };
 
   const node = document.getElementById("product-design");
 
@@ -524,15 +536,88 @@ const downloadDesign = () => {
 };
 
 // save to cloud
-const saveDesign = () => {
+const saveDesign = async () => {
   // generate SKU
-  // upload individual images to firebase
-  // upload design to firebase
+  
+  // lot of repeating code, can be optimized later
+  // follow everything as in download func but convert that blob to File() then upload
+  if (fabricCanvas.getActiveObject()) {
+    fabricCanvas.discardActiveObject().renderAll();
+  }
+
+  const designName = document.getElementById("design-name");
+  let isDesignNameValid = designName.reportValidity();
+  if (!isDesignNameValid) {
+    notyf.error("Give your design a name");
+  };
+
+  const node = document.getElementById("product-design");
+
+  const config = {
+    width: 900,
+    height: 1200,
+    style: {
+      transformOrigin: "0 0",
+      transform: "scale(2)",
+    },
+  };
+
   const imagesTobeUploaded = fabricCanvas.getObjects().map(obj => obj._element.src);
-  const filesFromBlobs = imagesTobeUploaded.map((blob, i) => new File([blob], "Image"+i+".png"));
-  console.log(filesFromBlobs);
-  const formData = new FormData();
-  return;
+  const filesFromBlobs = [];
+  let i = 0;
+  for(url of imagesTobeUploaded) {
+    let blobReq = await fetch(url);
+    let blobFile = await blobReq.blob();
+    i++;
+    filesFromBlobs.push(new File([blobFile], "Image-"+i+".png", { type: 'image/png' }))
+  }
+
+  let submitProduct = Product.colors.find(x => x._id === currentColor).sizes.find(size => size.id === globalProductID)
+
+  let designModelObject = {
+    product: {
+      id: submitProduct.id,
+      name: submitProduct.name,
+      style: Product.name,
+      color: Product.colors.find(x => x._id === currentColor).colorName,
+      size: submitProduct.size,
+      SKU: submitProduct.sizeSku,
+      price: submitProduct.price,
+      baseImage: {
+          front: Product.baseImage.front,
+          back: Product.baseImage.back,
+      },
+      dimensions: submitProduct.dimensions
+    },
+    designName: designName.value,
+    price: (designImageHeight * Product.pixelToInchRatio).toFixed(2) * (designImageWidth * Product.pixelToInchRatio).toFixed(2) * 2,
+    designDimensions: {
+      width: (designImageWidth * Product.pixelToInchRatio).toFixed(2),
+      height: (designImageHeight * Product.pixelToInchRatio).toFixed(2)
+    },
+  }
+  
+  domtoimage.toBlob(node, config).then(async blob => {
+    filesFromBlobs.push(new File([blob], "DesignImage-" + designDirection + ".png", { type: 'image/png' }))
+
+    const formData = new FormData();
+    filesFromBlobs.forEach((file) => formData.append('images', file));
+    formData.append("designHeight", (designImageHeight * Product.pixelToInchRatio).toFixed(2))
+    formData.append("designWidth", (designImageWidth * Product.pixelToInchRatio).toFixed(2))
+    formData.append("productData", JSON.stringify(designModelObject));
+    formData.append("direction", designDirection);
+
+    const saveDesignRequest = await fetch("/uploadimages", {
+      method: "POST",
+      body: formData,
+    });
+    const saveDesignResponse = await saveDesignRequest.text();
+    if (saveDesignRequest.ok) {
+      console.log(saveDesignResponse);
+    }
+    return;
+  })
+
 };
 
 //Set Position
