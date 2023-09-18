@@ -98,13 +98,13 @@ body {
   display: grid;
   place-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: 0.4rem;
 }
 
 #img {
   width: 250px;
   height: 250px;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .search {

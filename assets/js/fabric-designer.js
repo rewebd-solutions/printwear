@@ -1,80 +1,5 @@
 // Product data old for initializing
-var Product = {
-  name: "",
-  category: "",
-  gender: "",
-  description: "",
-  productImage: {
-    front: "./images/mens round neck/white-front.jpg",
-    back: "./images/mens round neck/white-back.jpg",
-  },
-  colors: [
-    {
-      _id: 1,
-      colorName: "WHITE",
-      colorSKU: "",
-      hex: "#FFFFFF",
-      productId: 1,
-      colorImage: {
-        front: "./images/mens round neck/white-front.jpg",
-        back: "./images/mens round neck/white-back.jpg",
-      },
-      sizes: [
-        { sizeSku: "XS", size: "XS", stock: 0 },
-        { sizeSku: "S", size: "S", stock: 0 },
-        { sizeSku: "M", size: "M", stock: 0 },
-        { sizeSku: "L", size: "L", stock: 0 },
-      ],
-    },
-    {
-      _id: 2,
-      colorName: "BLACK",
-      colorSKU: "",
-      hex: "#000000",
-      productId: 1,
-      colorImage: {
-        front: "./images/mens round neck/black-front.jpg",
-        back: "./images/mens round neck/black-back.jpg",
-      },
-      sizes: [
-        { sizeSku: "S", size: "S", stock: 0 },
-        { sizeSku: "M", size: "M", stock: 0 },
-        { sizeSku: "L", size: "L", stock: 0 },
-        { sizeSku: "XL", size: "XL", stock: 0 },
-      ],
-    },
-    {
-      _id: 3,
-      colorName: "GREY",
-      colorSKU: "",
-      hex: "#858585",
-      productId: 1,
-      colorImage: {
-        front: "./images/mens round neck/grey-front.jpg",
-        back: "./images/mens round neck/grey-back.jpg",
-      },
-      sizes: [
-        { sizeSku: "S", size: "S", stock: 0 },
-        { sizeSku: "M", size: "M", stock: 0 },
-        { sizeSku: "L", size: "L", stock: 0 },
-      ],
-    },
-  ],
-  canvas: {
-    front: {
-      startX: 0,
-      startY: 0,
-      width: 13,
-      height: 18,
-    },
-    back: {
-      startX: 0,
-      startY: 0,
-      width: 13,
-      height: 18,
-    },
-  },
-};
+var Product = {};
 
 // actual product data obtained from fetch()
 const OLD_productData = {
@@ -238,6 +163,8 @@ let designDirection = "front";
 // Storing design image, and its height and width
 let designImg, designImageWidth, designImageHeight;
 
+var globalProductID = null;
+
 // notyf snackbar 
 var notyf = new Notyf();
 
@@ -257,11 +184,12 @@ const fetchProductData = async () => {
     const productDataRequest = await fetch("/getzohoproducts");
     const productDataResponse = await productDataRequest.json();
     productData = productDataResponse[productStyle];
+    console.log(productData);
     productData.name = productStyle;
 
     // modify Product to fill in details from fetch()
     Product = {
-      ...Product,
+      ...productData,
       brand: productData.brand,
       name: productData.name,
       description: productData.description,
@@ -292,15 +220,13 @@ const fetchProductData = async () => {
     console.log(Product);
 
     // Current selected color - first color is chosen as default
-    currentColor =
-      Product.colors.find((color) => color.colorName === "White")?._id ||
-      Product.colors[0]._id; // declare currentColor here like global var
+    currentColor = Product.colors.find((color) => color.frontImage != '')?._id // declare currentColor here like global var
 
     // call global funcs
     renderColors();
     loadMockupImage();
     displaySizes();
-    setPixelRatio();
+    // setPixelRatio() called inside displaySizes()
   } catch (error) {
     console.log(error);
     notyf.error({
@@ -318,22 +244,21 @@ const textInputBox = document.querySelector("#canvas-text-input");
 
 // Changing current color and its image
 const changeMockup = (color, id) => {
+  let mockupImageContainer = document.getElementById("mockup-image");
+
   let selectedMockup = Product.colors.find((color) => color._id === id);
   const element = document.getElementById(`${color}-${id}`);
-  const sizeList = document.querySelector(".size-list");
+
   renderColorBorder(color, id);
-  while (sizeList.children.length > 0) {
-    sizeList.removeChild(sizeList.lastChild);
-  }
+  globalProductID = null;
   currentColor = id;
   element.style.border = "2px solid red";
   displaySizes();
-  if (designDirection === "front")
-    document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.front;
-  else
-    document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.back;
+
+  if (designDirection === "front"){
+    mockupImageContainer.src = (selectedMockup.colorImage.front != '')? selectedMockup.colorImage.front : '/images/warning.png';
+  } else mockupImageContainer.src = (selectedMockup.colorImage.back != '')? selectedMockup.colorImage.back : '/images/warning.png';
+  document.querySelector(".loader").remove();
 };
 
 // func to draW border around active color
@@ -370,6 +295,7 @@ const renderColors = () => {
 
 // Loading first image of mockupImages
 const loadMockupImage = () => {
+  document.querySelector(".loader").remove();
   const image = document.getElementById("mockup-image");
   image.src = Product.colors.find(
     (color) => color._id === currentColor
@@ -394,20 +320,29 @@ const updateStats = () => {
     " inches";
 };
 
+const changeSize = (e, size, id) => {
+  const sizeButtons = document.querySelectorAll(".size-options");
+  sizeButtons.forEach(sizeBtn => sizeBtn.style.border = "2px solid #6a6969");
+  e.target.style.border = "2px solid red";
+  console.log(id, size);
+  globalProductID = id; // check b4 downloading or saving if this is checked
+  setPixelRatio(globalProductID);
+  // also write code to change ratio dimensions
+}
+
 // Displaying available size of currently selected color
 const displaySizes = () => {
   const parent = document.querySelector(".size-list");
-  const current = Product.colors.filter((item) => item._id === currentColor)[0];
-  current.sizes.map((item) => {
-    const child = document.createElement("div");
-    const innerHTML = `
-      <div class="size-options">
-      <p>${item.size}</p>
-      </div>
-    `;
-    child.innerHTML = innerHTML;
-    parent.appendChild(child);
-  });
+  parent.innerHTML = '';
+  const current = Product.colors.find((item) => item._id === currentColor);
+  let sizeDOMString = current.sizes.map((item) => {
+    return `
+        <div class="size-options" onclick="changeSize(event,'${item.size}', '${item.id}')">
+        ${item.size}
+        </div>
+      `;
+    }).join("");
+  parent.innerHTML = sizeDOMString;
 };
 /*
   #### Formula ###
@@ -415,10 +350,9 @@ const displaySizes = () => {
   1px = 28/500 inch
   1 inch = 500/28 px
 */
-const setPixelRatio = () => {
-  const currentProductVariant = Product.colors.find(
-    (color) => color._id === currentColor
-  ).sizes[0];
+const setPixelRatio = (productID) => {
+  currentProductVariant = Product.colors.find((color) => color._id === currentColor).sizes.find(size => size.id === productID)
+  console.log(currentProductVariant);
   Product.pixelToInchRatio = currentProductVariant.dimensions.length / 500;
   Product.inchToPixelRatio = 500 / currentProductVariant.dimensions.length;
   addFabricCanvasToTemplateDiv();
@@ -515,7 +449,7 @@ const addImageToCanvas = (event) => {
       designImageHeight = designImage.height * designImage.scaleY;
       designImageWidth = designImage.width * designImage.scaleX;
       updateStats();
-      fabricCanvas.add(designImage);
+      fabricCanvas.add(designImage); // image add pantu, apro go thru all objs and obtain the height and add to above line
       fabricCanvas.setActiveObject(designImage);
     });
   }

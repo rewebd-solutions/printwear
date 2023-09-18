@@ -14,8 +14,8 @@
 }
 
 .loader {
-   width: 48px;
-   height: 48px;
+   width: 36px;
+   height: 36px;
    border-radius: 50%;
    position: relative;
    animation: rotate 1s linear infinite
@@ -27,7 +27,7 @@
    position: absolute;
    inset: 0px;
    border-radius: 50%;
-   border: 5px solid #E74015;
+   border: 3px solid #E74015;
    animation: prixClipFix 2s linear infinite;
 }
 
@@ -235,7 +235,7 @@ button:hover {
 }
 
 .active-btn {
-   transform: scale(1.02);
+   transform: scale(1.075);
    outline: 2px solid #E74015;
    background-color: #E74015;
    color: white;
