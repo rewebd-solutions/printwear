@@ -27,7 +27,7 @@
    position: absolute;
    inset: 0px;
    border-radius: 50%;
-   border: 5px solid #FFF;
+   border: 5px solid #E74015;
    animation: prixClipFix 2s linear infinite;
 }
 
@@ -139,7 +139,7 @@
    place-items: center;
    width: fit-content;
    cursor: pointer;
-   margin-right: 2%;
+   text-align: center;
 }
 
 .color-circle {

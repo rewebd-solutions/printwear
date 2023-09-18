@@ -89,7 +89,7 @@
                         <h6>by ${currentProduct.brand ? currentProduct.brand: 'Brand'}</h6>
                     </div>
                     <div class="card-img">
-                        <img src="${currentProduct.baseImage.front}" id="img" alt="">
+                        <img src="${currentProduct.baseImage.front??'/images/warning.png'}" id="img" alt="">
                     </div>
                     <div class="details">
                         <div class="stock-avail">
@@ -120,6 +120,7 @@
             const productData = productsData[style];
             const anyColorForSizes = Object.keys(productData.colors)[0];
             console.log(productData);
+            const productImage = productData.baseImage.front;
             let productModalDOMString = `
                 <div class="product-modal-wrapper">
                     <div class="product-modal" data-aos="fade-up">
@@ -127,7 +128,7 @@
                             <i class="fa fa-close"></i>
                         </button>
                         <div class="product-modal-image">
-                            <img src="${productData.baseImage.front}"
+                            <img src="${productImage?? 'images/warning.png'}"
                                 alt="${style}">
                         </div>
                         <div class="product-modal-details">
@@ -136,7 +137,7 @@
                                 <h5>${productData.group}</h5>
                             </div>
                             <p class="product-description">
-                                ${productData.description}
+                                ${productImage? productData.description: 'Product is not available yet!'}
                             </p>
                             <div class="product-colors">
                                 <p>Colors: </p>
@@ -155,7 +156,7 @@
                             </div>
                             <div class="product-price-button">
                                 <h4>Starts from ₹${calculateCardPrice(productData)}</h4>
-                                <a href="/designgenerator"><button>Design now</button></a>
+                                ${productImage?`<a href="/designgenerator?style=${style.split(" ").join("+")}"><button>Design now</button></a>`:`<button disabled="true">Cannot design yet!</button>`}
                             </div>
                         </div>
                     </div>

@@ -77,7 +77,7 @@ var Product = {
 };
 
 // actual product data obtained from fetch()
-const productData = {
+const OLD_productData = {
   name: "BW MENS",
   brand: "BEWAKOOF",
   manufacturer: "PRINTWEAR",
@@ -229,6 +229,8 @@ const productData = {
   },
 };
 
+var productData = {};
+
 // Holds the canvas instance
 let fabricCanvas = null;
 // Starting design direction
@@ -236,11 +238,27 @@ let designDirection = "front";
 // Storing design image, and its height and width
 let designImg, designImageWidth, designImageHeight;
 
+// notyf snackbar 
+var notyf = new Notyf();
+
 // fetch function and then global functions calling done here
 const fetchProductData = async () => {
   try {
     // fetch call
-    console.log(productData);
+    const productStyle = new URLSearchParams(location.search).get("style").split("+").join(" ");
+    console.log(productStyle);
+    if (!productStyle) {
+      return notyf.error({
+        message: "Invalid URL",
+        dismissible: true,
+        duration: 5000
+      });
+    }
+    const productDataRequest = await fetch("/getzohoproducts");
+    const productDataResponse = await productDataRequest.json();
+    productData = productDataResponse[productStyle];
+    productData.name = productStyle;
+
     // modify Product to fill in details from fetch()
     Product = {
       ...Product,
@@ -285,7 +303,7 @@ const fetchProductData = async () => {
     setPixelRatio();
   } catch (error) {
     console.log(error);
-    new Notyf.error({
+    notyf.error({
       message: "There was an error trying to fetch product details!",
       dismissible: true,
       ripple: false,
@@ -331,10 +349,11 @@ const renderColorBorder = (color, id) => {
 // Displaying the colors to user
 const renderColors = () => {
   const parent = document.querySelector(".color-list");
+  parent.innerHTML = '';
   Product.colors.map((color) => {
     const child = document.createElement("div");
     const innerHTML = `
-    <div class="color-options" onclick="changeMockup(${color.colorName}, ${
+    <div class="color-options" onclick="changeMockup('${color.colorName}', ${
       color._id
     })">
     <span class="color-circle" style="background: ${color.hex}; border: ${
