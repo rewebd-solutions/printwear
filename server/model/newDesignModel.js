@@ -36,7 +36,13 @@ var NewDesignSchema = new mongoose.Schema({
             designImage: {
                 front: String,
                 back: String
-            }
+            },
+            designItems: [
+                {
+                    itemName: String,
+                    URL: String
+                }
+            ]
         }
     ]
 });

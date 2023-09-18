@@ -1367,10 +1367,17 @@ exports.uploadimages = async (req, res) => {
         $push: { designs: {
             product: {...req.body.productData.product},
             designSKU: uniqueSKU,
+            desingName: req.body.productData.designName,
             designImage: {
                 front: req.body.direction === "front" && recordOfFileNames["DesignImage-"+req.body.direction+".png"],
                 back: req.body.direction === "back" && recordOfFileNames["DesignImage-"+req.body.direction+".png"]
-            }
+            },
+            designItems: Object.keys(recordOfFileNames).map(item => {
+                return {
+                  itemName: item,
+                  URL: recordOfFileNames[item]
+                }
+            })
         }}
       },
       { upsert: true, new: true }

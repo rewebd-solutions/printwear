@@ -1,159 +1,6 @@
 // Product data old for initializing
 var Product = {};
 
-// actual product data obtained from fetch() → now useless
-const OLD_productData = {
-  name: "BW MENS",
-  brand: "BEWAKOOF",
-  manufacturer: "PRINTWEAR",
-  description: "Item available for designing",
-  group: "BW",
-  baseImage: {
-    front: "./images/mens round neck/white-front.jpg",
-    back: "./images/mens round neck/white-back.jpg",
-  },
-  colors: {
-    Black: {
-      frontImage: "./images/mens round neck/black-front.jpg",
-      backImage: "./images/mens round neck/black-back.jpg",
-      colorCode: "#000000",
-      sizes: {
-        "2XL": {
-          id: "650580000000035017",
-          name: "BW MENS RN BLACK-2XL",
-          stock: 60,
-          price: 550,
-          sku: "BWRNBK2XL-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        "3XL": {
-          id: "650580000000035019",
-          name: "BW MENS RN BLACK-3XL",
-          stock: 50,
-          price: 150,
-          sku: "BWRNBK3XL-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        "4XL": {
-          id: "650580000000035021",
-          name: "BW MENS RN BLACK-4XL",
-          stock: 100,
-          price: 150,
-          sku: "BWRNBK4XL-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        "5XL": {
-          id: "650580000000035023",
-          name: "BW MENS RN BLACK-5XL",
-          stock: 0,
-          price: 150,
-          sku: "BWRNBK5XL-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        L: {
-          id: "650580000000035013",
-          name: "BW MENS RN BLACK-L",
-          stock: 200,
-          price: 150,
-          sku: "BWRNBKL-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        M: {
-          id: "650580000000035011",
-          name: "BW MENS RN BLACK-M",
-          stock: 100,
-          price: 150,
-          sku: "BWRNBKM-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        S: {
-          id: "650580000000035009",
-          name: "BW MENS RN BLACK-S",
-          stock: 0,
-          price: 150,
-          sku: "BWRNBKS-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        XL: {
-          id: "650580000000035015",
-          name: "BW MENS RN BLACK-XL",
-          stock: 0,
-          price: 150,
-          sku: "BWRNBKXL-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-        XS: {
-          id: "650580000000035007",
-          name: "BW MENS RN BLACK-XS",
-          stock: 0,
-          price: 150,
-          sku: "BWRNBKXS-M",
-          dimensions: {
-            length: 28,
-            chest: 38,
-            sleeve: 7.5,
-            weight: 0.5,
-          },
-        },
-      },
-    },
-  },
-  canvas: {
-    front: {
-      startX: 0,
-      startY: 0,
-      width: 13,
-      height: 18,
-    },
-    back: {
-      startX: 0,
-      startY: 0,
-      width: 13,
-      height: 18,
-    },
-  },
-};
-
 var productData = {};
 
 // Holds the canvas instance
@@ -243,6 +90,7 @@ const fetchProductData = async () => {
 const positionChangeButtons = document.querySelectorAll(".position-btn");
 const sideChangeButtons = document.querySelectorAll(".side-btn");
 const textInputBox = document.querySelector("#canvas-text-input");
+const saveButton = document.querySelector(".save-button");
 
 // add event listener to avoid uploading without selecting size
 document.querySelector(".design-input-label").addEventListener("click", (e) => {
@@ -252,6 +100,13 @@ document.querySelector(".design-input-label").addEventListener("click", (e) => {
     return;
   }
 })
+
+// function to toggle disabling and enabling button
+const disableButton = (state) => {
+  saveButton.setAttribute("disabled", state? true: false);
+  state? saveButton.classList.add("disabled"): saveButton.classList.remove("disabled");
+  state? saveButton.innerHTML = 'Saving...': saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`;
+}
 
 // Changing current color and its image
 const changeMockup = (color, id) => {
@@ -497,14 +352,10 @@ const downloadDesign = () => {
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
   if (!isDesignNameValid) {
-    notyf.error("Give your design a name");
+    return notyf.error("Give your design a name");
   };
 
   const node = document.getElementById("product-design");
-
-  // Apply the transformation to node
-  //node.style.transformOrigin = "0 0";
-  //node.style.transform = "scale(2)"; → not necessary
 
   const config = {
     width: 900,
@@ -537,87 +388,93 @@ const downloadDesign = () => {
 
 // save to cloud
 const saveDesign = async () => {
-  // generate SKU
-  
   // lot of repeating code, can be optimized later
   // follow everything as in download func but convert that blob to File() then upload
+  disableButton(true);
+  
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
-
+  
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
   if (!isDesignNameValid) {
-    notyf.error("Give your design a name");
+    return notyf.error("Give your design a name");
   };
-
-  const node = document.getElementById("product-design");
-
-  const config = {
-    width: 900,
-    height: 1200,
-    style: {
-      transformOrigin: "0 0",
-      transform: "scale(2)",
-    },
-  };
-
-  const imagesTobeUploaded = fabricCanvas.getObjects().map(obj => obj._element.src);
-  const filesFromBlobs = [];
-  let i = 0;
-  for(url of imagesTobeUploaded) {
-    let blobReq = await fetch(url);
-    let blobFile = await blobReq.blob();
-    i++;
-    filesFromBlobs.push(new File([blobFile], "Image-"+i+".png", { type: 'image/png' }))
-  }
-
-  let submitProduct = Product.colors.find(x => x._id === currentColor).sizes.find(size => size.id === globalProductID)
-
-  let designModelObject = {
-    product: {
-      id: submitProduct.id,
-      name: submitProduct.name,
-      style: Product.name,
-      color: Product.colors.find(x => x._id === currentColor).colorName,
-      size: submitProduct.size,
-      SKU: submitProduct.sizeSku,
-      price: submitProduct.price,
-      baseImage: {
-          front: Product.baseImage.front,
-          back: Product.baseImage.back,
-      },
-      dimensions: submitProduct.dimensions
-    },
-    designName: designName.value,
-    price: (designImageHeight * Product.pixelToInchRatio).toFixed(2) * (designImageWidth * Product.pixelToInchRatio).toFixed(2) * 2,
-    designDimensions: {
-      width: (designImageWidth * Product.pixelToInchRatio).toFixed(2),
-      height: (designImageHeight * Product.pixelToInchRatio).toFixed(2)
-    },
-  }
   
-  domtoimage.toBlob(node, config).then(async blob => {
-    filesFromBlobs.push(new File([blob], "DesignImage-" + designDirection + ".png", { type: 'image/png' }))
-
-    const formData = new FormData();
-    filesFromBlobs.forEach((file) => formData.append('images', file));
-    formData.append("designHeight", (designImageHeight * Product.pixelToInchRatio).toFixed(2))
-    formData.append("designWidth", (designImageWidth * Product.pixelToInchRatio).toFixed(2))
-    formData.append("productData", JSON.stringify(designModelObject));
-    formData.append("direction", designDirection);
-
-    const saveDesignRequest = await fetch("/uploadimages", {
-      method: "POST",
-      body: formData,
-    });
-    const saveDesignResponse = await saveDesignRequest.text();
-    if (saveDesignRequest.ok) {
-      console.log(saveDesignResponse);
+  try {
+    const node = document.getElementById("product-design");
+    
+    console.log("working?");
+    const config = {
+      width: 900,
+      height: 1200,
+      style: {
+        transformOrigin: "0 0",
+        transform: "scale(2)",
+      },
+    };
+  
+    const imagesTobeUploaded = fabricCanvas.getObjects().map(obj => obj._element? obj._element.src: obj.toDataURL());
+    const filesFromBlobs = [];
+    let i = 0;
+    for(url of imagesTobeUploaded) {
+      let blobReq = await fetch(url);
+      let blobFile = await blobReq.blob();
+      i++;
+      filesFromBlobs.push(new File([blobFile], "Image-"+i+".png", { type: 'image/png' }))
     }
-    return;
-  })
-
+  
+    let submitProduct = Product.colors.find(x => x._id === currentColor).sizes.find(size => size.id === globalProductID)
+  
+    let designModelObject = {
+      product: {
+        id: submitProduct.id,
+        name: submitProduct.name,
+        style: Product.name,
+        color: Product.colors.find(x => x._id === currentColor).colorName,
+        size: submitProduct.size,
+        SKU: submitProduct.sizeSku,
+        price: submitProduct.price,
+        baseImage: {
+            front: Product.baseImage.front,
+            back: Product.baseImage.back,
+        },
+        dimensions: submitProduct.dimensions
+      },
+      designName: designName.value,
+      price: (designImageHeight * Product.pixelToInchRatio).toFixed(2) * (designImageWidth * Product.pixelToInchRatio).toFixed(2) * 2,
+      designDimensions: {
+        width: (designImageWidth * Product.pixelToInchRatio).toFixed(2),
+        height: (designImageHeight * Product.pixelToInchRatio).toFixed(2)
+      },
+    }
+    
+    domtoimage.toBlob(node, config).then(async blob => {
+      filesFromBlobs.push(new File([blob], "DesignImage-" + designDirection + ".png", { type: 'image/png' }))
+  
+      const formData = new FormData();
+      filesFromBlobs.forEach((file) => formData.append('images', file));
+      formData.append("designHeight", (designImageHeight * Product.pixelToInchRatio).toFixed(2))
+      formData.append("designWidth", (designImageWidth * Product.pixelToInchRatio).toFixed(2))
+      formData.append("productData", JSON.stringify(designModelObject));
+      formData.append("direction", designDirection);
+  
+      const saveDesignRequest = await fetch("/uploadimages", {
+        method: "POST",
+        body: formData,
+      });
+      const saveDesignResponse = await saveDesignRequest.text();
+      if (saveDesignRequest.ok) {
+        disableButton(false);
+        return notyf.success("Design saved successfully!");
+      }
+      
+    })    
+  } catch (error) {
+    console.log(error);
+    return notyf.error("Design failed to save!");
+  }
 };
 
 //Set Position
