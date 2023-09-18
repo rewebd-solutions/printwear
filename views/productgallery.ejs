@@ -89,7 +89,7 @@
                         <h6>by ${currentProduct.brand ? currentProduct.brand: 'Brand'}</h6>
                     </div>
                     <div class="card-img">
-                        <img src="${currentProduct.baseImage.front??'/images/warning.png'}" id="img" alt="">
+                        <img src="${currentProduct.baseImage.front != ''? currentProduct.baseImage.front: 'images/warning.png'}" id="img" alt="${style}">
                     </div>
                     <div class="details">
                         <div class="stock-avail">
@@ -106,7 +106,6 @@
             }
             cardsContainer.addEventListener("click", (e) => {
                 let toggleModalBtn = e.target.closest(".toggle-modal");
-                console.log("trig", toggleModalBtn);
                 if (toggleModalBtn) {
                     let styleToOpen = Object.keys(productsData).find(product => slugifyNames(e.target.dataset.productid) == slugifyNames(product));
                     openProductModal(styleToOpen);
@@ -128,7 +127,7 @@
                             <i class="fa fa-close"></i>
                         </button>
                         <div class="product-modal-image">
-                            <img src="${productImage?? 'images/warning.png'}"
+                            <img src="${productImage != ''? productImage:'images/warning.png'}"
                                 alt="${style}">
                         </div>
                         <div class="product-modal-details">

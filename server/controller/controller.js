@@ -1347,18 +1347,18 @@ exports.uploadimages = async (req, res) => {
     // console.log(req.file);
     const fileBuffer = req.files;
 
+    // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData)
 
     let uniqueSKU = req.body.productData.product.SKU + "-" + otpGen.generate(4, { specialChars: false })
 
-    let recordOfFileNames = {};
+    let recordOfFileNames = {}; // map of filename:url
 
     for(let file of fileBuffer) {
       const fileReference = storageReference.child(`images/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU + "_" + file.originalname}`);
       await fileReference.put(file.buffer);
       const fileDownloadURL = await fileReference.getDownloadURL();
       recordOfFileNames[file.originalname] = fileDownloadURL;
-      console.log(fileDownloadURL);
     }
 
     const designSave = await NewDesignModel.findOneAndUpdate(
