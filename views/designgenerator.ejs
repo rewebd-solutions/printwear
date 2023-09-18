@@ -38,7 +38,6 @@
 			<div id="product-design">
 				<div class="template-div" id="mockup-image-canvas">
 					<!-- Mockup image goes here -->
-					<span class="loader"></span>
 					<img alt="mockup-image" id="mockup-image" />
 				</div>
 			</div>
@@ -66,7 +65,7 @@
 						<i class="fa fa-file-upload"></i>
 						Upload Design
 					</label>
-					<input id="design-input" type="file" accept=".png, .jpg, .jpeg" style="display: none"
+					<input id="design-input" type="file" multiple="true" accept=".png, .jpg, .jpeg" style="display: none"
 					onchange="addImageToCanvas(event)" />
 				</div>
 			</div>

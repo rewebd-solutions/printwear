@@ -1,7 +1,7 @@
 // Product data old for initializing
 var Product = {};
 
-// actual product data obtained from fetch()
+// actual product data obtained from fetch() → now useless
 const OLD_productData = {
   name: "BW MENS",
   brand: "BEWAKOOF",
@@ -165,6 +165,8 @@ let designImg, designImageWidth, designImageHeight;
 
 var globalProductID = null;
 
+var isSetPixelRatioCalled = false;
+
 // notyf snackbar 
 var notyf = new Notyf();
 
@@ -226,7 +228,6 @@ const fetchProductData = async () => {
     renderColors();
     loadMockupImage();
     displaySizes();
-    // setPixelRatio() called inside displaySizes()
   } catch (error) {
     console.log(error);
     notyf.error({
@@ -258,7 +259,7 @@ const changeMockup = (color, id) => {
   if (designDirection === "front"){
     mockupImageContainer.src = (selectedMockup.colorImage.front != '')? selectedMockup.colorImage.front : '/images/warning.png';
   } else mockupImageContainer.src = (selectedMockup.colorImage.back != '')? selectedMockup.colorImage.back : '/images/warning.png';
-  document.querySelector(".loader").remove();
+  
 };
 
 // func to draW border around active color
@@ -295,7 +296,7 @@ const renderColors = () => {
 
 // Loading first image of mockupImages
 const loadMockupImage = () => {
-  document.querySelector(".loader").remove();
+  
   const image = document.getElementById("mockup-image");
   image.src = Product.colors.find(
     (color) => color._id === currentColor
@@ -326,7 +327,7 @@ const changeSize = (e, size, id) => {
   e.target.style.border = "2px solid red";
   console.log(id, size);
   globalProductID = id; // check b4 downloading or saving if this is checked
-  setPixelRatio(globalProductID);
+  if (!isSetPixelRatioCalled) setPixelRatio(globalProductID);
   // also write code to change ratio dimensions
 }
 
@@ -351,6 +352,8 @@ const displaySizes = () => {
   1 inch = 500/28 px
 */
 const setPixelRatio = (productID) => {
+  // call this func only after a variant has been selected.. and modify the code such that the ratios modify according the size variant
+  isSetPixelRatioCalled = true;
   currentProductVariant = Product.colors.find((color) => color._id === currentColor).sizes.find(size => size.id === productID)
   console.log(currentProductVariant);
   Product.pixelToInchRatio = currentProductVariant.dimensions.length / 500;
@@ -486,12 +489,10 @@ const downloadDesign = () => {
   if (!isDesignNameValid) return;
 
   const node = document.getElementById("product-design");
-  // Store original transformation
-  const originalTransform = node.style.transform;
 
   // Apply the transformation to node
-  node.style.transformOrigin = "0 0";
-  node.style.transform = "scale(2)";
+  //node.style.transformOrigin = "0 0";
+  //node.style.transform = "scale(2)"; → not necessary
 
   const config = {
     width: 900,
@@ -507,7 +508,6 @@ const downloadDesign = () => {
     console.log(fabricCanvas.getObjects());
     domtoimage.toBlob(node, config).then(function (blob) {
       // Restore original transformation
-      node.style.transform = originalTransform;
 
       window.saveAs(
         blob,
@@ -528,7 +528,10 @@ const saveDesign = () => {
   // generate SKU
   // upload individual images to firebase
   // upload design to firebase
-  //
+  const imagesTobeUploaded = fabricCanvas.getObjects().map(obj => obj._element.src);
+  const filesFromBlobs = imagesTobeUploaded.map((blob, i) => new File([blob], "Image"+i+".png"));
+  console.log(filesFromBlobs);
+  const formData = new FormData();
   return;
 };
 
