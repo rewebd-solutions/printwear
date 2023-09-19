@@ -90,7 +90,6 @@ const fetchProductData = async () => {
 const positionChangeButtons = document.querySelectorAll(".position-btn");
 const sideChangeButtons = document.querySelectorAll(".side-btn");
 const textInputBox = document.querySelector("#canvas-text-input");
-const saveButton = document.querySelector(".save-button");
 
 // add event listener to avoid uploading without selecting size
 document.querySelector(".design-input-label").addEventListener("click", (e) => {
@@ -103,6 +102,7 @@ document.querySelector(".design-input-label").addEventListener("click", (e) => {
 
 // function to toggle disabling and enabling button
 const disableButton = (state) => {
+  const saveButton = document.querySelector(".save-button");
   saveButton.setAttribute("disabled", state? true: false);
   state? saveButton.classList.add("disabled"): saveButton.classList.remove("disabled");
   state? saveButton.innerHTML = 'Saving...': saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`;
@@ -390,6 +390,7 @@ const downloadDesign = () => {
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
   // follow everything as in download func but convert that blob to File() then upload
+  console.log("working?");
   disableButton(true);
   
   if (fabricCanvas.getActiveObject()) {
@@ -405,7 +406,6 @@ const saveDesign = async () => {
   try {
     const node = document.getElementById("product-design");
     
-    console.log("working?");
     const config = {
       width: 900,
       height: 1200,
@@ -443,7 +443,7 @@ const saveDesign = async () => {
         dimensions: submitProduct.dimensions
       },
       designName: designName.value,
-      price: (designImageHeight * Product.pixelToInchRatio).toFixed(2) * (designImageWidth * Product.pixelToInchRatio).toFixed(2) * 2,
+      price: (designImageHeight * Product.pixelToInchRatio).toFixed(2) * (designImageWidth * Product.pixelToInchRatio).toFixed(2),
       designDimensions: {
         width: (designImageWidth * Product.pixelToInchRatio).toFixed(2),
         height: (designImageHeight * Product.pixelToInchRatio).toFixed(2)
@@ -460,11 +460,11 @@ const saveDesign = async () => {
       formData.append("productData", JSON.stringify(designModelObject));
       formData.append("direction", designDirection);
   
-      const saveDesignRequest = await fetch("/uploadimages", {
+      const saveDesignRequest = await fetch("/createdesign", {
         method: "POST",
         body: formData,
       });
-      const saveDesignResponse = await saveDesignRequest.text();
+      
       if (saveDesignRequest.ok) {
         disableButton(false);
         return notyf.success("Design saved successfully!");

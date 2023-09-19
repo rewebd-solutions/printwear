@@ -368,31 +368,31 @@ exports.adddesign = async (req, res) => {
   }
 }
 
-exports.getdesigns = async (req, res) => {
-  try {
-    const designsData = await DesignModel.find({ createdBy: req.userId });
-    const productDataIDs = new Set(designsData.map(designData => designData.baseProductId + ''));
-    const productData = await ProductModel.find({ _id: { $in: [...productDataIDs] } });
-    const colorIDs = new Set(designsData.map(designData => designData.color));
-    const colorsData = await ColorModel.find({ _id: { $in: [...colorIDs] } });
-    const cartData = await CartModel.findOne({ userId: req.userId });
-    // console.log(colorsData);
-    const newDesignsData = designsData.map(design => {
-      // console.log(cartData.items.find(cartItem => cartItem.design+'' === design._id+''))
-      return {
-        design: design,
-        product: productData.find(product => product._id + '' === design.baseProductId + ''),
-        color: colorsData.find(color => color._id + '' === design.color + ''),
-        availableInCart: cartData?.items.find(cartItem => cartItem.design + '' === design._id + '') ? true : false
-      }
-    })
-    // console.log(newDesignsData);
-    res.json(newDesignsData);
-  } catch (error) {
-    console.log(error);
-    res.json({ error });
-  }
-}
+// exports.getdesigns = async (req, res) => {
+//   try {
+//     const designsData = await DesignModel.find({ createdBy: req.userId });
+//     const productDataIDs = new Set(designsData.map(designData => designData.baseProductId + ''));
+//     const productData = await ProductModel.find({ _id: { $in: [...productDataIDs] } });
+//     const colorIDs = new Set(designsData.map(designData => designData.color));
+//     const colorsData = await ColorModel.find({ _id: { $in: [...colorIDs] } });
+//     const cartData = await CartModel.findOne({ userId: req.userId });
+//     // console.log(colorsData);
+//     const newDesignsData = designsData.map(design => {
+//       // console.log(cartData.items.find(cartItem => cartItem.design+'' === design._id+''))
+//       return {
+//         design: design,
+//         product: productData.find(product => product._id + '' === design.baseProductId + ''),
+//         color: colorsData.find(color => color._id + '' === design.color + ''),
+//         availableInCart: cartData?.items.find(cartItem => cartItem.design + '' === design._id + '') ? true : false
+//       }
+//     })
+//     // console.log(newDesignsData);
+//     res.json(newDesignsData);
+//   } catch (error) {
+//     console.log(error);
+//     res.json({ error });
+//   }
+// }
 
 exports.deletedesign = async (req, res) => {
   try {
@@ -409,112 +409,112 @@ exports.deletedesign = async (req, res) => {
 
 
 // cart endpoints
-exports.addtocart = async (req, res) => {
-  const cartItem = {
-    design: req.body.designId,
-    productId: req.body.productId,
-    quantity: req.body.quantity,
-  };
-  const selectedProduct = await ProductModel.findOne({ _id: cartItem.productId });
+// exports.addtocart = async (req, res) => {
+//   const cartItem = {
+//     design: req.body.designId,
+//     productId: req.body.productId,
+//     quantity: req.body.quantity,
+//   };
+//   const selectedProduct = await ProductModel.findOne({ _id: cartItem.productId });
 
-  if (!selectedProduct) {
-    return res.status(404).json({ message: 'Invalid Product ID!' });
-  }
-  try {
-    let designCost = 0;
-    const designCostArray = Object.entries(cartItem.quantity).map(x => {
-      return selectedProduct.price[x[0].toLowerCase()] * x[1]
-    });
-    designCostArray.forEach(cost => designCost += cost);
+//   if (!selectedProduct) {
+//     return res.status(404).json({ message: 'Invalid Product ID!' });
+//   }
+//   try {
+//     let designCost = 0;
+//     const designCostArray = Object.entries(cartItem.quantity).map(x => {
+//       return selectedProduct.price[x[0].toLowerCase()] * x[1]
+//     });
+//     designCostArray.forEach(cost => designCost += cost);
 
-    cartItem.price = designCost;
-    var totalAmount = 0;
+//     cartItem.price = designCost;
+//     var totalAmount = 0;
 
-    var cartData = await CartModel.findOne({ userId: req.userId })
-    if (cartData) {
-      cartData.items.push(cartItem);
-      // perform a function to calculate total product price
-      // console.log(cartData);
-    } else {
-      cartData = new CartModel({
-        userId: req.userId,
-        items: [cartItem]
-      });
-      // console.log(cartData);
-    }
+//     var cartData = await CartModel.findOne({ userId: req.userId })
+//     if (cartData) {
+//       cartData.items.push(cartItem);
+//       // perform a function to calculate total product price
+//       // console.log(cartData);
+//     } else {
+//       cartData = new CartModel({
+//         userId: req.userId,
+//         items: [cartItem]
+//       });
+//       // console.log(cartData);
+//     }
 
-    cartData.items.forEach(item => totalAmount += item.price);
-    cartData.totalAmount = totalAmount;
-    await cartData.save();
+//     cartData.items.forEach(item => totalAmount += item.price);
+//     cartData.totalAmount = totalAmount;
+//     await cartData.save();
 
-    res.json(cartData);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Something went wrong!" });
-  }
-}
+//     res.json(cartData);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "Something went wrong!" });
+//   }
+// }
 
-exports.getcart = async (req, res) => {
-  try {
-    const cartItems = await CartModel.findOne({ userId: req.userId });
-    if (!cartItems) return res.status(200).json({ items: [] });
-    const newCartItems = {
-      ...cartItems._doc
-    }
-    const cartProductIDs = new Set(cartItems.items.map(item => item.productId));
-    const cartDesignIDs = new Set(cartItems.items.map(item => item.design));
-    const cartProducts = await ProductModel.find({ _id: { $in: [...cartProductIDs] } });
-    const cartDesignData = await DesignModel.find({ _id: { $in: [...cartDesignIDs] } });
-    const cartColorIDs = new Set(cartDesignData.map(cartDesign => cartDesign.color));
-    const cartColorsData = await ColorModel.find({ _id: { $in: [...cartColorIDs] } });
-    // pull in colors from DB and push it along
+// exports.getcart = async (req, res) => {
+//   try {
+//     const cartItems = await CartModel.findOne({ userId: req.userId });
+//     if (!cartItems) return res.status(200).json({ items: [] });
+//     const newCartItems = {
+//       ...cartItems._doc
+//     }
+//     const cartProductIDs = new Set(cartItems.items.map(item => item.productId));
+//     const cartDesignIDs = new Set(cartItems.items.map(item => item.design));
+//     const cartProducts = await ProductModel.find({ _id: { $in: [...cartProductIDs] } });
+//     const cartDesignData = await DesignModel.find({ _id: { $in: [...cartDesignIDs] } });
+//     const cartColorIDs = new Set(cartDesignData.map(cartDesign => cartDesign.color));
+//     const cartColorsData = await ColorModel.find({ _id: { $in: [...cartColorIDs] } });
+//     // pull in colors from DB and push it along
 
-    let newCartItemWithProducts = cartItems.items.map(cartItem => {
-      return {
-        ...cartItem._doc,
-        product: cartProducts.find(cartProduct => cartProduct._id + '' === cartItem.productId + ''),
-        designData: cartDesignData.find(cartDesign => cartDesign._id + '' === cartItem.design + ''),
-      }
-    })
-    newCartItems.items = newCartItemWithProducts;
-    newCartItemWithProducts = newCartItems.items.map(cartItem => {
-      return {
-        ...cartItem,
-        color: cartColorsData.find(cartColor => cartColor._id + '' === cartItem.designData.color)
-      }
-    });
-    newCartItems.items = newCartItemWithProducts;
-    newCartItemWithProducts = newCartItems.items.map(cartItem => {
-      return {
-        ...cartItem,
-        sku: `${cartItem.product.SKU}-${cartItem.color.colorSKU}`
-      }
-    })
-    newCartItems.items = newCartItemWithProducts;
-    // console.log(newCartItems);
-    res.json(newCartItems);
-  } catch (error) {
-    console.log(error);
-    res.json({ error });
-  }
-}
+//     let newCartItemWithProducts = cartItems.items.map(cartItem => {
+//       return {
+//         ...cartItem._doc,
+//         product: cartProducts.find(cartProduct => cartProduct._id + '' === cartItem.productId + ''),
+//         designData: cartDesignData.find(cartDesign => cartDesign._id + '' === cartItem.design + ''),
+//       }
+//     })
+//     newCartItems.items = newCartItemWithProducts;
+//     newCartItemWithProducts = newCartItems.items.map(cartItem => {
+//       return {
+//         ...cartItem,
+//         color: cartColorsData.find(cartColor => cartColor._id + '' === cartItem.designData.color)
+//       }
+//     });
+//     newCartItems.items = newCartItemWithProducts;
+//     newCartItemWithProducts = newCartItems.items.map(cartItem => {
+//       return {
+//         ...cartItem,
+//         sku: `${cartItem.product.SKU}-${cartItem.color.colorSKU}`
+//       }
+//     })
+//     newCartItems.items = newCartItemWithProducts;
+//     // console.log(newCartItems);
+//     res.json(newCartItems);
+//   } catch (error) {
+//     console.log(error);
+//     res.json({ error });
+//   }
+// }
 
-exports.deletecartitem = async (req, res) => {
-  // console.log(req.body.cartId);
-  try {
-    await CartModel.updateOne({ _id: req.body.cartId }, { $pull: { items: { _id: req.body.itemId } } });
-    const cartData = await CartModel.findOne({ _id: req.body.cartId });
-    let totalAmount = 0;
-    cartData.items.map(cartItem => totalAmount += cartItem?.price);
-    cartData.totalAmount = totalAmount;
-    await cartData.save();
-    // console.log(x)
-    res.status(200).json({ message: "success!" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error });
-  }
-}
+// exports.deletecartitem = async (req, res) => {
+//   // console.log(req.body.cartId);
+//   try {
+//     await CartModel.updateOne({ _id: req.body.cartId }, { $pull: { items: { _id: req.body.itemId } } });
+//     const cartData = await CartModel.findOne({ _id: req.body.cartId });
+//     let totalAmount = 0;
+//     cartData.items.map(cartItem => totalAmount += cartItem?.price);
+//     cartData.totalAmount = totalAmount;
+//     await cartData.save();
+//     // console.log(x)
+//     res.status(200).json({ message: "success!" });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error });
+//   }
+// }
 
 
 // orders ku eldhu
@@ -1342,7 +1342,7 @@ exports.getZohoProductGroups = async (req, res) => {
 }
 
 // endpoints for uploading design images
-exports.uploadimages = async (req, res) => {
+exports.createdesign = async (req, res) => {
   try {
     // console.log(req.file);
     const fileBuffer = req.files;
@@ -1350,7 +1350,7 @@ exports.uploadimages = async (req, res) => {
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData)
 
-    let uniqueSKU = req.body.productData.product.SKU + "-" + otpGen.generate(4, { specialChars: false })
+    let uniqueSKU = req.body.productData.product.SKU + "-" + otpGen.generate(4, { specialChars: false, upperCaseAlphabets: true, lowerCaseAlphabets: false })
 
     let recordOfFileNames = {}; // map of filename:url
 
@@ -1368,10 +1368,12 @@ exports.uploadimages = async (req, res) => {
             product: {...req.body.productData.product},
             designSKU: uniqueSKU,
             desingName: req.body.productData.designName,
+            price: req.body.productData.product.price + (req.body.productData.price * 2),
             designImage: {
                 front: req.body.direction === "front" && recordOfFileNames["DesignImage-"+req.body.direction+".png"],
                 back: req.body.direction === "back" && recordOfFileNames["DesignImage-"+req.body.direction+".png"]
             },
+            designName: req.body.productData.designName,
             designItems: Object.keys(recordOfFileNames).map(item => {
                 return {
                   itemName: item,
@@ -1388,5 +1390,15 @@ exports.uploadimages = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500);
+  }
+}
+
+exports.getdesigns = async (req, res) => {
+  try {
+    const userDesigns = await NewDesignModel.findOne({ userId: req.userId });
+    res.json(userDesigns);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
   }
 }

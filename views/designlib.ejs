@@ -38,33 +38,9 @@
       <p>Start creating your designs and save them for reordering quickly.<br>
         You can also push them to your online store once you connect your store with Printwear</p>
     </div>
-    <!-- <div class="col-8" data-aos="fade-up">
-
-      <img src="/images/pdtlib.png" id="pdt">
-      <p>Start creating your designs and save them for reordering quickly.<br>
-        You can also push them to your online store once you connect your store with Printwear</p>
-      <button type="button" class="btn-orange">Add Product</button>
-    </div> -->
-    <div class="designs-choice-container">
-      <button class="choice-btn active-btn" id="printwear-designs">Printwear</button>
-      <button class="choice-btn" id="shopify-designs">Shopify</button>
-      <button class="choice-btn" id="woo-designs">WooCommerce</button>
-    </div>
+ 
     <div class="designs-wrapper">
-      <div class="designs-container">
-        <span class="loader"></span>
-        <h4>Products are loading...</h4>
-      </div>
-      <div class="shopify-designs-container">
-        <!-- <span class="loader"></span> -->
-        <h4>No products are found</h4>
-        <!-- <h4>Products are loading...</h4> -->
-      </div>
-      <div class="woocommerce-designs-container">
-        <!-- <span class="loader"></span> -->
-        <h4>No products are found</h4>
-        <!-- <h4>Products are loading...</h4> -->
-      </div>
+      
     </div>
   </main>
 
@@ -73,46 +49,10 @@
     AOS.init();
     var notyf = new Notyf();
 
-    const designsContainter = document.querySelector(".designs-container");
-    const shopifyDesignsContainer = document.querySelector(".shopify-designs-container");
-    const wooCommerceDesignsContainer = document.querySelector(".woocommerce-designs-container");
+    const designsContainer = document.querySelector(".designs-wrapper");
 
-    shopifyDesignsContainer.style.display = "none";
-    wooCommerceDesignsContainer.style.display = "none";
-
-    const designsBtn = document.querySelector("#printwear-designs");
-    const shopifyDesignsBtn = document.querySelector("#shopify-designs");
-    const wooCommerceDesignsBtn = document.querySelector("#woo-designs");
-
-    designsBtn.onclick = (e) => {
-      designsBtn.classList.add("active-btn")
-      shopifyDesignsBtn.classList.remove("active-btn")
-      wooCommerceDesignsBtn.classList.remove("active-btn")
-      designsContainter.style.display = "flex";
-      shopifyDesignsContainer.style.display = "none";
-      wooCommerceDesignsContainer.style.display = "none";
-    }
-
-    shopifyDesignsBtn.onclick = (e) => {
-      designsBtn.classList.remove("active-btn")
-      shopifyDesignsBtn.classList.add("active-btn")
-      wooCommerceDesignsBtn.classList.remove("active-btn")
-      designsContainter.style.display = "none";
-      shopifyDesignsContainer.style.display = "flex";
-      wooCommerceDesignsContainer.style.display = "none";
-    }
-
-    wooCommerceDesignsBtn.onclick = (e) => {
-      designsBtn.classList.remove("active-btn")
-      shopifyDesignsBtn.classList.remove("active-btn")
-      wooCommerceDesignsBtn.classList.add("active-btn")
-      designsContainter.style.display = "none";
-      shopifyDesignsContainer.style.display = "none";
-      wooCommerceDesignsContainer.style.display = "flex";
-    }
-
-    const openModal = (designId) => {
-      const designModalData = designsResponseData.find(designData => designData.design._id === designId);
+    const openModal = (designSKU) => {
+      const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
       console.log(designModalData);
       const designModalDOMString = `
         <div class="product-modal-wrapper">
@@ -122,13 +62,13 @@
             </button>
             <div class="product-modal-image">
               <img
-                src="${designModalData.design.designImage.front}"
+                src="${designModalData.designImage.front}"
                 alt="Design front image">
             </div>
             <div class="product-modal-details">
               <div class="product-modal-heading-delete">
-                <h2 class="product-name">${designModalData.design.designName}</h2>
-                <button id="delete-design" data-designid="${designModalData.design._id}"><i class="fa fa-trash" data-designid="${designModalData.design._id}"></i>Delete design</button>
+                <h2 class="product-name">${designModalData.designName}</h2>
+                <button id="delete-design" data-designid="${designModalData._id}"><i class="fa fa-trash" data-designid="${designModalData._id}"></i>Delete design</button>
               </div>
               <div class="product-category-gender">
                 <h6>${designModalData.product.category}</h6>
@@ -268,31 +208,31 @@
     }
 
     const createDesignCards = () => {
-      const designCardsDOMString = designsResponseData.map(designData => {
+      const designCardsDOMString = designsResponseData.designs.map(design => {
         return `
           <div class="design-card" data-aos="fade-up">
             <div class="card-img">
-              <img src="${designData.design.designImage.front}">
+              <img src="${ design.designImage.front != ''? design.designImage.front: design.designImage.back }">
             </div>
             <div class="name-price">
-              <h3>${designData.design.designName}</h3>
+              <h3>${design.designName}</h3>
             </div>
             <div class="details">
               <div class="view-btn">
-                <button data-designid="${designData.design._id}">View</button>
+                <button onclick="openModal('${design.designSKU}')">View</button>
               </div>
             </div>
           </div>
         `
       }).join('\n');
-      designsContainter.innerHTML = designCardsDOMString;
+      designsContainer.innerHTML = designCardsDOMString;
 
-      designsContainter.addEventListener("click", (e) => {
+      /* designsContainer.addEventListener("click", (e) => {
         const openModalButton = e.target.closest(".view-btn button");
         if (openModalButton) {
           openModal(openModalButton.dataset.designid);
         }
-      })
+      }) */
     }
 
     const fetchDesignsData = async () => {
@@ -302,12 +242,12 @@
 
         console.log(designsResponseData);
 
-        if (designsResponseData.length > 0) {
+        if (designsResponseData.designs.length > 0) {
           return createDesignCards();
         }
-        designsContainter.innerHTML = "<p> No designs yet! </p>";
+        designsContainer.innerHTML = "<p> No designs yet! </p>";
       } catch (error) {
-        designsContainter.innerHTML = `
+        designsContainer.innerHTML = `
           <p>
             There was an error trying to fetch data. <br>
             ${error}

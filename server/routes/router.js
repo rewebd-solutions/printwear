@@ -23,10 +23,11 @@ route.get("/getproducts", controller.getproducts);// get request that retrieves 
 route.get("/getproduct/:id", controller.getproduct);
 
 route.post("/adddesign", authServices.authorizeToken, controller.adddesign);
-route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
+// route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 route.post("/deletedesign", authServices.authorizeToken, controller.deletedesign);
 
-route.post("/uploadimages", authServices.authorizeToken, upload.array('images'), controller.uploadimages);
+route.post("/createdesign", authServices.authorizeToken, upload.array('images'), controller.createdesign);
+route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 
 route.get('/admin', services.adminpage); // it only has a form thats incomplete
 
@@ -41,11 +42,11 @@ route.get("/designgenerator", authServices.authorizeToken, services.designgenera
 route.get("/designlib", authServices.authorizeToken, services.designlib);
 route.get("/invoice", authServices.authorizeToken, services.invoice);
 route.get("/profile", authServices.authorizeToken, controller.profilepage);
-route.get("/mycart", authServices.authorizeToken, services.mycart);
+// route.get("/mycart", authServices.authorizeToken, services.mycart);
 
-route.post("/addtocart", authServices.authorizeToken, controller.addtocart);
-route.get("/getcart", authServices.authorizeToken, controller.getcart);
-route.post("/deletecartitem", authServices.authorizeToken, controller.deletecartitem);
+// route.post("/addtocart", authServices.authorizeToken, controller.addtocart);
+// route.get("/getcart", authServices.authorizeToken, controller.getcart);
+// route.post("/deletecartitem", authServices.authorizeToken, controller.deletecartitem);
 
 route.post("/createorder", authServices.authorizeToken, controller.createorder);
 
