@@ -168,15 +168,12 @@
             closeModalButton.addEventListener("click", (e) => {
                 document.body.removeChild(document.querySelector(".product-modal-wrapper"));
             })
-
         }
 
         // test
         getProducts().then(data => {
             productsData = data;
             populateData();
-            //let productIdFromURL = new URLSearchParams(location.search).get("product");
-            //if (productIdFromURL) openProductModal(productIdFromURL);
         }).catch(error => {
             console.log(error);
             notyf.error({

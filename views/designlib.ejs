@@ -40,7 +40,7 @@
     </div>
  
     <div class="designs-wrapper">
-      
+      <span class="loader"></span>
     </div>
   </main>
 
@@ -50,6 +50,10 @@
     var notyf = new Notyf();
 
     const designsContainer = document.querySelector(".designs-wrapper");
+    var designsResponseData = {};
+    const deleteDesign = (designSKU) => {
+      console.log(designSKU);
+    }
 
     const openModal = (designSKU) => {
       const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
@@ -68,7 +72,7 @@
             <div class="product-modal-details">
               <div class="product-modal-heading-delete">
                 <h2 class="product-name">${designModalData.designName}</h2>
-                <button id="delete-design" onclick="deleteDesign('${designSKU}')"><i class="fa fa-trash" data-designid="${designModalData._id}"></i>Delete design</button>
+                <button id="delete-design" onclick="deleteDesign('${designSKU}')"><i class="fa fa-trash"></i>Delete design</button>
               </div>
               <div class="product-category-gender">
                 <h6>${designModalData.product.style}</h6>
@@ -95,62 +99,8 @@
       `;
       document.querySelector("main").insertAdjacentHTML("beforeend", designModalDOMString);
 
-      const addToCartBtn = document.querySelector("#add-cart button");
-
-      const addToCartForm = document.querySelector("#add-cart");
-      
-      addToCartForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        addToCartBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
-        const sizeQty = {};
-        document.querySelectorAll("#add-cart input").forEach(inputItem => {
-          sizeQty[inputItem.dataset.size] = parseInt(inputItem.value) 
-        });
-        if (Object.entries(sizeQty).every(size => size[1] === '' || size[1] === 0)) {
-          notyf.error({
-            message: "Quantity cannot be 0",
-            dismissible: true,
-          });
-          addToCartBtn.innerHTML = `Add to Cart`;
-          return;
-        }
-        try {
-          addToCartBtn.setAttribute("disabled", true);
-          addToCartBtn.textContent = "Adding...";
-          const addToCartRequest = await fetch("/addtocart", {
-            headers: {
-              "Content-Type": "application/json"
-            },
-            method: "POST",
-            body: JSON.stringify({
-              designId: e.target.dataset.designid,
-              productId: designModalData.product._id,
-              quantity: sizeQty //soon add address box
-            })
-          });
-          const addToCartResponse = await addToCartRequest.json();
-          if (addToCartRequest.ok) {
-            addToCartBtn.textContent = "Added to cart!";
-            notyf.success({
-              message: "Added to cart",
-              dismissible: true
-            })
-            fetchDesignsData();
-          }
-        } catch (err) {
-          console.log(err);
-          addToCartBtn.textContent = "Failed to add!";
-          notyf.error({
-            message: "Couldn't add to cart",
-            dismissible: true
-          })
-        }
-
-      })
-
       const closeModalButton = document.querySelector(".modal-close");
       closeModalButton.addEventListener("click", (e) => {
-        addToCartBtn.setAttribute("disabled", false);
         document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
       })
     }

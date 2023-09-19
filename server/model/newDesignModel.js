@@ -12,6 +12,7 @@ var NewDesignSchema = new mongoose.Schema({
                 name: String,
                 style: String,
                 color: String,
+                hex: String,
                 size: String,
                 SKU: String,
                 price: Number,

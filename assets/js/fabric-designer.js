@@ -14,6 +14,8 @@ var globalProductID = null;
 
 var isSetPixelRatioCalled = false;
 
+var variantPrice = 0;
+
 // notyf snackbar 
 var notyf = new Notyf();
 
@@ -103,7 +105,7 @@ document.querySelector(".design-input-label").addEventListener("click", (e) => {
 // function to toggle disabling and enabling button
 const disableButton = (state) => {
   const saveButton = document.querySelector(".save-button");
-  saveButton.setAttribute("disabled", state? true: false);
+  state? saveButton.setAttribute("disabled") : saveButton.removeAttribute("disabled");
   state? saveButton.classList.add("disabled"): saveButton.classList.remove("disabled");
   state? saveButton.innerHTML = 'Saving...': saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`;
 }
@@ -168,30 +170,70 @@ const loadMockupImage = () => {
   ).colorImage.front;
 };
 
+// funcs to calculate height and width of all active canvas objects
+const calculateTotalHeight = () => {
+  if (!fabricCanvas) return;
+  const objects = fabricCanvas.getObjects();
+  let totalHeight = objects.map(obj => obj.getScaledHeight() * Product.pixelToInchRatio).reduce((prev, curr) => prev + curr, 0)
+  //console.log(totalHeight);
+  return totalHeight
+}
+const calculateTotalWidth = () => {
+  if (!fabricCanvas) return;
+  const objects = fabricCanvas.getObjects();
+  let totalWidth = Math.max(...objects.map(obj => obj.getScaledWidth() * Product.pixelToInchRatio));
+  //console.log(totalWidth);
+  return totalWidth
+}
+const calculateTotalArea = () => {
+  if (!fabricCanvas) return;
+  const objects = fabricCanvas.getObjects();
+  let totalArea = objects.map(obj => obj.getScaledHeight() * obj.getScaledWidth() * Product.pixelToInchRatio * Product.pixelToInchRatio).reduce((prev, curr) => prev + curr, 0)
+  return totalArea;
+}
+
 // Display design image stats
 const updateStats = () => {
   const heightElement = document.querySelector(".height-design");
   const widthElement = document.querySelector(".width-design");
+  const totalPriceElement = document.querySelector(".total-price");
   if (!designImageHeight && !designImageWidth) {
     heightElement.innerHTML = "Height: 0 inches";
     widthElement.innerHTML = "Height: 0 inches";
+    totalPriceElement.innerHTML = "Total: ₹0"
+    return;
   }
+  calculateTotalArea()
+  let imageHeightInInches = calculateTotalHeight().toFixed(2);
+  let imageWidthInInches = calculateTotalWidth().toFixed(2);
+  let imageAreaInInches = calculateTotalArea();
   heightElement.innerHTML =
-    "Height " +
-    (designImageHeight * Product.pixelToInchRatio).toFixed(2) +
+    "Height: " +
+    imageHeightInInches +
     " inches";
   widthElement.innerHTML =
-    "Width " +
-    (designImageWidth * Product.pixelToInchRatio).toFixed(2) +
+    "Width: " +
+    imageWidthInInches +
     " inches";
+  totalPriceElement.innerHTML = 
+    "Total Price: <br> Area " + imageAreaInInches.toFixed(2) + 
+    " x " + "₹2/in² = ₹" + (imageAreaInInches*2).toFixed(2) + 
+    "<br> Base Price: ₹" + variantPrice + "<br> = ₹" + 
+    ((imageAreaInInches*2) + variantPrice).toFixed(2)
 };
 
 const changeSize = (e, size, id) => {
   const sizeButtons = document.querySelectorAll(".size-options");
+  const basePriceElement = document.querySelector(".base-price");
   sizeButtons.forEach(sizeBtn => sizeBtn.style.border = "2px solid #6a6969");
   e.target.style.border = "2px solid red";
   console.log(id, size);
   globalProductID = id; // check b4 downloading or saving if this is checked
+  
+  variantPrice = Product.colors.find(color => color._id === currentColor).sizes.find(size => size.id === globalProductID).price;
+  basePriceElement.innerHTML = "Base Price: ₹" + variantPrice;
+  updateStats();
+
   if (!isSetPixelRatioCalled) setPixelRatio(globalProductID);
   // also write code to change ratio dimensions
 }
@@ -203,7 +245,7 @@ const displaySizes = () => {
   const current = Product.colors.find((item) => item._id === currentColor);
   let sizeDOMString = current.sizes.map((item) => {
     return `
-        <div class="size-options" onclick="changeSize(event,'${item.size}', '${item.id}')">
+        <div class="size-options" ${item.stock? `onclick="changeSize(event,'${item.size}', '${item.id}')"` : `style="background:red; color:white; cursor:not-allowed;" title="Out of stock"`}>
         ${item.size}
         </div>
       `;
@@ -282,19 +324,21 @@ const addFabricCanvasToTemplateDiv = () => {
     const previousWidth = designImageWidth;
 
     // Updating sizes during scaling
-    designImageHeight = designImg.height * designImg.scaleY;
-    designImageWidth = designImg.width * designImg.scaleX;
+    // designImageHeight = designImg.height * designImg.scaleY;
+    designImageHeight = designImg.getScaledHeight();
+    // designImageWidth = designImg.width * designImg.scaleX;
+    designImageWidth = designImg.getScaledWidth();
     updateStats();
 
     // If image draggin exceeds canvas width, setting the designWidth to last value that was inside the canvas
-    if (imgLeft + imgWidth >= canvasWidth || imgLeft <= 0) {
+    if ((imgLeft + imgWidth) >= canvasWidth || imgLeft <= 0) {
       designImageWidth = previousWidth;
       updateStats();
       designImg.scaleX = prevScaleX;
     } else {
       prevScaleX = designImg.scaleX;
     }
-    if (imgTop + imgHeight >= canvasHeight || imgTop <= 0) {
+    if ((imgTop + imgHeight) >= canvasHeight || imgTop <= 0) {
       designImageHeight = previousHeight;
       updateStats();
       designImg.scaleY = prevScaleY;
@@ -313,11 +357,12 @@ const addImageToCanvas = (event) => {
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
       designImage.scaleToWidth(80);
+      designImage.minScaleLimit = 0.1;
       // Updating sizes initially after adding to canvas
-      designImageHeight = designImage.height * designImage.scaleY;
-      designImageWidth = designImage.width * designImage.scaleX;
+      designImageHeight = designImage.getScaledHeight();
+      designImageWidth = designImage.getScaledWidth();
+      fabricCanvas.add(designImage);
       updateStats();
-      fabricCanvas.add(designImage); // image add pantu, apro go thru all objs and obtain the height and add to above line
       fabricCanvas.setActiveObject(designImage);
     });
   }
@@ -433,6 +478,7 @@ const saveDesign = async () => {
         name: submitProduct.name,
         style: Product.name,
         color: Product.colors.find(x => x._id === currentColor).colorName,
+        hex: Product.colors.find(x => x._id === currentColor).hex,
         size: submitProduct.size,
         SKU: submitProduct.sizeSku,
         price: submitProduct.price,
@@ -444,7 +490,7 @@ const saveDesign = async () => {
         dimensions: submitProduct.dimensions
       },
       designName: designName.value,
-      price: (designImageHeight * Product.pixelToInchRatio).toFixed(2) * (designImageWidth * Product.pixelToInchRatio).toFixed(2),
+      price: (calculateTotalArea()*2).toFixed(2),
       designDimensions: {
         width: (designImageWidth * Product.pixelToInchRatio).toFixed(2),
         height: (designImageHeight * Product.pixelToInchRatio).toFixed(2)
@@ -578,8 +624,8 @@ document.addEventListener(
       // 46 is the keyCode for the Delete key
       if (fabricCanvas.getActiveObject()) {
         fabricCanvas.remove(fabricCanvas.getActiveObject());
-        designImageHeight = null;
-        designImageWidth = null;
+        // designImageHeight = null;
+        // designImageWidth = null;
         updateStats();
       }
     }
