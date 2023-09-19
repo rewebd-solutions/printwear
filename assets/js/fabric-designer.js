@@ -391,7 +391,6 @@ const saveDesign = async () => {
   // lot of repeating code, can be optimized later
   // follow everything as in download func but convert that blob to File() then upload
   console.log("working?");
-  disableButton(true);
   
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
@@ -400,6 +399,7 @@ const saveDesign = async () => {
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
   if (!isDesignNameValid) {
+    disableButton(false);
     return notyf.error("Give your design a name");
   };
   
@@ -436,6 +436,7 @@ const saveDesign = async () => {
         size: submitProduct.size,
         SKU: submitProduct.sizeSku,
         price: submitProduct.price,
+        hex: Product.colors.find(x => x._id === currentColor).hex,
         baseImage: {
             front: Product.baseImage.front,
             back: Product.baseImage.back,

@@ -202,9 +202,7 @@ p {
   align-items: center;
 }
 
-.designs-container,
-.shopify-designs-container,
-.woocommerce-designs-container {
+.designs-wrapper {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -344,7 +342,6 @@ p {
   display: flex;
   margin-top: auto;
   justify-content: space-evenly;
-  flex-direction: column;
   gap: 2rem;
   align-items: flex-start;
 }

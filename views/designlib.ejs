@@ -68,84 +68,32 @@
             <div class="product-modal-details">
               <div class="product-modal-heading-delete">
                 <h2 class="product-name">${designModalData.designName}</h2>
-                <button id="delete-design" data-designid="${designModalData._id}"><i class="fa fa-trash" data-designid="${designModalData._id}"></i>Delete design</button>
+                <button id="delete-design" onclick="deleteDesign('${designSKU}')"><i class="fa fa-trash" data-designid="${designModalData._id}"></i>Delete design</button>
               </div>
               <div class="product-category-gender">
-                <h6>${designModalData.product.category}</h6>
-                <h6>${designModalData.product.gender}</h6>
+                <h6>${designModalData.product.style}</h6>
+                <h6>${designModalData.product.name}</h6>
               </div> 
               <p class="product-description">
                 ${designModalData.product.description}
               </p>
               <div class="product-colors">
                 <p>Chosen color: </p>
-                <div class="color-disc" style="background: ${designModalData.color.colorCode}"></div>
+                <div style="background:#ebebeb;">${designModalData.product.color}</div>
               </div>
               <div class="product-sizes">
-                <p>Sizes: </p>
-                ${designModalData.color.sizes.map(size => `<h4>${size.size}</h4>`).join('\n')}
+                <p>Size: ${designModalData.product.size}</p>
               </div>
               <div class="product-price-button">
-                <h4>Starts from ₹${Math.min(...Object.values(designModalData.product.price))}</h4>
-                <form id="add-cart" data-designid="${designModalData.design._id}"">
-                  ${designModalData.color.sizes.map(colorSize => {
-                    return `
-                      <div>
-                        <label for="${designModalData.color.colorSKU}-${colorSize.stock}">${colorSize.size}</label>
-                        <input type="number" required id="${designModalData.color.colorSKU}-${colorSize.stock}" data-size="${colorSize.size}" min="0" max="${colorSize.stock}" class="form-control small input-md" />
-                      </div>
-                    `
-                    }).join("\n")}
-                    ${designModalData.availableInCart? `<button disabled="true" type="submit">Already in cart</button>`: `<button type="submit">Add to Cart</button>` }
-                </form>
+                <h4>Price ₹${designModalData.price}</h4>
+                <button id='add-shopify' onclick="addToShopify(event,'${designSKU}')">Add to Shopify Store</button>
+                <button id='add-woocommerce' onclick="addToWooCommerce(event,'${designSKU}')">Add to WooCommerce Store</button>
               </div>
             </div>
           </div>
         </div>
       `;
       document.querySelector("main").insertAdjacentHTML("beforeend", designModalDOMString);
-      document.querySelector(".product-modal-image").addEventListener("mouseover", (e) => {
-        e.target.setAttribute("src", designModalData.design.designImage.back);
-      })
-      document.querySelector(".product-modal-image").addEventListener("mouseout", (e) => {
-        e.target.setAttribute("src", designModalData.design.designImage.front);
-      });
-
-      const deleteDesignBtn = document.querySelector("#delete-design");
-      deleteDesignBtn.addEventListener("click", async (e) => {
-        deleteDesignBtn.setAttribute("disabled", true);
-        deleteDesignBtn.innerHTML = `<span class="loader" style="width:1rem;height:1rem;"></span>`;
-        console.log(e.target.dataset.designid);
-        try {
-          const deleteDesignRequest = await fetch("/deletedesign", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              designId: e.target.dataset.designid
-            })
-          });
-          if (deleteDesignRequest.ok){
-            deleteDesignBtn.textContent = "Design deleted";
-            // toastify cart item deleted
-            notyf.success({
-              message: "Design deleted",
-              dimissible: true
-            })
-            document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"));
-            fetchDesignsData();
-          };
-          //location.reload();
-        } catch (err) {
-          console.log(err);
-          notyf.error({
-            message: "Couln't delete due to error!",
-            dimissible: true
-          })
-          // toastify something went wrong
-        }
-      })
 
       const addToCartBtn = document.querySelector("#add-cart button");
 
