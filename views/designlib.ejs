@@ -51,8 +51,28 @@
 
     const designsContainer = document.querySelector(".designs-wrapper");
     var designsResponseData = {};
+    
     const deleteDesign = (designSKU) => {
       console.log(designSKU);
+    }
+
+    const addToShopify = async (e, designSKU) => {
+      try {
+        const addToshopifyRequest = await fetch("/createshopifyorder", {
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "POST",
+          body: JSON.stringify({
+            designSKU
+          }),
+        });
+        const addToshopifyResponse = await addToshopifyRequest.text();
+        
+      } catch (error) {
+        console.log(error);
+        notyf.error("Something went wrong!");
+      }
     }
 
     const openModal = (designSKU) => {
@@ -79,7 +99,8 @@
                 <h6>${designModalData.product.name}</h6>
               </div> 
               <p class="product-description">
-                ${designModalData.product.description}
+                ${/*designModalData.product.description*/''}
+                User generated design
               </p>
               <div class="product-colors">
                 <p>Chosen color: </p>

@@ -5,19 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= data.userData.name %>'s profile - Printwear</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
-        integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
-        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-    <link rel="stylesheet" href="/css/profile.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-        crossorigin="anonymous"></script>
-    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -26,7 +15,7 @@
             <%- include('partials/top.ejs') %>
     </div>
     
-    <div class="profile">
+    <!-- <div class="profile">
         <div class="left">
             <div class="prof">
                 <div class="img">
@@ -40,7 +29,7 @@
             </div>
             <div class="details">
                 <div class="same">
-                    <!-- <div class="sm">
+                    <div class="sm">
                         <h5>First Name</h5>
                         <p>
                             <%= data.userData.firstName %>
@@ -51,7 +40,7 @@
                         <p>
                             <%= data.userData.lastName %>
                         </p>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="same">
                     <div class="sm">
@@ -74,7 +63,7 @@
                     </div>
                 </div>
                 <div class="same">
-                    <!-- <a href="#">Change password</a> -->
+                    <a href="#">Change password</a>
                 </div>
             </div>
         </div>
@@ -84,13 +73,13 @@
                 <div class="det">
                     <h5>Shopify Store Name:</h5>
                     <p>
-                        <%= data.storeData?.shopifyStores[0]?.shopName %>
+                        <%= data.storeData?.shopifyStore?.shopName %>
                     </p>
                 </div>
                 <div class="det">
                     <h5>Shopify Store URL:</h5>
                     <p>
-                        <%= data.storeData?.shopifyStores[0]?.shopifyStoreURL %>
+                        <%= data.storeData?.shopifyStore.shopifyStoreURL %>
                     </p>
                 </div>
                 <div class="det">
@@ -102,13 +91,13 @@
                 <div class="det">
                     <h5>WooCommerce Store Name:</h5>
                     <p>
-                        <%= data.storeData?.wooCommerceStores[0]?.shopName %>
+                        <%= data.storeData?.wooCommerceStore.shopName %>
                     </p>
                 </div>
                 <div class="det">
                     <h5>WooCommerce Store URL:</h5>
                     <p>
-                        <%= data.storeData?.wooCommerceStores[0]?.url %>
+                        <%= data.storeData?.wooCommerceStore.url %>
                     </p>
                 </div>
                 <div class="det">
@@ -116,7 +105,136 @@
                 </div>
             </div>
         </div>
+    </div> -->
+    
+    <div class="profile" 
+    style="
+        padding: 1rem;
+        padding-left: 300px;
+        padding-top: 6rem;
+        margin: auto;
+    ">
+        <h4 class="font-weight-bold py-3 mb-4">
+            Account settings
+        </h4>
+        <div class="card overflow-hidden">
+            <div class="row no-gutters row-bordered row-border-light">
+                <div class="col-md-3 pt-0">
+                    <div class="list-group list-group-flush account-settings-links">
+                        <a class="list-group-item list-group-item-action active" data-toggle="list"
+                            href="#account-general">General</a>
+                        <a class="list-group-item list-group-item-action" data-toggle="list"
+                            href="#account-change-password">Change password</a>
+                        <a class="list-group-item list-group-item-action" data-toggle="list"
+                            href="#account-connections">My stores</a>
+                        <a class="list-group-item list-group-item-action" data-toggle="list"
+                            href="#account-info">Delete Account</a>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="tab-content">
+                        <div class="tab-pane fade active show" id="account-general">
+                            <hr class="border-light m-0">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" name="username" class="form-control mb-1" value="<%= data.userData.name %>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" name="firstName" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Name</label>
+                                    <input type="text" name="lastName" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">E-mail</label>
+                                    <input type="text" class="form-control mb-1" value="<%= data.userData.email %>" disabled>
+                                    <!-- <div class="alert alert-warning mt-3">
+                                        Your email is not confirmed. Please check your inbox.<br>
+                                        <a href="javascript:void(0)">Resend confirmation</a>
+                                    </div> -->
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Phone</label>
+                                    <input type="text" class="form-control" value="<%= data.userData.phone %>" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="account-change-password">
+                            <div class="card-body pb-2">
+                                <div class="form-group">
+                                    <label class="form-label">Current password</label>
+                                    <input type="password" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">New password</label>
+                                    <input type="password" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Repeat new password</label>
+                                    <input type="password" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="account-info">
+                            <div class="alert alert-danger mt-3">
+                                <p>Deleting account is irreversible and you will permanently delete all data, designs, store details, orders, etc.</p>
+                            </div>
+                            <div class="card-body pb-2">
+                                <div class="form-group">
+                                    <label class="form-label">Enter password</label>
+                                    <input type="text" class="form-control" placeholder="Your password">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="account-connections">
+                            <div class="card-body">
+                                <h4>WooCommerce Store:</h4>
+                                <div class="form-group">
+                                    <label class="form-label">WooCommerce Store name:</label>
+                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.shopName?? 'Not yet connected' %>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">WooCommerce Consumer Key:</label>
+                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.consumerKey?? 'Not yet connected' %>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">WooCommerce Store URL:</label>
+                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.url?? 'Not yet connected' %>">
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h4>Shopify Store:</h4>
+                                <div class="form-group">
+                                    <label class="form-label">Shopify Store name:</label>
+                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopName?? 'Not yet connected' %>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Shopify Access Token:</label>
+                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopifyAccessToken?? 'Not yet connected' %>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Shopify Store URL:</label>
+                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopifyStoreURL?? 'Not yet connected' %>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="text-right mt-3">
+            <button type="button" class="btn btn-primary">Save changes</button>&nbsp;
+            <button type="button" class="btn btn-default">Cancel</button>
+        </div> -->
     </div>
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript">
+
+    </script>
 </body>
 
 </html>

@@ -97,6 +97,7 @@ exports.profilepage = async (req, res) => {
   // write code to get req.userId and findOne and SSR the page
   const userData = await UserModel.findOne({ _id: req.userId });
   const storeData = await StoreModel.findOne({ userid: req.userId });
+  // console.log(userData, storeData)
   const data = {
     userData: userData,
     storeData: storeData
@@ -816,8 +817,8 @@ exports.getshopifystock = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const shopifyStoreDetails = await StoreModel.findOne({ userid: userId });
-    const shopifyStoreData = shopifyStoreDetails.shopifyStores;
+    const shopifyStoreDetails = await StoreModel.findOne({ userid: userId }, 'shopifyStore');
+    const shopifyStoreData = shopifyStoreDetails.shopifyStore
 
     var shopifyShopStockData = [];
 
@@ -925,19 +926,18 @@ exports.connectShopify = async (req, res) => {
     const fetchData = await fetchReq.json();
     // console.log(fetchData);
 
+    if (!fetchReq.ok) return res.status(400).json({error: "Couldn't find store"});
+
     const store = await StoreModel.findOneAndUpdate(
       { userid: req.userId },
       {
         $set: {
-          // _id: 
           userid: req.userId,
-          shopifyStores: [
-            {
+          shopifyStore: {
               shopName: SHOPIFY_SHOP_NAME,
               shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
               shopifyStoreURL: SHOPIFY_SHOP_URL
             }
-          ],
         }
       },
       { new: true, upsert: true }
@@ -973,7 +973,6 @@ exports.connectWooCommerce = async (req, res) => {
       status: 'cancelled',
       per_page: '2',
     });
-    // console.log(orders);
 
     const store = await StoreModel.findOneAndUpdate(
       { userid: req.userId },
@@ -981,14 +980,12 @@ exports.connectWooCommerce = async (req, res) => {
         $set: {
           // _id: 
           userid: req.userId,
-          wooCommerceStores: [
-            {
+          wooCommerceStores: {
               shopName: WOOCOMMERCE_SHOP_NAME,
               url: WOOCOMMERCE_SHOP_URL,
               consumerKey: WOOCOMMERCE_CONSUMER_KEY,
               consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
             }
-          ],
         }
       },
       { new: true, upsert: true }
@@ -1401,4 +1398,72 @@ exports.getdesigns = async (req, res) => {
     console.log(error);
     res.status(500).json({ error });
   }
+}
+
+// create shopify order
+exports.createshopifyorder = async (req, res) => {
+  const shopifyStoreData = await StoreModel.findOne({ userid: req.userId }, 'shopifyStore');
+  const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.find(design => design.designSKU === req.body.designSKU)
+  console.log(designData);
+
+  try {
+    const SHOPIFY_ACCESS_TOKEN = shopifyStoreData.shopifyStore?.shopifyAccessToken;
+    const SHOPIFY_SHOP_URL = shopifyStoreData.shopifyStore?.shopifyStoreURL;
+    const SHOPIFY_SHOP_NAME = shopifyStoreData.shopifyStore?.shopName;
+    // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
+
+    const productData = {
+      title: designData.designName,
+      product_type: 'tshirt',
+      tags: ['printwear', 'custom', 'designer'],
+      body_html: "<strong>" + designData.product.name + "</strong>",
+      vendor: "Printwear",
+      images: [
+        {
+          src: designData.designImage.front?? designData.designImage.back
+        }
+      ],
+      options: [
+        {
+          name: 'Size',
+          values: [designData.product.size]
+        },
+        {
+          name: 'Color',
+          color: [designData.product.color]
+        }
+      ],
+      variants: [
+        {
+          title: designData.product.size + ' / ' + designData.product.color,
+          sku: designData.designSKU,
+          price: designData.price.toFixed(2),
+          option1: designData.product.size,
+          option2: designData.product.color,
+          requires_shipping: true
+        }
+      ]
+    }
+
+    console.log(productData)
+  
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products.json`
+  
+    const shopifyProductCreateRequest = await fetch(shopifyEndpoint, {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        product: productData
+      })
+    });
+    const shopifyProductCreateResponse = await shopifyProductCreateRequest.json();
+    console.log(shopifyProductCreateResponse);
+    res.json(shopifyProductCreateResponse)
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({error});
+  }
+  
 }

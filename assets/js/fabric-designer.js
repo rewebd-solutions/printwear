@@ -23,7 +23,9 @@ var notyf = new Notyf();
 const fetchProductData = async () => {
   try {
     // fetch call
-    const productStyle = new URLSearchParams(location.search).get("style").split("+").join(" ");
+    const styleParam = new URLSearchParams(location.search).get("style");
+    if (!styleParam) return notyf.error({message: "style paramater not defined in URL", duration: 6000, dismissible: true});
+    const productStyle = styleParam.split("+").join(" ");
     console.log(productStyle);
     if (!productStyle) {
       return notyf.error({
@@ -434,7 +436,7 @@ const downloadDesign = () => {
 // save to cloud
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
-  // follow everything as in download func but convert that blob to File() then upload
+  disableButton(true);
   console.log("working?");
   
   if (fabricCanvas.getActiveObject()) {
@@ -482,7 +484,6 @@ const saveDesign = async () => {
         size: submitProduct.size,
         SKU: submitProduct.sizeSku,
         price: submitProduct.price,
-        hex: Product.colors.find(x => x._id === currentColor).hex,
         baseImage: {
             front: Product.baseImage.front,
             back: Product.baseImage.back,
@@ -502,8 +503,8 @@ const saveDesign = async () => {
   
       const formData = new FormData();
       filesFromBlobs.forEach((file) => formData.append('images', file));
-      formData.append("designHeight", (designImageHeight * Product.pixelToInchRatio).toFixed(2))
-      formData.append("designWidth", (designImageWidth * Product.pixelToInchRatio).toFixed(2))
+      formData.append("designHeight", calculateTotalHeight().toFixed(2))
+      formData.append("designWidth", calculateTotalWidth().toFixed(2))
       formData.append("productData", JSON.stringify(designModelObject));
       formData.append("direction", designDirection);
   
