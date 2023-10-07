@@ -107,7 +107,7 @@ document.querySelector(".design-input-label").addEventListener("click", (e) => {
 // function to toggle disabling and enabling button
 const disableButton = (state) => {
   const saveButton = document.querySelector(".save-button");
-  state? saveButton.setAttribute("disabled") : saveButton.removeAttribute("disabled");
+  state? saveButton.setAttribute("disabled", true) : saveButton.removeAttribute("disabled");
   state? saveButton.classList.add("disabled"): saveButton.classList.remove("disabled");
   state? saveButton.innerHTML = 'Saving...': saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`;
 }

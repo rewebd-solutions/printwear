@@ -59,8 +59,11 @@ route.post("/connect-shopify", authServices.authorizeToken, controller.connectSh
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
 
 route.get("/getzohoproducts", controller.getZohoProducts);
-route.get("/getzohoproductgroups", controller.getZohoProductGroups);
+// route.get("/getzohoproductgroups", controller.getZohoProductGroups);
 
 route.post("/createshopifyorder", authServices.authorizeToken, controller.createshopifyorder);
+route.post("/createwoocommerceorder", authServices.authorizeToken, controller.createwoocommerceorder);
+
+// route.get("/createzohoproducts", controller.createZohoProducts);
 
 module.exports = route

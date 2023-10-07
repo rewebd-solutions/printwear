@@ -18,6 +18,11 @@
     width: 60%;
 }
 
+.form-control:focus {
+    border-color: #F05A30 !important;
+    box-shadow: none !important; 
+}
+
 .img {
     border-radius: 50%;
 }

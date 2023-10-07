@@ -27,6 +27,7 @@ const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 var nodemailer = require('nodemailer');
 const otpGen = require("otp-generator")
 const storageReference = require("../services/firebase");
+const ZohoProductModel = require("../model/zohoProductModel");
 
 const SHIPROCKET_BASE_URL = "https://apiv2.shiprocket.in/v1/external";
 const CASHFREE_BASE_URL = 'https://sandbox.cashfree.com/pg';
@@ -395,18 +396,18 @@ exports.adddesign = async (req, res) => {
 //   }
 // }
 
-exports.deletedesign = async (req, res) => {
-  try {
-    console.log(req.userId, req.body.designId)
-    await CartModel.findOneAndUpdate({ userId: req.userId }, { $pull: { items: { design: req.body.designId } } });
-    await DesignModel.findOneAndDelete({ _id: req.body.designId });
-    // console.log("done")
-    res.status(200).json({ message: "Deleted" });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err });
-  }
-}
+// exports.deletedesign = async (req, res) => {
+//   try {
+//     console.log(req.userId, req.body.designId)
+//     await CartModel.findOneAndUpdate({ userId: req.userId }, { $pull: { items: { design: req.body.designId } } });
+//     await DesignModel.findOneAndDelete({ _id: req.body.designId });
+//     // console.log("done")
+//     res.status(200).json({ message: "Deleted" });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({ error: err });
+//   }
+// }
 
 
 // cart endpoints
@@ -869,37 +870,27 @@ exports.getshopifyorders = async (req, res) => {
     const userId = req.userId;
 
     const shopifyStoreDetails = await StoreModel.findOne({ userid: userId });
-    const shopifyStoreData = shopifyStoreDetails.shopifyStores;
+    const shopifyStoreData = shopifyStoreDetails.shopifyStore;
 
-    var shopifyShopOrderData = [];
+    const SHOPIFY_ACCESS_TOKEN = shopifyStoreData.shopifyAccessToken;
+    const SHOPIFY_SHOP_URL = shopifyStoreData.shopifyStoreURL;
+    const SHOPIFY_SHOP_NAME = shopifyStoreData.shopName;
 
-    for (let store of shopifyStoreData) {
-      const SHOPIFY_ACCESS_TOKEN = store.shopifyAccessToken;
-      const SHOPIFY_SHOP_URL = store.shopifyStoreURL;
-      const SHOPIFY_SHOP_NAME = store.shopName;
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json`;
 
-      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json`;
-
-      try {
-        const shopifyStoreOrderRequest = await fetch(shopifyEndpoint, {
-          headers: {
-            'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
-          }
-        })
-        const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
-        shopifyShopOrderData.push({
-          shopName: SHOPIFY_SHOP_NAME,
-          orders: shopifyStoreOrderResponse.orders // → idha paathu maathu
-        });
-      } catch (error) {
-        console.log(error);
-        shopifyShopOrderData.push({
-          shopName: SHOPIFY_SHOP_NAME,
-          error
-        });
-      }
+    try {
+      const shopifyStoreOrderRequest = await fetch(shopifyEndpoint, {
+        headers: {
+          'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+        }
+      })
+      const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
+      res.json(shopifyStoreOrderResponse);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error });
     }
-    res.json(shopifyShopOrderData);
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
@@ -980,7 +971,7 @@ exports.connectWooCommerce = async (req, res) => {
         $set: {
           // _id: 
           userid: req.userId,
-          wooCommerceStores: {
+          wooCommerceStore: {
               shopName: WOOCOMMERCE_SHOP_NAME,
               url: WOOCOMMERCE_SHOP_URL,
               consumerKey: WOOCOMMERCE_CONSUMER_KEY,
@@ -1006,7 +997,7 @@ exports.connectWooCommerce = async (req, res) => {
 
 
 // zoho inventory hitting
-exports.getZohoProducts = async (req, res) => {
+exports.getZohoProductsFromInventory = async (req, res) => {
   try {
     // get acctkn then hit the API
     const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, { method: "POST" });
@@ -1353,7 +1344,7 @@ exports.createdesign = async (req, res) => {
 
     for(let file of fileBuffer) {
       const fileReference = storageReference.child(`images/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU + "_" + file.originalname}`);
-      await fileReference.put(file.buffer);
+      await fileReference.put(file.buffer, { contentType: 'image/png' });
       const fileDownloadURL = await fileReference.getDownloadURL();
       recordOfFileNames[file.originalname] = fileDownloadURL;
     }
@@ -1390,6 +1381,17 @@ exports.createdesign = async (req, res) => {
   }
 }
 
+exports.deletedesign = async (req, res) => {
+  try {
+    const userDesigns = await NewDesignModel.findOneAndUpdate({ userId: req.userId }, { $pull: { designs: { designSKU: req.body.designSKU } } });
+    // console.log(userDesigns);
+    res.send("OK");
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({error});
+  }
+}
+
 exports.getdesigns = async (req, res) => {
   try {
     const userDesigns = await NewDesignModel.findOne({ userId: req.userId });
@@ -1402,9 +1404,9 @@ exports.getdesigns = async (req, res) => {
 
 // create shopify order
 exports.createshopifyorder = async (req, res) => {
-  const shopifyStoreData = await StoreModel.findOne({ userid: req.userId }, 'shopifyStore');
+  const shopifyStoreData = await StoreModel.findOne({ userid: req.userId });
+  if (!shopifyStoreData) return res.status(400).json({ error: 'Shopify store not connected' });
   const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.find(design => design.designSKU === req.body.designSKU)
-  console.log(designData);
 
   try {
     const SHOPIFY_ACCESS_TOKEN = shopifyStoreData.shopifyStore?.shopifyAccessToken;
@@ -1418,11 +1420,6 @@ exports.createshopifyorder = async (req, res) => {
       tags: ['printwear', 'custom', 'designer'],
       body_html: "<strong>" + designData.product.name + "</strong>",
       vendor: "Printwear",
-      images: [
-        {
-          src: designData.designImage.front?? designData.designImage.back
-        }
-      ],
       options: [
         {
           name: 'Size',
@@ -1442,16 +1439,20 @@ exports.createshopifyorder = async (req, res) => {
           option2: designData.product.color,
           requires_shipping: true
         }
+      ],
+      images: [
+        {
+          src: designData.designImage.front?? designData.designImage.back
+        }
       ]
     }
-
-    console.log(productData)
   
     const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products.json`
-  
+    
     const shopifyProductCreateRequest = await fetch(shopifyEndpoint, {
       headers: {
-        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+        'Content-Type': 'application/json'
       },
       method: 'POST',
       body: JSON.stringify({
@@ -1459,11 +1460,123 @@ exports.createshopifyorder = async (req, res) => {
       })
     });
     const shopifyProductCreateResponse = await shopifyProductCreateRequest.json();
-    console.log(shopifyProductCreateResponse);
+    // console.log(shopifyProductCreateResponse)
+    // const productIDtoChange = shopifyProductCreateResponse.product.id;
+    
+    // const shopifyImageUploadEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products/${productIDtoChange}/images.json`
+    // const shopifyProductImageRequest = await fetch(shopifyImageUploadEndpoint, {
+    //   headers: {
+    //     'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+    //     'Content-Type': 'application/json'
+    //   },
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     image: 
+    //   })
+    // });
+    // const shopifyProductImageResponse = await shopifyProductImageRequest.json();
+    // console.log(shopifyProductImageResponse)
+
     res.json(shopifyProductCreateResponse)
   } catch (error) {
     console.log(error);
     res.status(500).json({error});
   }
   
+}
+
+exports.createwoocommerceorder = async (req, res) => {
+  const storeData = await StoreModel.findOne({ userid: req.userId });
+  console.log(storeData.wooCommerceStore);
+  if (!(storeData.wooCommerceStore.url)) return res.status(404).json({error: "WooCommerce store not connected!"});
+  const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.find(design => design.designSKU === req.body.designSKU)
+
+  // const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
+  const consumerKey = storeData.wooCommerceStore.consumerKey;
+  const consumerSecret = storeData.wooCommerceStore.consumerSecret;
+  const shopURL = storeData.wooCommerceStore.url;
+  const encodedAuthBuffer = Buffer.from(`${consumerKey}:${consumerSecret}`, 'base64');
+  const encodedAuth = encodedAuthBuffer.toString('base64')
+
+  const endpoint = `https://${shopURL}/wp-json/wc/v3/products`;
+
+  const productData = {
+    name: "Bruh shirt",
+    slug: "bruh-shirt",
+    type: "simple",
+    status: "publish",
+    regular_price: "399",
+    sale_price: "299",
+    sku: "one-piece-is-real",
+    description:
+      "This is a one piece sweatshirt. One piece is one of the big 3 of anime, a greate anime with an amazing storyline..",
+    short_description: "Official One pix Merchandise",
+    dimensions: {
+      length: "7",
+      width: "38",
+      height: "28",
+    },
+    images: [
+      {
+        src: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/images%2F64f175edd683cd124e440f23_NUMBER_2_PWSSDWSSM-001SS-M2TT_DesignImage-front.png?alt=media&token=afe56335-b54e-4ff7-8f49-1bb72aeb4628",
+        name: "bruh",
+      },
+    ],
+    attributes: [
+      {
+        id: 1,
+        name: "size",
+        position: 0,
+        visible: true,
+        variation: true,
+        options: [
+          "S"
+        ],
+      },
+    ],
+  };
+
+  try {
+    const createWooProductRequest = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${encodedAuth}`,
+      },
+      body: JSON.stringify(productData),
+    });
+    const createWooProductResponse = await createWooProductRequest.json();
+    if(createWooProductRequest.ok)
+        console.log("Uploaded Successfully");
+    res.json(createWooProductResponse)
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({err});
+  }
+};
+
+// temp for creating zoho products
+exports.createZohoProducts = async (req, res) => {
+  const dataToPut = require("../../.test_assets/zohoproductdata")['zohoData']
+  const zohoProductsData = Object.keys(dataToPut).map(dataItem => ({ style: dataItem, ...dataToPut[dataItem] }))
+  // res.json(zohoProductsData);
+  try {
+    const created = await ZohoProductModel.create(zohoProductsData);
+    // const created = await ZohoProductModel.deleteMany({});
+    res.json(created);
+  } catch (error) {
+    res.json({ error })
+  }
+}
+
+exports.getZohoProducts = async (req, res) => {
+  try {
+    const zohoProductsData = await ZohoProductModel.find({});
+    const zohoProductObjects = {};
+    zohoProductsData.forEach(product => zohoProductObjects[product.style] = product)
+    res.json(zohoProductObjects);
+  } catch (error) {
+    console.log(error);
+    res.json({ error });
+  }
 }

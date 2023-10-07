@@ -51,12 +51,41 @@
 
     const designsContainer = document.querySelector(".designs-wrapper");
     var designsResponseData = {};
-    
-    const deleteDesign = (designSKU) => {
-      console.log(designSKU);
-    }
 
+    const disableButton = (buttonElement, innerTextBefore, innerTextAfter, state) => {
+      state? buttonElement.setAttribute("disabled", true) : buttonElement.removeAttribute("disabled");
+      state? buttonElement.classList.add("disabled"): buttonElement.classList.remove("disabled");
+      state? buttonElement.innerHTML = `${innerTextBefore}` : buttonElement.innerHTML = `<i class="fa-regular fa-page"></i> ${innerTextAfter}`;
+    }
+    
+    const deleteDesign = async (e, designSKU) => {
+      disableButton(e.target, "Deleting...", "Deleted", true);
+      try {
+        const deleteDesignRequest = await fetch("/deletedesign", {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            designSKU
+          }),
+          method:'POST'
+        });
+        const deleteDesignResponse = await deleteDesignRequest.text();
+        notyf.success({
+          message: "Design deleted successfully",
+          dismissible: true,
+          duration: 5000
+        })
+        document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+        fetchDesignsData();
+      } catch (error) {
+        console.log(error);
+        return notyf.error("Unable to delete design")
+      }
+    }
+ 
     const addToShopify = async (e, designSKU) => {
+      disableButton(e.target, "Adding...", "Added to Shopify", true);
       try {
         const addToshopifyRequest = await fetch("/createshopifyorder", {
           headers: {
@@ -68,13 +97,59 @@
           }),
         });
         const addToshopifyResponse = await addToshopifyRequest.text();
-        
+        if (!addToshopifyRequest.ok) {
+          document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+          return notyf.error({
+            message: "Shopify store not connected!",
+            dismissible: true,
+            duration: 5000
+          }) 
+        }
+        notyf.success({
+          message: "Added to shopify Store!",
+          dismissible: true,
+          duration: 5000
+        })
+        document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
       } catch (error) {
         console.log(error);
         notyf.error("Something went wrong!");
       }
     }
 
+    const addToWooCommerce = async (e, designSKU) => {
+      disableButton(e.target, "Adding...", "Added to WooCommerce", true);
+      try {
+        const addToWoocommerceRequest = await fetch("/createwoocommerceorder", {
+          headers: {
+            "Content-Type": "application/json"
+          },
+          method: "POST",
+          body: JSON.stringify({
+            designSKU
+          }),
+        });
+        const addToWoocommerceResponse = await addToWoocommerceRequest.json();
+        if (!addToWoocommerceRequest.ok){
+          document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+          return notyf.error({
+            message: "WooCommerce store not connected!",
+            dismissible: true,
+            duration: 5000
+          }) 
+        } 
+        notyf.success({
+          message: "Added to WooCommerce Store!",
+          dismissible: true,
+          duration: 5000
+        })
+        document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+      } catch (error) {
+        console.log(error);
+        notyf.error("Something went wrong!");
+      }
+    }
+    
     const openModal = (designSKU) => {
       const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
       console.log(designModalData);
@@ -92,7 +167,7 @@
             <div class="product-modal-details">
               <div class="product-modal-heading-delete">
                 <h2 class="product-name">${designModalData.designName}</h2>
-                <button id="delete-design" onclick="deleteDesign('${designSKU}')"><i class="fa fa-trash"></i>Delete design</button>
+                <button id="delete-design" onclick="deleteDesign(event,'${designSKU}')"><i class="fa fa-trash"></i>Delete design</button>
               </div>
               <div class="product-category-gender">
                 <h6>${designModalData.product.style}</h6>
