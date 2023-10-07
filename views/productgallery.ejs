@@ -23,10 +23,18 @@
             <div class="head">
                 <p>Product Gallery</p>
             </div>
-            <!-- <div class="search" data-aos="fade-up">
-                <input type="search" id="search" />
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </div> -->
+            <div class="search-box-container">
+                <input type="search" name="product-search" oninput="searchProducts(event.target.value)" id="product-search" />
+            </div>
+        </div>
+        <div class="filter-container">
+            <h3>Filter by category</h3>
+            <div class="gender-filter">
+                <button class="filter-button" onclick="populateData()">All</button>
+                <button class="filter-button" onclick="filterProductsByGender(event,'men')">Male</button>
+                <button class="filter-button" onclick="filterProductsByGender(event, 'women')">Female</button>
+                <button class="filter-button" onclick="filterProductsByGender(event, 'unisex')">Unisex</button>
+            </div>
         </div>
         <div class="cards" data-aos="fade-up">
             <span class="loader"></span>
@@ -78,10 +86,11 @@
 
         const slugifyNames = (string) => string.toLowerCase().replace(/[\/\s]/g, '-').slice(0, 200);
 
-        const populateData = () => {
+        const populateData = (data = productsData) => {
             cardsContainer.innerHTML = '';
-            for (let style in productsData) {
-                let currentProduct = productsData[style];
+            if (Object.keys(data).length === Object.keys({}).length) return cardsContainer.innerHTML = 'Search not found!'
+            for (let style in data) {
+                let currentProduct = data[style];
                 let cardDataDOMString = `
                 <div class="display-card" data-aos="fade-up">
                     <div class="name-price">
@@ -93,11 +102,11 @@
                     </div>
                     <div class="details">
                         <div class="stock-avail">
-                            <p>Starts: ₹.${calculateCardPrice(currentProduct)}</p>
-                            ${calculateCardStock(currentProduct) === 0? `<p style="color:red">Out of stock!</p>`: `<p>Stock: ${calculateCardStock(currentProduct)}</p>`}
+                            <p style="font-size: 14px">Starts: ₹.${calculateCardPrice(currentProduct)}</p>
+                            ${calculateCardStock(currentProduct) === 0? `<p style="color:red; font-size: 14px">Out of stock!</p>`: `<p style="font-size: 14px">Stock: ${calculateCardStock(currentProduct)}</p>`}
                         </div>
                         <div class="view-btn">
-                            <button class="toggle-modal" data-productid="${slugifyNames(style)}">View</button>
+                            <button class="toggle-modal" data-productid="${slugifyNames(style)}">Design</button>
                         </div>
                     </div>
                 </div>
@@ -107,7 +116,7 @@
             cardsContainer.addEventListener("click", (e) => {
                 let toggleModalBtn = e.target.closest(".toggle-modal");
                 if (toggleModalBtn) {
-                    let styleToOpen = Object.keys(productsData).find(product => slugifyNames(e.target.dataset.productid) == slugifyNames(product));
+                    let styleToOpen = Object.keys(data).find(product => slugifyNames(e.target.dataset.productid) == slugifyNames(product));
                     openProductModal(styleToOpen);
                     e.stopImmediatePropagation()
                     return
@@ -149,7 +158,7 @@
                                 <p>Sizes: </p>
                                 ${
                                     Object.keys(productData.colors[anyColorForSizes].sizes).map(size => {
-                                        return productData.colors[anyColorForSizes].sizes[size].stock === 0? `<h4 title="Out of Stock" style="background: red; color: white; cursor: pointer">${size}</h4>` :`<h4 style="background: #ebebeb">${size}</h4>`
+                                        return productData.colors[anyColorForSizes].sizes[size].stock === 0? `<h4 title="Out of Stock" style="background: #ebebeb; opacity: 0.4; cursor: not-allowed">${size}</h4>` :`<h4 style="background: #ebebeb">${size}</h4>`
                                     }).join('\n')
                                 }
                             </div>
@@ -170,8 +179,37 @@
             })
         }
 
-        // test
+        const filterProductsByGender = (e, category) => {
+            console.log(category)
+            const filteredData = {};
+            for(let styleName in productsData) {
+                if (productsData[styleName].gender === category) {
+                    filteredData[styleName] = productsData[styleName];
+                }
+            }
+            console.log(filteredData)
+            populateData(filteredData)
+        }
+
+        const searchProducts = (searchKey) => {
+            const searchFilteredData = {};
+            for (let styleName in productsData) {
+                // new RegExp(`/${searchKey}/`, 'i').test(styleName) ? searchFilteredData[styleName] = productsData[styleName]: {}
+                styleName.toLowerCase().includes(searchKey.toLowerCase()) ? searchFilteredData[styleName] = productsData[styleName]: {}
+            }
+            populateData(searchFilteredData);
+        }
+
         getProducts().then(data => {
+            const maleFilterPattern = new RegExp(/\bmen\b|\bmens\b/i);
+            const femaleFilterPattern = new RegExp(/\bwomen\b|\bwomens\b/i);
+            
+            Object.keys(data).forEach(styleName => {
+                if (maleFilterPattern.test(styleName)) data[styleName]['gender'] = "men";
+                else if (femaleFilterPattern.test(styleName)) data[styleName]['gender'] = "women";
+                else data[styleName]['gender'] = "unisex";
+            });
+
             productsData = data;
             populateData();
         }).catch(error => {

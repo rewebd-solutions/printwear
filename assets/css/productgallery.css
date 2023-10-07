@@ -24,50 +24,16 @@ body {
   font-size: 25px;
 }
 
+.filter-container {
+  display: flex;
+  flex-direction: column;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
-.filter {
-  display: flex;
-  flex-direction: row;
-  width: max-content;
-  margin-top: 20px;
-  /* border: solid; */
-}
-
-.name {
-  border: none;
-  border-bottom: solid;
-  display: flex;
-  justify-content: space-between;
-  width: 200px;
-  /* border: solid; */
-}
-
-.name i {
-  font-size: 20px;
-  padding-top: 10px;
-}
-
-.name input {
-  border: none;
-  width: 100%;
-}
-
-.name input:focus,
-.name input:active {
-  outline: none;
-}
-
-.filt {
-  margin-left: 20px;
-}
-
-/*deleted dropdown class*/
-
 
 .cards {
   display: flex;
