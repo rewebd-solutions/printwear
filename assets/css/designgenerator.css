@@ -102,6 +102,13 @@
    gap: 0.5rem
 }
 
+.color-list {
+   display: grid;
+   grid-template-columns: repeat(4, 0.2fr);
+   place-items: center;
+   align-items: baseline;
+}
+
 .sides-list {
    align-items: center;
    gap: 1rem
@@ -148,6 +155,15 @@
    flex-direction: column;
    gap: 0.5rem;
    width: 84%;
+}
+
+.design-name-input::placeholder {
+   opacity: 0.6;
+}
+
+.color-disabled {
+   opacity: 0.6;
+   cursor: not-allowed;
 }
 
 .text-add > input[type="text"] {

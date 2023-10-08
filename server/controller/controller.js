@@ -1,5 +1,5 @@
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
+// const accountSid = process.env.TWILIO_ACCOUNT_SID;
+// const authToken = process.env.TWILIO_AUTH_TOKEN;
 const cashfreeAppID = process.env.CASH_APP_ID;
 const cashfreeSecretKey = process.env.CASH_SECRET_KEY;
 const zohoRefreshToken = process.env.ZOHO_REFRESH_TOKEN;
@@ -24,7 +24,6 @@ var OrderModel = require("../model/orderModel");
 var NewDesignModel = require("../model/newDesignModel");
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
-var nodemailer = require('nodemailer');
 const otpGen = require("otp-generator")
 const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");

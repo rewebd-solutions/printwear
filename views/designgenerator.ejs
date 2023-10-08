@@ -95,7 +95,7 @@
 					</div>
 				</div>
 				<!-- add text field -->
-				<div class="text-add">
+				<!-- <div class="text-add">
 					<h3>Add custom text</h3>
 					<input
 					  type="text"
@@ -121,7 +121,7 @@
 					  <input type="color" id="text-color-picker" value="#000000" />
 					</div>
 					<button onclick="addTextToCanvas()">Add Text</button>
-				</div>				
+				</div>				 -->
 				<!-- Design Image Stats -->
 				<div class="design-stats">
 					<h3 class="height-design"></h3>
@@ -135,6 +135,8 @@
 			<div class="steps-container">
 				<div class="right-box-steps"><i class="fa fa-circle-5"></i><h4>Name you design</h4></div>
 				<input type="text" placeholder="My top design..." id="design-name" class="design-name-input" required />
+				<h4>Enter unique SKU</h4>
+				<input type="text" oninput="modifySKUInput(event)" placeholder="DESIGN-001, FANCY-2, etc." id="sku-name" class="design-name-input" required />
 			</div>
 			<!-- Save Image -->
 			<div class="action-buttons">

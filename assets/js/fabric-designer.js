@@ -25,6 +25,7 @@ const fetchProductData = async () => {
     // fetch call
     const styleParam = new URLSearchParams(location.search).get("style");
     if (!styleParam) return notyf.error({message: "style paramater not defined in URL", duration: 6000, dismissible: true});
+
     const productStyle = styleParam.split("+").join(" ");
     console.log(productStyle);
     if (!productStyle) {
@@ -113,16 +114,17 @@ const disableButton = (state) => {
 }
 
 // Changing current color and its image
-const changeMockup = (color, id) => {
+const changeMockup = (e, color, id) => {
   let mockupImageContainer = document.getElementById("mockup-image");
 
   let selectedMockup = Product.colors.find((color) => color._id === id);
   const element = document.getElementById(`${color}-${id}`);
 
+  console.log(e.target);
+
   renderColorBorder(color, id);
   globalProductID = null;
   currentColor = id;
-  element.style.border = "2px solid red";
   displaySizes();
 
   if (designDirection === "front"){
@@ -138,7 +140,7 @@ const renderColorBorder = (color, id) => {
   colorButtons.forEach(
     (colorButton) => (colorButton.style.border = "2px solid #6a6969")
   );
-  currentColor.style.border = "2px solid red";
+  currentColor.style.border = "3px solid red";
 };
 
 // Displaying the colors to user
@@ -148,13 +150,10 @@ const renderColors = () => {
   Product.colors.map((color) => {
     const child = document.createElement("div");
     const innerHTML = `
-    <div class="color-options" onclick="changeMockup('${color.colorName}', ${
-      color._id
-    })">
-    <span class="color-circle" style="background: ${color.hex}; border: ${
-      color._id === currentColor ? "2px solid red" : "2px solid #6a6969;"
-    }" id="${color.colorName}-${color._id}"></span>
-    <p>${color.colorName}</p>
+    <div class="color-options${color.colorImage.front || color.colorImage.back ? '': ' color-disabled'}" ${color.colorImage.front || color.colorImage.back ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"`: 'title="Image not available"'}>
+      <span class="color-circle" style="background: ${color.hex}; border: 
+      ${ color._id === currentColor ? "3px solid red" : "2px solid #6a6969;" }" id="${color.colorName}-${color._id}"></span>
+      <p>${color.colorName}</p>
     </div>
     `;
     child.innerHTML = innerHTML;
@@ -227,8 +226,12 @@ const updateStats = () => {
 const changeSize = (e, size, id) => {
   const sizeButtons = document.querySelectorAll(".size-options");
   const basePriceElement = document.querySelector(".base-price");
-  sizeButtons.forEach(sizeBtn => sizeBtn.style.border = "2px solid #6a6969");
+  sizeButtons.forEach(sizeBtn => {
+    sizeBtn.style.border = "2px solid #6a6969";
+    sizeBtn.style.transform = "scale(1.0)"
+  });
   e.target.style.border = "2px solid red";
+  e.target.style.transform = "scale(1.1)"
   console.log(id, size);
   globalProductID = id; // check b4 downloading or saving if this is checked
   
@@ -247,7 +250,7 @@ const displaySizes = () => {
   const current = Product.colors.find((item) => item._id === currentColor);
   let sizeDOMString = current.sizes.map((item) => {
     return `
-        <div class="size-options" ${item.stock? `onclick="changeSize(event,'${item.size}', '${item.id}')"` : `style="background:red; color:white; cursor:not-allowed;" title="Out of stock"`}>
+        <div class="size-options" ${item.stock? `onclick="changeSize(event,'${item.size}', '${item.id}')"` : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`}>
         ${item.size}
         </div>
       `;
@@ -383,10 +386,10 @@ const changeSide = (e, side) => {
   designDirection = side;
   if (designDirection === "front")
     document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.front;
+      selectedMockup.colorImage.front == "" ? 'images/warning.png': selectedMockup.colorImage.front;
   else
     document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.back;
+      selectedMockup.colorImage.back == "" ? 'images/warning.png': selectedMockup.colorImage.back;
 };
 
 // Download Image
@@ -612,6 +615,12 @@ const changeInputFont = (e) => {
 const changeInputFontWeight = (e) => {
   textInputBox.style.fontWeight = e.target.value;
 };
+
+// function to change SKU input with correct validity
+const modifySKUInput = (event) => {
+  let string = event.target.value;
+  event.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase().slice(0, 10);
+}
 
 // also create a fetch function to fetch the products data and obtain the specific style
 //    based on query params passed to the route

@@ -21,7 +21,7 @@ exports.authorizeToken = (req, res, next) => {
       return next();
     } catch {
       res.clearCookie("actk");
-      return res.render("expired");
+      return res.redirect("login");
     }
 };
 

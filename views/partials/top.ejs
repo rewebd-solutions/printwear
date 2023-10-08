@@ -43,7 +43,15 @@
     <img src="images/Logo.png" id="logo">
   </div>
   <div class="nav-icons">
+    <a href="#" class="design-upload" onclick="openDesignUploadModal(event)">
+      <i style="color:red;font-size: 20px;" class="fa fa-file-upload"></i>
+    </a>
     <a href="/profile"><i style="color:red;font-size: 18px;"
         class="fa-solid fa-user"></i></a>
   </div>
 </div>
+<script>
+  const openDesignUploadModal = (e) => {
+    console.log("opened");
+  }
+</script>
