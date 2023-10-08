@@ -12,7 +12,7 @@ exports.authorizeToken = (req, res, next) => {
     const token = req.cookies.actk;
     // console.log(token);
     if (!token) {
-      return res.render("expired");
+      return res.redirect("/login");
     }
     try {
       const data = jwt.verify(token, "thatsasecret");
@@ -21,7 +21,7 @@ exports.authorizeToken = (req, res, next) => {
       return next();
     } catch {
       res.clearCookie("actk");
-      return res.redirect("login");
+      return res.redirect("/login");
     }
 };
 

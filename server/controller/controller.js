@@ -115,18 +115,26 @@ exports.uploadimage = async (req, res) => {
     const fileReference = storageReference.child(`images/${req.userId + "_" + req.file.originalname}`);
     await fileReference.put(fileBuffer);
     const fileDownloadURL = await fileReference.getDownloadURL();
-    // console.log(fileDownloadURL);
-    const fileSave = await ImageModel.create({
-      userId: req.userId,
-      front: {
-        url: fileDownloadURL,
-        name: req.file.originalname,
-        size: req.file.size / 1000,
-        format: req.file.mimetype.split("/")[1],
-      }
-    });
-    // console.log(fileSave);
-    res.status(200).redirect("designgallery");
+
+    await ImageModel.findOneAndUpdate(
+      { userId: req.userId },
+      {
+        $setOnInsert: {
+          userId: req.userId,
+        },
+        $push: {
+          images: {
+            url: fileDownloadURL,
+            name: req.file.originalname,
+            size: req.file.size / 1000,
+            format: req.file.mimetype.split("/")[1],
+          }
+        }
+      },
+      { new: true, upsert: true }
+    )
+
+    res.status(200).json({ message: "Success" });
   } catch (error) {
     console.log(error);
     res.status(500);
@@ -136,28 +144,39 @@ exports.uploadimage = async (req, res) => {
 exports.obtainimages = async (req, res) => {
   const userId = req.userId;
   try {
-    const imageData = await ImageModel.find({ userId: userId });
+    const imageData = await ImageModel.findOne({ userId: userId });
     res.status(200).json(imageData);
   } catch (error) {
     console.log(error);
-    res.status(404).json({ "message": "Not found!" });
+    res.status(500).json({ error });
   }
 }
 
 exports.deleteimage = async (req, res) => {
-  const userId = req.body.imageId;
-  const imageName = req.body.imageName;
-  const imageId = req.body.imageIdX;
+  const imageId = req.body.imageId;
   // console.log(imageId);
   try {
-    const fileReference = storageReference.child(`images/${userId + "_" + imageName}`);
+    const imageToDelete = await ImageModel.findOne({ userId: req.userId, 'images._id': imageId }, { 'images.$': 1 });
+    
+    const fileReference = storageReference.child(`images/${req.userId + "_" + imageToDelete.images[0].name}`);
     await fileReference.delete();
-    await ImageModel.findOneAndDelete({ _id: imageId });
-    res.status(200);
-    res.redirect("/designgallery");
+    
+    await ImageModel.findOneAndUpdate(
+      {
+        userId: req.userId
+      },
+      {
+        $pull: {
+          images: {
+            _id: imageId
+          }
+        }
+      }
+    )
+    res.status(200).json({ message: "Deleted successfully!" });
   } catch (error) {
     console.log(error);
-    res.redirect("/designgallery");
+    res.status(500).json({ error });
   }
 
 }
@@ -1402,7 +1421,7 @@ exports.getdesigns = async (req, res) => {
 }
 
 // create shopify order
-exports.createshopifyorder = async (req, res) => {
+exports.createshopifyproduct = async (req, res) => {
   const shopifyStoreData = await StoreModel.findOne({ userid: req.userId });
   if (!shopifyStoreData) return res.status(400).json({ error: 'Shopify store not connected' });
   const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.find(design => design.designSKU === req.body.designSKU)

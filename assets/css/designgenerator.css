@@ -208,28 +208,27 @@ input[type="text"]:focus {
    outline: 1px solid rgb(139, 139, 139);
 }
 
-button {
+.App button {
    width: 10rem;
    border: none;
    border-radius: 5px;
    padding: 2%;
    color: #434343;
    cursor: pointer;
-   transition: ease-in-out 200ms;
+   transition: ease 200ms;
 }
 
-button:hover {
+.App button:hover {
    box-shadow: 0 0 10px rgba(0, 0, 0, 0.111);
-   outline: 2px solid #E74015;
    background-color: #E74015;
    color: white;
 }
 
 .active-btn {
-   transform: scale(1.075);
+   /* transform: scale(1.075); */
    outline: 2px solid #E74015;
    background-color: #E74015;
-   color: white;
+   color: white !important;
 }
 
 .disabled {
@@ -333,7 +332,7 @@ input[type="range"]:active {
    align-items: center;
 }
 
-i.fa {
+.App i.fa {
    font-size: 1.5rem
 }
 

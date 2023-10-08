@@ -87,7 +87,7 @@
     const addToShopify = async (e, designSKU) => {
       disableButton(e.target, "Adding...", "Added to Shopify", true);
       try {
-        const addToshopifyRequest = await fetch("/createshopifyorder", {
+        const addToshopifyRequest = await fetch("/createshopifyproduct", {
           headers: {
             "Content-Type": "application/json"
           },

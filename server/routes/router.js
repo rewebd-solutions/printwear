@@ -61,7 +61,7 @@ route.post("/connect-woocommerce", authServices.authorizeToken, controller.conne
 route.get("/getzohoproducts", controller.getZohoProducts);
 // route.get("/getzohoproductgroups", controller.getZohoProductGroups);
 
-route.post("/createshopifyorder", authServices.authorizeToken, controller.createshopifyorder);
+route.post("/createshopifyproduct", authServices.authorizeToken, controller.createshopifyproduct);
 route.post("/createwoocommerceorder", authServices.authorizeToken, controller.createwoocommerceorder);
 
 // route.get("/createzohoproducts", controller.createZohoProducts);

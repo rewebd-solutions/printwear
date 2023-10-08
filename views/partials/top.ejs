@@ -37,21 +37,270 @@
     align-items: center;
     gap: 0.6rem;
   }
+  .design-upload-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.252);
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .design-upload-modal {
+    z-index: 5;
+    padding: 1rem;
+    display: flex;
+    width: 80%;
+    background-color: white;
+    flex-direction: column;
+    height: 80%;
+    position: relative;
+    gap: 1rem;
+    overflow-y: scroll;
+  }
+  .modal-controls {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .modal-close-button {
+    right: 1rem;
+    top: 1rem;
+    width: 2rem;
+    border: none;
+    cursor: pointer;
+    aspect-ratio: 1;
+    border-radius: 50%;
+  }
+  #user-image-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(0, 0, 0, 0.252);
+    padding: 2rem;
+    background-color: #F5F1F1;
+    text-align: center;
+    border-radius: 1rem;
+  }
+  .file-input {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border-radius: 10px;
+    padding: 3rem;
+    cursor: pointer;
+  }
+  #file-input {
+    display: none;
+  }
+  .design-image-wrapper {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    width: 250px;
+    height: fit-content;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #0000004b;
+  }
+  
+  .image-menu {
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    padding: 0.5rem 1rem;
+    top: 1.7rem;
+    right: 0.2rem;
+  }
+  
+  .image-settings {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 2rem;
+    aspect-ratio: 1;
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    font-weight: bold;
+  }
+  
+  
+  .image-settings-2 {
+    right: 2.9rem;
+  }
+  
+  .image-details h6, .image-details p {
+    font-family: 'Arial', sans-serif;
+    letter-spacing: normal;
+    padding: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1rem;
+  }
+  
+  .design-image-meta {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .design-image {
+    width: 100%;
+    height: 250px;
+    object-fit: contain;
+  }
+
+  .user-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem
+  }
+  
+  .top-nav-btn {
+    color:red;
+    font-size: 1rem;
+    background-color: #ebebeb;
+    padding: 0.4rem 0.7rem;
+    border-radius: 0.5rem;
+  }
 </style>
 <div class="navbar-top">
   <div class="navbar-logo">
     <img src="images/Logo.png" id="logo">
   </div>
   <div class="nav-icons">
-    <a href="#" class="design-upload" onclick="openDesignUploadModal(event)">
-      <i style="color:red;font-size: 20px;" class="fa fa-file-upload"></i>
+    <a href="#" class="top-nav-btn" onclick="openDesignUploadModal(event)">
+      <i style="font-size: 18px;" class="fa fa-file-upload"></i> Upload design
     </a>
-    <a href="/profile"><i style="color:red;font-size: 18px;"
-        class="fa-solid fa-user"></i></a>
+    <a href="/profile" class="top-nav-btn"><i style="font-size: 18px;" class="fa-solid fa-user"></i> Profile</a>
   </div>
+  
 </div>
 <script>
+  const fetchImageAndPopulate = async () => {
+      try {
+          const userImageWrapper = document.querySelector(".user-images");
+          userImageWrapper.innerHTML = 'Loading...';
+
+          const imageFetch = await fetch("/obtainimages");
+          const userImageData = await imageFetch.json();
+
+          userImageWrapper.innerHTML = '';
+           
+          if (!userImageData || userImageData.images.length === 0) return userImageWrapper.innerHTML = "No uploads yet!";
+          userImageData.images.map(imageItem => {
+            let currentImage = new Image();
+            currentImage.src = imageItem.url;
+            
+            currentImage.addEventListener("load", () => {
+              userImageWrapper.innerHTML += `
+                <div class="design-image-wrapper">
+                  <button class="image-settings"><a href="${imageItem.url}" target="_blank"><i class="fa fa-download"></i></a></button>
+                  <button class="image-settings image-settings-2" onclick="deleteImage('${imageItem._id}')"><i class="fa fa-trash"></i></button>
+                  <div
+                      style="width: 250px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
+                      <img class="design-image" src="${imageItem.url}" alt="" />
+                  </div>
+                  <div class="image-details">
+                      <h6>${imageItem.name}</h6>
+                      <h6>${currentImage.width + 'x' + currentImage.height}</h6>
+                      <div class="design-image-meta">
+                          <p>${imageItem.format}</p>
+                          <p>${imageItem.size} KB</p>
+                      </div>
+                  </div>
+                </div> 
+              `;
+            })
+          })
+      } catch(err) {
+          console.log(err);
+          notyf.error("Something went wrong in loading images!");
+      }
+  }
+
+  const deleteImage = async (imageId) => {
+    try {
+      const imageDeleteRequest = await fetch("/deleteimage", {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          imageId
+        }),
+        method: 'POST'
+      });
+      const imageDeleteResponse = await imageDeleteRequest.json();
+      if (imageDeleteRequest.ok) {
+        notyf.success("Design Image deleted successfully!");
+        fetchImageAndPopulate();
+      }
+    } catch (error) {
+      console.log(error);
+      notyf.error("Something went wrong in deleting!");
+    }
+  }
+
+  const handleImageFormSubmit = async (e) => {
+    e.preventDefault();
+    const userImageForm = document.getElementById('user-image-form');
+    
+    const imageUploadData = new FormData();
+    let imageToUpload = e.target.files[0];
+    if (!imageToUpload) return;
+    imageUploadData.append("image", imageToUpload);
+
+    try {
+      const imageUploadRequest = await fetch("/uploadimage", {
+        body: imageUploadData,
+        method: 'POST'
+      });
+      const imageUploadResponse = await imageUploadRequest.json();
+      if (imageUploadRequest.ok) {
+        notyf.success("Design Image uploaded successfully!");
+        fetchImageAndPopulate();
+      }
+    } catch (error) {
+      console.log(error);
+      notyf.error("Something went wrong in uploading!");
+    }
+  }
+
   const openDesignUploadModal = (e) => {
-    console.log("opened");
+    e.preventDefault();
+    document.querySelector(".navbar-top").insertAdjacentHTML("beforeend", `
+      <div class="design-upload-backdrop" data-aos="fade-up">
+        <div class="design-upload-modal">
+          <div class="modal-controls">
+            <button class="modal-close-button" onclick="closeDesignUploadModal(event)">
+              <i class="fa fa-close"></i>
+            </button>
+          </div>
+          <form id="user-image-form">
+            <label for="file-input" class="file-input">
+                <i class="fa-solid fa-circle-plus fa-5x"></i>
+                <h5>Upload your designs</h5>
+                <p>Drop your designs here or click to browse</p>
+            </label>
+            <input id="file-input" type="file" onchange="handleImageFormSubmit(event)" name="image" accept="image/png, image/jpg, image/jpeg" />
+          </form>
+          <div class="user-images">
+    
+          </div>
+        </div>
+      </div>
+    `)
+
+    fetchImageAndPopulate();
+  }
+  
+  const closeDesignUploadModal = (e) => {
+    document.querySelector(".design-upload-backdrop").remove();
   }
 </script>
