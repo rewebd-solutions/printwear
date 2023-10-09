@@ -92,6 +92,46 @@ exports.logout = async (req, res) => {
   return res.clearCookie("actk").redirect("/login");
 }
 
+exports.changepassword = async (req, res) => {
+  try {
+    // console.log(req.userId)
+    if (req.body.newPwd !== req.body.confirmPwd) return res.status(400).json({ message: 'Passwords dont match' });
+    const userProfile = await UserModel.findOneAndUpdate({ _id: req.userId, password: crypto.createHash(algorithm).update(req.body.currentPwd).digest("hex") }, { $set: { password: crypto.createHash(algorithm).update(req.body.newPwd).digest("hex") } }, { new: true });
+    // console.log(req.body);
+    // console.log(userProfile)
+    if (!userProfile) return res.status(400).json({ message: 'Incorrect password' })
+    return res.json(userProfile);
+  } catch (error) {
+    console.log(error);
+    res.json({ error });
+  }
+}
+
+exports.updateinfo = async (req, res) => {
+  try {
+    const { firstName, lastName, brandName } = req.body;
+    const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { firstName: firstName, lastName: lastName, brandName: brandName } }, { new: true });
+    if (!userInfo) return res.status(404).json({ message: 'User not found!' });
+    res.status(200).json({ message: 'User info updated successfully!' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+}
+
+exports.deleteprofile = async (req, res) => {
+  // first delete from userModel, then delete from all the records where the userId is there
+  // first, for now just delete from userModel
+  try {
+    const userInfo = await UserModel.findOneAndDelete({ _id: req.userId, password: crypto.createHash(algorithm).update(req.body.password).digest("hex") }, { new: true });
+    if (!userInfo) return res.status(400).json({ message: 'User not found / Incorrect password' });
+    console.log('deleted user: ', JSON.stringify(userInfo));
+    return res.clearCookie("actk").redirect("/login");
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Something went wrong!' });
+  }
+}
 
 exports.profilepage = async (req, res) => {
   // write code to get req.userId and findOne and SSR the page

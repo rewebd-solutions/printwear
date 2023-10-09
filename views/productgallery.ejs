@@ -24,13 +24,14 @@
                 <p>Product Gallery</p>
             </div>
             <div class="search-box-container">
-                <input type="search" name="product-search" oninput="searchProducts(event.target.value)" id="product-search" />
+                <input type="search" name="product-search" placeholder="Search hoodie, tees.." oninput="searchProducts(event.target.value)" id="product-search" />
+                <i class="fa fa-search"></i>
             </div>
         </div>
         <div class="filter-container">
             <h3>Filter by category</h3>
             <div class="gender-filter">
-                <button class="filter-button" onclick="populateData()">All</button>
+                <button class="filter-button filter-button-active" onclick="filterProductsByGender(event, 'all')">All</button>
                 <button class="filter-button" onclick="filterProductsByGender(event,'men')">Male</button>
                 <button class="filter-button" onclick="filterProductsByGender(event, 'women')">Female</button>
                 <button class="filter-button" onclick="filterProductsByGender(event, 'unisex')">Unisex</button>
@@ -180,14 +181,20 @@
         }
 
         const filterProductsByGender = (e, category) => {
-            console.log(category)
+            // console.log(category)
+            const filterByGenderButtons = document.querySelectorAll(".filter-button");
+            filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
+
+            e.target.classList.add("filter-button-active");
+
+            if (category === "all") return populateData();
             const filteredData = {};
             for(let styleName in productsData) {
                 if (productsData[styleName].gender === category) {
                     filteredData[styleName] = productsData[styleName];
                 }
             }
-            console.log(filteredData)
+            // console.log(filteredData)
             populateData(filteredData)
         }
 

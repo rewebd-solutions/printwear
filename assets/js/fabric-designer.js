@@ -18,6 +18,7 @@ var variantPrice = 0;
 
 // notyf snackbar 
 var notyf = new Notyf();
+AOS.init();
 
 // fetch function and then global functions calling done here
 const fetchProductData = async () => {

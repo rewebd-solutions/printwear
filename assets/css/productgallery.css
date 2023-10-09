@@ -186,6 +186,38 @@ body {
   border-radius: 50%;
 }
 
+.filter-button {
+  padding: 0.2rem 0.6rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.search-box-container {
+  position: relative;
+}
+
+.search-box-container i {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.5rem;
+}
+
+#product-search {
+  padding: 0.5rem 0.2rem 0.5rem 1.78rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  background: buttonface;
+  outline: 1px solid silver;
+}
+
+.filter-button-active {
+  outline: 1px solid #F05A30;
+  background-color: #F05A30;
+  color: white;
+}
+
 .stock {
   display: flex;
   flex-direction: column;

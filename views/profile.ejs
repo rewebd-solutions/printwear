@@ -7,6 +7,8 @@
     <title><%= data.userData.name %>'s profile - Printwear</title>
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+	<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 </head>
 
 <body>
@@ -127,7 +129,7 @@
                             href="#account-change-password">Change password</a>
                         <a class="list-group-item list-group-item-action" data-toggle="list"
                             href="#account-connections">My stores</a>
-                        <a class="list-group-item list-group-item-action" data-toggle="list"
+                        <a class="list-group-item bg-danger text-white   list-group-item-action" data-toggle="list"
                             href="#account-info">Delete Account</a>
                     </div>
                 </div>
@@ -138,15 +140,15 @@
                             <div class="card-body">
                                 <div class="form-group">
                                     <label class="form-label">Username</label>
-                                    <input type="text" name="username" class="form-control" value="<%= data.userData.name %>">
+                                    <input type="text" name="username" class="form-control" value="<%= data.userData.name ? data.userData.name : '' %>" <%= data.userData.name ? 'disabled' : '' %> >
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">First Name</label>
-                                    <input type="text" name="firstName" class="form-control">
+                                    <input type="text" name="firstName" id="first-name" class="form-control" required value="<%= data.userData.firstName ? data.userData.firstName : '' %>" <%= data.userData.firstName ? 'disabled' : '' %>>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" name="lastName" class="form-control">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" name="lastName" id="last-name" class="form-control" required value="<%= data.userData.lastName ? data.userData.lastName : '' %>" <%= data.userData.lastName ? 'disabled' : '' %>>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">E-mail</label>
@@ -162,7 +164,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Your Brand Name</label>
-                                    <input type="text" class="form-control" disabled>
+                                    <input type="text" name="brandName" required class="form-control" id="brand-name" value="<%= data.userData.brandName ? data.userData.brandName : '' %>" <%= data.userData.brandName ? 'disabled' : '' %>>
+                                </div>
+                                <div class="text-right mt-3">
+                                    <button type="button" onclick="changeName()" class="btn btn-primary">Save changes</button>
                                 </div>
                             </div>
                         </div>
@@ -170,15 +175,18 @@
                             <div class="card-body pb-2">
                                 <div class="form-group">
                                     <label class="form-label">Current password</label>
-                                    <input type="password" class="form-control">
+                                    <input type="password" id="current-pwd" required="true" class="form-control">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">New password</label>
-                                    <input type="password" class="form-control">
+                                    <input type="password" id="new-pwd" required="true" class="form-control">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Repeat new password</label>
-                                    <input type="password" class="form-control">
+                                    <input type="password" id="confirm-pwd" required="true" class="form-control">
+                                </div>
+                                <div class="text-right mt-3">
+                                    <button type="button" onclick="changePassword()" class="btn btn-primary">Save changes</button>
                                 </div>
                             </div>
                         </div>
@@ -191,53 +199,136 @@
                                     <label class="form-label">Enter password</label>
                                     <input type="text" class="form-control" placeholder="Your password">
                                 </div>
+                                <div class="text-right mt-3">
+                                    <button type="button" onclick="deleteUser()" class="btn btn-danger">Save changes</button>
+                                </div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="account-connections">
                             <div class="card-body">
                                 <h4>WooCommerce Store:</h4>
-                                <div class="form-group">
-                                    <label class="form-label">WooCommerce Store name:</label>
-                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.shopName?? 'Not yet connected' %>">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">WooCommerce Consumer Key:</label>
-                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.consumerKey?? 'Not yet connected' %>">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">WooCommerce Store URL:</label>
-                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.url?? 'Not yet connected' %>">
-                                </div>
+                                
+                                <% if (data.storeData?.wooCommerceStore?.shopName) { %>
+                                    <div class="form-group">
+                                        <label class="form-label">WooCommerce Store name:</label>
+                                        <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.shopName?? 'Not yet connected' %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">WooCommerce Consumer Key:</label>
+                                        <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.consumerKey?? 'Not yet connected' %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">WooCommerce Store URL:</label>
+                                        <input type="text" class="form-control" disabled value="<%= data.storeData?.wooCommerceStore?.url?? 'Not yet connected' %>">
+                                    </div>
+                                <% } else { %>
+                                    <div class="text-left mt-3">
+                                        <button type="button" onclick="location.href = '/connectstore'" class="btn btn-primary">Connect to store</button>
+                                    </div>
+                                <% } %>                             
                             </div>
                             <div class="card-body">
                                 <h4>Shopify Store:</h4>
-                                <div class="form-group">
-                                    <label class="form-label">Shopify Store name:</label>
-                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopName?? 'Not yet connected' %>">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Shopify Access Token:</label>
-                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopifyAccessToken?? 'Not yet connected' %>">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Shopify Store URL:</label>
-                                    <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopifyStoreURL?? 'Not yet connected' %>">
-                                </div>
+                                <% if (data.storeData?.shopifyStore?.shopName) { %>
+                                    <div class="form-group">
+                                        <label class="form-label">Shopify Store name:</label>
+                                        <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopName?? 'Not yet connected' %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Shopify Access Token:</label>
+                                        <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopifyAccessToken?? 'Not yet connected' %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Shopify Store URL:</label>
+                                        <input type="text" class="form-control" disabled value="<%= data.storeData?.shopifyStore?.shopifyStoreURL?? 'Not yet connected' %>">
+                                    </div>
+                                <% } else { %>
+                                    <div class="text-left mt-3">
+                                        <button type="button" onclick="location.href = '/connectstore'" class="btn btn-primary">Connect to store</button>
+                                    </div>
+                                <% } %>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- <div class="text-right mt-3">
-            <button type="button" class="btn btn-primary">Save changes</button>&nbsp;
-            <button type="button" class="btn btn-default">Cancel</button>
-        </div> -->
+        
     </div>
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="text/javascript">
+    <script>
+        var notyf = new Notyf();
 
+        const changePassword = async () => {
+            const currentPwd = document.getElementById('current-pwd');
+            const newPwd = document.getElementById('new-pwd');
+            const confirmPwd = document.getElementById('confirm-pwd');
+            for(let i of [currentPwd, newPwd, confirmPwd]) {
+                if (!i.reportValidity()) return;
+            }
+            try {
+                const changePasswordRequest = await fetch("/changepassword", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'POST',
+                    body: JSON.stringify({
+                        currentPwd: currentPwd.value ,
+                        newPwd: newPwd.value ,
+                        confirmPwd: confirmPwd.value 
+                    })
+                });
+                const changePasswordResponse = await changePasswordRequest.json();
+                console.log(changePasswordResponse)
+                if (changePasswordRequest.ok) {
+                    return notyf.success("Password changed successfully!");
+                } else if (changePasswordRequest.status === 400) {
+                    return notyf.error(changePasswordResponse.message);
+                } else {
+                    return notyf.error("Password could not be changed!");
+                }
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Something went wrong!");
+            }
+        }
+
+        const changeName = async () => {
+            const firstNameInput = document.querySelector("#first-name");
+            const lastNameInput = document.querySelector("#last-name");
+            const brandNameInput = document.querySelector("#brand-name");
+            for(let i of [firstNameInput, lastNameInput, brandNameInput]) if (!i.reportValidity()) return;
+            try {
+                const updateInfoRequest = await fetch("/updateinfo", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'POST',
+                    body: JSON.stringify({
+                        firstName: firstNameInput.value,
+                        lastName: lastNameInput.value,
+                        brandName: brandNameInput.value
+                    })
+                });
+                const updateInfoResponse = await updateInfoRequest.json();
+                if (updateInfoRequest.ok) {
+                    return notyf.success("Information updated successfully!");
+                    location.reload();
+                } else if (updateInfoRequest.status === 400) {
+                    return notyf.error(updateInfoResponse.message);
+                } else {
+                    return notyf.error("Information could not be changed!");
+                }
+            } catch (error) {
+                console.log(error);
+                notyf.error('Something went wrong!');
+            } 
+        }
+
+        const deleteUser = async () => {
+            console.log("Delete account triggered!");
+        }
     </script>
 </body>
 

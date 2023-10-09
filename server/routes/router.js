@@ -13,6 +13,8 @@ route.post('/register', controller.register);
 route.post('/login', controller.login);
 route.get('/login', authServices.authorizeLogin, services.loginpage);
 route.get("/logout", controller.logout);
+route.post("/changepassword", authServices.authorizeToken, controller.changepassword);
+route.post("/updateinfo", authServices.authorizeToken, controller.updateinfo);
 
 route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), controller.uploadimage);
 route.get("/obtainimages", authServices.authorizeToken, controller.obtainimages);

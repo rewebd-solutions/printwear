@@ -256,7 +256,7 @@ div.image-container {
    align-items: center;
    position: relative;
    height: 500px;
-   width: 450px;
+   /* width: 450px; */
 }
 
 #mockup-image-canvas>img {
@@ -265,7 +265,7 @@ div.image-container {
    left: 50%;
    transform: translate(-50%, -50%);
    height: 100%;
-   width: 100%;
+   /* width: 100%; */
 }
 
 #mockup-image-canvas canvas {

@@ -164,10 +164,11 @@
   
   .top-nav-btn {
     color:red;
-    font-size: 1rem;
-    background-color: #ebebeb;
+    font-size: 0.9rem;
+    background-color: buttonface;
     padding: 0.4rem 0.7rem;
     border-radius: 0.5rem;
+    text-decoration: none;
   }
 </style>
 <div class="navbar-top">
@@ -176,9 +177,9 @@
   </div>
   <div class="nav-icons">
     <a href="#" class="top-nav-btn" onclick="openDesignUploadModal(event)">
-      <i style="font-size: 18px;" class="fa fa-file-upload"></i> Upload design
+      <i style="font-size: 16px;" class="fa fa-file-upload"></i> Upload design
     </a>
-    <a href="/profile" class="top-nav-btn"><i style="font-size: 18px;" class="fa-solid fa-user"></i> Profile</a>
+    <a href="/profile" class="top-nav-btn"><i style="font-size: 16px;" class="fa-solid fa-user"></i> Profile</a>
   </div>
   
 </div>
@@ -275,8 +276,8 @@
   const openDesignUploadModal = (e) => {
     e.preventDefault();
     document.querySelector(".navbar-top").insertAdjacentHTML("beforeend", `
-      <div class="design-upload-backdrop" data-aos="fade-up">
-        <div class="design-upload-modal">
+      <div class="design-upload-backdrop">
+        <div class="design-upload-modal" data-aos="fade-up">
           <div class="modal-controls">
             <button class="modal-close-button" onclick="closeDesignUploadModal(event)">
               <i class="fa fa-close"></i>
