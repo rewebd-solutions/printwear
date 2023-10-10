@@ -1431,7 +1431,7 @@ exports.createdesign = async (req, res) => {
       { upsert: true, new: true }
     )
 
-    console.log(designSave);
+    // console.log(designSave);
     res.status(200).send("OK")
   } catch (error) {
     console.log(error);

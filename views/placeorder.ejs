@@ -12,6 +12,8 @@
     <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <title>Stock Inventory</title>
 </head>
 
@@ -41,18 +43,63 @@
                 <p>Review</p>
             </div>
         </div>
-        <div class="cont" data-aos="fade-up">
+        <div class="creater-order-container" data-aos="fade-up">
             <p>Add a product to start creating your order</p>
             <!-- Button trigger modal -->
-            <button type="button" data-toggle="modal" data-target="#exampleModal" id="bt">
-                Add Product
+            <button type="button" id="toggle-modal">
+                Choose design
             </button>
-
+        </div>
+        <!-- put anythign here, but not after backdrop-->
+        <div class="create-order-modal-backdrop">
+            <div class="create-order-modal" data-aos="fade-up">
+                <div class="create-order-controls">
+                    <div class="create-order-selection">
+                        <button id="design-library" onclick="showWidget(1)">Design Library</button>
+                        <button id="quick-add" onclick="showWidget(2)">Quick Add</button>
+                    </div>
+                    <button class="close-modal" onclick="closeModal()">
+                        <i class="fa fa-close"></i>
+                    </button>
+                </div>
+                <div class="create-order-forms">
+                    <div class="design-library-wrapper" data-widgetno="1">
+                        Design Library Wrapper
+                    </div>
+                    <div class="quick-add-wrapper" data-widgetno="2">
+                        Quick Add Wrapper
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
+
+        var notyf = new Notyf();
+
+        const fetchDesigndata = async () => {
+            try {
+                const designDataRequest = await fetch("/getdesigns");
+                designDataResponse = await designDataRequest.json();
+                if (!designDataRequest.ok) {
+                    return notyf.error("Error loading data. Please refresh or check connection");
+                }
+            } catch (error) {
+                console.log(error);
+                notyf.error("Error")
+            }
+        }
+
+        const closeModal = () => {
+            document.querySelector(".create-order-modal-backdrop").remove();
+        }
+        
+        const showWidget = (widgetNo) => {
+            const widgetElements = document.querySelectorAll('[data-widgetno]');
+            widgetElements.forEach(widgetElem => widgetElem.dataset.widgetno != widgetNo ? widgetElem.style.display = "none": widgetElem.style.display = "flex");
+        }
     </script>
 </body>
 
