@@ -19,13 +19,15 @@
             <%- include('partials/top.ejs') %>
     </div>
     <div class="stock">
-        <h2>Stock inventory</h2>
-        <div class="stock-choice-container">
-            Summa oru description
+        <div class="head-search">
+            <h2>Stock inventory</h2>
+            <input type="search" oninput="searchProducts(event.target.value)" placeholder="Search for SKU, product name, etc." />
         </div>
+        <!-- <div class="stock-choice-container">
+            Summa oru description
+        </div> -->
         <div class="stock-table" data-aos="fade-up">
             <table id="printwear-stock">
-                <!-- <span class="loader"></span> -->
                 <thead>
                     <tr>
                         <th>S.No.</th>
@@ -35,9 +37,10 @@
                     </tr>
                 </thead>
                 <tbody id="printwear-productTableBody">
-
+                    
                 </tbody>
             </table>
+            <span class="loader"></span>
         </div>
     </div>
 
@@ -91,6 +94,12 @@
             });
         }
 
+        const searchProducts = (searchKey) => {
+            const searchFilteredData = stockData.filter(stock => stock.name.toLowerCase().includes(searchKey.toLowerCase()) || stock.sku.toLowerCase().includes(searchKey.toLowerCase()));
+            console.log(searchFilteredData)
+            populateTable(searchFilteredData);
+        }
+
         const createTableRow = (stockObject, sno) => {
             const row = document.createElement("tr");
 
@@ -108,15 +117,16 @@
 
             row.appendChild(SNoCell);
             row.appendChild(nameCell);
-            row.appendChild(stockCell);
             row.appendChild(skuCell);
+            row.appendChild(stockCell);
             printwearTableBody.appendChild(row);
         }
 
         // sortTableByColumn(printwearTableBody, 3);
 
-        const populateTable = (stockData) => {
-            stockData.forEach((stock, i) => {
+        const populateTable = (data = stockData) => {
+            printwearTableBody.innerHTML = '';
+            data.forEach((stock, i) => {
                 createTableRow(stock, i+1);
             })
         }
@@ -126,7 +136,7 @@
                 const fetchStockDataRequest = await fetch("/getzohoproducts");
                 printwearStockDataResponse = await fetchStockDataRequest.json();
                 console.log(printwearStockDataResponse);
-                const stockData = [];
+                stockData = [];
                 Object.keys(printwearStockDataResponse).map(product => {
                     //console.log(printwearStockDataResponse[product].colors)
                     Object.keys(printwearStockDataResponse[product].colors).map(productColor => {
@@ -140,6 +150,7 @@
                     })
                 });
                 console.log(stockData);
+                document.querySelector(".loader").remove();
                 populateTable(stockData);
             } catch (error) {
                 console.log(error);

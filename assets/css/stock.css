@@ -12,6 +12,27 @@
     text-decoration: none;
 }
 
+.head-search {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    position: sticky;
+    background-color: white;
+    top: 100px;
+}
+
+input[type="search"] {
+    padding: 0.2rem 0.6rem;
+    border-radius: 5px;
+    border: none;
+    outline: 1px solid grey;
+    color: #424242;
+}
+
+input[type="search"]::placeholder {
+    color: silver;
+}
+
 .stock {
     display: flex;
     flex-direction: column;
@@ -26,6 +47,11 @@ table {
     border-collapse: collapse;
     width: 100%;
     border: 1px solid #ddd;
+}
+
+thead {
+    position: sticky;
+    top: 150px
 }
 
 th,
