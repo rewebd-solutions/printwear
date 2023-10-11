@@ -64,10 +64,27 @@
                 </div>
                 <div class="create-order-forms">
                     <div class="design-library-wrapper" data-widgetno="1">
-                        Design Library Wrapper
+                        <div class="library-search-container">
+                            <div><label for="design-search"></label><input type="search" name="design-search" id="design-search" /></div>
+                            <div><label for="sku-search"></label><input type="search" name="sku-search" id="sku-search" /></div>
+                        </div>
+                        <table id="library-data">
+                            <thead>
+                                <tr>
+                                    <th>S.No.</th>
+                                    <th>Name</th>
+                                    <th>SKU</th>
+                                    <th>Preview</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                    
+                            </tbody>
+                        </table>
                     </div>
                     <div class="quick-add-wrapper" data-widgetno="2">
-                        Quick Add Wrapper
+                        <h6>Quickly add order by entering your design SKU</h6>
+                        <div><label for="sku-search"></label><input type="search" name="sku-search" id="sku-search" placeholder="Enter SKU..." /></div>
                     </div>
                 </div>
             </div>
@@ -78,6 +95,34 @@
         AOS.init();
 
         var notyf = new Notyf();
+        const designLibraryData = document.getElementById("library-data");
+
+        const createTableRow = (designObject, sno) => {
+            const row = document.createElement("tr");
+
+            const SNoCell = document.createElement("td");
+            SNoCell.textContent = sno;
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = designObject.designName;
+
+            const skuCell = document.createElement("td");
+            skuCell.textContent = designObject.designSKU
+            
+            const previewCell = document.createElement("td");
+            previewCell.innerHTML = designObject.designImage.front
+
+            row.appendChild(SNoCell);
+            row.appendChild(nameCell);
+            row.appendChild(skuCell);
+            row.appendChild(previewCell);
+            designLibraryData.appendChild(row);
+        }
+
+        const populateDesignWidget = (data = designDataResponse) => {
+            if (data.designs.length < 1) return designLibraryData.innerHTML = 'No designs yet!'
+            data.designs.forEach((design, i) => createTableRow(design, i+1));
+        }
 
         const fetchDesigndata = async () => {
             try {
@@ -86,6 +131,7 @@
                 if (!designDataRequest.ok) {
                     return notyf.error("Error loading data. Please refresh or check connection");
                 }
+                populateDesignWidget();
             } catch (error) {
                 console.log(error);
                 notyf.error("Error")
@@ -100,6 +146,8 @@
             const widgetElements = document.querySelectorAll('[data-widgetno]');
             widgetElements.forEach(widgetElem => widgetElem.dataset.widgetno != widgetNo ? widgetElem.style.display = "none": widgetElem.style.display = "flex");
         }
+
+        fetchDesigndata();
     </script>
 </body>
 

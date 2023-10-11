@@ -51,6 +51,9 @@
 
     const designsContainer = document.querySelector(".designs-wrapper");
     var designsResponseData = {};
+    const searchDesigns = (searchKey) => {
+
+    }
 
     const disableButton = (buttonElement, innerTextBefore, innerTextAfter, state) => {
       state? buttonElement.setAttribute("disabled", true) : buttonElement.removeAttribute("disabled");
@@ -201,8 +204,8 @@
       })
     }
 
-    const createDesignCards = () => {
-      const designCardsDOMString = designsResponseData.designs.map(design => {
+    const createDesignCards = (data = designsResponseData) => {
+      const designCardsDOMString = data.designs.map(design => {
         return `
           <div class="design-card" data-aos="fade-up">
             <div class="card-img">
