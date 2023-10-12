@@ -46,48 +46,13 @@
         <div class="creater-order-container" data-aos="fade-up">
             <p>Add a product to start creating your order</p>
             <!-- Button trigger modal -->
-            <button type="button" id="toggle-modal">
+            <button type="button" onclick="openModal()" id="toggle-modal">
                 Choose design
             </button>
         </div>
         <!-- put anythign here, but not after backdrop-->
-        <div class="create-order-modal-backdrop">
-            <div class="create-order-modal" data-aos="fade-up">
-                <div class="create-order-controls">
-                    <div class="create-order-selection">
-                        <button id="design-library" onclick="showWidget(1)">Design Library</button>
-                        <button id="quick-add" onclick="showWidget(2)">Quick Add</button>
-                    </div>
-                    <button class="close-modal" onclick="closeModal()">
-                        <i class="fa fa-close"></i>
-                    </button>
-                </div>
-                <div class="create-order-forms">
-                    <div class="design-library-wrapper" data-widgetno="1">
-                        <div class="library-search-container">
-                            <div><label for="design-search"></label><input type="search" name="design-search" id="design-search" /></div>
-                            <div><label for="sku-search"></label><input type="search" name="sku-search" id="sku-search" /></div>
-                        </div>
-                        <table id="library-data">
-                            <thead>
-                                <tr>
-                                    <th>S.No.</th>
-                                    <th>Name</th>
-                                    <th>SKU</th>
-                                    <th>Preview</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                    
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="quick-add-wrapper" data-widgetno="2">
-                        <h6>Quickly add order by entering your design SKU</h6>
-                        <div><label for="sku-search"></label><input type="search" name="sku-search" id="sku-search" placeholder="Enter SKU..." /></div>
-                    </div>
-                </div>
-            </div>
+        
+            
         </div>
     </div>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -95,7 +60,11 @@
         AOS.init();
 
         var notyf = new Notyf();
-        const designLibraryData = document.getElementById("library-data");
+
+        var designLibraryData;
+        var quickAddData;
+
+        var orderData = [];
 
         const createTableRow = (designObject, sno) => {
             const row = document.createElement("tr");
@@ -110,16 +79,22 @@
             skuCell.textContent = designObject.designSKU
             
             const previewCell = document.createElement("td");
-            previewCell.innerHTML = designObject.designImage.front
+            previewCell.innerHTML = `<img class="design-preview-image" src='${designObject.designImage.front?? designObject.designImage.back}' />`
+            
+            const actionCell = document.createElement("td");
+            actionCell.innerHTML = `<button onclick="addToOrder('${designObject.designSKU}')">Add to order</button>`
 
             row.appendChild(SNoCell);
             row.appendChild(nameCell);
             row.appendChild(skuCell);
             row.appendChild(previewCell);
+            row.appendChild(actionCell);
+
             designLibraryData.appendChild(row);
         }
 
         const populateDesignWidget = (data = designDataResponse) => {
+            designLibraryData.innerHTML = '';
             if (data.designs.length < 1) return designLibraryData.innerHTML = 'No designs yet!'
             data.designs.forEach((design, i) => createTableRow(design, i+1));
         }
@@ -131,20 +106,113 @@
                 if (!designDataRequest.ok) {
                     return notyf.error("Error loading data. Please refresh or check connection");
                 }
-                populateDesignWidget();
             } catch (error) {
                 console.log(error);
                 notyf.error("Error")
             }
+        }
+        
+        const openModal = () => {
+            document.querySelector(".order-wrapper").insertAdjacentHTML("beforeend", `
+            <div class="create-order-modal-backdrop">
+                <div class="create-order-modal" data-aos="fade-up">
+                    <div class="create-order-controls">
+                        <div class="create-order-selection">
+                            <button id="design-library" class="active-btn" onclick="showWidget(event, 1)">Design Library</button>
+                            <button id="quick-add" onclick="showWidget(event, 2)">Quick Add</button>
+                        </div>
+                        <button class="close-modal" onclick="closeModal()">
+                            <i class="fa fa-close"></i>
+                        </button>
+                    </div>
+                    <div class="create-order-forms">
+                        <div class="design-library-wrapper" data-widgetno="1">
+                            <div class="library-search-container">
+                                <div><label for="design-search">Search by design name</label><input type="search" oninput="searchDesigns('designName', event.target.value)" placeholder="" name="design-search" id="design-search" /></div>
+                                <div><label for="sku-search">Search by SKU</label><input type="search" oninput="searchDesigns('designSKU', event.target.value)" placeholder="" name="sku-search" id="sku-search" /></div>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>S.No.</th>
+                                        <th>Name</th>
+                                        <th>SKU</th>
+                                        <th>Preview</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="library-data">
+                                        
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="quick-add-wrapper" data-widgetno="2">
+                            <div><label for="sku-search-2">Quickly add order by entering your design SKU</label><input oninput="searchSKU(event.target.value)" type="search" name="sku-search" id="sku-search-2" placeholder="Enter SKU..." /></div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>SKU</th>
+                                        <th>Preview</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quick-add-data">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `);
+
+            designLibraryData = document.getElementById("library-data");
+            quickAddData = document.getElementById("quick-add-data");
+
+            populateDesignWidget();
         }
 
         const closeModal = () => {
             document.querySelector(".create-order-modal-backdrop").remove();
         }
         
-        const showWidget = (widgetNo) => {
+        const showWidget = (e, widgetNo) => {
             const widgetElements = document.querySelectorAll('[data-widgetno]');
+            const selectionButtons = document.querySelectorAll('.create-order-selection button');
+            selectionButtons.forEach(button => button.classList.remove('active-btn'));
+            e.target.classList.add('active-btn');
             widgetElements.forEach(widgetElem => widgetElem.dataset.widgetno != widgetNo ? widgetElem.style.display = "none": widgetElem.style.display = "flex");
+        }
+
+        const addToOrder = (designSKU) => {
+            // check if already that design exists, if not, add.. disable button
+            // final TODO: render the order table
+            // maybe add notyf.success() to notify user after "Add to order" button
+            const designData = designDataResponse.designs.find(design => design.designSKU == designSKU);
+            orderData.push(designData);
+            console.log(designData, orderData);
+        }
+
+        const searchDesigns = (dataKey, searchKey) => {
+            if (searchKey === '') return populateDesignWidget();
+            const designsData = designDataResponse.designs.filter(design => design[dataKey].toLowerCase().includes(searchKey.toLowerCase()));
+            if (designsData.length < 1) return designLibraryData.innerHTML = 'Invalid search key';
+            populateDesignWidget({designs: designsData})
+        }
+
+        const searchSKU = (searchSKU) => {
+            if (searchSKU === '') return quickAddData.innerHTML = '';
+            const designItem = designDataResponse.designs.find(design => design.designSKU == searchSKU || design.designSKU.split("-")[2] === searchSKU);
+            console.log(searchSKU, designItem)
+            if (!designItem) return quickAddData.innerHTML = 'Invalid SKU';
+            quickAddData.innerHTML = `
+            <tr>
+                <td>${designItem.designName}</td>
+                <td>${designItem.designSKU}</td>
+                <td><img class="design-preview-image" src="${designItem.designImage.front}"></td>
+                <td><button onclick="addToOrder('${designItem.designSKU}')">Add to order</button></td>
+            </tr>
+            `;
         }
 
         fetchDesigndata();
