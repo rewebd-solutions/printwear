@@ -55,11 +55,11 @@
     gap: 0.5rem;
 }
 
-.creater-order-container {
-    width: 80%;
+.create-order-container {
+    width: 95%;
     padding: 2rem 3rem;
     border-radius: 8px;
-    background-color: #ebebeb;
+    background-color: #f7f7f7;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -78,7 +78,7 @@
 }
 
 .create-order-modal-backdrop {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     background: rgba(0, 0, 0, 0.252);
@@ -92,6 +92,7 @@
 
 .create-order-modal {
     padding: 1rem;
+    padding-top: 0;
     display: flex;
     width: 80%;
     background-color: white;
@@ -107,6 +108,7 @@
     display: flex;
     justify-content: space-between;
     padding: 1rem;
+    padding-top: 2rem;
     position: sticky;
     top: 0px;
     background-color: white;
@@ -146,7 +148,7 @@ div[data-widgetno="2"] {
 table {
     border-collapse: collapse;
     width: 100%;
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
 }
 
 /* thead {
@@ -158,6 +160,7 @@ th,
 td {
     text-align: left;
     padding: 8px;
+    border-bottom: 1px solid silver;
 }
 
 th {
@@ -192,7 +195,7 @@ table a:visited {
     display: flex;
     gap: 1rem;
     position: sticky;
-    top: 50px;
+    top: 70px;
     background-color: white;
 }
 
@@ -220,4 +223,41 @@ input[type='search'] {
     display: flex;
     flex-direction: column;
     gap: 1rem
+}
+
+.order-image-container img {
+    width: 150px;
+}
+
+.order-image-container {
+    display: flex;
+    gap: 0.9rem;
+    width: 170px;
+}
+
+.order-table th {
+    background-color: #f0f0f0;
+}
+
+.order-qty {
+    width: 80px;
+    padding: 0.5rem 0.6rem;
+    border-radius: 5px;
+    border: none;
+    outline: 1px solid silver
+}
+
+
+.order-details h4 {
+    font-weight: 400;
+    color: #434343;
+}
+
+.order-details .order-text {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#order-data tr {
+    background-color: #f7f7f7;
 }

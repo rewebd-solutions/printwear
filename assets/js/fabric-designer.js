@@ -409,7 +409,7 @@ const downloadDesign = () => {
   const node = document.getElementById("product-design");
 
   const config = {
-    width: 900,
+    width: 1200,
     height: 1200,
     style: {
       transformOrigin: "0 0",

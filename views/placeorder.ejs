@@ -43,7 +43,7 @@
                 <p>Review</p>
             </div>
         </div>
-        <div class="creater-order-container" data-aos="fade-up">
+        <div class="create-order-container" data-aos="fade-up">
             <p>Add a product to start creating your order</p>
             <!-- Button trigger modal -->
             <button type="button" onclick="openModal()" id="toggle-modal">
@@ -51,9 +51,7 @@
             </button>
         </div>
         <!-- put anythign here, but not after backdrop-->
-        
-            
-        </div>
+    </div>
     </div>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
@@ -63,6 +61,8 @@
 
         var designLibraryData;
         var quickAddData;
+
+        const createOrderContainer = document.querySelector(".create-order-container");
 
         var orderData = [];
 
@@ -99,10 +99,78 @@
             data.designs.forEach((design, i) => createTableRow(design, i+1));
         }
 
+        const populateOrderTable = (data = orderData) => {
+            if (data.length < 1) return;
+            createOrderContainer.innerHTML = `
+            <button type="button" onclick="openModal()" id="toggle-modal">
+                Choose design
+            </button>
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>S.NO</th>
+                        <th>DETAILS</th>
+                        <th>DESIGN</th>
+                        <th>PRICE</th>
+                        <th>QUANTITY</th>
+                        <th>TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody id="order-data">
+            `;
+            document.querySelector("#order-data").innerHTML += data.map((order, i) => `
+                    <tr>
+                        <th>${i+1}</th>
+                        <th class="order-details">
+                            <div class="order-text">Product Name: <h4 class="order-product-name">${order.product.name}</h4></div>
+                            <div class="order-text">Design Name: <h4 class="order-product-name">${order.designName}</h4></div>
+                            <div class="order-text">SKU: <h4 class="order-product-SKU">${order.designSKU}</h4></div>
+                            <div class="order-text">Color: <h4 class="order-product-color">${order.product.color}</h4></div>
+                            <div class="order-text">Size: <h4 class="order-product-size">${order.product.size}</h4></div>
+                        </th>
+                        <th class="order-images">
+                            <div class="order-image-container">
+                                ${order.designImage.front !== 'false' ? `
+                                <div>
+                                    <h4>Front design</h4>
+                                    <a target="_blank" href="${order.designImage.front}">
+                                    <img src="${order.designImage.front}"
+                                    alt="${order.designName}-front"></a>
+                                </div>
+                                `: ''}
+                                ${order.designImage.back !== 'false' ? `
+                                <div>
+                                    <h4>Back design</h4>
+                                    <a target="_blank" href="${order.designImage.back}">
+                                    <img src="${order.designImage.back}"
+                                    alt="${order.designName}-back"></a>
+                                </div>
+                                `: ''}
+                            </div>
+                        </th>
+                        <th>
+                            ₹.${order.price} <i class="fa fa-info-circle" onmouseover="console.log(event.target.className)" onmouseout="console.log('gone')"></i>
+                        </th>
+                        <th>
+                            <input type="number" value="1" min="1" max="5" onchange="updateQuantity(event, ${i}, ${order.price})" name="quantity" class="order-qty" />
+                        </th>
+                        <th>
+                            ₹.${order.price}
+                        </th>
+                    </tr>
+            `).join('');
+            createOrderContainer.innerHTML += `</tbody></table>`
+        }
+
+        const updateQuantity = (e, i, price) => {
+            document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹.' + price*e.target.value
+        }
+
         const fetchDesigndata = async () => {
             try {
                 const designDataRequest = await fetch("/getdesigns");
                 designDataResponse = await designDataRequest.json();
+                designDataResponse.designs.forEach(design => design.isAddedToOrder = false);
                 if (!designDataRequest.ok) {
                     return notyf.error("Error loading data. Please refresh or check connection");
                 }
@@ -110,6 +178,11 @@
                 console.log(error);
                 notyf.error("Error")
             }
+        }
+
+        const fetchOrderData = async () => {
+            // write function to fetch orders and save to orderData
+            // call populateOrderTable()
         }
         
         const openModal = () => {
@@ -184,18 +257,20 @@
             widgetElements.forEach(widgetElem => widgetElem.dataset.widgetno != widgetNo ? widgetElem.style.display = "none": widgetElem.style.display = "flex");
         }
 
-        const addToOrder = (designSKU) => {
-            // check if already that design exists, if not, add.. disable button
-            // final TODO: render the order table
-            // maybe add notyf.success() to notify user after "Add to order" button
-            const designData = designDataResponse.designs.find(design => design.designSKU == designSKU);
+        const addToOrder = (searchSKU) => {
+            // check if already that design exists, if not, add.. disable button in fetchOrderData() after fetchDesignData() and add new key
+            if (orderData.find(order => order.designSKU == searchSKU)) return notyf.error("Design already added to order");
+            const designData = designDataResponse.designs.find(design => design.designSKU == searchSKU);
             orderData.push(designData);
+            // probably a call to backend to store order data
+            populateOrderTable();
+            notyf.success("Design added to orders");
             console.log(designData, orderData);
         }
 
         const searchDesigns = (dataKey, searchKey) => {
             if (searchKey === '') return populateDesignWidget();
-            const designsData = designDataResponse.designs.filter(design => design[dataKey].toLowerCase().includes(searchKey.toLowerCase()));
+            const designsData = designDataResponse.designs.filter(design => design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim()));
             if (designsData.length < 1) return designLibraryData.innerHTML = 'Invalid search key';
             populateDesignWidget({designs: designsData})
         }
