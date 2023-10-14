@@ -16,6 +16,9 @@ var isSetPixelRatioCalled = false;
 
 var variantPrice = 0;
 
+// var for letting top.ejs know there is this var
+var isReadyForRendering = true;
+
 // notyf snackbar 
 var notyf = new Notyf();
 AOS.init();
@@ -25,10 +28,10 @@ const fetchProductData = async () => {
   try {
     // fetch call
     const styleParam = new URLSearchParams(location.search).get("style");
-    if (!styleParam) return notyf.error({message: "style paramater not defined in URL", duration: 6000, dismissible: true});
+    if (!styleParam) return notyf.error({ message: "style paramater not defined in URL", duration: 6000, dismissible: true });
 
     const productStyle = styleParam.split("+").join(" ");
-    console.log(productStyle);
+    // console.log(productStyle);
     if (!productStyle) {
       return notyf.error({
         message: "Invalid URL",
@@ -97,21 +100,14 @@ const positionChangeButtons = document.querySelectorAll(".position-btn");
 const sideChangeButtons = document.querySelectorAll(".side-btn");
 const textInputBox = document.querySelector("#canvas-text-input");
 
-// add event listener to avoid uploading without selecting size
-document.querySelector(".design-input-label").addEventListener("click", (e) => {
-  if (!globalProductID) {
-    e.preventDefault();
-    notyf.error("Select a size before uploading");
-    return;
-  }
-})
+const userDesignsWrapper = document.querySelector(".user-design-images");
 
 // function to toggle disabling and enabling button
 const disableButton = (state) => {
   const saveButton = document.querySelector(".save-button");
-  state? saveButton.setAttribute("disabled", true) : saveButton.removeAttribute("disabled");
-  state? saveButton.classList.add("disabled"): saveButton.classList.remove("disabled");
-  state? saveButton.innerHTML = 'Saving...': saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`;
+  state ? saveButton.setAttribute("disabled", true) : saveButton.removeAttribute("disabled");
+  state ? saveButton.classList.add("disabled") : saveButton.classList.remove("disabled");
+  state ? saveButton.innerHTML = 'Saving...' : saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`;
 }
 
 // Changing current color and its image
@@ -128,10 +124,10 @@ const changeMockup = (e, color, id) => {
   currentColor = id;
   displaySizes();
 
-  if (designDirection === "front"){
-    mockupImageContainer.src = (selectedMockup.colorImage.front != '')? selectedMockup.colorImage.front : '/images/warning.png';
-  } else mockupImageContainer.src = (selectedMockup.colorImage.back != '')? selectedMockup.colorImage.back : '/images/warning.png';
-  
+  if (designDirection === "front") {
+    mockupImageContainer.src = (selectedMockup.colorImage.front != '') ? selectedMockup.colorImage.front : '/images/warning.png';
+  } else mockupImageContainer.src = (selectedMockup.colorImage.back != '') ? selectedMockup.colorImage.back : '/images/warning.png';
+
 };
 
 // func to draW border around active color
@@ -151,9 +147,9 @@ const renderColors = () => {
   Product.colors.map((color) => {
     const child = document.createElement("div");
     const innerHTML = `
-    <div class="color-options${color.colorImage.front || color.colorImage.back ? '': ' color-disabled'}" ${color.colorImage.front || color.colorImage.back ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"`: 'title="Image not available"'}>
+    <div class="color-options${color.colorImage.front || color.colorImage.back ? '' : ' color-disabled'}" ${color.colorImage.front || color.colorImage.back ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"` : 'title="Image not available"'}>
       <span class="color-circle" style="background: ${color.hex}; border: 
-      ${ color._id === currentColor ? "3px solid red" : "2px solid #6a6969;" }" id="${color.colorName}-${color._id}"></span>
+      ${color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"}" id="${color.colorName}-${color._id}"></span>
       <p>${color.colorName}</p>
     </div>
     `;
@@ -165,7 +161,7 @@ const renderColors = () => {
 
 // Loading first image of mockupImages
 const loadMockupImage = () => {
-  
+
   const image = document.getElementById("mockup-image");
   image.src = Product.colors.find(
     (color) => color._id === currentColor
@@ -217,11 +213,11 @@ const updateStats = () => {
     "Width: " +
     imageWidthInInches +
     " inches";
-  totalPriceElement.innerHTML = 
-    "Total Price: <br> Area " + imageAreaInInches.toFixed(2) + 
-    " x " + "₹2/in² = ₹" + (imageAreaInInches*2).toFixed(2) + 
-    "<br> Base Price: ₹" + variantPrice + "<br> = ₹" + 
-    ((imageAreaInInches*2) + variantPrice).toFixed(2)
+  totalPriceElement.innerHTML =
+    "Total Price: <br> Area " + imageAreaInInches.toFixed(2) +
+    " x " + "₹2/in² = ₹" + (imageAreaInInches * 2).toFixed(2) +
+    "<br> Base Price: ₹" + variantPrice + "<br> = ₹" +
+    ((imageAreaInInches * 2) + variantPrice).toFixed(2)
 };
 
 const changeSize = (e, size, id) => {
@@ -235,7 +231,7 @@ const changeSize = (e, size, id) => {
   e.target.style.transform = "scale(1.1)"
   console.log(id, size);
   globalProductID = id; // check b4 downloading or saving if this is checked
-  
+
   variantPrice = Product.colors.find(color => color._id === currentColor).sizes.find(size => size.id === globalProductID).price;
   basePriceElement.innerHTML = "Base Price: ₹" + variantPrice;
   updateStats();
@@ -251,11 +247,11 @@ const displaySizes = () => {
   const current = Product.colors.find((item) => item._id === currentColor);
   let sizeDOMString = current.sizes.map((item) => {
     return `
-        <div class="size-options" ${item.stock? `onclick="changeSize(event,'${item.size}', '${item.id}')"` : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`}>
+        <div class="size-options" ${item.stock ? `onclick="changeSize(event,'${item.size}', '${item.id}')"` : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`}>
         ${item.size}
         </div>
       `;
-    }).join("");
+  }).join("");
   parent.innerHTML = sizeDOMString;
 };
 /*
@@ -355,11 +351,14 @@ const addFabricCanvasToTemplateDiv = () => {
 };
 
 // Add image to container
-const addImageToCanvas = (event) => {
-  const image = event.target.files[0];
-  designImg = image;
-  if (image && fabricCanvas) {
-    const imageURL = URL.createObjectURL(image);
+const addImageToCanvas = async (imageURL) => {
+  if (!globalProductID) return notyf.error("Select a size before uploading");
+  if (!imageURL) return notyf.error("Invalid image, please try another");
+  const blobReq = await fetch(imageURL);
+  const blobRes = await blobReq.blob();
+  designImg = blobRes;
+  if (imageURL && fabricCanvas) {
+    const imageURL = URL.createObjectURL(designImg);
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
       designImage.scaleToWidth(80);
@@ -387,10 +386,10 @@ const changeSide = (e, side) => {
   designDirection = side;
   if (designDirection === "front")
     document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.front == "" ? 'images/warning.png': selectedMockup.colorImage.front;
+      selectedMockup.colorImage.front == "" ? 'images/warning.png' : selectedMockup.colorImage.front;
   else
     document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.back == "" ? 'images/warning.png': selectedMockup.colorImage.back;
+      selectedMockup.colorImage.back == "" ? 'images/warning.png' : selectedMockup.colorImage.back;
 };
 
 // Download Image
@@ -426,12 +425,12 @@ const downloadDesign = () => {
       window.saveAs(
         blob,
         "userName_" +
-          designName.value +
-          "_" +
-          new Date().toLocaleTimeString() +
-          "-" + 
-          designDirection +
-          ".png"
+        designName.value +
+        "_" +
+        new Date().toLocaleTimeString() +
+        "-" +
+        designDirection +
+        ".png"
       );
     });
   }, 100);
@@ -441,22 +440,21 @@ const downloadDesign = () => {
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
   disableButton(true);
-  console.log("working?");
-  
+
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
-  
+
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
   if (!isDesignNameValid) {
     disableButton(false);
     return notyf.error("Give your design a name");
   };
-  
+
   try {
     const node = document.getElementById("product-design");
-    
+
     const config = {
       width: 900,
       height: 1200,
@@ -465,19 +463,19 @@ const saveDesign = async () => {
         transform: "scale(2)",
       },
     };
-  
-    const imagesTobeUploaded = fabricCanvas.getObjects().map(obj => obj._element? obj._element.src: obj.toDataURL());
+
+    const imagesTobeUploaded = fabricCanvas.getObjects().map(obj => obj._element ? obj._element.src : obj.toDataURL());
     const filesFromBlobs = [];
     let i = 0;
-    for(url of imagesTobeUploaded) {
+    for (url of imagesTobeUploaded) {
       let blobReq = await fetch(url);
       let blobFile = await blobReq.blob();
       i++;
-      filesFromBlobs.push(new File([blobFile], "Image-"+i+".png", { type: 'image/png' }))
+      filesFromBlobs.push(new File([blobFile], "Image-" + i + ".png", { type: 'image/png' }))
     }
-  
+
     let submitProduct = Product.colors.find(x => x._id === currentColor).sizes.find(size => size.id === globalProductID)
-  
+
     let designModelObject = {
       product: {
         id: submitProduct.id,
@@ -489,40 +487,40 @@ const saveDesign = async () => {
         SKU: submitProduct.sizeSku,
         price: submitProduct.price,
         baseImage: {
-            front: Product.baseImage.front,
-            back: Product.baseImage.back,
+          front: Product.baseImage.front,
+          back: Product.baseImage.back,
         },
         dimensions: submitProduct.dimensions
       },
       designName: designName.value,
-      price: (calculateTotalArea()*2).toFixed(2),
+      price: (calculateTotalArea() * 2).toFixed(2),
       designDimensions: {
         width: (designImageWidth * Product.pixelToInchRatio).toFixed(2),
         height: (designImageHeight * Product.pixelToInchRatio).toFixed(2)
       },
     }
-    
+
     domtoimage.toBlob(node, config).then(async blob => {
       filesFromBlobs.push(new File([blob], "DesignImage-" + designDirection + ".png", { type: 'image/png' }))
-  
+
       const formData = new FormData();
       filesFromBlobs.forEach((file) => formData.append('images', file));
       formData.append("designHeight", calculateTotalHeight().toFixed(2))
       formData.append("designWidth", calculateTotalWidth().toFixed(2))
       formData.append("productData", JSON.stringify(designModelObject));
       formData.append("direction", designDirection);
-  
+
       const saveDesignRequest = await fetch("/createdesign", {
         method: "POST",
         body: formData,
       });
-      
+
       if (saveDesignRequest.ok) {
         disableButton(false);
         return notyf.success("Design saved successfully!");
       }
-      
-    })    
+
+    })
   } catch (error) {
     console.log(error);
     return notyf.error("Design failed to save!");
@@ -623,9 +621,41 @@ const modifySKUInput = (event) => {
   event.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase().slice(0, 10);
 }
 
+const populateUserDesigns = (data = userDesignResponse) => {
+  console.log("called");
+  userDesignsWrapper.innerHTML = '';
+  if (!data || data.images.length === 0) return userDesignsWrapper.innerHTML = "No uploads yet!";
+  data.images.map(imageItem => {
+    let currentImage = new Image();
+    currentImage.src = imageItem.url;
+
+    currentImage.addEventListener("load", () => {
+      userDesignsWrapper.innerHTML += `
+      <div class="user-design-image" onclick="addImageToCanvas(this.children[0].src)">
+        <img src="${imageItem.url}" alt="">
+        <p>${imageItem.name}</p>
+      </div>`;
+    })
+  })
+}
+
+const fetchUserDesigns = async () => {
+  try {
+    const userDesignRequest = await fetch("/obtainimages");
+    userDesignResponse = await userDesignRequest.json();
+    if (userDesignRequest.ok) {
+      populateUserDesigns();
+    }
+  } catch (error) {
+    console.log(error);
+    notyf.error("Something went wrong!");
+  }
+}
+
 // also create a fetch function to fetch the products data and obtain the specific style
 //    based on query params passed to the route
 fetchProductData();
+fetchUserDesigns();
 
 // Adding delete button listener for fabric canvas
 document.addEventListener(

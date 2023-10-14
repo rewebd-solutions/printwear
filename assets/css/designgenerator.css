@@ -363,6 +363,35 @@ i.left {
    margin-left: 2rem;
 }
 
+.user-design-images {
+   display: flex;
+   gap: 0.5rem;
+   overflow-x: scroll;
+   padding: 0.4rem;
+   width: 550px;
+}
+
+.user-design-image {
+   width: 200px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.111);
+   border-radius: 5px;
+   padding: 0.2rem;
+   height: fit-content;
+   cursor: pointer;
+}
+
+.user-design-image img {
+   width: 200px;
+   object-fit: cover;
+}
+
+.user-design-image p {
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   font-size: 1rem;
+}
+
 @media (max-width: 900px) {
    .App {
       display: none;

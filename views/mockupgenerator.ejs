@@ -32,7 +32,9 @@
 	<main class="mockup-generator">
 		<div class="left-container">
 			<div class="mockup-image">
-				<img src="/images/women-tees-mockup.png" alt="Women Tees" />
+				<div class="mockup-image-container">
+					<img src="/images/women-tees-mockup.png" alt="Women Tees" />
+				</div>
 			</div>
 		</div>
 		<div class="right-container">
@@ -40,10 +42,16 @@
 				<h3>Women's Tee mockup</h3>
 				<p>Testing T-shirt for women's T-Shirt</p>
 			</div>
-			<div class="mockup-colors"></div>
-			<div class="mockup-design"></div>
-			<div class="mockup-download"></div>
+			<div class="mockup-colors">
+			</div>
+			<div class="mockup-design">
+				<input type="file" name="desing-image" id="design" onchange="addImageToCanvas(event)" />
+			</div>
+			<div class="mockup-download">
+				<button onclick="downloadDesign()">Download</button>
+			</div>
 		</div>
 	</main>
+	<script src="js/mockup-generator.js"></script>
 </body>
 </html>

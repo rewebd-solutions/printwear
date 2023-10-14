@@ -49,7 +49,6 @@
     align-items: center;
   }
   .design-upload-modal {
-    z-index: 5;
     padding: 1rem;
     display: flex;
     width: 80%;
@@ -184,6 +183,7 @@
   
 </div>
 <script>
+  var isReadyForRendering = false;
   const fetchImageAndPopulate = async () => {
       try {
           const userImageWrapper = document.querySelector(".user-images");
@@ -191,6 +191,10 @@
 
           const imageFetch = await fetch("/obtainimages");
           const userImageData = await imageFetch.json();
+
+          console.log(userImageData)
+
+          if (isReadyForRendering) populateUserDesigns(userImageData);
 
           userImageWrapper.innerHTML = '';
            

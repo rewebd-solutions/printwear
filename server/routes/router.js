@@ -68,4 +68,6 @@ route.post("/createwoocommerceorder", authServices.authorizeToken, controller.cr
 
 // route.get("/createzohoproducts", controller.createZohoProducts);
 
+route.post("/addmockup", controller.addmockup);
+
 module.exports = route

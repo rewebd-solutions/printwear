@@ -27,6 +27,7 @@ const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 const otpGen = require("otp-generator")
 const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");
+const MockupModel = require("../model/mockupModel");
 
 const SHIPROCKET_BASE_URL = "https://apiv2.shiprocket.in/v1/external";
 const CASHFREE_BASE_URL = 'https://sandbox.cashfree.com/pg';
@@ -1636,5 +1637,25 @@ exports.getZohoProducts = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.json({ error });
+  }
+}
+
+// endpoint for creating a mockup -- test only
+exports.addmockup = async (req, res) => {
+  try {
+    // const productsData = await ZohoProductModel.find({});
+    // const sample data = {
+//       "name": "Women's Half Sleeve",
+//       "description": "Women's Half Sleeve T-Shirt ready to print",
+//       "product": "6520cee2094cfa85e4fcbd19",
+//       "image": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/mockups%2Fwomen-tees-mockup.png?alt=media&token=782ccdca-1ca3-437d-a71e-ca1fbb323fb1"
+// }
+    const { name, description, product, image, canvas } = req.body;
+    const mockupsData = await MockupModel.create({
+      name, description, product, image
+    });
+    res.json(mockupsData);
+  } catch (error) {
+    res.status(500).json({ error })
   }
 }
