@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:600|Open+Sans:600&display=swap');
+
+@font-face {
+  font-family: myFont;
+  src: url('BaseNeueTrial-SemiBoldOblique.ttf');
+}
+
+* {
+  font-family: myFont;
+  margin: 0;
+  padding: 0;
+  letter-spacing: 0.05rem;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+body {
+  background-color: #fff;
+}
+
+.mockup-generator {
+  display: flex;
+  padding: 1rem;
+  padding-left: 300px;
+  padding-top: 6rem;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mockup-generator > div {
+  width: 50%;
+  display: flex;
+}
+
+.left-container {
+  padding: 2rem;
+  width: 65% !important;
+  justify-content: center;
+  align-items: center;
+}
+
+.mockup-image {
+  background-color: red;
+  width: 700px;
+  display: flex;
+}
+
+.mockup-image img {
+  width: 100%;
+}
