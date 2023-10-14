@@ -9,10 +9,6 @@ exports.loginpage = (req, res) => {
     res.render("login", { status: '' });
 }
 
-exports.expired = (req, res) => {
-    res.render("expired");
-}
-
 exports.dashboardpage = (req, res) => {
     res.render("dashboard");
 }
@@ -26,7 +22,11 @@ exports.forgetRoutes = (req, res) => {
 }
 
 exports.productgallery = (req, res) => {
-    res.render('productgallery', { status: "" });
+    res.render('productgallery');
+}
+
+exports.mockupgenerator = (req, res) => {
+    res.render("mockupgenerator");
 }
 
 exports.placeorder = (req, res) => {
@@ -38,7 +38,7 @@ exports.manageorder = (req, res) => {
 }
 
 exports.stock = (req, res) => {
-    res.render("stock", { value: 1});
+    res.render("stock");
 }
 
 exports.mycart = (req, res) => {
