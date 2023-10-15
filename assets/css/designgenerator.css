@@ -232,8 +232,8 @@ input[type="text"]:focus {
 }
 
 .disabled {
-   background-color: #ff7653;
-   cursor: not-allowed;
+   background-color: #ff7653 !important;
+   cursor: not-allowed !important;
 }
 
 .action-buttons {
@@ -372,7 +372,6 @@ i.left {
 }
 
 .user-design-image {
-   width: 200px;
    box-shadow: 0 0 10px rgba(0, 0, 0, 0.111);
    border-radius: 5px;
    padding: 0.2rem;
@@ -390,6 +389,12 @@ i.left {
    overflow: hidden;
    text-overflow: ellipsis;
    font-size: 1rem;
+   width: 200px;
+}
+
+.active-selection {
+   background: #ff5125;
+   color: white;
 }
 
 @media (max-width: 900px) {

@@ -154,7 +154,7 @@ exports.uploadimage = async (req, res) => {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
     const fileReference = storageReference.child(`images/${req.userId + "_" + req.file.originalname}`);
-    await fileReference.put(fileBuffer);
+    await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
 
     await ImageModel.findOneAndUpdate(
@@ -1392,21 +1392,26 @@ exports.getZohoProductGroups = async (req, res) => {
 exports.createdesign = async (req, res) => {
   try {
     // console.log(req.file);
-    const fileBuffer = req.files;
-
+    const fileBuffer = req.file.buffer;
+    // console.log(fileBuffer);
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData)
 
-    let uniqueSKU = req.body.productData.product.SKU + "-" + otpGen.generate(4, { specialChars: false, upperCaseAlphabets: true, lowerCaseAlphabets: false })
+    let uniqueSKU = req.body.productData.product.SKU + "-" + req.body.productData.designSKU;
+    // console.log(uniqueSKU);
+    // console.log(req.body.designImageURL)
 
-    let recordOfFileNames = {}; // map of filename:url
+    // this is the old method where all the client images get sent to the server and everything is uploaded
+    // but since, they changed it to have only one image, that too from already uploaded ones, i need not upload it again
+    // hence comment the below block and write logic to find the image reference from images collection and put the URL alone here
+    // no need to find reference as i can send the URL from client directly!!!
 
-    for(let file of fileBuffer) {
-      const fileReference = storageReference.child(`images/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU + "_" + file.originalname}`);
-      await fileReference.put(file.buffer, { contentType: 'image/png' });
-      const fileDownloadURL = await fileReference.getDownloadURL();
-      recordOfFileNames[file.originalname] = fileDownloadURL;
-    }
+    // for(let file of fileBuffer) {
+    const fileReference = storageReference.child(`designs/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU}`);
+    await fileReference.put(fileBuffer, { contentType: 'image/png' });
+    const fileDownloadURL = await fileReference.getDownloadURL();
+    //   recordOfFileNames[file.originalname] = fileDownloadURL;
+    // }
 
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
@@ -1414,26 +1419,24 @@ exports.createdesign = async (req, res) => {
         $push: { designs: {
             product: {...req.body.productData.product},
             designSKU: uniqueSKU,
-            desingName: req.body.productData.designName,
-            price: req.body.productData.product.price + (req.body.productData.price * 2),
-            designImage: {
-                front: req.body.direction === "front" && recordOfFileNames["DesignImage-"+req.body.direction+".png"],
-                back: req.body.direction === "back" && recordOfFileNames["DesignImage-"+req.body.direction+".png"]
-            },
             designName: req.body.productData.designName,
-            designItems: Object.keys(recordOfFileNames).map(item => {
-                return {
-                  itemName: item,
-                  URL: recordOfFileNames[item]
-                }
-            })
+            price: parseFloat((req.body.productData.product.price + (req.body.productData.price * 2)).toFixed(2)),
+            designDimensions: {...req.body.productData.designDimensions},
+            designImage: {
+                front: req.body.direction === "front" && fileDownloadURL,
+                back: req.body.direction === "back" && fileDownloadURL,
+            },
+            designItems: [{
+                  itemName: req.body.designImageName,
+                  URL: req.body.designImageURL
+            }]
         }}
       },
       { upsert: true, new: true }
     )
 
     // console.log(designSave);
-    res.status(200).send("OK")
+    res.status(200).json({message: "Design successfull"});
   } catch (error) {
     console.log(error);
     res.status(500);

@@ -39,6 +39,7 @@ const fetchProductData = async () => {
         duration: 5000
       });
     }
+    document.querySelector(".heading").innerHTML = productStyle
     const productDataRequest = await fetch("/getzohoproducts");
     const productDataResponse = await productDataRequest.json();
     productData = productDataResponse[productStyle];
@@ -278,7 +279,7 @@ const addFabricCanvasToTemplateDiv = () => {
   // Settingh width and height according to ratio
   canvasElement.width = Product.inchToPixelRatio * Product.canvas.front.width;
   canvasElement.height = Product.inchToPixelRatio * Product.canvas.front.height;
-  // canvasElement.style.border = "3px solid brown";
+  canvasElement.style.border = "2px dashed silver";
   container.appendChild(canvasElement);
 
   fabricCanvas = new fabric.Canvas(canvasElement);
@@ -351,9 +352,16 @@ const addFabricCanvasToTemplateDiv = () => {
 };
 
 // Add image to container
-const addImageToCanvas = async (imageURL) => {
-  if (!globalProductID) return notyf.error("Select a size before uploading");
+const addImageToCanvas = async (el, imageURL) => {
+
+  if (!globalProductID) return notyf.error("Select a size before applying");
   if (!imageURL) return notyf.error("Invalid image, please try another");
+  
+  fabricCanvas.getObjects().map(obj => fabricCanvas.remove(obj)); // remove all stuff before adding image
+  
+  document.querySelectorAll(".user-design-image").forEach(element => element.classList.remove("active-selection"))
+  el.classList.add("active-selection");
+
   const blobReq = await fetch(imageURL);
   const blobRes = await blobReq.blob();
   designImg = blobRes;
@@ -405,6 +413,10 @@ const downloadDesign = () => {
     return notyf.error("Give your design a name");
   };
 
+  // disable border when rendering final image
+  const canvasContainer = document.querySelectorAll(".canvas-container > *");
+  canvasContainer.forEach(item => item.style.border = "none");
+
   const node = document.getElementById("product-design");
 
   const config = {
@@ -432,6 +444,7 @@ const downloadDesign = () => {
         designDirection +
         ".png"
       );
+      canvasContainer.forEach(item => item.style.border = "2px dashed silver");
     });
   }, 100);
 };
@@ -439,40 +452,47 @@ const downloadDesign = () => {
 // save to cloud
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
+  if (!globalProductID) return;
+
+  const designName = document.getElementById("design-name");
+  let isDesignNameValid = designName.reportValidity();
+  if (!isDesignNameValid) {
+    return notyf.error("Give your design a name");
+  };
+  
+  const SKU = document.getElementById("sku-name");
+  if (!SKU.reportValidity()) {
+    return notyf.error("Give you design a SKU Code");
+  }
+
   disableButton(true);
 
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
-
-  const designName = document.getElementById("design-name");
-  let isDesignNameValid = designName.reportValidity();
-  if (!isDesignNameValid) {
-    disableButton(false);
-    return notyf.error("Give your design a name");
-  };
+  
+  // disable border when rendering final image
+  const canvasContainer = document.querySelectorAll(".canvas-container > *");
+  canvasContainer.forEach(item => item.style.border = "none");
 
   try {
     const node = document.getElementById("product-design");
 
     const config = {
-      width: 900,
+      width: 1200,
       height: 1200,
       style: {
         transformOrigin: "0 0",
         transform: "scale(2)",
       },
     };
+    
+    /* this is the old method where all the client images get sent to the server and everything is uploaded
+    but since, they changed it to have only one image, comment the below block, query select active desing,
+    send the URL to the formData, then send the design image blob separately. */
 
-    const imagesTobeUploaded = fabricCanvas.getObjects().map(obj => obj._element ? obj._element.src : obj.toDataURL());
-    const filesFromBlobs = [];
-    let i = 0;
-    for (url of imagesTobeUploaded) {
-      let blobReq = await fetch(url);
-      let blobFile = await blobReq.blob();
-      i++;
-      filesFromBlobs.push(new File([blobFile], "Image-" + i + ".png", { type: 'image/png' }))
-    }
+    let designImageURL = document.querySelector(".active-selection").children[0].src;
+    let designImageName = document.querySelector(".active-selection").children[1].innerText;
 
     let submitProduct = Product.colors.find(x => x._id === currentColor).sizes.find(size => size.id === globalProductID)
 
@@ -493,36 +513,50 @@ const saveDesign = async () => {
         dimensions: submitProduct.dimensions
       },
       designName: designName.value,
-      price: (calculateTotalArea() * 2).toFixed(2),
+      designSKU: SKU.value,
+      price: parseFloat(calculateTotalArea().toFixed(2)),
       designDimensions: {
-        width: (designImageWidth * Product.pixelToInchRatio).toFixed(2),
-        height: (designImageHeight * Product.pixelToInchRatio).toFixed(2)
+        width: parseFloat((designImageWidth * Product.pixelToInchRatio).toFixed(3)),
+        height: parseFloat((designImageHeight * Product.pixelToInchRatio).toFixed(3)),
+        top: parseFloat((fabricCanvas.getObjects()[0].top * Product.pixelToInchRatio).toFixed(3)),
+        left: parseFloat((fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio).toFixed(3)),
       },
     }
 
+    console.log(submitProduct)
+    console.log(designModelObject)
+    // console.log(filesFromBlobs)
+
     domtoimage.toBlob(node, config).then(async blob => {
-      filesFromBlobs.push(new File([blob], "DesignImage-" + designDirection + ".png", { type: 'image/png' }))
 
       const formData = new FormData();
-      filesFromBlobs.forEach((file) => formData.append('images', file));
-      formData.append("designHeight", calculateTotalHeight().toFixed(2))
-      formData.append("designWidth", calculateTotalWidth().toFixed(2))
+      formData.append("designImage", new File([blob], "ProductDesign-" + designName.value + "-" + designDirection + ".png", { type: 'image/png' }));
+      formData.append("designHeight", parseFloat(calculateTotalHeight().toFixed(2)))
+      formData.append("designWidth", parseFloat(calculateTotalWidth().toFixed(2)))
       formData.append("productData", JSON.stringify(designModelObject));
       formData.append("direction", designDirection);
+      formData.append("designImageURL", designImageURL);
+      formData.append("designImageName", designImageName);
 
       const saveDesignRequest = await fetch("/createdesign", {
         method: "POST",
         body: formData,
       });
 
+      const saveDesignResponse = await saveDesignRequest.json();
+
       if (saveDesignRequest.ok) {
-        disableButton(false);
+        console.log(saveDesignResponse)
+        document.querySelector(".save-button").innerHTML = "Saved!";
         return notyf.success("Design saved successfully!");
       }
-
+      canvasContainer.forEach(item => item.style.border = "2px dashed silver");
     })
+    
   } catch (error) {
     console.log(error);
+    disableButton(false);
+    canvasContainer.forEach(item => item.style.border = "2px dashed silver");
     return notyf.error("Design failed to save!");
   }
 };
@@ -580,40 +614,40 @@ const setPosition = (e, position) => {
 };
 
 // Add text to canvas
-const addTextToCanvas = () => {
-  const text = document.getElementById("canvas-text-input").value;
-  if (text.trim() === "" || !fabricCanvas) return;
+// const addTextToCanvas = () => {
+//   const text = document.getElementById("canvas-text-input").value;
+//   if (text.trim() === "" || !fabricCanvas) return;
 
-  const fontName = document.getElementById("text-font").value;
-  const fontWeight = document.getElementById("text-font-weight").value;
-  const textColor = document.getElementById("text-color-picker").value;
+//   const fontName = document.getElementById("text-font").value;
+//   const fontWeight = document.getElementById("text-font-weight").value;
+//   const textColor = document.getElementById("text-color-picker").value;
 
-  const textObj = new fabric.IText(text, {
-    left: 10,
-    top: 10,
-    fontFamily: fontName,
-    angle: 0,
-    fill: textColor,
-    scaleX: 0.5,
-    scaleY: 0.5,
-    fontWeight: fontWeight,
-    hasRotatingPoint: true,
-  });
+//   const textObj = new fabric.IText(text, {
+//     left: 10,
+//     top: 10,
+//     fontFamily: fontName,
+//     angle: 0,
+//     fill: textColor,
+//     scaleX: 0.5,
+//     scaleY: 0.5,
+//     fontWeight: fontWeight,
+//     hasRotatingPoint: true,
+//   });
 
-  fabricCanvas.add(textObj);
-  fabricCanvas.setActiveObject(textObj);
-  fabricCanvas.renderAll();
-  updateStats();
-};
+//   fabricCanvas.add(textObj);
+//   fabricCanvas.setActiveObject(textObj);
+//   fabricCanvas.renderAll();
+//   updateStats();
+// };
 
 // function to change input font to preview the font in input box itself
-const changeInputFont = (e) => {
-  textInputBox.style.fontFamily = e.target.value;
-};
-// func to change input box font weight for preview → ////// doesnt work! /////
-const changeInputFontWeight = (e) => {
-  textInputBox.style.fontWeight = e.target.value;
-};
+// const changeInputFont = (e) => {
+//   textInputBox.style.fontFamily = e.target.value;
+// };
+// // func to change input box font weight for preview → ////// doesnt work! /////
+// const changeInputFontWeight = (e) => {
+//   textInputBox.style.fontWeight = e.target.value;
+// };
 
 // function to change SKU input with correct validity
 const modifySKUInput = (event) => {
@@ -622,20 +656,19 @@ const modifySKUInput = (event) => {
 }
 
 const populateUserDesigns = (data = userDesignResponse) => {
-  console.log("called");
   userDesignsWrapper.innerHTML = '';
   if (!data || data.images.length === 0) return userDesignsWrapper.innerHTML = "No uploads yet!";
   data.images.map(imageItem => {
     let currentImage = new Image();
     currentImage.src = imageItem.url;
 
-    currentImage.addEventListener("load", () => {
-      userDesignsWrapper.innerHTML += `
-      <div class="user-design-image" onclick="addImageToCanvas(this.children[0].src)">
-        <img src="${imageItem.url}" alt="">
-        <p>${imageItem.name}</p>
-      </div>`;
-    })
+    userDesignsWrapper.innerHTML += `
+    <div class="user-design-image" onclick="addImageToCanvas(this, this.children[0].src)">
+      <img src="${imageItem.url}" alt="">
+      <p>${imageItem.name}</p>
+    </div>`;
+    // currentImage.addEventListener("load", () => {
+    // })
   })
 }
 
@@ -665,8 +698,7 @@ document.addEventListener(
       // 46 is the keyCode for the Delete key
       if (fabricCanvas.getActiveObject()) {
         fabricCanvas.remove(fabricCanvas.getActiveObject());
-        // designImageHeight = null;
-        // designImageWidth = null;
+        document.querySelectorAll(".user-design-image").forEach(element => element.classList.remove("active-selection"))
         updateStats();
       }
     }

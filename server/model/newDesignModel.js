@@ -32,7 +32,9 @@ var NewDesignSchema = new mongoose.Schema({
             price: Number,
             designDimensions: {
                 width: Number,
-                height: Number
+                height: Number,
+                top: Number,
+                left: Number,
             },
             designImage: {
                 front: String,
