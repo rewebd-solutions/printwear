@@ -58,8 +58,7 @@ p {
   padding: 2rem;
   padding-left: 300px;
   padding-top: 6rem;
-  justify-content: center;
-  align-items: center;
+  /* align-items: center; */
   gap: 2rem;
 }
 
@@ -147,6 +146,12 @@ p {
   /* border: solid; */
 }
 
+.name-price {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
 .name-price h3 {
   font-size: 16px;
   font-weight: 400;
@@ -177,9 +182,7 @@ p {
 
 .heading-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  justify-content: flex-start;
+  justify-content: space-between;
   width: 100%;
 }
 
@@ -340,4 +343,36 @@ button#add-woocommerce {
 
 .delete-confirmation {
   background-color: white;
+}
+
+#name-search {
+  padding: 0.2rem 0.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  background: buttonface;
+  outline: 1px solid silver;
+  height: 2.25rem;
+}
+
+input::placeholder {
+  font-size: 0.8rem;
+}
+
+.filter-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-button {
+  padding: 0.2rem 0.6rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.filter-button-active {
+  outline: 1px solid #F05A30;
+  background-color: #F05A30;
+  color: white;
 }

@@ -27,9 +27,21 @@
 
   <main class="product-lib">
     <div class="heading-row">
-      <h2>Design Library</h2>
-      <p>Start creating your designs and save them for reordering quickly.<br>
-        You can also push them to your online store once you connect your store with Printwear</p>
+      <div style="display: flex; flex-direction: column;">
+        <h2>Design Library</h2>
+        <p>Start creating your designs and save them for reordering quickly.<br>
+          You can also push them to your online store once you connect your store with Printwear</p>
+      </div>
+      <input type="search" placeholder="Search for your designs..." oninput="searchDesigns('designName', event.target.value)" id="name-search" />
+    </div>
+    <div class="filter-container">
+      <h3>Filter by category</h3>
+      <div class="gender-filter">
+          <button class="filter-button filter-button-active" onclick="filterProductsByGender(event, 'all')">All</button>
+          <button class="filter-button" onclick="filterProductsByGender(event,'men')">Men</button>
+          <button class="filter-button" onclick="filterProductsByGender(event, 'women')">Women</button>
+          <button class="filter-button" onclick="filterProductsByGender(event, 'unisex')">Unisex</button>
+      </div>
     </div>
 
     <div class="designs-wrapper">
@@ -46,8 +58,12 @@
     const designsContainer = document.querySelector(".designs-wrapper");
     var designsResponseData = {};
 
-    const searchDesigns = (searchKey) => {
-      
+    const searchDesigns = (dataKey, searchKey) => {
+      if (searchKey === '') return createDesignCards();
+      const designsData = designsResponseData.designs.filter(design => design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim()));
+      if (designsData.length < 1) return designsContainer.innerHTML = 'Invalid search key';
+      // console.log(designsData);
+      createDesignCards({designs: designsData})
     }
 
     const disableButton = (buttonElement, innerTextBefore, innerTextAfter, state) => {
@@ -193,15 +209,15 @@
               <div class="size-circle">${designModalData.product.size}</div>
             </div>
             <div class="product-price">
-              <h4>Price: ₹${designModalData.price}</h4>
+              <h4>Price: ₹${designModalData.price.toFixed(2)}</h4>
               <table class="price-breakdown">
                 <tr>
                   <td>Base Price</td>
-                  <td>₹${designModalData.product.price}</td>
+                  <td>₹${designModalData.product.price.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>Print Price</td>
-                  <td>₹${designModalData.price - designModalData.product.price}</td>
+                  <td>₹${(designModalData.price - designModalData.product.price).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>Tax</td>
@@ -242,7 +258,7 @@
               <img src="${design.designImage.front != '' ? design.designImage.front : design.designImage.back}">
             </div>
             <div class="name-price">
-              <h3>${design.designName}</h3>
+              <h3>${design.designName}</h3> • <h3>${design.product.style}</h3>
             </div>
             <div class="details">
               <div class="view-btn">
@@ -262,13 +278,38 @@
       }) */
     }
 
+    const filterProductsByGender = (e, category) => {
+      // console.log(category)
+      const filterByGenderButtons = document.querySelectorAll(".filter-button");
+      filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
+
+      e.target.classList.add("filter-button-active");
+
+      if (category === "all") return createDesignCards();
+      
+      const designsData = designsResponseData.designs.filter(design => design.product['gender'].toLowerCase().trim().includes(category.toLowerCase().trim()));
+      if (designsData.length < 1) return designsContainer.innerHTML = `No products found for filter: "${category}"`;
+      createDesignCards({ designs: designsData })
+    }
+
     const fetchDesignsData = async () => {
       try {
         const designsFetchRequest = await fetch("/getdesigns");
         designsResponseData = await designsFetchRequest.json();
 
+        
+        const maleFilterPattern = new RegExp(/\bmen\b|\bmens\b/i);
+        const femaleFilterPattern = new RegExp(/\bwomen\b|\bwomens\b/i);
+        
+        designsResponseData.designs = designsResponseData.designs.map(design => {
+          if (maleFilterPattern.test(design.product.name)) design.product['gender'] = "men";
+          else if (femaleFilterPattern.test(design.product.name)) design.product['gender'] = "women";
+          else design.product['gender'] = "unisex";
+          return design     
+        })
+        
         console.log(designsResponseData);
-
+        
         if (designsResponseData.designs.length > 0) {
           return createDesignCards();
         }
