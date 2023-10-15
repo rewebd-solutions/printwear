@@ -1,24 +1,24 @@
 const express = require('express');
-const livereload = require("livereload");
-const connectLiveReload = require("connect-livereload");
+// const livereload = require("livereload");
+// const connectLiveReload = require("connect-livereload");
 const path = require('path');
 require('dotenv').config();
 
-const liveReloadServer = livereload.createServer();
-liveReloadServer.watch(path.resolve(__dirname, 'assets'));
-liveReloadServer.watch(path.resolve(__dirname, 'server/views'));
-liveReloadServer.server.once("connection", () => {
-    setTimeout(() => {
-        liveReloadServer.refresh("/");
-    }, 1000);
-});
+// const liveReloadServer = livereload.createServer();
+// liveReloadServer.watch(path.resolve(__dirname, 'assets'));
+// liveReloadServer.watch(path.resolve(__dirname, 'server/views'));
+// liveReloadServer.server.once("connection", () => {
+//     setTimeout(() => {
+//         liveReloadServer.refresh("/");
+//     }, 1000);
+// });
 
 const connectDB = require('./server/database/connection');
 const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = process.env.PORT || 3000
 
-app.use(connectLiveReload());
+// app.use(connectLiveReload());
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
