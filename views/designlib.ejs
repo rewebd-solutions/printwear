@@ -3,17 +3,10 @@
 
 <head>
   <!-- Import Bootstrap CSS -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- Import custom CSS file -->
   <link rel="stylesheet" href="/css/designlib.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-    crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-    crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
   <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
@@ -38,10 +31,11 @@
       <p>Start creating your designs and save them for reordering quickly.<br>
         You can also push them to your online store once you connect your store with Printwear</p>
     </div>
- 
+
     <div class="designs-wrapper">
       <span class="loader"></span>
     </div>
+
   </main>
 
   <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -51,18 +45,23 @@
 
     const designsContainer = document.querySelector(".designs-wrapper");
     var designsResponseData = {};
-    const searchDesigns = (searchKey) => {
 
+    const searchDesigns = (searchKey) => {
+      
     }
 
     const disableButton = (buttonElement, innerTextBefore, innerTextAfter, state) => {
-      state? buttonElement.setAttribute("disabled", true) : buttonElement.removeAttribute("disabled");
-      state? buttonElement.classList.add("disabled"): buttonElement.classList.remove("disabled");
-      state? buttonElement.innerHTML = `${innerTextBefore}` : buttonElement.innerHTML = `<i class="fa-regular fa-page"></i> ${innerTextAfter}`;
+      state ? buttonElement.setAttribute("disabled", true) : buttonElement.removeAttribute("disabled");
+      state ? buttonElement.classList.add("disabled") : buttonElement.classList.remove("disabled");
+      state ? buttonElement.innerHTML = `${innerTextBefore}` : buttonElement.innerHTML = `<i class="fa-regular fa-page"></i> ${innerTextAfter}`;
     }
-    
-    const deleteDesign = async (e, designSKU) => {
-      disableButton(e.target, "Deleting...", "Deleted", true);
+
+    const openDeleteConfirmation = (button, designName, designSKU) => {
+      if (confirm("Are you sure you wish to delete the design " + designName)) deleteDesign(button, designSKU)
+    }
+
+    const deleteDesign = async (button, designSKU) => {
+      disableButton(button, "Deleting...", "Deleted", true);
       try {
         const deleteDesignRequest = await fetch("/deletedesign", {
           headers: {
@@ -71,7 +70,7 @@
           body: JSON.stringify({
             designSKU
           }),
-          method:'POST'
+          method: 'POST'
         });
         const deleteDesignResponse = await deleteDesignRequest.text();
         notyf.success({
@@ -86,9 +85,9 @@
         return notyf.error("Unable to delete design")
       }
     }
- 
-    const addToShopify = async (e, designSKU) => {
-      disableButton(e.target, "Adding...", "Added to Shopify", true);
+
+    const addToShopify = async (button, designSKU) => {
+      disableButton(button, "Adding...", "Added to Shopify", true);
       try {
         const addToshopifyRequest = await fetch("/createshopifyproduct", {
           headers: {
@@ -99,14 +98,14 @@
             designSKU
           }),
         });
-        const addToshopifyResponse = await addToshopifyRequest.text();
+        const addToshopifyResponse = await addToshopifyRequest.json();
         if (!addToshopifyRequest.ok) {
           document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
           return notyf.error({
             message: "Shopify store not connected!",
             dismissible: true,
             duration: 5000
-          }) 
+          })
         }
         notyf.success({
           message: "Added to shopify Store!",
@@ -120,8 +119,8 @@
       }
     }
 
-    const addToWooCommerce = async (e, designSKU) => {
-      disableButton(e.target, "Adding...", "Added to WooCommerce", true);
+    const addToWooCommerce = async (button, designSKU) => {
+      disableButton(button, "Adding...", "Added to WooCommerce", true);
       try {
         const addToWoocommerceRequest = await fetch("/createwoocommerceorder", {
           headers: {
@@ -133,14 +132,15 @@
           }),
         });
         const addToWoocommerceResponse = await addToWoocommerceRequest.json();
-        if (!addToWoocommerceRequest.ok){
+        console.log(addToWoocommerceResponse);
+        if (!addToWoocommerceRequest.ok) {
           document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
           return notyf.error({
-            message: "WooCommerce store not connected!",
+            message: addToWoocommerceResponse.message,
             dismissible: true,
             duration: 5000
-          }) 
-        } 
+          })
+        }
         notyf.success({
           message: "Added to WooCommerce Store!",
           dismissible: true,
@@ -152,49 +152,79 @@
         notyf.error("Something went wrong!");
       }
     }
-    
+
+    const downloadDesign = (url) => {
+      let aLink = document.createElement("a");
+      aLink.href = url;
+      aLink.target = "_blank";
+      aLink.click();
+      aLink.remove();
+    }
+
     const openModal = (designSKU) => {
       const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
       console.log(designModalData);
       const designModalDOMString = `
-        <div class="product-modal-wrapper">
-          <div class="product-modal" data-aos="fade-up">
-            <button class="modal-close">
-              <i class="fa fa-close"></i>
-            </button>
-            <div class="product-modal-image">
-              <img
-                src="${designModalData.designImage.front}"
-                alt="Design front image">
+      <div class="product-modal-wrapper">
+        <div class="product-modal" data-aos="fade-up">
+          <button class="modal-close">
+            <i class="fa fa-close"></i>
+          </button>
+          <div class="product-modal-image">
+            <img
+              src="${designModalData.designImage.front == "false" ? designModalData.designImage.back: designModalData.designImage.front}"
+              alt="Design image">
+          </div>
+          <div class="product-modal-details">
+            <h2 class="product-name">${designModalData.designName}</h2>
+            <div class="product-category-gender">
+              <h5>${designModalData.product.name}</h5>
+              <h5>${designModalData.designSKU}</h5>
             </div>
-            <div class="product-modal-details">
-              <div class="product-modal-heading-delete">
-                <h2 class="product-name">${designModalData.designName}</h2>
-                <button id="delete-design" onclick="deleteDesign(event,'${designSKU}')"><i class="fa fa-trash"></i>Delete design</button>
-              </div>
-              <div class="product-category-gender">
-                <h6>${designModalData.product.style}</h6>
-                <h6>${designModalData.product.name}</h6>
-              </div> 
-              <p class="product-description">
-                ${/*designModalData.product.description*/''}
-                User generated design
-              </p>
-              <div class="product-colors">
-                <p>Chosen color: </p>
-                <div style="background:#ebebeb;">${designModalData.product.color}</div>
-              </div>
-              <div class="product-sizes">
-                <p>Size: ${designModalData.product.size}</p>
-              </div>
-              <div class="product-price-button">
-                <h4>Price ₹${designModalData.price}</h4>
-                <button id='add-shopify' onclick="addToShopify(event,'${designSKU}')">Add to Shopify Store</button>
-                <button id='add-woocommerce' onclick="addToWooCommerce(event,'${designSKU}')">Add to WooCommerce Store</button>
-              </div>
+            <p class="product-description">
+              ${designModalData.description || "User generated design"}
+            </p>
+            <div class="product-colors">
+              <p>Color: </p>
+              <div class="color-circle" style="background:${designModalData.product.hex};" title="${designModalData.product.color}"></div>
+            </div>
+            <div class="product-sizes">
+              <p>Size: </p>
+              <div class="size-circle">${designModalData.product.size}</div>
+            </div>
+            <div class="product-price">
+              <h4>Price: ₹${designModalData.price}</h4>
+              <table class="price-breakdown">
+                <tr>
+                  <td>Base Price</td>
+                  <td>₹${designModalData.product.price}</td>
+                </tr>
+                <tr>
+                  <td>Print Price</td>
+                  <td>₹${designModalData.price - designModalData.product.price}</td>
+                </tr>
+                <tr>
+                  <td>Tax</td>
+                  <td>₹0.00</td>
+                </tr>
+                <tr>
+                  <td>Total Price</td>
+                  <td>₹${designModalData.price}</td>
+                </tr>
+              </table>
+            </div>
+            <div class="action-buttons">
+              <button onclick="downloadDesign('${designModalData.designImage.front == "false" ? designModalData.designImage.back: designModalData.designImage.front}')"><i class="fa fa-download"></i> Download Design</button>
+              <button class="delete-design" onclick="openDeleteConfirmation(this,'${designModalData.designName}', '${designModalData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
+            </div>
+            <p>Publish:</p>
+            <div class="publish-buttons">
+              <button id="add-shopify" onclick="addToShopify(this, '${designModalData.designSKU}')"><i class="fa-brands fa-shopify"></i> Add to Shopify</button>
+              <button id="add-woocommerce" onclick="addToWooCommerce(this, '${designModalData.designSKU}')"><img src="images/WooCommerce_logo.svg" width="30" alt=""> Add to WooCommerce</button>
             </div>
           </div>
         </div>
+      </div>
       `;
       document.querySelector("main").insertAdjacentHTML("beforeend", designModalDOMString);
 
@@ -209,7 +239,7 @@
         return `
           <div class="design-card" data-aos="fade-up">
             <div class="card-img">
-              <img src="${ design.designImage.front != ''? design.designImage.front: design.designImage.back }">
+              <img src="${design.designImage.front != '' ? design.designImage.front : design.designImage.back}">
             </div>
             <div class="name-price">
               <h3>${design.designName}</h3>

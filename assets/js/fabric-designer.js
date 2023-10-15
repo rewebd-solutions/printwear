@@ -462,7 +462,7 @@ const saveDesign = async () => {
   
   const SKU = document.getElementById("sku-name");
   if (!SKU.reportValidity()) {
-    return notyf.error("Give you design a SKU Code");
+    return notyf.error("Give your design a SKU Code");
   }
 
   disableButton(true);

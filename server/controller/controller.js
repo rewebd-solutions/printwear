@@ -721,7 +721,7 @@ function formatDate(date) {
 
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
-
+const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
 
 // endpoints for creating orders in shiprocket
 exports.createshiporder = async (req, res) => {
@@ -1407,7 +1407,7 @@ exports.createdesign = async (req, res) => {
     // no need to find reference as i can send the URL from client directly!!!
 
     // for(let file of fileBuffer) {
-    const fileReference = storageReference.child(`designs/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU}`);
+    const fileReference = storageReference.child(`designs/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU}.png`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
     //   recordOfFileNames[file.originalname] = fileDownloadURL;
@@ -1522,24 +1522,12 @@ exports.createshopifyproduct = async (req, res) => {
       })
     });
     const shopifyProductCreateResponse = await shopifyProductCreateRequest.json();
-    // console.log(shopifyProductCreateResponse)
-    // const productIDtoChange = shopifyProductCreateResponse.product.id;
-    
-    // const shopifyImageUploadEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products/${productIDtoChange}/images.json`
-    // const shopifyProductImageRequest = await fetch(shopifyImageUploadEndpoint, {
-    //   headers: {
-    //     'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
-    //     'Content-Type': 'application/json'
-    //   },
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     image: 
-    //   })
-    // });
-    // const shopifyProductImageResponse = await shopifyProductImageRequest.json();
-    // console.log(shopifyProductImageResponse)
+   
+    if (shopifyProductCreateRequest.ok) {
+      await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToShopify': true } } )
+      res.status(200).json({ message: "Added to shopify" })
+    }
 
-    res.json(shopifyProductCreateResponse)
   } catch (error) {
     console.log(error);
     res.status(500).json({error});
@@ -1549,50 +1537,60 @@ exports.createshopifyproduct = async (req, res) => {
 
 exports.createwoocommerceorder = async (req, res) => {
   const storeData = await StoreModel.findOne({ userid: req.userId });
-  console.log(storeData.wooCommerceStore);
+  // console.log(storeData.wooCommerceStore);
   if (!(storeData.wooCommerceStore.url)) return res.status(404).json({error: "WooCommerce store not connected!"});
   const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.find(design => design.designSKU === req.body.designSKU)
 
-  // const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
   const consumerKey = storeData.wooCommerceStore.consumerKey;
   const consumerSecret = storeData.wooCommerceStore.consumerSecret;
   const shopURL = storeData.wooCommerceStore.url;
-  const encodedAuthBuffer = Buffer.from(`${consumerKey}:${consumerSecret}`, 'base64');
-  const encodedAuth = encodedAuthBuffer.toString('base64')
+
+  const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
+  console.log(designData.designImage.front == "false" ? designData.designImage.back : designData.designImage.front)
+  // const encodedAuthBuffer = Buffer.from(`${consumerKey}:${consumerSecret}`, 'base64');
+  // const encodedAuth = encodedAuthBuffer.toString('base64')
 
   const endpoint = `https://${shopURL}/wp-json/wc/v3/products`;
 
   const productData = {
-    name: "Bruh shirt",
-    slug: "bruh-shirt",
+    name: designData.designName,
+    slug: slugify(designData.designName),
     type: "simple",
     status: "publish",
-    regular_price: "399",
-    sale_price: "299",
-    sku: "one-piece-is-real",
-    description:
-      "This is a one piece sweatshirt. One piece is one of the big 3 of anime, a greate anime with an amazing storyline..",
-    short_description: "Official One pix Merchandise",
+    regular_price: designData.price + '',
+    sale_price: designData.price + '',
+    sku: req.body.designSKU,
+    description: designData.description || 'User generated design' ,
+    short_description: designData.product.name,
     dimensions: {
-      length: "7",
-      width: "38",
-      height: "28",
+      length: designData.product.dimensions.length + '',
+      width: designData.product.dimensions.chest + '',
     },
     images: [
       {
-        src: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/images%2F64f175edd683cd124e440f23_NUMBER_2_PWSSDWSSM-001SS-M2TT_DesignImage-front.png?alt=media&token=afe56335-b54e-4ff7-8f49-1bb72aeb4628",
-        name: "bruh",
+        src: designData.designImage.front == "false" ? designData.designImage.back : designData.designImage.front,
+        name: designData.designName + " image",
       },
     ],
     attributes: [
       {
-        id: 1,
-        name: "size",
+        id: 6,
+        name: "Color",
         position: 0,
         visible: true,
         variation: true,
         options: [
-          "S"
+          designData.product.color
+        ],
+      },
+      {
+        id: 1,
+        name: "Size",
+        position: 0,
+        visible: true,
+        variation: true,
+        options: [
+          designData.product.size
         ],
       },
     ],
@@ -1608,9 +1606,14 @@ exports.createwoocommerceorder = async (req, res) => {
       body: JSON.stringify(productData),
     });
     const createWooProductResponse = await createWooProductRequest.json();
-    if(createWooProductRequest.ok)
-        console.log("Uploaded Successfully");
-    res.json(createWooProductResponse)
+    
+    await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToWoocommerce': true } } )
+    if(createWooProductResponse.data?.status && createWooProductResponse.data.status != 200) {
+      res.status(createWooProductResponse.data.status).json({ message: createWooProductResponse.message });
+      return console.log("Uploaded failed");
+    }
+    if(createWooProductRequest.ok) return res.json({ message: "Created successfully. WooCommerce ID: " + createWooProductResponse.id })
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({err});

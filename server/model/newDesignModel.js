@@ -45,9 +45,17 @@ var NewDesignSchema = new mongoose.Schema({
                     itemName: String,
                     URL: String
                 }
-            ]
+            ],
+            isAddedToShopify: {
+                type: Boolean,
+                default: false
+            },
+            isAddedToWoocommerce: {
+                type: Boolean,
+                default: false
+            }
         }
-    ]
+    ],
 });
 
 const newDesignModel = mongoose.model("NewDesign", NewDesignSchema);
