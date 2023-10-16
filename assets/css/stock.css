@@ -18,7 +18,7 @@
     padding: 0.5rem;
     position: sticky;
     background-color: white;
-    top: 100px;
+    top: 88px;
 }
 
 input[type="search"] {
@@ -51,7 +51,7 @@ table {
 
 thead {
     position: sticky;
-    top: 150px
+    top: 137px
 }
 
 th,

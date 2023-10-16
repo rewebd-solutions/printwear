@@ -1,4 +1,29 @@
 var designImg, fabricCanvas;
+var colorsToRender = [];
+colorsToRender['default'] = '#fff';
+
+var notyf = new Notyf();
+
+var mockupImageContainer = document.querySelector(".mockup-image-container");
+var userDesignsWrapper = document.querySelector(".user-design-images");
+
+//fetch data from db
+const fetchMockupsData = async () => {
+    try {
+        const mockupsDataRequest = await fetch("/getmockups");
+        mockupsDataResponse = (await mockupsDataRequest.json())[0];
+        console.log(mockupsDataResponse)
+        if (!mockupsDataRequest.ok) {
+            mockupImageContainer.innerHTML = "Something went wrong! Please refresh page";
+            return notyf.error("Something went wrong!");
+        }
+        renderColors();
+    } catch (error) {
+        console.log(error)
+        mockupImageContainer.innerHTML = "Something went wrong! Please page";
+        return notyf.error("Something went wrong!");
+    }
+}
 
 // Intialize fabric JS canvas
 const addFabricCanvasToTemplateDiv = () => {
@@ -84,23 +109,31 @@ const addFabricCanvasToTemplateDiv = () => {
 };
 
 // Add image to container
-const addImageToCanvas = (event) => {
-    const image = event.target.files[0];
-    designImg = image;
-    if (image && fabricCanvas) {
-        const imageURL = URL.createObjectURL(image);
-        fabric.Image.fromURL(imageURL, (designImage) => {
-            designImage.scaleToHeight(100);
-            designImage.scaleToWidth(80);
-            designImage.minScaleLimit = 0.1;
-            // Updating sizes initially after adding to canvas
-            designImageHeight = designImage.getScaledHeight();
-            designImageWidth = designImage.getScaledWidth();
-            fabricCanvas.add(designImage);
-            // updateStats();
-            fabricCanvas.setActiveObject(designImage);
-        });
-    }
+const addImageToCanvas = async (el, imageURL) => {
+    if (!imageURL) return notyf.error("Invalid image, please try another");
+  
+    fabricCanvas.getObjects().map(obj => fabricCanvas.remove(obj)); // remove all stuff before adding image
+    
+    document.querySelectorAll(".user-design-image").forEach(element => element.classList.remove("active-selection"))
+    el.classList.add("active-selection");
+  
+    const blobReq = await fetch(imageURL);
+    const blobRes = await blobReq.blob();
+    designImg = blobRes;
+    if (imageURL && fabricCanvas) {
+      const imageURL = URL.createObjectURL(designImg);
+      fabric.Image.fromURL(imageURL, (designImage) => {
+        designImage.scaleToHeight(100);
+        designImage.scaleToWidth(80);
+        designImage.minScaleLimit = 0.05;
+        // Updating sizes initially after adding to canvas
+        designImageHeight = designImage.getScaledHeight();
+        designImageWidth = designImage.getScaledWidth();
+        fabricCanvas.add(designImage);
+        updateStats();
+        fabricCanvas.setActiveObject(designImage);
+      });
+    }    
 };
 
 const fixRotationOnCanvas = () => {
@@ -146,8 +179,8 @@ const downloadDesign = () => {
     const node = document.querySelector(".mockup-image");
 
     const config = {
-        width: node.clientWidth*2,
-        height: node.clientHeight*2,
+        width: node.clientWidth * 2,
+        height: node.clientHeight * 2,
         style: {
             transformOrigin: "0 0",
             transform: "scale(2)",
@@ -181,8 +214,72 @@ const setMockupSize = () => {
     // console.log(mockupImageHeight, "1")
 }
 
+const renderColors = () => {
+    const colorsList = document.querySelector(".color-list");
+    // put this in the actual code,
+    // <div ${mockupsDataResponse.product.baseImage.front != ""? `class="color-option" onclick="addColorToRender(this)"`: `class="color-option color-disabled"`}>
+    colorsList.innerHTML = Object.keys(mockupsDataResponse.product.colors).map((color, i) => {
+        return `
+        <div class="color-option" onclick="addColorToRender(this)">
+            <span class="color-circle" style="background: ${mockupsDataResponse.product.colors[color].colorCode}; border: 1px solid silver" data-color="${color}">
+                <i class="fa fa-check color-tick"></i>
+            </span>
+            <p style="font-size: 14px">${color}</p>
+        </div>       
+        `
+    }).join("");
+}
+
+const populateUserDesigns = (data = userDesignResponse) => {
+    userDesignsWrapper.innerHTML = '';
+    if (!data || data.images.length === 0) return userDesignsWrapper.innerHTML = "No uploads yet!";
+    data.images.map(imageItem => {
+        let currentImage = new Image();
+        currentImage.src = imageItem.url;
+
+        userDesignsWrapper.innerHTML += `
+      <div class="user-design-image" onclick="addImageToCanvas(this, this.children[0].src)">
+        <img src="${imageItem.url}" alt="">
+        <p>${imageItem.name}</p>
+      </div>`;
+        // currentImage.addEventListener("load", () => {
+        // })
+    })
+}
+
+const fetchUserDesigns = async () => {
+    try {
+        const userDesignRequest = await fetch("/obtainimages");
+        userDesignResponse = await userDesignRequest.json();
+        if (userDesignRequest.ok) {
+            populateUserDesigns();
+        }
+    } catch (error) {
+        console.log(error);
+        notyf.error("Something went wrong!");
+    }
+}
+
+const addColorToRender = (el) => {
+    let color = el.children[1].innerText;
+    let hex = el.children[0].style.background;
+    if (Object.keys(colorsToRender).find(x => x === color)) {
+        delete colorsToRender[color];
+        el.querySelector(".color-tick").style.display = "none";
+        mockupImageContainer.style.background = colorsToRender['default'];
+        return el.classList.remove('selected-color');
+    }
+    colorsToRender[color] = hex;
+    el.querySelector(".color-tick").style.display = "block"
+    el.classList.add('selected-color');
+    mockupImageContainer.style.background = hex;
+    console.log(colorsToRender);
+}
+
 addFabricCanvasToTemplateDiv();
 // after calling above function, call another function to set rotation for .upper-canvas and .lower-canvas
 fixRotationOnCanvas();
 setMockupSize();
 // rotateArtboard(25) // roatate entire canvas not working
+fetchMockupsData()
+fetchUserDesigns();

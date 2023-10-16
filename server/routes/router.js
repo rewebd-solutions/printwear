@@ -70,4 +70,6 @@ route.post("/createwoocommerceorder", authServices.authorizeToken, controller.cr
 
 route.post("/addmockup", controller.addmockup);
 
+route.get("/getmockups", controller.getmockups);
+
 module.exports = route

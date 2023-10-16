@@ -1665,3 +1665,19 @@ exports.addmockup = async (req, res) => {
     res.status(500).json({ error })
   }
 }
+
+exports.getmockups = async (req, res) => {
+  try {
+    const mockupsData = await MockupModel.find({});
+    const productData = await ZohoProductModel.find({});
+    // console.log(productData)
+    mockupsData.forEach(mockup => {
+      // console.log(productData.find(product => product._id + "" === mockup.product + ""))
+      mockup.product = productData.find(product => product._id + "" === mockup.product + "")
+    })
+    res.status(200).json(mockupsData);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+}

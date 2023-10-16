@@ -28,7 +28,19 @@ const fetchProductData = async () => {
   try {
     // fetch call
     const styleParam = new URLSearchParams(location.search).get("style");
-    if (!styleParam) return notyf.error({ message: "style paramater not defined in URL", duration: 6000, dismissible: true });
+    if (!styleParam) {
+      document.body.style.overflowY = 'hidden';
+      document.querySelector(".App").insertAdjacentHTML("beforeend", `
+      <div class="design-upload-backdrop" style="z-index:105; position: fixed;">
+        <div class="design-upload-modal" data-aos="fade-up" style="justify-content: center; align-items: center">
+          <img src="/images/missing-shirt.png" width="200" />
+          Oops! Select a design from Product Gallery before proceeding!
+          <a href="/productgallery"><button class="">Choose my design</button></a>
+        </div>
+      </div>
+      `)
+      return notyf.error({ message: "style paramater not defined in URL", duration: 6000, dismissible: true });
+    } 
 
     const productStyle = styleParam.split("+").join(" ");
     // console.log(productStyle);
@@ -146,7 +158,6 @@ const renderColors = () => {
   const parent = document.querySelector(".color-list");
   parent.innerHTML = '';
   Product.colors.map((color) => {
-    const child = document.createElement("div");
     const innerHTML = `
     <div class="color-options${color.colorImage.front || color.colorImage.back ? '' : ' color-disabled'}" ${color.colorImage.front || color.colorImage.back ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"` : 'title="Image not available"'}>
       <span class="color-circle" style="background: ${color.hex}; border: 
@@ -154,9 +165,7 @@ const renderColors = () => {
       <p>${color.colorName}</p>
     </div>
     `;
-    child.innerHTML = innerHTML;
-    child.style.margin = "0px 10px";
-    parent.appendChild(child);
+    parent.innerHTML += innerHTML
   });
 };
 
@@ -354,7 +363,7 @@ const addFabricCanvasToTemplateDiv = () => {
 // Add image to container
 const addImageToCanvas = async (el, imageURL) => {
 
-  if (!globalProductID) return notyf.error("Select a size before applying");
+  if (!globalProductID) return notyf.error("Select a shirt size before applying");
   if (!imageURL) return notyf.error("Invalid image, please try another");
   
   fabricCanvas.getObjects().map(obj => fabricCanvas.remove(obj)); // remove all stuff before adding image
@@ -370,7 +379,7 @@ const addImageToCanvas = async (el, imageURL) => {
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
       designImage.scaleToWidth(80);
-      designImage.minScaleLimit = 0.1;
+      designImage.minScaleLimit = 0.05;
       // Updating sizes initially after adding to canvas
       designImageHeight = designImage.getScaledHeight();
       designImageWidth = designImage.getScaledWidth();

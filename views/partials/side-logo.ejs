@@ -23,7 +23,7 @@
 
   .sidebar a {
     color: #3f3f3f;
-    line-height: 50px;
+    line-height: 47px;
     padding-left: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.19);
     border-left: 5px solid transparent;
@@ -32,9 +32,10 @@
 
   .sidebar a:active,
   .sidebar a:hover,
-  .sidebar a:focus {
-    border-left: 5px solid #F05A30;
-    color: #F05A30;
+  .sidebar a:focus,
+  .sidebar-active  {
+    border-left: 5px solid #F05A30 !important;
+    color: #F05A30 !important;
   }
 
   .sidebar a i {
@@ -105,3 +106,7 @@
     </a>
   </div>
 </div>
+<script>
+  const routeName = location.pathname;
+  document.querySelector(`a[href='${routeName}']`).classList.add("sidebar-active")
+</script>

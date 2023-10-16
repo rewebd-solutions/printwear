@@ -38,6 +38,8 @@ body {
   width: 65% !important;
   justify-content: center;
   align-items: center;
+  position: sticky;
+  top: 100px;
 }
 
 .right-container {
@@ -66,4 +68,79 @@ body {
   background-color: red;
   width: 700px;
   display: flex;
+}
+
+.color-list {
+  display: grid;
+  grid-template-columns: repeat(4, 0.2fr);
+  place-items: center;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.color-option {
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  width: fit-content;
+  cursor: pointer;
+  text-align: center;
+}
+
+.color-circle {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 100%;
+  border: 2px solid #6a6969;
+  position: relative;
+}
+
+.color-tick {
+  position: absolute;
+  display: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff; /* Set the color of the tick icon */
+  font-size: 0.5rem; /* Adjust the size as needed */
+}
+
+.user-design-images {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: scroll;
+  padding: 0.4rem;
+  width: 450px;
+}
+
+.user-design-image {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.111);
+  border-radius: 5px;
+  padding: 0.2rem;
+  height: fit-content;
+  cursor: pointer;
+}
+
+.user-design-image img {
+  width: 200px;
+  object-fit: cover;
+}
+
+.user-design-image p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1rem;
+  width: 200px;
+}
+
+.active-selection {
+  background: #ff5125;
+  color: white;
+}
+
+.color-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
