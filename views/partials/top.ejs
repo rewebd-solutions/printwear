@@ -168,6 +168,7 @@
     padding: 0.5rem 0.7rem;
     border-radius: 0.5rem;
     text-decoration: none;
+    cursor: pointer;
   }
 </style>
 <div class="navbar-top">
@@ -255,6 +256,9 @@
   const handleImageFormSubmit = async (e) => {
     e.preventDefault();
     const userImageForm = document.getElementById('user-image-form');
+    let userImageFormPreviousDOM = userImageForm.innerHTML;
+
+    userImageForm.innerHTML = `<span class="loader"></span>`;
     
     const imageUploadData = new FormData();
     let imageToUpload = e.target.files[0];
@@ -268,6 +272,7 @@
       });
       const imageUploadResponse = await imageUploadRequest.json();
       if (imageUploadRequest.ok) {
+        userImageForm.innerHTML = userImageFormPreviousDOM;
         notyf.success("Design Image uploaded successfully!");
         fetchImageAndPopulate();
       }

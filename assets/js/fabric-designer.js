@@ -445,7 +445,7 @@ const downloadDesign = () => {
 
       window.saveAs(
         blob,
-        "userName_" +
+        userName + "_" +
         designName.value +
         "_" +
         new Date().toLocaleTimeString() +

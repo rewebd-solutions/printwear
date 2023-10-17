@@ -380,7 +380,7 @@ i.left {
 }
 
 .user-design-image img {
-   width: 200px;
+   width: 150px;
    object-fit: cover;
 }
 
@@ -388,8 +388,8 @@ i.left {
    white-space: nowrap;
    overflow: hidden;
    text-overflow: ellipsis;
-   font-size: 1rem;
-   width: 200px;
+   font-size: 0.8rem;
+   width: 150px;
 }
 
 .active-selection {

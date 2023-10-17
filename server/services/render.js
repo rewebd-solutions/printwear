@@ -26,7 +26,7 @@ exports.productgallery = (req, res) => {
 }
 
 exports.mockupgenerator = (req, res) => {
-    res.render("mockupgenerator");
+    res.render("mockupgenerator", { userName: req.userName });
 }
 
 exports.placeorder = (req, res) => {
@@ -61,5 +61,5 @@ exports.contact = (req, res) => {
 }
 
 exports.designgenerator = (req, res) => {
-    res.render('designgenerator');
+    res.render('designgenerator', { userName: req.userName });
 }

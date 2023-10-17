@@ -42,83 +42,39 @@
 				<h3>Women's Tee mockup</h3>
 				<p>Testing T-shirt for women's T-Shirt</p>
 			</div>
+			<h2 class="step"><i class="fa fa-circle-1"></i> Choose Color</h2>
 			<div class="color-list">
-				
-				
-				<div class="color-option color-disabled" onclick="addColorToRender(this)" title="Image not available">
-				  <span class="color-circle" style="background: #464646; border: 
-				  2px solid #6a6969;" id="Charcoal Melange-1">
-				  <i class="fa fa-check color-tick"></i>
-				</span>
-				  <p>Charcoal Melange</p>
-				</div>
-				
-				<div class="color-option color-disabled" onclick="addColorToRender(this)" title="Image not available">
-				  <span class="color-circle" style="background: #F5F5DC; border: 
-				  2px solid #6a6969;" id="Ecru Melange-2">
-				  <i class="fa fa-check color-tick"></i>
-				</span>
-				  <p>Ecru Melange</p>
-				</div>
-				
-				<div class="color-option color-disabled" onclick="addColorToRender(this)" title="Image not available">
-				  <span class="color-circle" style="background: #808080; border: 
-				  2px solid #6a6969;" id="Grey Melange-3">
-				  <i class="fa fa-check color-tick"></i>
-				</span>
-				  <p>Grey Melange</p>
-				</div>
-				
-				<div class="color-option" onclick="addColorToRender(this)">
-				  <span class="color-circle" style="background: #FFDB58; border: 
-				  2px solid #6a6969;" id="Mustard Yellow-4">
-				  <i class="fa fa-check color-tick"></i>
-				</span>
-				  <p>Mustard Yellow</p>
-				</div>
-				
-				<div class="color-option" onclick="addColorToRender(this)">
-				  <span class="color-circle" style="background: #000080; border: 
-				  2px solid #6a6969;" id="Navy Blue-5">
-				  <i class="fa fa-check color-tick"></i>
-				</span>
-				  <p>Navy Blue</p>
-				</div>
-				
-				<div class="color-option" onclick="addColorToRender(this)">
-				  <span class="color-circle" style="background: #FF0000; border: 
-				  2px solid #6a6969;" id="Red-6">
-				  <i class="fa fa-check color-tick"></i>
-				</span>
-				  <p>Red</p>
-				</div>
-				
-				<div class="color-option" onclick="addColorToRender(this)">
-				  <span class="color-circle" style="background: #FFFFFF; border: 
-				  2px solid #6a6969;" id="White-7">
-				  <i class="fa fa-check color-tick"></i>
-				</span>
-				  <p>White</p>
-				</div>
-			</div>						
+				<span class="loader"></span>
+			</div>
+			<h2 class="step"><i class="fa fa-circle-2"></i> Choose Design</h2>						
 			<div class="mockup-design">
 				<div class="user-design-images">
 					
 				</div>
 				<div style="display: grid;/* align-items: center; */gap:  1rem;align-items: center;grid-template-columns: 1fr auto 1fr;"><hr style="/* width: 200px; */height: 1px;">OR<hr style="/* width: 200px; */height: 1px;"></div>
 				<div>
-					<label for="design-input" onclick="openDesignUploadModal(event)" class="design-input-label">
+					<label onclick="openDesignUploadModal(event)" class="top-nav-btn">
 						<i class="fa fa-file-upload"></i>
 						Upload Design
 					</label>
 					<!-- <input id="design-input" type="file" multiple="true" accept=".png, .jpg, .jpeg" style="display: none" /> -->
 				</div>
 			</div>
+			<h2 class="step"><i class="fa fa-circle-3"></i> Name your mockups</h2>						
+			<div class="mockup-design">
+				<input type="text" class="design-name-input" placeholder="My custom T-shirt, etc..." required name="mockup-name" id="mockup-name" />
+			</div>
+			<h2 class="step"><i class="fa fa-circle-4"></i> Download Mockups</h2>						
 			<div class="mockup-download">
-				<button onclick="downloadDesign()">Download</button>
+				<button class="top-nav-btn" onclick="downloadDesign()"><i class="fa fa-download"></i> Download</button>
 			</div>
 		</div>
 	</main>
+	<% var userName = userName;  %>
+	<script>
+		var userName = '<%= userName %>'
+	</script>
+	<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
 	<script src="js/mockup-generator.js"></script>
 </body>
 </html>

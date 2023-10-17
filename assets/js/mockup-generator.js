@@ -1,8 +1,10 @@
 var designImg, fabricCanvas;
 var colorsToRender = [];
 colorsToRender['default'] = '#fff';
+var isReadyForRendering = true;
 
 var notyf = new Notyf();
+AOS.init();
 
 var mockupImageContainer = document.querySelector(".mockup-image-container");
 var userDesignsWrapper = document.querySelector(".user-design-images");
@@ -11,13 +13,19 @@ var userDesignsWrapper = document.querySelector(".user-design-images");
 const fetchMockupsData = async () => {
     try {
         const mockupsDataRequest = await fetch("/getmockups");
-        mockupsDataResponse = (await mockupsDataRequest.json())[0];
+        const mockupsDataResponse = await mockupsDataRequest.json();
+        mockupData = mockupsDataResponse[0]; // zero badhila filter only specific mockup from URL param
         console.log(mockupsDataResponse)
         if (!mockupsDataRequest.ok) {
             mockupImageContainer.innerHTML = "Something went wrong! Please refresh page";
             return notyf.error("Something went wrong!");
         }
         renderColors();
+        addFabricCanvasToTemplateDiv();
+        // after calling above function, call another function to set rotation for .upper-canvas and .lower-canvas
+        fixRotationOnCanvas();
+        setMockupSize();
+        // rotateArtboard(25) // roatate entire canvas not working        
     } catch (error) {
         console.log(error)
         mockupImageContainer.innerHTML = "Something went wrong! Please page";
@@ -31,8 +39,8 @@ const addFabricCanvasToTemplateDiv = () => {
     // Create a canvas element
     const canvasElement = document.createElement("canvas");
     // Settingh width and height according to ratio
-    canvasElement.width = 225;
-    canvasElement.height = 230;
+    canvasElement.width = mockupData.canvas.width;
+    canvasElement.height = mockupData.canvas.height;
     canvasElement.style.border = "1px dashed silver";
     // canvasElement.style.transform = "rotate(10deg)";
     // canvasElement.style.top = '20px';
@@ -142,8 +150,8 @@ const fixRotationOnCanvas = () => {
     // const lowerCanvas = document.querySelector(".lower-canvas");
 
     canvasContainer.style.position = 'absolute';
-    canvasContainer.style.top = '170px';
-    canvasContainer.style.left = '210px';
+    canvasContainer.style.top = mockupData.canvas.top + 'px';
+    canvasContainer.style.left = mockupData.canvas.left + 'px';
     // item.style.transform = 'rotate(8deg)'; // implement rotation later
 }
 
@@ -168,11 +176,12 @@ const downloadDesign = () => {
         fabricCanvas.discardActiveObject().renderAll();
     }
 
-    // const designName = document.getElementById("design-name");
-    // let isDesignNameValid = designName.reportValidity();
-    // if (!isDesignNameValid) {
-    //     return notyf.error("Give your design a name");
-    // };
+    const designName = document.getElementById("mockup-name");
+    let isDesignNameValid = designName.reportValidity();
+    if (!isDesignNameValid) {
+        return notyf.error("Enter mockups name!");
+    };
+
     const canvasContainer = document.querySelectorAll(".canvas-container > *");
     canvasContainer.forEach(item => item.style.border = "none");
 
@@ -193,15 +202,15 @@ const downloadDesign = () => {
         domtoimage.toBlob(node, config).then(function (blob) {
             window.saveAs(
                 blob,
-                // "userName_" +
-                // designName.value +
-                // "_" +
+                userName + "_" +
+                designName.value +
+                "_" +
                 new Date().toLocaleTimeString() +
                 // "-" +
                 // designDirection +
                 ".png"
             );
-            canvasContainer.forEach(item => item.style.border = "1px solid silver");
+            canvasContainer.forEach(item => item.style.border = "1px dashed silver");
         });
     }, 100);
 
@@ -218,13 +227,13 @@ const renderColors = () => {
     const colorsList = document.querySelector(".color-list");
     // put this in the actual code,
     // <div ${mockupsDataResponse.product.baseImage.front != ""? `class="color-option" onclick="addColorToRender(this)"`: `class="color-option color-disabled"`}>
-    colorsList.innerHTML = Object.keys(mockupsDataResponse.product.colors).map((color, i) => {
+    colorsList.innerHTML = Object.keys(mockupData.product.colors).map((color, i) => {
         return `
         <div class="color-option" onclick="addColorToRender(this)">
-            <span class="color-circle" style="background: ${mockupsDataResponse.product.colors[color].colorCode}; border: 1px solid silver" data-color="${color}">
+            <span class="color-circle" style="background: ${mockupData.product.colors[color].colorCode}; border: 1px solid silver" data-color="${color}">
                 <i class="fa fa-check color-tick"></i>
             </span>
-            <p style="font-size: 14px">${color}</p>
+            <p style="font-size: 12px">${color}</p>
         </div>       
         `
     }).join("");
@@ -263,23 +272,21 @@ const fetchUserDesigns = async () => {
 const addColorToRender = (el) => {
     let color = el.children[1].innerText;
     let hex = el.children[0].style.background;
+
     if (Object.keys(colorsToRender).find(x => x === color)) {
         delete colorsToRender[color];
+        let newColors = Object.keys(colorsToRender);
         el.querySelector(".color-tick").style.display = "none";
-        mockupImageContainer.style.background = colorsToRender['default'];
-        return el.classList.remove('selected-color');
+        mockupImageContainer.style.background = colorsToRender[newColors[newColors.length - 1]];
+        return el.children[0].classList.remove('selected-color');
     }
+    
     colorsToRender[color] = hex;
     el.querySelector(".color-tick").style.display = "block"
-    el.classList.add('selected-color');
+    el.children[0].classList.add('selected-color');
     mockupImageContainer.style.background = hex;
     console.log(colorsToRender);
 }
 
-addFabricCanvasToTemplateDiv();
-// after calling above function, call another function to set rotation for .upper-canvas and .lower-canvas
-fixRotationOnCanvas();
-setMockupSize();
-// rotateArtboard(25) // roatate entire canvas not working
-fetchMockupsData()
+fetchMockupsData();
 fetchUserDesigns();

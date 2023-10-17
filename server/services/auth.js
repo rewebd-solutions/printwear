@@ -1,8 +1,9 @@
 const jwt = require("jsonwebtoken");
 
-exports.createToken = (userId) => {
+exports.createToken = (userId, userName) => {
     const token = jwt.sign({
         id: userId,
+        name: userName,
     }, "thatsasecret", { expiresIn: "1d"} );
     return token;
 }
@@ -18,6 +19,7 @@ exports.authorizeToken = (req, res, next) => {
       const data = jwt.verify(token, "thatsasecret");
       // console.log(data);
       req.userId = data.id;
+      req.userName = data.name;
       return next();
     } catch {
       res.clearCookie("actk");

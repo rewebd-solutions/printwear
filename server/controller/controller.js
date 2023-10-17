@@ -75,7 +75,7 @@ exports.login = async (req, res) => {
 
   if (check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex")) {
     // console.log("inga vardhu")
-    const cookieToken = authServices.createToken(check._id);
+    const cookieToken = authServices.createToken(check._id, check.name);
     res.cookie("actk", cookieToken, {
       httpOnly: true,
       secure: true
@@ -1658,7 +1658,7 @@ exports.addmockup = async (req, res) => {
 // }
     const { name, description, product, image, canvas } = req.body;
     const mockupsData = await MockupModel.create({
-      name, description, product, image
+      name, description, product, image, canvas
     });
     res.json(mockupsData);
   } catch (error) {
