@@ -188,8 +188,8 @@ const calculateTotalHeight = () => {
 }
 const calculateTotalWidth = () => {
   if (!fabricCanvas) return;
-  const objects = fabricCanvas.getObjects();
-  let totalWidth = Math.max(...objects.map(obj => obj.getScaledWidth() * Product.pixelToInchRatio));
+  const object = fabricCanvas.getObjects()[0];
+  let totalWidth = object.getScaledWidth() * Product.pixelToInchRatio;
   //console.log(totalWidth);
   return totalWidth
 }
@@ -201,33 +201,31 @@ const calculateTotalArea = () => {
 }
 
 // Display design image stats
+const table = document.querySelector("#price-stats");
 const updateStats = () => {
-  const heightElement = document.querySelector(".height-design");
-  const widthElement = document.querySelector(".width-design");
-  const totalPriceElement = document.querySelector(".total-price");
-  if (!designImageHeight && !designImageWidth) {
-    heightElement.innerHTML = "Height: 0 inches";
-    widthElement.innerHTML = "Height: 0 inches";
-    totalPriceElement.innerHTML = "Total: ₹0"
+  const priceTable = table.children[1];
+  table.style.display = "table"
+  
+  if (!designImageHeight || !designImageWidth || !designImg) {
+    priceTable.children[0].children[1].innerHTML = "0 in";
+    priceTable.children[1].children[1].innerHTML = "0 in";
+    priceTable.children[2].children[1].innerHTML = "0 in²";
+    priceTable.children[3].children[1].innerHTML = "₹." + variantPrice;
+    priceTable.children[4].children[1].innerHTML = "₹.0";
+    priceTable.children[5].children[1].innerHTML = "₹." + variantPrice;
     return;
   }
-  calculateTotalArea()
+
   let imageHeightInInches = calculateTotalHeight().toFixed(2);
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
-  let imageAreaInInches = calculateTotalArea();
-  heightElement.innerHTML =
-    "Height: " +
-    imageHeightInInches +
-    " inches";
-  widthElement.innerHTML =
-    "Width: " +
-    imageWidthInInches +
-    " inches";
-  totalPriceElement.innerHTML =
-    "Total Price: <br> Area " + imageAreaInInches.toFixed(2) +
-    " x " + "₹2/in² = ₹" + (imageAreaInInches * 2).toFixed(2) +
-    "<br> Base Price: ₹" + variantPrice + "<br> = ₹" +
-    ((imageAreaInInches * 2) + variantPrice).toFixed(2)
+  let imageAreaInInches = calculateTotalArea().toFixed(2);
+
+  priceTable.children[0].children[1].innerHTML = imageHeightInInches + " in";
+  priceTable.children[1].children[1].innerHTML = imageWidthInInches + " in";
+  priceTable.children[2].children[1].innerHTML = imageAreaInInches + " in²";
+  priceTable.children[3].children[1].innerHTML = "₹." + variantPrice;
+  priceTable.children[4].children[1].innerHTML = "₹." + (imageAreaInInches * 2).toFixed(2);
+  priceTable.children[5].children[1].innerHTML = "₹." + ((imageAreaInInches * 2) + variantPrice).toFixed(2); 
 };
 
 const changeSize = (e, size, id) => {
@@ -412,6 +410,7 @@ const changeSide = (e, side) => {
 // Download Image
 const downloadDesign = () => {
   // Deselecting active object
+  if (!designImg) return notyf.error("No design selected!")
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
@@ -706,9 +705,10 @@ document.addEventListener(
     if (e.keyCode === 46) {
       // 46 is the keyCode for the Delete key
       if (fabricCanvas.getActiveObject()) {
+        designImg = null;
+        updateStats();
         fabricCanvas.remove(fabricCanvas.getActiveObject());
         document.querySelectorAll(".user-design-image").forEach(element => element.classList.remove("active-selection"))
-        updateStats();
       }
     }
   },

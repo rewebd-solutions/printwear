@@ -138,7 +138,7 @@ const addImageToCanvas = async (el, imageURL) => {
         designImageHeight = designImage.getScaledHeight();
         designImageWidth = designImage.getScaledWidth();
         fabricCanvas.add(designImage);
-        updateStats();
+        // updateStats();
         fabricCanvas.setActiveObject(designImage);
       });
     }    
@@ -170,7 +170,7 @@ function rotateArtboard(angle) {
     }
 }
 
-const downloadDesign = () => {
+const downloadDesign = async () => {
     // Deselecting active object
     if (fabricCanvas.getActiveObject()) {
         fabricCanvas.discardActiveObject().renderAll();
@@ -186,6 +186,7 @@ const downloadDesign = () => {
     canvasContainer.forEach(item => item.style.border = "none");
 
     const node = document.querySelector(".mockup-image");
+    const mockupImageContainer = document.querySelector(".mockup-image-container");
 
     const config = {
         width: node.clientWidth * 2,
@@ -197,23 +198,21 @@ const downloadDesign = () => {
     };
 
     // Use a short delay to ensure the browser has updated the DOM with the transform
-    setTimeout(() => {
-        // console.log(fabricCanvas.getObjects());
-        domtoimage.toBlob(node, config).then(function (blob) {
-            window.saveAs(
-                blob,
-                userName + "_" +
-                designName.value +
-                "_" +
-                new Date().toLocaleTimeString() +
-                // "-" +
-                // designDirection +
-                ".png"
-            );
-            canvasContainer.forEach(item => item.style.border = "1px dashed silver");
-        });
-    }, 100);
-
+    for (let colorName in colorsToRender) {
+        mockupImageContainer.style.background = colorsToRender[colorName];
+        let imgBlob = await domtoimage.toBlob(node, config);
+        window.saveAs(
+            imgBlob,
+            userName + "_" +
+            designName.value +
+            "_" + colorName + "_" +
+            new Date().toLocaleTimeString() +
+            // "-" +
+            // designDirection +
+            ".png"
+        );
+    }
+    canvasContainer.forEach(item => item.style.border = "1px dashed silver");
 };
 
 const setMockupSize = () => {
@@ -285,7 +284,7 @@ const addColorToRender = (el) => {
     el.querySelector(".color-tick").style.display = "block"
     el.children[0].classList.add('selected-color');
     mockupImageContainer.style.background = hex;
-    console.log(colorsToRender);
+    // console.log(colorsToRender);
 }
 
 fetchMockupsData();

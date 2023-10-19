@@ -5,29 +5,30 @@ var OrderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    cartId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Cart'
-    },
     items: [
         {
-            cartItemId: String,
-            shippingAddress: {
-                firstName: String,
-                lastName: String,
-                mobile: String,
-                email: String,
-                streetLandmark: String,
-                city: String,
-                pincode: Number,
-                state: String,
-                country: String
+            productId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'zohoProducts'
             },
-            sku: String,
-            SRorderId: String,
+            designId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'newDesign'
+            }
         }
     ],
     billingAddress: {
+        firstName: String,
+        lastName: String,
+        mobile: String,
+        email: String,
+        streetLandmark: String,
+        city: String,
+        pincode: Number,
+        state: String,
+        country: String
+    },
+    shippingAddress: {
         firstName: String,
         lastName: String,
         mobile: String,
@@ -50,12 +51,14 @@ var OrderSchema = new mongoose.Schema({
     },
     deliveryStatus: {
         type: String,
-        default: "placed"
+        default: "placed",
+        enum: ["placed", "dispatched", "delivered"]
     },
     paymentLink: String,
     paymentLinkId: String,
-    CFOrderId: String,
-    myOrderId: String
+    CashfreeOrderId: String,
+    printwearOrderId: String,
+    shipRocketOrderId: String
 });
 
 const orderModel = mongoose.model("Order", OrderSchema);

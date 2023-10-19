@@ -82,6 +82,15 @@
    gap: 0.4rem;
 }
 
+#price-stats {
+   width: 400px;
+   display: none;
+}
+
+#price-stats thead {
+   text-align: left;
+}
+
 .design-input-label {
    display: block;
    width: fit-content;

@@ -163,18 +163,6 @@ td {
     border-bottom: 1px solid silver;
 }
 
-th {
-    background-color: #f2f2f2;
-}
-
-tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-thead th[data-stream]{
-    cursor: pointer;
-}
-
 table a {
     color: rgb(66, 66, 204) !important;
 }
@@ -235,8 +223,12 @@ input[type='search'] {
     width: 170px;
 }
 
-.order-table th {
-    background-color: #f0f0f0;
+.order-table td {
+    background-color: #f2f2f2;
+}
+
+.order-table thead {
+    background-color: #f2f2f2;
 }
 
 .order-qty {
