@@ -14,6 +14,10 @@ var OrderSchema = new mongoose.Schema({
             designId: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'newDesign'
+            },
+            quantity: {
+                type: Number,
+                default: 1
             }
         }
     ],
@@ -51,8 +55,8 @@ var OrderSchema = new mongoose.Schema({
     },
     deliveryStatus: {
         type: String,
-        default: "placed",
-        enum: ["placed", "dispatched", "delivered"]
+        default: "unplaced",
+        enum: ["unplaced", "placed", "dispatched", "delivered"]
     },
     paymentLink: String,
     paymentLinkId: String,

@@ -12,6 +12,8 @@ const crypto = require("crypto")
 const algorithm = "sha256"
 const authServices = require("../services/auth");
 
+const mongoose = require("mongoose");
+
 var ProductModel = require('../model/productModel');
 var StoreModel = require('../model/storeModel');
 var UserModel = require("../model/userModel");
@@ -20,7 +22,6 @@ var ImageModel = require("../model/imageModel")
 var ColorModel = require("../model/colorModel");
 var DesignModel = require("../model/designModel");
 var OrderModel = require("../model/orderModel");
-
 var NewDesignModel = require("../model/newDesignModel");
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
@@ -579,100 +580,100 @@ exports.adddesign = async (req, res) => {
 
 
 // orders ku eldhu
-exports.createorder = async (req, res) => {
-  const orderItem = req.body;
-  // obtain all items array and then add it along with calculated SKU
+// exports.createorder = async (req, res) => {
+//   const orderItem = req.body;
+//   // obtain all items array and then add it along with calculated SKU
 
-  try {
-    const userData = await UserModel.findOne({ _id: req.userId });
+//   try {
+//     const userData = await UserModel.findOne({ _id: req.userId });
 
-    if (!userData) throw new Error("Invalid User");
+//     if (!userData) throw new Error("Invalid User");
 
-    const cartData = await CartModel.findOne({ userId: userData._id });
+//     const cartData = await CartModel.findOne({ userId: userData._id });
 
-    let cartQtyChange = orderItem.items.map(item => {
-      return {
-        quantity: item.quantity,
-        cartItemId: item.cartItemId,
-        price: item.price,
-      }
-    });
+//     let cartQtyChange = orderItem.items.map(item => {
+//       return {
+//         quantity: item.quantity,
+//         cartItemId: item.cartItemId,
+//         price: item.price,
+//       }
+//     });
 
-    let x = cartData.items.map(item => {
-      let thatItem = cartQtyChange.find(cq => cq.cartItemId === item._id + '')
-      return {
-        ...item._doc,
-        quantity: thatItem.quantity,
-        price: thatItem.price
-      }
-    });
+//     let x = cartData.items.map(item => {
+//       let thatItem = cartQtyChange.find(cq => cq.cartItemId === item._id + '')
+//       return {
+//         ...item._doc,
+//         quantity: thatItem.quantity,
+//         price: thatItem.price
+//       }
+//     });
 
-    // console.log(cartQtyChange, x);
+//     // console.log(cartQtyChange, x);
 
-    cartData.items = x;
+//     cartData.items = x;
 
-    cartData.totalAmount = orderItem.totalAmount;
+//     cartData.totalAmount = orderItem.totalAmount;
 
-    await cartData.save();
+//     await cartData.save();
 
-    // console.log(cartData);
+//     // console.log(cartData);
 
-    const orderData = new OrderModel({
-      userId: req.userId,
-      cartId: orderItem.cartId,
-      items: orderItem.items.map(item => {
-        return {
-          cartItemId: item.cartItemId,
-          shippingAddress: item.shippingAddress,
-          sku: item.sku
-        }
-      }),
-      totalAmount: orderItem.totalAmount,
-      billingAddress: orderItem.billingAddress
-    });
+//     const orderData = new OrderModel({
+//       userId: req.userId,
+//       cartId: orderItem.cartId,
+//       items: orderItem.items.map(item => {
+//         return {
+//           cartItemId: item.cartItemId,
+//           shippingAddress: item.shippingAddress,
+//           sku: item.sku
+//         }
+//       }),
+//       totalAmount: orderItem.totalAmount,
+//       billingAddress: orderItem.billingAddress
+//     });
 
-    let expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 2);
-    expiryDate = expiryDate.toISOString();
+//     let expiryDate = new Date();
+//     expiryDate.setDate(expiryDate.getDate() + 2);
+//     expiryDate = expiryDate.toISOString();
 
-    const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-client-id": cashfreeAppID,
-        "x-client-secret": cashfreeSecretKey,
-        "x-api-version": "2022-09-01"
-      },
-      body: JSON.stringify({
-        order_id: `${orderItem.billingAddress.firstName.split(" ").join("_")}_${orderItem.billingAddress.lastName.split(" ").join("_")}_${orderData._id}_${otpGen.generate(6, { specialChars: false })}`,
-        order_amount: orderData.totalAmount,
-        order_currency: "INR",
-        order_note: `Payment for Order: ${orderData._id}`,
-        customer_details: {
-          customer_id: req.userId,
-          customer_name: userData.name,
-          customer_phone: userData.phone,
-          customer_email: userData.email
-        },
-        order_expiry_time: expiryDate
-        // link_meta: {
-        //   notify_url: WEBHOOK_URL + "createshiporder"
-        // }
-      })
-    });
-    const paymentLinkResponse = await paymentLinkRequest.json();
-    console.log(paymentLinkResponse)
-    orderData.CFOrderId = paymentLinkResponse.cf_order_id;
-    orderData.myOrderId = paymentLinkResponse.order_id;
-    // // orderData.paymentLinkId = paymentLinkResponse.link_id;
+//     const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/orders", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "x-client-id": cashfreeAppID,
+//         "x-client-secret": cashfreeSecretKey,
+//         "x-api-version": "2022-09-01"
+//       },
+//       body: JSON.stringify({
+//         order_id: `${orderItem.billingAddress.firstName.split(" ").join("_")}_${orderItem.billingAddress.lastName.split(" ").join("_")}_${orderData._id}_${otpGen.generate(6, { specialChars: false })}`,
+//         order_amount: orderData.totalAmount,
+//         order_currency: "INR",
+//         order_note: `Payment for Order: ${orderData._id}`,
+//         customer_details: {
+//           customer_id: req.userId,
+//           customer_name: userData.name,
+//           customer_phone: userData.phone,
+//           customer_email: userData.email
+//         },
+//         order_expiry_time: expiryDate
+//         // link_meta: {
+//         //   notify_url: WEBHOOK_URL + "createshiporder"
+//         // }
+//       })
+//     });
+//     const paymentLinkResponse = await paymentLinkRequest.json();
+//     console.log(paymentLinkResponse)
+//     orderData.CFOrderId = paymentLinkResponse.cf_order_id;
+//     orderData.myOrderId = paymentLinkResponse.order_id;
+//     // // orderData.paymentLinkId = paymentLinkResponse.link_id;
 
-    await orderData.save();
-    res.status(200).json(paymentLinkResponse);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error });
-  }
-}
+//     await orderData.save();
+//     res.status(200).json(paymentLinkResponse);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error });
+//   }
+// }
 
 
 // create payment link
@@ -1417,6 +1418,7 @@ exports.createdesign = async (req, res) => {
       { userId: req.userId },
       {
         $push: { designs: {
+            productId: req.body.productData.productId,
             product: {...req.body.productData.product},
             designSKU: uniqueSKU,
             designName: req.body.productData.designName,
@@ -1435,8 +1437,8 @@ exports.createdesign = async (req, res) => {
       { upsert: true, new: true }
     )
 
-    // console.log(designSave);
-    res.status(200).json({message: "Design successfull"});
+    console.log(req.userName + " saved design");
+    res.status(200).json({message: "Design successful!"});
   } catch (error) {
     console.log(error);
     res.status(500);
@@ -1676,6 +1678,82 @@ exports.getmockups = async (req, res) => {
       mockup.product = productData.find(product => product._id + "" === mockup.product + "")
     })
     res.status(200).json(mockupsData);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+}
+
+
+// endpoints for creating order
+exports.createorder = async (req, res) => {
+  try {
+    const orderExists = await OrderModel.findOne({ userId: req.userId, 'items.designId': req.body.designId });
+    if (orderExists) return res.status(400).json({ message: 'Item already in cart' })
+    const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, 
+    {
+      $push: {
+        items: {
+          designId: req.body.designId,
+          productId: req.body.productId
+        }
+      } 
+    }, { upsert: true, new: true });
+    // console.log(orderData);
+    res.json(orderData)
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+}
+
+exports.getorders = async (req, res) => {
+  try {
+    const orderData = await OrderModel.findOne({ userId: req.userId });
+    const designsFromOrders = orderData.items.map(item => item.designId );
+    // console.log(designsFromOrders);
+    const designsData = await NewDesignModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.userId), // Match the specific document by userId
+        },
+      },
+      {
+        $project: {
+          designs: {
+            $filter: {
+              input: '$designs',
+              as: 'design',
+              cond: {
+                $in: ['$$design._id', designsFromOrders.map(id => new mongoose.Types.ObjectId(id))],
+              },
+            },
+          },
+        },
+      },
+    ]);
+    // console.log(designsData)
+    res.json({ orderData, designsData });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Error fetching order data' });
+  }
+}
+
+exports.deleteorderitem = async (req, res) => {
+  try {
+    // console.log(req.body.designId)
+    const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId },
+      { 
+        $pull: {
+          items: {
+            designId: req.body.designId,
+          }
+        }
+      }, { new: true }
+    )
+    // console.log(orderData);
+    res.json({ message: 'Deleted from order!' });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });

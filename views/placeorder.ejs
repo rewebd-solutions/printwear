@@ -44,11 +44,10 @@
             </div>
         </div>
         <div class="create-order-container" data-aos="fade-up">
-            <p>Add a product to start creating your order</p>
-            <!-- Button trigger modal -->
-            <button type="button" onclick="openModal()" id="toggle-modal">
+            <span class="loader"></span>
+            <!-- <button type="button" onclick="openModal()" id="toggle-modal">
                 Choose design
-            </button>
+            </button> -->
         </div>
         <!-- put anythign here, but not after backdrop-->
     </div>
@@ -100,7 +99,12 @@
         }
 
         const populateOrderTable = (data = orderData) => {
-            if (data.length < 1) return;
+            console.log(data)
+            if (data.length < 1) return createOrderContainer.innerHTML = `
+            <p>Add a product to start creating your order</p>
+            <button type="button" onclick="openModal()" id="toggle-modal">
+                Choose design
+            </button>`;
             createOrderContainer.innerHTML = `
             <button type="button" onclick="openModal()" id="toggle-modal">
                 Choose design
@@ -117,7 +121,7 @@
                     </tr>
                 </thead>
                 <tbody id="order-data">
-            `;
+                    `;
             document.querySelector("#order-data").innerHTML += data.map((order, i) => `
                     <tr>
                         <th>${i+1}</th>
@@ -152,7 +156,10 @@
                             ₹.${order.price} <i class="fa fa-info-circle" onmouseover="console.log(event.target.className)" onmouseout="console.log('gone')"></i>
                         </th>
                         <th>
-                            <input type="number" value="1" min="1" max="5" onchange="updateQuantity(event, ${i}, ${order.price})" name="quantity" class="order-qty" />
+                            <div class="delete-container">
+                                <input type="number" value="1" min="1" max="5" onchange="updateQuantity(event, ${i}, ${order.price})" name="quantity" class="order-qty" />
+                                <button class="delete-order" onclick="deleteOrder(this, '${order._id}')"><i class="fa fa-trash"></i></button>
+                            </div>
                         </th>
                         <th>
                             ₹.${order.price}
@@ -180,9 +187,47 @@
             }
         }
 
+        const deleteOrder = async (el, designId) => {
+            console.log(designId)
+            let delButtonContent = el.innerHTML;
+            try {
+                el.innerHTML = `<span class="loader"></span>`;
+                const deleteOrderRequest = await fetch("/deleteorderitem", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        designId: designId
+                    })
+                });
+                const deleteOrderResponse = await deleteOrderRequest.json();
+                console.log(deleteOrderResponse);
+                if (!deleteOrderRequest.ok) return notyf.error("Couldn't delete item!");
+                orderData = orderData.filter(order => order._id !== designId);
+                console.log(orderData);
+                populateOrderTable();
+                notyf.success("Deleted item successfully!");
+            } catch (error) {
+                console.log(error);
+                el.innerHTML = delButtonContent;
+                return notyf.error("Something went wrong!");
+            }
+        }
+
         const fetchOrderData = async () => {
-            // write function to fetch orders and save to orderData
-            // call populateOrderTable()
+            // write function to fetch orders and save to orderData // best EXAMPLE OF FETCHING
+            try{
+                const orderDataRequest = await fetch("/getorders");
+                orderDataResponse = await orderDataRequest.json();
+                console.log(orderDataResponse);
+                orderData = orderDataResponse.designsData[0].designs;
+                if (!orderDataRequest.ok) return notyf.error(orderDataResponse.message || "Something went wrong!");
+                populateOrderTable()
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Something went wrong!");
+            }
         }
         
         const openModal = () => {
@@ -257,15 +302,36 @@
             widgetElements.forEach(widgetElem => widgetElem.dataset.widgetno != widgetNo ? widgetElem.style.display = "none": widgetElem.style.display = "flex");
         }
 
-        const addToOrder = (searchSKU) => {
+        const addToOrder = async (searchSKU) => {
             // check if already that design exists, if not, add.. disable button in fetchOrderData() after fetchDesignData() and add new key
             if (orderData.find(order => order.designSKU == searchSKU)) return notyf.error("Design already added to order");
             const designData = designDataResponse.designs.find(design => design.designSKU == searchSKU);
             orderData.push(designData);
-            // probably a call to backend to store order data
-            populateOrderTable();
-            notyf.success("Design added to orders");
             console.log(designData, orderData);
+            // probably a call to backend to store order data
+            try {
+                const addOrderRequest = await fetch("/createorder", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        designId: designData._id,
+                        productId: designData.productId,
+                    })
+                });
+                const addOrderResponse = await addOrderRequest.json();
+                if (!addOrderRequest.ok) {
+                    console.log(addOrderResponse);
+                    return notyf.error("Couldn't add to cart!");
+                }
+                populateOrderTable();
+                notyf.success("Design added to orders");
+                console.log(addOrderResponse);
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Something went wrong!");
+            }
         }
 
         const searchDesigns = (dataKey, searchKey) => {
@@ -277,7 +343,7 @@
 
         const searchSKU = (searchSKU) => {
             if (searchSKU === '') return quickAddData.innerHTML = '';
-            const designItem = designDataResponse.designs.find(design => design.designSKU == searchSKU || design.designSKU.split("-")[2] === searchSKU);
+            const designItem = designDataResponse.designs.find(design => design.designSKU.trim() == searchSKU.trim() || design.designSKU.split("-")[2].trim() === searchSKU.trim());
             console.log(searchSKU, designItem)
             if (!designItem) return quickAddData.innerHTML = 'Invalid SKU';
             quickAddData.innerHTML = `
@@ -290,6 +356,7 @@
             `;
         }
 
+        fetchOrderData();
         fetchDesigndata();
     </script>
 </body>

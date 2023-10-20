@@ -505,6 +505,7 @@ const saveDesign = async () => {
     let submitProduct = Product.colors.find(x => x._id === currentColor).sizes.find(size => size.id === globalProductID)
 
     let designModelObject = {
+      productId: Product._id,
       product: {
         id: submitProduct.id,
         name: submitProduct.name,

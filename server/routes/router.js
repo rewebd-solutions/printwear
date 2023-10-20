@@ -51,6 +51,8 @@ route.get("/mockupgenerator", authServices.authorizeToken, services.mockupgenera
 // route.post("/deletecartitem", authServices.authorizeToken, controller.deletecartitem);
 
 route.post("/createorder", authServices.authorizeToken, controller.createorder);
+route.post("/deleteorderitem", authServices.authorizeToken, controller.deleteorderitem);
+route.get("/getorders", authServices.authorizeToken, controller.getorders);
 
 route.post("/createshiporder", controller.createshiporder);
 

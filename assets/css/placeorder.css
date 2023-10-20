@@ -253,3 +253,21 @@ input[type='search'] {
 #order-data tr {
     background-color: #f7f7f7;
 }
+
+.delete-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.delete-order {
+    width: 2rem;
+    padding: 0.2 0.3rem;
+    background-color: red;
+    color: white;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    aspect-ratio: 1/1;
+}

@@ -7,6 +7,10 @@ var NewDesignSchema = new mongoose.Schema({
     },
     designs: [
         {
+            productId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'zohoProducts'
+            },
             product: {
                 id: String,
                 name: String,
