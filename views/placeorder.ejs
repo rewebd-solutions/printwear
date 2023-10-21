@@ -29,13 +29,13 @@
         </div>
         <div class="steps" data-aos="fade-up">
             <div class="stp">
-                <i class="fa-solid fa-briefcase"></i>
-                <p>Order</p>
+                <i class="fa-solid fa-briefcase active-step"></i>
+                <p class="active-step">Order</p>
                 <i class="fa-solid fa-arrow-right"></i>
             </div>
             <div class="stp">
                 <i class="fa-solid fa-truck"></i>
-                <p>Shipping</p>
+                <p>Billing</p>
                 <i class="fa-solid fa-arrow-right"></i>
             </div>
             <div class="stp">
@@ -99,12 +99,11 @@
             designLibraryData.appendChild(row);
         }
         
-        const debounceUpdateQuantity = (e, i, price) => {
+        const debounceUpdateQuantity = (e, i, designId, price) => {
             if (!throttleTimer) {
                 throttleTimer = setTimeout(async () => {
                     try {
-                        // console.log(e, i, price);
-                        console.log('varudhaa');
+                        updateQuantity(e, i, designId, price);
                     } catch (error) {
                         console.log(error + " from debounce");
                     } finally {
@@ -121,7 +120,7 @@
         }
 
         const populateOrderTable = (data = orderData) => {
-            console.log(data)
+            //console.log(data)
             if (data.length < 1) return createOrderContainer.innerHTML = `
             <p>Add a product to start creating your order</p>
             <button type="button" onclick="openModal()" id="toggle-modal" class="option-button">
@@ -181,7 +180,7 @@
                         </th>
                         <th>
                             <div class="delete-container">
-                                <input type="number" value="${order.quantity || 1}" min="1" onchange="updateQuantity(event, ${i}, '${order._id}', ${order.price})" name="quantity" class="order-qty" />
+                                <input type="number" value="${order.quantity || 1}" min="1" onchange="debounceUpdateQuantity(event, ${i}, '${order._id}', ${order.price})" name="quantity" class="order-qty" />
                                 <button class="delete-order" onclick="deleteOrder(this, '${order._id}')"><i class="fa fa-trash"></i></button>
                             </div>
                         </th>
@@ -192,6 +191,7 @@
             `).join('');
             createOrderContainer.innerHTML += `
             </tbody></table>
+            <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹. ${orderDataResponse.orderData.totalAmount}</h4> </div>
             <a href="/placeorder/billing"><button type="button" class="option-button">Proceed to Shipping</button></a>
             `
         }
@@ -213,6 +213,8 @@
                 const updateQuantityResponse = await updateQuantityRequest.json();
                 if (updateQuantityRequest.ok) {
                     document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹.' + (price*quantityToSet).toFixed(2);
+                    orderData.find(order => order._id == designId).quantity = quantityToSet;
+                    document.querySelector("#total-price h4").innerHTML = "Total Price: ₹. " + orderData.reduce((total, order) => (total + (order.price * order.quantity)), 0).toFixed(2);
                     return notyf.success("Updated quantity!");
                 } else {
                     return notyf.error("Couldn't increment quantity");

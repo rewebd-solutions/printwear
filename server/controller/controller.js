@@ -1,5 +1,3 @@
-// const accountSid = process.env.TWILIO_ACCOUNT_SID;
-// const authToken = process.env.TWILIO_AUTH_TOKEN;
 const cashfreeAppID = process.env.CASH_APP_ID;
 const cashfreeSecretKey = process.env.CASH_SECRET_KEY;
 const zohoRefreshToken = process.env.ZOHO_REFRESH_TOKEN;
@@ -430,44 +428,7 @@ exports.adddesign = async (req, res) => {
   }
 }
 
-// exports.getdesigns = async (req, res) => {
-//   try {
-//     const designsData = await DesignModel.find({ createdBy: req.userId });
-//     const productDataIDs = new Set(designsData.map(designData => designData.baseProductId + ''));
-//     const productData = await ProductModel.find({ _id: { $in: [...productDataIDs] } });
-//     const colorIDs = new Set(designsData.map(designData => designData.color));
-//     const colorsData = await ColorModel.find({ _id: { $in: [...colorIDs] } });
-//     const cartData = await CartModel.findOne({ userId: req.userId });
-//     // console.log(colorsData);
-//     const newDesignsData = designsData.map(design => {
-//       // console.log(cartData.items.find(cartItem => cartItem.design+'' === design._id+''))
-//       return {
-//         design: design,
-//         product: productData.find(product => product._id + '' === design.baseProductId + ''),
-//         color: colorsData.find(color => color._id + '' === design.color + ''),
-//         availableInCart: cartData?.items.find(cartItem => cartItem.design + '' === design._id + '') ? true : false
-//       }
-//     })
-//     // console.log(newDesignsData);
-//     res.json(newDesignsData);
-//   } catch (error) {
-//     console.log(error);
-//     res.json({ error });
-//   }
-// }
-
-// exports.deletedesign = async (req, res) => {
-//   try {
-//     console.log(req.userId, req.body.designId)
-//     await CartModel.findOneAndUpdate({ userId: req.userId }, { $pull: { items: { design: req.body.designId } } });
-//     await DesignModel.findOneAndDelete({ _id: req.body.designId });
-//     // console.log("done")
-//     res.status(200).json({ message: "Deleted" });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({ error: err });
-//   }
-// }
+// deleted endpoints for old designs
 
 
 // cart endpoints
@@ -1802,5 +1763,40 @@ exports.updateorder = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: '500 Internal Server Error' });
+  }
+}
+
+
+
+exports.billing = async (req, res) => {
+  try {
+    const orderData = await OrderModel.findOne({ userId: req.userId });
+    if (!orderData) return res.render("billing", { orderData: {items: []} });
+    const designsFromOrders = orderData.items.map(item => item.designId );
+    // console.log(designsFromOrders);
+    const designsData = await NewDesignModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.userId), // Match the specific document by userId
+        },
+      },
+      {
+        $project: {
+          designs: {
+            $filter: {
+              input: '$designs',
+              as: 'design',
+              cond: {
+                $in: ['$$design._id', designsFromOrders.map(id => new mongoose.Types.ObjectId(id))],
+              },
+            },
+          },
+        },
+      },
+    ]);
+    res.render("billing", { orderData, designsData: designsData[0].designs });
+  } catch (error) {
+    console.log(error);
+    res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
   }
 }

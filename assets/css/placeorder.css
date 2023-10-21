@@ -77,6 +77,10 @@
     cursor: pointer;
 }
 
+.active-step {
+    color: #F05A30
+}
+
 .create-order-modal-backdrop {
     position: fixed;
     top: 0;

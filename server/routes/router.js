@@ -37,7 +37,7 @@ route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
 route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
 route.get("/manageorder", authServices.authorizeToken, services.manageorder); 
 route.get("/placeorder", authServices.authorizeToken, services.placeorder);
-route.get("/placeorder/billing", authServices.authorizeToken, services.billing);
+route.get("/placeorder/billing", authServices.authorizeToken, controller.billing);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
 route.get("/contact", authServices.authorizeToken, services.contact);
