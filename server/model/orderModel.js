@@ -18,6 +18,10 @@ var OrderSchema = new mongoose.Schema({
             quantity: {
                 type: Number,
                 default: 1
+            },
+            price: {
+                type: Number,
+                default: 0
             }
         }
     ],
@@ -43,7 +47,10 @@ var OrderSchema = new mongoose.Schema({
         state: String,
         country: String
     },
-    totalAmount: Number,
+    totalAmount: {
+        default: 0,
+        type: Number
+    },
     amountPaid: {
         default: 0,
         type: Number

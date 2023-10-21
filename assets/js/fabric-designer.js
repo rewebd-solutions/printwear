@@ -384,6 +384,14 @@ const addImageToCanvas = async (el, imageURL) => {
       fabricCanvas.add(designImage);
       updateStats();
       fabricCanvas.setActiveObject(designImage);
+      
+      const canvasWidth = fabricCanvas.width;
+      const canvasHeight = fabricCanvas.height;
+
+      fabricCanvas.getActiveObject().set({
+        left: (canvasWidth - designImage.getScaledWidth()) / 2,
+        top: (canvasHeight - designImage.getScaledHeight()) / 2,
+      });      
     });
   }
 };

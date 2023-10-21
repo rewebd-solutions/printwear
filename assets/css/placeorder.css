@@ -68,7 +68,7 @@
     min-height: 200px;
 }
 
-#toggle-modal {
+.option-button {
     padding: 0.3rem 0.6rem;
     border-radius: 5px;
     color: white;

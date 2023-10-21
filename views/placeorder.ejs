@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-    <title>Stock Inventory</title>
+    <title>Place Order</title>
 </head>
 
 <body>
@@ -30,7 +30,7 @@
         <div class="steps" data-aos="fade-up">
             <div class="stp">
                 <i class="fa-solid fa-briefcase"></i>
-                <p>Products</p>
+                <p>Order</p>
                 <i class="fa-solid fa-arrow-right"></i>
             </div>
             <div class="stp">
@@ -65,6 +65,9 @@
 
         var orderData = [];
 
+        var throttleTimer;
+        var throttlDelay = 1000;
+
         const createTableRow = (designObject, sno) => {
             const row = document.createElement("tr");
 
@@ -77,6 +80,9 @@
             const skuCell = document.createElement("td");
             skuCell.textContent = designObject.designSKU
             
+            const priceCell = document.createElement("td");
+            priceCell.textContent = designObject.price
+            
             const previewCell = document.createElement("td");
             previewCell.innerHTML = `<img class="design-preview-image" src='${designObject.designImage.front?? designObject.designImage.back}' />`
             
@@ -86,10 +92,26 @@
             row.appendChild(SNoCell);
             row.appendChild(nameCell);
             row.appendChild(skuCell);
+            row.appendChild(priceCell);
             row.appendChild(previewCell);
             row.appendChild(actionCell);
 
             designLibraryData.appendChild(row);
+        }
+        
+        const debounceUpdateQuantity = (e, i, price) => {
+            if (!throttleTimer) {
+                throttleTimer = setTimeout(async () => {
+                    try {
+                        // console.log(e, i, price);
+                        console.log('varudhaa');
+                    } catch (error) {
+                        console.log(error + " from debounce");
+                    } finally {
+                        throttleTimer = null;
+                    }
+                }, throttlDelay);
+            }
         }
 
         const populateDesignWidget = (data = designDataResponse) => {
@@ -102,11 +124,13 @@
             console.log(data)
             if (data.length < 1) return createOrderContainer.innerHTML = `
             <p>Add a product to start creating your order</p>
-            <button type="button" onclick="openModal()" id="toggle-modal">
+            <button type="button" onclick="openModal()" id="toggle-modal" class="option-button">
+                <i class="fa fa-circle-plus"></i>
                 Choose design
             </button>`;
             createOrderContainer.innerHTML = `
-            <button type="button" onclick="openModal()" id="toggle-modal">
+            <button type="button" onclick="openModal()" id="toggle-modal" class="option-button">
+                <i class="fa fa-circle-plus"></i>
                 Choose design
             </button>
             <table class="order-table">
@@ -157,20 +181,47 @@
                         </th>
                         <th>
                             <div class="delete-container">
-                                <input type="number" value="1" min="1" max="5" onchange="updateQuantity(event, ${i}, ${order.price})" name="quantity" class="order-qty" />
+                                <input type="number" value="${order.quantity || 1}" min="1" onchange="updateQuantity(event, ${i}, '${order._id}', ${order.price})" name="quantity" class="order-qty" />
                                 <button class="delete-order" onclick="deleteOrder(this, '${order._id}')"><i class="fa fa-trash"></i></button>
                             </div>
                         </th>
                         <th>
-                            ₹.${order.price}
+                            ₹.${order.totalPrice || order.price}
                         </th>
                     </tr>
             `).join('');
-            createOrderContainer.innerHTML += `</tbody></table>`
+            createOrderContainer.innerHTML += `
+            </tbody></table>
+            <a href="/placeorder/billing"><button type="button" class="option-button">Proceed to Shipping</button></a>
+            `
         }
 
-        const updateQuantity = (e, i, price) => {
-            document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹.' + price*e.target.value
+        const updateQuantity = async (e, i, designId, price) => {
+            let quantityToSet = e.target.value;
+            try {
+                const updateQuantityRequest = await fetch("/updateorder", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        designId,
+                        quantity: quantityToSet,
+                        price
+                    })
+                });
+                const updateQuantityResponse = await updateQuantityRequest.json();
+                if (updateQuantityRequest.ok) {
+                    document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹.' + (price*quantityToSet).toFixed(2);
+                    return notyf.success("Updated quantity!");
+                } else {
+                    return notyf.error("Couldn't increment quantity");
+                }
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Something went wrong!");
+            }
+
         }
 
         const fetchDesigndata = async () => {
@@ -221,8 +272,20 @@
                 const orderDataRequest = await fetch("/getorders");
                 orderDataResponse = await orderDataRequest.json();
                 console.log(orderDataResponse);
-                orderData = orderDataResponse.designsData[0].designs;
-                if (!orderDataRequest.ok) return notyf.error(orderDataResponse.message || "Something went wrong!");
+
+                if (!orderDataRequest.ok) {
+                    populateOrderTable()
+                    return notyf.error(orderDataResponse.message || "Something went wrong!");
+                }
+                
+                orderData = orderDataResponse.designsData[0].designs.map(design => {
+                    let designFromOrder = orderDataResponse.orderData.items.find(item => item.designId == design._id);
+                    return {
+                        ...design,
+                        totalPrice: designFromOrder.price,
+                        quantity: designFromOrder.quantity
+                    }
+                });
                 populateOrderTable()
             } catch (error) {
                 console.log(error);
@@ -255,6 +318,7 @@
                                         <th>S.No.</th>
                                         <th>Name</th>
                                         <th>SKU</th>
+                                        <th>Price</th>
                                         <th>Preview</th>
                                         <th>Action</th>
                                     </tr>
@@ -271,6 +335,7 @@
                                     <tr>
                                         <th>Name</th>
                                         <th>SKU</th>
+                                        <th>Price</th>
                                         <th>Preview</th>
                                         <th>Action</th>
                                     </tr>
@@ -318,6 +383,7 @@
                     body: JSON.stringify({
                         designId: designData._id,
                         productId: designData.productId,
+                        price: designData.price
                     })
                 });
                 const addOrderResponse = await addOrderRequest.json();

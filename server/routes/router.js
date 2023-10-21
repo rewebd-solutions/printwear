@@ -37,6 +37,7 @@ route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
 route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
 route.get("/manageorder", authServices.authorizeToken, services.manageorder); 
 route.get("/placeorder", authServices.authorizeToken, services.placeorder);
+route.get("/placeorder/billing", authServices.authorizeToken, services.billing);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
 route.get("/contact", authServices.authorizeToken, services.contact);
@@ -53,6 +54,7 @@ route.get("/mockupgenerator", authServices.authorizeToken, services.mockupgenera
 route.post("/createorder", authServices.authorizeToken, controller.createorder);
 route.post("/deleteorderitem", authServices.authorizeToken, controller.deleteorderitem);
 route.get("/getorders", authServices.authorizeToken, controller.getorders);
+route.post("/updateorder", authServices.authorizeToken, controller.updateorder);
 
 route.post("/createshiporder", controller.createshiporder);
 
@@ -71,7 +73,6 @@ route.post("/createwoocommerceorder", authServices.authorizeToken, controller.cr
 // route.get("/createzohoproducts", controller.createZohoProducts);
 
 route.post("/addmockup", controller.addmockup);
-
 route.get("/getmockups", controller.getmockups);
 
 module.exports = route

@@ -63,3 +63,7 @@ exports.contact = (req, res) => {
 exports.designgenerator = (req, res) => {
     res.render('designgenerator', { userName: req.userName });
 }
+
+exports.billing = (req, res) => {
+    res.render("billing");
+}

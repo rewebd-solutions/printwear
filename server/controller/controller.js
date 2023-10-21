@@ -1690,15 +1690,29 @@ exports.createorder = async (req, res) => {
   try {
     const orderExists = await OrderModel.findOne({ userId: req.userId, 'items.designId': req.body.designId });
     if (orderExists) return res.status(400).json({ message: 'Item already in cart' })
-    const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, 
-    {
-      $push: {
-        items: {
+    const orderData = await OrderModel.findOne({ userId: req.userId }); 
+
+    if (orderData) {
+      orderData.items.push( 
+      {
+        designId: req.body.designId,
+        productId: req.body.productId,
+        price: req.body.price
+      });
+      orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0);
+      await orderData.save();
+    } else {
+      const newOrder = new OrderModel({
+        userId: req.userId,
+        items: [ {
           designId: req.body.designId,
-          productId: req.body.productId
-        }
-      } 
-    }, { upsert: true, new: true });
+          productId: req.body.productId,
+          price: req.body.price
+        }],
+        totalAmount: req.body.price
+      })
+      await newOrder.save();
+    }
     // console.log(orderData);
     res.json(orderData)
   } catch (error) {
@@ -1710,6 +1724,7 @@ exports.createorder = async (req, res) => {
 exports.getorders = async (req, res) => {
   try {
     const orderData = await OrderModel.findOne({ userId: req.userId });
+    if (!orderData) return res.status(404).json({ message: 'No orders yet!' });
     const designsFromOrders = orderData.items.map(item => item.designId );
     // console.log(designsFromOrders);
     const designsData = await NewDesignModel.aggregate([
@@ -1743,19 +1758,49 @@ exports.getorders = async (req, res) => {
 exports.deleteorderitem = async (req, res) => {
   try {
     // console.log(req.body.designId)
-    const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId },
-      { 
-        $pull: {
-          items: {
-            designId: req.body.designId,
-          }
-        }
-      }, { new: true }
-    )
-    // console.log(orderData);
+    const orderData = await OrderModel.findOne({ userId: req.userId });
+    if (!orderData) return res.status(400).json({ message: "Couldn't find item" });
+    
+    orderData.items = orderData.items.filter(item => item.designId + "" != req.body.designId);
+    orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0);
+    await orderData.save();
+
     res.json({ message: 'Deleted from order!' });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  }
+}
+
+exports.updateorder = async (req, res) => {
+  try {
+    // const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId, 'items.designId': req.body.designId }, {
+    //   $set: {
+    //     'items.$.quantity': req.body.quantity,
+    //     'items.$.price': req.body.price,
+    //     totalAmount: {
+    //       $sum: '$items.price'
+    //     }
+    //   }
+    // }, { new: true });
+    // console.log(req.body)
+    const orderData = await OrderModel.findOne({ userId: req.userId, 'items.designId': req.body.designId });
+    if (!orderData) return res.status(400).json({ message: "Coulnd't find order" });
+    
+    const currentItem = orderData.items.findIndex(item => item.designId + "" == req.body.designId);
+    
+    if (!orderData) return res.status(400).json({ message: "Coulnd't find item" });
+
+    orderData.items[currentItem].quantity = req.body.quantity;
+    orderData.items[currentItem].price = req.body.price * req.body.quantity;
+
+    orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
+    
+    await orderData.save();
+
+    res.json({ message: 'Quantity updated!' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: '500 Internal Server Error' });
   }
 }
