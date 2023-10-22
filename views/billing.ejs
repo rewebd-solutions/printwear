@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <title>Shipping</title>
 </head>
 
@@ -46,16 +47,18 @@
         <% if (orderData.items.length > 0) { %>
             <div class="create-order-container" data-aos="fade-up">
                 <div class="order-details">
+                    <h3>Order Summary:</h3>
                     <ul class="orders-list">
-                        <% designsData.forEach(element => { %>
-                            <p> <%- element.designName %> </p>
-                        <% }) %>
-                        <% orderData.items.forEach(item => { %>
-                            <li> 
-                                <%- item._id %>
-                                <%- item.quantity %>
-                                <%- item.price %>
-                            </li>
+                        <% designsData.forEach(design => { %>
+                            <% const data = orderData.items.find(order => order.designId + "" == design._id + "") %>
+                            <% if (data) { %>
+                                <li>
+                                    <img width="100" height="100" src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
+                                    <h4><%= design.designName %> • <%= design.product.name %> </h4>
+                                    <h4><%= data.quantity %> pcs </h4>
+                                    <h4>₹.<%= data.price %> </h4>
+                                </li>
+                            <% } %>
                         <% }) %>
                     </ul>
                 </div>
@@ -75,12 +78,12 @@
                     <div class="form-group">
                         <div>
                             <label for="mobile">Mobile:</label>
-                            <input type="text" id="mobile" name="mobile" required>
+                            <input type="text" pattern="^[789]\d{9}$" id="mobile" name="mobile" required>
                         </div>
     
                         <div>
                             <label for="email">Email:</label>
-                            <input type="text" id="email" name="email" required>
+                            <input type="email" id="email" part="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" name="email" required>
                         </div>
                     </div>
                     <div class="form-group full-width">
@@ -95,7 +98,7 @@
     
                         <div>
                             <label for="pincode">Pincode:</label>
-                            <input type="text" id="pincode" name="pincode" required>
+                            <input type="text" id="pincode" pattern="[1-9][0-9]{5}" name="pincode" required>
                         </div>
                     </div>
     
@@ -146,7 +149,18 @@
                         <input type="text" id="country" name="country" value="India" disabled>
                     </div>
                 </div>
-                <button type="button" id="btn-chkout">
+                <div class="bill-summary">
+                    <div class="left-bill">
+                        <h3>Bill total: </h3>
+                    </div>
+                    <div class="right-bill">
+                        <h4>₹.<%= orderData.totalAmount %> </h4>
+                        <h4>₹.0.00 (Tax)</h4>
+                        <hr />
+                        <h4>₹.<%= orderData.totalAmount %></h4>
+                    </div>
+                </div>
+                <button type="button" id="btn-checkout">
                     Proceed to checkout
                 </button>
             </div>
@@ -157,7 +171,74 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
-        console.log("hello")
+       var notyf = new Notyf();
+
+        const cashfree = Cashfree({
+            mode: "sandbox" //or production
+        });
+
+        const checkPincode = async (pincode) => {
+            try {
+                const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
+                const pincodeResponse = await pincodeRequest.json();
+                console.log(pincodeResponse);
+                if (pincodeResponse[0].Status == "Success") return true;
+                return false;
+            } catch (error) {
+                console.log(error);
+                notyf.error("Something went wrong in verifying PINCODE");
+                return false;
+            }
+        }
+        
+        const checkoutBtn = document.querySelector("#btn-checkout");
+        checkoutBtn.addEventListener("click", async (e) => {
+            e.target.classList.add("disabled");
+
+            const formsData = document.querySelectorAll(".billing-address-form input");
+            for(const inputItem of formsData){
+                inputItem.style.outline = "none";
+                if (!inputItem.reportValidity()) {
+                    e.target.classList.remove("disabled");
+                    return notyf.error("Check " + inputItem.id);
+                }             
+            }
+
+            const pincode = document.querySelector("#pincode");
+            console.log(pincode.value)
+
+            if (await checkPincode(pincode.value)) {
+                notyf.success("Pincode verified!");
+                const addressData = {
+                    firstName: formsData[0].value,
+                    lastName: formsData[1].value,
+                    mobile: formsData[2].value,
+                    email: formsData[3].value,
+                    streetLandmark: formsData[4].value,
+                    city: formsData[5].value,
+                    pincode: formsData[6].value,
+                    state: document.querySelector('#state').value,
+                    country: formsData[7].value
+                }
+                try {
+                    const createPaymentLinkRequest = await fetch("/createpaymentlink", {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(addressData),
+                        method: 'POST'
+                    });
+                    const createPaymentLinkResponse = await createPaymentLinkRequest.json();
+                    // console.log(createPaymentLinkResponse);
+                    cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
+                } catch (error) {
+                    console.log(error);
+                    notyf.error("Something went wrong!");
+                }
+            } else {
+                notyf.error("Check pincode");
+            }
+        });
     </script>
 </body>
 

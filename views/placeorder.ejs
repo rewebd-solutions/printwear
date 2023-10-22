@@ -213,7 +213,7 @@
                 const updateQuantityResponse = await updateQuantityRequest.json();
                 if (updateQuantityRequest.ok) {
                     document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹.' + (price*quantityToSet).toFixed(2);
-                    orderData.find(order => order._id == designId).quantity = quantityToSet;
+                    orderData.find(order => order._id == designId).quantity = parseInt(quantityToSet);
                     document.querySelector("#total-price h4").innerHTML = "Total Price: ₹. " + orderData.reduce((total, order) => (total + (order.price * order.quantity)), 0).toFixed(2);
                     return notyf.success("Updated quantity!");
                 } else {
@@ -258,6 +258,7 @@
                 console.log(deleteOrderResponse);
                 if (!deleteOrderRequest.ok) return notyf.error("Couldn't delete item!");
                 orderData = orderData.filter(order => order._id !== designId);
+                orderDataResponse.orderData = deleteOrderResponse;
                 console.log(orderData);
                 populateOrderTable();
                 notyf.success("Deleted item successfully!");
@@ -282,10 +283,12 @@
                 
                 orderData = orderDataResponse.designsData[0].designs.map(design => {
                     let designFromOrder = orderDataResponse.orderData.items.find(item => item.designId == design._id);
-                    return {
-                        ...design,
-                        totalPrice: designFromOrder.price,
-                        quantity: designFromOrder.quantity
+                    if (designFromOrder){
+                        return {
+                            ...design,
+                            totalPrice: designFromOrder.price,
+                            quantity: parseInt(designFromOrder.quantity)
+                        }
                     }
                 });
                 populateOrderTable()
@@ -393,6 +396,7 @@
                     console.log(addOrderResponse);
                     return notyf.error("Couldn't add to cart!");
                 }
+                orderDataResponse.orderData = addOrderResponse;
                 populateOrderTable();
                 notyf.success("Design added to orders");
                 console.log(addOrderResponse);

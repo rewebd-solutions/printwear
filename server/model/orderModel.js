@@ -69,7 +69,10 @@ var OrderSchema = new mongoose.Schema({
     paymentLinkId: String,
     CashfreeOrderId: String,
     printwearOrderId: String,
-    shipRocketOrderId: String
+    shipRocketOrderId: String,
+    deliveredOn: {
+        type: mongoose.Schema.Types.Date
+    }
 });
 
 const orderModel = mongoose.model("Order", OrderSchema);

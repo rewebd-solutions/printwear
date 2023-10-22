@@ -42,7 +42,62 @@ input[type="text"], input[type="email"], input[type="number"], select {
 
 .orders-list li {
     display: flex;
-    gap: 0.2rem;
-    padding: 0.2rem;
+    gap: 1.2rem;
+    /* width: 600px; */
+    padding: 0.3rem;
+    align-items: center;
+    justify-content: space-between;
     outline: 1px solid silver;
+    border-radius: 5px;
+}
+
+h4 {
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+#btn-checkout {
+    padding: 0.3rem 0.6rem;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    color: white;
+    background-color: #F05A30;
+    border: none;
+    cursor: pointer;
+}
+
+.bill-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;    
+}
+
+hr {
+    border: none;
+    outline: none;
+    width: 100%;
+    height: 1px;
+    background-color: #000;
+}
+
+.disabled {
+    background-color: #ff7653 !important;
+    cursor: not-allowed !important;
+ }
+
+.left-bill {
+    grid-row: 1 / span 3;
+}
+
+.right-bill {
+    display: grid;
+    grid-template-rows: 1fr 1fr auto 1fr;    
+}
+
+input:focus:not(:valid) {
+    color: red;
+    outline: 1px solid red;
+}
+
+input:valid {
+    outline: none;
 }

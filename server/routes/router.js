@@ -75,4 +75,6 @@ route.post("/createwoocommerceorder", authServices.authorizeToken, controller.cr
 route.post("/addmockup", controller.addmockup);
 route.get("/getmockups", controller.getmockups);
 
+route.post("/createpaymentlink", authServices.authorizeToken, controller.getpaymentlink);
+
 module.exports = route
