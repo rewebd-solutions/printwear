@@ -90,7 +90,7 @@ hr {
 
 .right-bill {
     display: grid;
-    grid-template-rows: 1fr 1fr auto 1fr;    
+    grid-template-rows: 1fr 1fr 1fr auto 1fr;    
 }
 
 input:focus:not(:valid) {

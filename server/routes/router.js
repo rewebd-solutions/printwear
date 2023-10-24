@@ -31,7 +31,7 @@ route.post("/deletedesign", authServices.authorizeToken, controller.deletedesign
 route.post("/createdesign", authServices.authorizeToken, upload.single('designImage'), controller.createdesign);
 route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 
-route.get('/admin', services.adminpage); // it only has a form thats incomplete
+// route.get('/admin', services.adminpage); // it only has a form thats incomplete
 
 route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
 route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
@@ -76,5 +76,6 @@ route.post("/addmockup", controller.addmockup);
 route.get("/getmockups", controller.getmockups);
 
 route.post("/createpaymentlink", authServices.authorizeToken, controller.getpaymentlink);
+route.post("/calculateshippingcharges", authServices.authorizeToken, controller.calculateshippingcharges);
 
 module.exports = route

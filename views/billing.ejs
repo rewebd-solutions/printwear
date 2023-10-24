@@ -156,8 +156,9 @@
                     <div class="right-bill">
                         <h4>₹.<%= orderData.totalAmount %> </h4>
                         <h4>₹.0.00 (Tax)</h4>
+                        <h4 id="shipping-charges">₹.0.00 (Shipping charges) </h4>
                         <hr />
-                        <h4>₹.<%= orderData.totalAmount %></h4>
+                        <h4 id="total-charges">₹.<%= orderData.totalAmount %></h4>
                     </div>
                 </div>
                 <button type="button" id="btn-checkout">
@@ -169,19 +170,54 @@
         <% } %>
     </div>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <% var totalPrice = orderData.totalAmount %>;
     <script>
         AOS.init();
-       var notyf = new Notyf();
+        var notyf = new Notyf();
+        var ttlp = "<%= totalPrice %>";
 
         const cashfree = Cashfree({
             mode: "sandbox" //or production
         });
 
+        const pincode = document.querySelector("#pincode");
+
+        pincode.oninput = async (e) => {
+            if (e.target.value.length == 6) {
+                e.target.setAttribute("disabled", true);
+                if (await checkPincode(e.target.value)) {
+                    notyf.success("Pincode verified successfully");
+                    try {
+                        const shippingChargesRequest = await fetch("/calculateshippingcharges", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                weight: 0.25,
+                                pincode: e.target.value
+                            })
+                        });
+                        shippingChargesResponse = await shippingChargesRequest.json();
+                        // console.log(shippingChargesResponse)
+                        if (!shippingChargesRequest.ok) return notyf.error("Couldn't calculate shipping charges! " + shippingChargesResponse.message);
+                        document.getElementById("shipping-charges").innerHTML = `₹.${shippingChargesResponse.message} (Shipping charges)`;
+                        document.getElementById("total-charges").innerHTML = `₹.${(parseFloat(ttlp) + shippingChargesResponse.message).toFixed(2)}`;
+                    } catch (error) {
+                        console.log(error);
+                        notyf.error("Something went wrong in veriyfing PINCODE");
+                    } finally {
+                        e.target.removeAttribute("disabled");
+                    }
+                }
+            }
+        }
+
         const checkPincode = async (pincode) => {
             try {
                 const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
                 const pincodeResponse = await pincodeRequest.json();
-                console.log(pincodeResponse);
+                // console.log(pincodeResponse);
                 if (pincodeResponse[0].Status == "Success") return true;
                 return false;
             } catch (error) {
@@ -218,7 +254,7 @@
                     city: formsData[5].value,
                     pincode: formsData[6].value,
                     state: document.querySelector('#state').value,
-                    country: formsData[7].value
+                    country: formsData[7].value,
                 }
                 try {
                     const createPaymentLinkRequest = await fetch("/createpaymentlink", {
@@ -238,7 +274,9 @@
             } else {
                 notyf.error("Check pincode");
             }
+
         });
+
     </script>
 </body>
 

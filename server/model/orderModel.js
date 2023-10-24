@@ -65,11 +65,16 @@ var OrderSchema = new mongoose.Schema({
         default: "unplaced",
         enum: ["unplaced", "placed", "dispatched", "delivered"]
     },
+    deliveryCharges: {
+        type: Number,
+        default: 0
+    },
     paymentLink: String,
     paymentLinkId: String,
     CashfreeOrderId: String,
     printwearOrderId: String,
     shipRocketOrderId: String,
+    shipmentId: String,
     deliveredOn: {
         type: mongoose.Schema.Types.Date
     }

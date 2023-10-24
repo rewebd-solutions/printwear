@@ -230,13 +230,14 @@
             try {
                 const designDataRequest = await fetch("/getdesigns");
                 designDataResponse = await designDataRequest.json();
+                console.log(designDataResponse);
                 designDataResponse.designs.forEach(design => design.isAddedToOrder = false);
                 if (!designDataRequest.ok) {
                     return notyf.error("Error loading data. Please refresh or check connection");
                 }
             } catch (error) {
                 console.log(error);
-                notyf.error("Error")
+                notyf.error("Something went wrong!")
             }
         }
 
