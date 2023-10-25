@@ -1709,9 +1709,9 @@ exports.getpaymentlink = async (req, res) => {
       },
       body: JSON.stringify({
         order_id: orderData.printwearOrderId + "-" + extraId,
-        order_amount: orderData.totalAmount,
+        order_amount: parseFloat((orderData.totalAmount + orderData.deliveryCharges).toFixed(2)),
         order_currency: "INR",
-        order_note: `Payment for Order: ${orderData.printwearOrderId}`,
+        order_note: `Payment for Order: ${orderData.printwearOrderId + "-" + extraId}`,
         customer_details: {
           customer_id: req.userId,
           customer_name: firstName + " " + lastName,
@@ -1727,7 +1727,7 @@ exports.getpaymentlink = async (req, res) => {
     });
 
     const paymentLinkResponse = await paymentLinkRequest.json();
-    // console.log(paymentLinkResponse)
+    console.log(paymentLinkResponse)
 
     if (paymentLinkResponse.code) return res.status(400).json({ message: 'Error creating payment link!', error: paymentLinkResponse.message });
 
@@ -1810,6 +1810,8 @@ exports.createshiporder = async (req, res) => {
     try {
       const orderData = await OrderModel.findOne({ userId: userid });
       const designData = await NewDesignModel.findOne({ userId: userid });
+
+      // console.dir("orderData and designData", orderData, designData, { depth: 5 });
   
       orderData.paymentStatus = "success";
       orderData.amountPaid = req.body.data.payment.payment_amount;
@@ -1825,8 +1827,10 @@ exports.createshiporder = async (req, res) => {
   
       const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
       const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+      // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
   
-      const shiprocketOrderData = JSON.stringify({
+      const shiprocketOrderData = ({
         "order_id": orderData.printwearOrderId,
         "order_date": formatDate(new Date()),
         "pickup_location":"Primary",
@@ -1849,8 +1853,8 @@ exports.createshiporder = async (req, res) => {
         "shipping_address_2":"",
         "shipping_city": orderData.shippingAddress.city,
         "shipping_pincode": orderData.shippingAddress.pincode,
-        "shipping_country": orderData.shippingAddress.state,
-        "shipping_state": orderData.shippingAddress.country,
+        "shipping_state": orderData.shippingAddress.state,
+        "shipping_country": orderData.shippingAddress.country,
         "shipping_email": orderData.shippingAddress.email,
         "shipping_phone": orderData.shippingAddress.mobile,
         "order_items": orderData.items.map(item => {
@@ -1873,7 +1877,7 @@ exports.createshiporder = async (req, res) => {
         "sub_total": orderData.totalAmount,
         "length": 28,
         "breadth": 20,
-        "height": 0.1,
+        "height": 0.5,
         "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
       });
 
@@ -1888,19 +1892,20 @@ exports.createshiporder = async (req, res) => {
           body: JSON.stringify(shiprocketOrderData)
       });
       const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
+      console.log(createShiprocketOrderResponse);
       if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
       
-      console.log(createShiprocketOrderResponse);
-
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
+      orderData.deliveryStatus = "placed";
 
       await orderData.save();
+      return res.json({message:"ok"});
+      // return res.json(shiprocketOrderData)
     } catch (error) {
       console.log(error);
       res.status(500).json({ error });
     }
-    return res.json({ message: "OK" })
   }
 
   

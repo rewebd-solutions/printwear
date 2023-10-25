@@ -1,6 +1,5 @@
 const express = require('express');
-// const livereload = require("livereload");
-// const connectLiveReload = require("connect-livereload");
+const cors = require("cors");
 const path = require('path');
 require('dotenv').config();
 
@@ -19,6 +18,9 @@ const app = express();
 const PORT = process.env.PORT || 3000
 
 // app.use(connectLiveReload());
+// app.use(cors({
+//     origin: ["https://ec2-52-66-25-127.ap-south-1.compute.amazonaws.com", "https://ec2-52-66-101-190.ap-south-1.compute.amazonaws.com"]
+// }))
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));

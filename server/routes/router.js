@@ -56,7 +56,6 @@ route.post("/deleteorderitem", authServices.authorizeToken, controller.deleteord
 route.get("/getorders", authServices.authorizeToken, controller.getorders);
 route.post("/updateorder", authServices.authorizeToken, controller.updateorder);
 
-route.post("/createshiporder", controller.createshiporder);
 
 // route.get("/getshopifystock", authServices.authorizeToken, controller.getshopifystock);
 // route.get("/getshopifyorders", authServices.authorizeToken, controller.getshopifyorders);
@@ -76,6 +75,7 @@ route.post("/addmockup", controller.addmockup);
 route.get("/getmockups", controller.getmockups);
 
 route.post("/createpaymentlink", authServices.authorizeToken, controller.getpaymentlink);
+route.post("/createshiporder", controller.createshiporder);
 route.post("/calculateshippingcharges", authServices.authorizeToken, controller.calculateshippingcharges);
 
 module.exports = route
