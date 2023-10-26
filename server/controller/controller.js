@@ -177,7 +177,7 @@ exports.uploadimage = async (req, res) => {
     res.status(200).json({ message: "Success" });
   } catch (error) {
     console.log(error);
-    res.status(500);
+    res.status(500).json({ message: "Failed to upload image" });
   }
 }
 
@@ -1863,7 +1863,7 @@ exports.createshiporder = async (req, res) => {
             "name": currentItemDesignData.designName,
             "sku": currentItemDesignData.designSKU,
             "units": item.quantity,
-            "selling_price": item.price,
+            "selling_price": currentItemDesignData.price,
             "discount": "",
             "tax": "",
             "hsn": 441122
@@ -1900,6 +1900,9 @@ exports.createshiporder = async (req, res) => {
       orderData.deliveryStatus = "placed";
 
       await orderData.save();
+
+      // implement orderhistory
+
       return res.json({message:"ok"});
       // return res.json(shiprocketOrderData)
     } catch (error) {

@@ -271,11 +271,13 @@
         method: 'POST'
       });
       const imageUploadResponse = await imageUploadRequest.json();
-      if (imageUploadRequest.ok) {
+      if (!imageUploadRequest.ok) {
         userImageForm.innerHTML = userImageFormPreviousDOM;
-        notyf.success("Design Image uploaded successfully!");
-        fetchImageAndPopulate();
+        return notyf.error(imageUploadResponse.message);
       }
+      userImageForm.innerHTML = userImageFormPreviousDOM;
+      notyf.success("Design Image uploaded successfully!");
+      fetchImageAndPopulate();
     } catch (error) {
       console.log(error);
       notyf.error("Something went wrong in uploading!");

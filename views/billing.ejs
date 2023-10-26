@@ -175,6 +175,7 @@
         AOS.init();
         var notyf = new Notyf();
         var ttlp = "<%= totalPrice %>";
+        var disabled = false;
 
         const cashfree = Cashfree({
             mode: "sandbox" //or production
@@ -229,8 +230,10 @@
         
         const checkoutBtn = document.querySelector("#btn-checkout");
         checkoutBtn.addEventListener("click", async (e) => {
+            if (disabled) return;
+            disabled = true;
             e.target.classList.add("disabled");
-
+            
             const formsData = document.querySelectorAll(".billing-address-form input");
             for(const inputItem of formsData){
                 inputItem.style.outline = "none";
@@ -265,15 +268,17 @@
                         method: 'POST'
                     });
                     const createPaymentLinkResponse = await createPaymentLinkRequest.json();
-                    // console.log(createPaymentLinkResponse);
+                    if (!createPaymentLinkRequest.ok) return notyf.error(createPaymentLinkResponse.message);
                     cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
                 } catch (error) {
                     console.log(error);
+                    disabled = false;
                     notyf.error("Something went wrong!");
                 }
-            } else {
-                notyf.error("Check pincode");
-            }
+        } else {
+            disabled = false;
+            notyf.error("Check pincode");
+        }
 
         });
 
