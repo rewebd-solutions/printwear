@@ -21,6 +21,7 @@ var ColorModel = require("../model/colorModel");
 var DesignModel = require("../model/designModel");
 var OrderModel = require("../model/orderModel");
 var NewDesignModel = require("../model/newDesignModel");
+var OrderHistoryModel = require("../model/orderHistory");
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 const otpGen = require("otp-generator")
@@ -1727,7 +1728,7 @@ exports.getpaymentlink = async (req, res) => {
     });
 
     const paymentLinkResponse = await paymentLinkRequest.json();
-    console.log(paymentLinkResponse)
+    // console.log(paymentLinkResponse)
 
     if (paymentLinkResponse.code) return res.status(400).json({ message: 'Error creating payment link!', error: paymentLinkResponse.message });
 
@@ -1806,12 +1807,16 @@ exports.createshiporder = async (req, res) => {
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
     console.log(`PAYMENT OK for ${userid} on ${new Date().toLocaleString()}`)
-
+    
     try {
-      const orderData = await OrderModel.findOne({ userId: userid });
-      const designData = await NewDesignModel.findOne({ userId: userid });
+      const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
 
-      // console.dir("orderData and designData", orderData, designData, { depth: 5 });
+      if (!orderData) return res.json({ message:"ok" });
+
+      const designData = await NewDesignModel.findOne({ userId: userid });
+      let orderId = orderData.printwearOrderId;
+      orderData.printwearOrderId = null;
+      await orderData.save();
   
       orderData.paymentStatus = "success";
       orderData.amountPaid = req.body.data.payment.payment_amount;
@@ -1831,7 +1836,7 @@ exports.createshiporder = async (req, res) => {
       // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
   
       const shiprocketOrderData = ({
-        "order_id": orderData.printwearOrderId,
+        "order_id": orderId,
         "order_date": formatDate(new Date()),
         "pickup_location":"Primary",
         "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
@@ -1893,52 +1898,53 @@ exports.createshiporder = async (req, res) => {
       });
       const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
       console.log(createShiprocketOrderResponse);
+
       if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
       
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "placed";
 
-      await orderData.save();
-
       // implement orderhistory
+      await OrderHistoryModel.findOneAndUpdate({ userId: userid },{
+        $set: {
+          userId: userid
+        }, 
+        $push: {
+          orderData: orderData
+        }
+      }, { upsert: true, new: true });
+      
+      // console.dir(orderHistory._doc, { depth: 5 });
 
-      return res.json({message:"ok"});
+      await orderData.updateOne({ $unset: { 
+        items: 1, 
+        billingAddress: 1, 
+        shippingAddress: 1, 
+        totalAmount: 1,
+        amountPaid: 1,
+        paymentStatus: 1,
+        deliveryCharges: 1,
+        paymentLink: 1,
+        paymentLinkId: 1,
+        CashfreeOrderId: 1,
+        printwearOrderId: 1,
+        shipRocketOrderId: 1,
+        shipmentId: 1,
+        createdAt: 1,
+        deliveredOn: 1,
+        processed: 1,
+        deliveryStatus: 1,
+        
+      } });
+
+      await orderData.save();
       // return res.json(shiprocketOrderData)
     } catch (error) {
       console.log(error);
       res.status(500).json({ error });
     }
   }
-
-  
-  //         let indexToModify = orderData.items.findIndex(x => x.cartItemId === item.cartItemId)
-  //         orderData.items[indexToModify].SRorderId = orderResponse.order_id;
-  //         return orderResponse;
-  //       } catch (error) {
-  //         console.error('Error creating order:', error);
-  //         throw error;
-  //       }
-  //     })
-  //     await orderData.save();
-
-  //     Promise.allSettled(shipRocketOrderRequests).then(results => {
-  //       console.log(results);
-  //       const allFulfilled = results.every(result => result.status === 'fulfilled');
-
-  //       if (allFulfilled) {
-  //         // All orders were created successfully
-  //         console.log('All orders created successfully.');
-  //         // Send a 200 response here
-  //       } else {
-  //         // At least one order failed to create
-  //         console.error('One or more orders failed to create.');
-  //         // Send an error response here
-  //       }
-  //     });
-
-    
-  // }
 
   if (statusType === 'PAYMENT_FAILED_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;

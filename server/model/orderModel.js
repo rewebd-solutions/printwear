@@ -75,8 +75,16 @@ var OrderSchema = new mongoose.Schema({
     printwearOrderId: String,
     shipRocketOrderId: String,
     shipmentId: String,
+    createdAt: {
+        type: mongoose.Schema.Types.Date,
+        default: Date.now
+    },
     deliveredOn: {
         type: mongoose.Schema.Types.Date
+    },
+    processed: {
+        type: Boolean,
+        default: false
     }
 });
 

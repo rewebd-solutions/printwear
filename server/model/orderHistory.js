@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-var OrderHistorySchema = new mongoose.model({
+var OrderHistorySchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -67,17 +67,31 @@ var OrderHistorySchema = new mongoose.model({
                 default: "unplaced",
                 enum: ["unplaced", "placed", "dispatched", "delivered"]
             },
+            deliveryCharges: {
+                type: Number,
+                default: 0
+            },
             paymentLink: String,
             paymentLinkId: String,
             CashfreeOrderId: String,
             printwearOrderId: String,
             shipRocketOrderId: String,
+            shipmentId: String,
             createdAt: {
-                type: mongoose.Schema.Types.Date
+                type: mongoose.Schema.Types.Date,
+                default: Date.now
             },
             deliveredOn: {
                 type: mongoose.Schema.Types.Date
+            },
+            processed: {
+                type: Boolean,
+                default: false
             }
         }
     ]
-})
+});
+
+var orderHistoryModel = mongoose.model("orderHistory", OrderHistorySchema);
+
+module.exports = orderHistoryModel;
