@@ -1792,6 +1792,7 @@ exports.calculateshippingcharges = async (req, res) => {
   }
 }
 
+// webhook for cashfree to hit and notify about payment
 exports.createshiporder = async (req, res) => {
   // every 10 days token refersh.. thru .env manually
   // get ordermodel and update amountPaid. and payment success.
@@ -1904,6 +1905,7 @@ exports.createshiporder = async (req, res) => {
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "placed";
+      orderData.printwearOrderId = orderId;
 
       // implement orderhistory
       await OrderHistoryModel.findOneAndUpdate({ userId: userid },{
@@ -1915,15 +1917,17 @@ exports.createshiporder = async (req, res) => {
         }
       }, { upsert: true, new: true });
       
+      // await orderData.save();
       // console.dir(orderHistory._doc, { depth: 5 });
 
       await orderData.updateOne({ $unset: { 
-        items: 1, 
-        billingAddress: 1, 
-        shippingAddress: 1, 
+        items: 1,
+        billingAddress: 1,
+        shippingAddress: 1,
         totalAmount: 1,
         amountPaid: 1,
         paymentStatus: 1,
+        deliveryStatus: 1,
         deliveryCharges: 1,
         paymentLink: 1,
         paymentLinkId: 1,
@@ -1933,12 +1937,9 @@ exports.createshiporder = async (req, res) => {
         shipmentId: 1,
         createdAt: 1,
         deliveredOn: 1,
-        processed: 1,
-        deliveryStatus: 1,
-        
+        processed: 1
       } });
 
-      await orderData.save();
       // return res.json(shiprocketOrderData)
     } catch (error) {
       console.log(error);
@@ -1954,4 +1955,16 @@ exports.createshiporder = async (req, res) => {
     // return await orderData.save();
   }
 
+}
+
+
+// for now create a test endpoint for fetching order data, then later change /manageorder route to do data fetching and implement SSR
+exports.getorderhistory = async (req, res) => {
+  try {
+    const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
+    res.json(orderHistory.orderData);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error fetching orderhistory" });
+  }
 }

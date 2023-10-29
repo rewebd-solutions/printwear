@@ -57,6 +57,8 @@ route.get("/getorders", authServices.authorizeToken, controller.getorders);
 route.post("/updateorder", authServices.authorizeToken, controller.updateorder);
 
 
+route.get("/getorderhistory", authServices.authorizeToken, controller.getorderhistory);
+
 // route.get("/getshopifystock", authServices.authorizeToken, controller.getshopifystock);
 // route.get("/getshopifyorders", authServices.authorizeToken, controller.getshopifyorders);
 

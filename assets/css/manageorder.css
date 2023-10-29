@@ -56,6 +56,10 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
+tbody td:nth-child(3) {
+    min-width: fit-content;
+}
+
 thead th[data-stream]{
     cursor: pointer;
 }
@@ -91,6 +95,11 @@ table a:visited {
     gap: 1rem;
     background-color: rgb(231, 231, 231);
     margin: auto;
+}
+
+#printwear-order {
+    padding: 1rem 1rem 1rem 0;
+    overflow-y: scroll;
 }
 
 .loader {

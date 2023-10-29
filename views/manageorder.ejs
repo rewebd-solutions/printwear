@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="/css/manageorder.css">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <title>Manage orders - Printwear</title>
 </head>
 
@@ -20,18 +22,34 @@
         <div class="mngord-head">
             <h2>Manage Order</h2>
         </div>
-
-        <div class="order-choice-container">
-            <button class="choice-btn active-btn" id="printwear-order-btn">Printwear</button>
-            <button class="choice-btn" id="shopify-order-btn">Shopify</button>
-            <button class="choice-btn" id="woo-order-btn">WooCommerce</button>
-        </div>
         <div class="order-table">
             <div id="printwear-order">
-                <h3>No orders currently</h3>
+                <table>
+                    <thead>
+                        <th>Printwear ID</th>
+                        <th>Shipping ID</th>
+                        <th>Items</th>
+                        <th>Shipping Address</th>
+                        <th>Amount paid</th>
+                        <th>Delivery Charges</th>
+                        <th>Delivery Status</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>null</td>
+                            <td>427377558</td>
+                            <td>
+                                rajini • ₹.821.12
+                                Broke! • ₹.341.32
+                            </td>
+                            <td>Sree Sachin, 10, 8th street, vinobaji nagar, hasthinapuram, chennai</td>
+                            <td>₹.1162.44</td>
+                            <td>₹.43.34</td>
+                            <td>placed</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div id="shopify-order"></div>
-            <div id="woo-order"></div>
         </div>
 
     </div>
@@ -39,7 +57,76 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
-        fetch("/getshopifyorders").then(data => data.json().then(data => console.log(data))); // summa testing orders data
+        var notyf = new Notyf();
+        var orderHistoryData = [];
+        var designData = {};
+
+        const orderHistoryTable = document.querySelector("#printwear-order > table tbody");
+
+        const populateOrderHistoryTable = (data = orderHistoryData) => {
+            if (data.length < 1) {
+                orderHistoryTable.innerHTML = `No orders yet!`;
+                return notyf.error("No order history");
+            }
+            orderHistoryTable.innerHTML = data.map(orderHistory => {
+                return `
+                    <tr>
+                        <td>${orderHistory.printwearOrderId ?? orderHistory.shipRocketOrderId}</td>
+                        <td>${orderHistory.shipRocketOrderId}</td>
+                        <td>
+                            ${orderHistory.items.map(item => {
+                                let currentDesign = designData.designs.find(design => design._id == item.designId);
+                                if (!currentDesign) return '';
+                                return `
+                                   <p>${currentDesign.designName} • ${item.quantity} • ${currentDesign.price}</p>
+                                `
+                            }).join('\n')}
+                        </td>
+                        <td>${orderHistory.shippingAddress.email}, ${orderHistory.shippingAddress.firstName} ${orderHistory.shippingAddress.lastName}, ${orderHistory.shippingAddress.streetLandmark}, ${orderHistory.shippingAddress.city}, ${orderHistory.shippingAddress.state}</td>
+                        <td>₹.${orderHistory.amountPaid}</td>
+                        <td>₹.${orderHistory.deliveryCharges}</td>
+                        <td>${orderHistory.deliveryStatus}</td>
+                    </tr>                    
+                `;
+            }).join('\n')
+        }
+
+        const fetchOrderHistory = async () => {
+            try {
+                const orderHistoryRequest = await fetch("/getorderhistory");
+                const orderHistoryResponse = await orderHistoryRequest.json();
+                console.log(orderHistoryResponse)
+                if (!orderHistoryRequest.ok) {
+                    console.log(orderHistoryResponse.message || "Unknown error");
+                    return notyf.error(orderHistoryResponse.message || "Unknown error");
+                }
+                orderHistoryData = orderHistoryResponse;
+                populateOrderHistoryTable();
+            } catch (error) {
+                console.log(error);
+                notyf.error("Something went wrong!");
+            }
+        }
+    
+        const fetchDesignsData = async () => {
+            try {
+                const designsFetchRequest = await fetch("/getdesigns");
+                const designsFetchResponse = await designsFetchRequest.json();
+                console.log(designsFetchResponse);
+                if (!designsFetchRequest.ok) {
+                    console.log(designsFetchResponse.message || "Unknown error");
+                    return notyf.error(designsFetchResponse.message || "Unknown error");
+                }
+                designData = designsFetchResponse;
+                fetchOrderHistory();
+            } catch (error) {
+                console.log(error);
+                notyf.error("Something went wrong!");
+            }
+        }
+
+        fetchDesignsData();
+    
     </script>
 </body>
 
