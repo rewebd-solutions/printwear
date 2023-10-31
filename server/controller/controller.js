@@ -1962,6 +1962,9 @@ exports.createshiporder = async (req, res) => {
 exports.getorderhistory = async (req, res) => {
   try {
     const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
+    if (!orderHistory) {
+      return res.json([]);
+    }
     res.json(orderHistory.orderData);
   } catch (error) {
     console.log(error);
