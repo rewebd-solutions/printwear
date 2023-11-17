@@ -1911,10 +1911,10 @@ exports.createshiporder = async (req, res) => {
 
     //   if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
       
-    //   orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
-    //   orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-    //   orderData.deliveryStatus = "placed";
-    //   orderData.printwearOrderId = orderId;
+      orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
+      orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
+      orderData.deliveryStatus = "processing";
+      orderData.printwearOrderId = orderId;
 
     //   // implement orderhistory
     //   await OrderHistoryModel.findOneAndUpdate({ userId: userid },{

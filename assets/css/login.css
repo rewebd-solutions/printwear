@@ -85,7 +85,7 @@
 }
 
 .input-group {
-    top: 150px;
+    top: 120px;
     position: absolute;
     width: 280px;
     transition: .5s;
@@ -118,11 +118,11 @@
 }
 
 .submit-btnx {
-    width: 85%;
+    width: 100%;
     padding: 10px 30px;
     cursor: pointer;
     display: block;
-    margin: auto;
+    margin-top: 35px;
     background-color: #F05A30;
     border: 0;
     outline: none;
