@@ -57,7 +57,7 @@ tr:nth-child(even) {
 }
 
 tbody td:nth-child(3) {
-    min-width: fit-content;
+    min-width: 300px;
 }
 
 thead th[data-stream]{
