@@ -1904,7 +1904,7 @@ exports.createshiporder = async (req, res) => {
       
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-      orderData.deliveryStatus = "placed";
+      orderData.deliveryStatus = "processing";
       orderData.printwearOrderId = orderId;
 
       // implement orderhistory

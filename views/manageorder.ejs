@@ -26,9 +26,9 @@
             <div id="printwear-order">
                 <table>
                     <thead>
-                        <th>Printwear ID</th>
+                        <th>S. No.</th>
                         <th>Shipping ID</th>
-                        <th>Items</th>
+                        <th>Name / Qnty / Price</th>
                         <th>Shipping Address</th>
                         <th>Amount paid</th>
                         <th>Delivery Charges</th>
@@ -68,23 +68,23 @@
                 orderHistoryTable.innerHTML = `No orders yet!`;
                 return notyf.error("No order history");
             }
-            orderHistoryTable.innerHTML = data.map(orderHistory => {
+            orderHistoryTable.innerHTML = data.map((orderHistory, i) => {
                 return `
                     <tr>
-                        <td>${orderHistory.printwearOrderId ?? orderHistory.shipRocketOrderId}</td>
+                        <td>${i+1}</td>
                         <td>${orderHistory.shipRocketOrderId}</td>
                         <td>
                             ${orderHistory.items.map(item => {
                                 let currentDesign = designData.designs.find(design => design._id == item.designId);
                                 if (!currentDesign) return '';
                                 return `
-                                   <p>${currentDesign.designName} • ${item.quantity} • ${currentDesign.price}</p>
+                                   <p>${currentDesign.designName} / ${item.quantity} / ${currentDesign.price}</p>
                                 `
                             }).join('\n')}
                         </td>
                         <td>${orderHistory.shippingAddress.email}, ${orderHistory.shippingAddress.firstName} ${orderHistory.shippingAddress.lastName}, ${orderHistory.shippingAddress.streetLandmark}, ${orderHistory.shippingAddress.city}, ${orderHistory.shippingAddress.state}</td>
-                        <td>₹.${orderHistory.amountPaid}</td>
-                        <td>₹.${orderHistory.deliveryCharges}</td>
+                        <td>₹ ${orderHistory.amountPaid}</td>
+                        <td>₹ ${orderHistory.deliveryCharges}</td>
                         <td>${orderHistory.deliveryStatus}</td>
                     </tr>                    
                 `;
