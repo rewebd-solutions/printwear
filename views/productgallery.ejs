@@ -103,7 +103,7 @@
                     </div>
                     <div class="details">
                         <div class="stock-avail">
-                            <p style="font-size: 14px">Starts: ₹.${calculateCardPrice(currentProduct)}</p>
+                            <p style="font-size: 14px">Starts: ₹${calculateCardPrice(currentProduct)}</p>
                             ${calculateCardStock(currentProduct) === 0? `<p style="color:red; font-size: 14px">Out of stock!</p>`: `<p style="font-size: 14px">Stock: ${calculateCardStock(currentProduct)}</p>`}
                         </div>
                         <div class="view-btn">

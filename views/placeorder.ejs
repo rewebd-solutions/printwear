@@ -176,7 +176,7 @@
                             </div>
                         </th>
                         <th>
-                            ₹.${order.price} <i class="fa fa-info-circle" onmouseover="console.log(event.target.className)" onmouseout="console.log('gone')"></i>
+                            ₹${order.price} <i class="fa fa-info-circle" onmouseover="console.log(event.target.className)" onmouseout="console.log('gone')"></i>
                         </th>
                         <th>
                             <div class="delete-container">
@@ -185,13 +185,13 @@
                             </div>
                         </th>
                         <th>
-                            ₹.${order.totalPrice || order.price}
+                            ₹${order.totalPrice || order.price}
                         </th>
                     </tr>
             `).join('');
             createOrderContainer.innerHTML += `
             </tbody></table>
-            <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹. ${orderDataResponse.orderData.totalAmount}</h4> </div>
+            <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹ ${orderDataResponse.orderData.totalAmount}</h4> </div>
             <a href="/placeorder/billing"><button type="button" class="option-button">Proceed to Shipping</button></a>
             `
         }
@@ -212,9 +212,9 @@
                 });
                 const updateQuantityResponse = await updateQuantityRequest.json();
                 if (updateQuantityRequest.ok) {
-                    document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹.' + (price*quantityToSet).toFixed(2);
+                    document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹' + (price*quantityToSet).toFixed(2);
                     orderData.find(order => order._id == designId).quantity = parseInt(quantityToSet);
-                    document.querySelector("#total-price h4").innerHTML = "Total Price: ₹. " + orderData.reduce((total, order) => (total + (order.price * order.quantity)), 0).toFixed(2);
+                    document.querySelector("#total-price h4").innerHTML = "Total Price: ₹" + orderData.reduce((total, order) => (total + (order.price * order.quantity)), 0).toFixed(2);
                     return notyf.success("Updated quantity!");
                 } else {
                     return notyf.error("Couldn't increment quantity");

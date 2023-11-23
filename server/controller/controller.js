@@ -1797,12 +1797,6 @@ exports.createshiporder = async (req, res) => {
   // every 10 days token refersh.. thru .env manually
   // get ordermodel and update amountPaid. and payment success.
 
-  if (previousUserId) return res.json({ message: "OK "});
-
-  console.log(previousUserId);
-  
-  var previousUserId = null;
-
   console.log(req.body);
 
   const statusType = req.body.type;
@@ -1813,147 +1807,146 @@ exports.createshiporder = async (req, res) => {
 
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
-    previousUserId = userid + '';
-    
     console.log(`PAYMENT OK for ${userid} on ${new Date().toLocaleString()}`)
-    return res.json({ mssage: "ok"})
-    
-    // try {
-    //   const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
 
-    //   if (!orderData) return res.json({ message:"ok" });
+    try {
+      const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
 
-    //   const designData = await NewDesignModel.findOne({ userId: userid });
-    //   let orderId = orderData.printwearOrderId;
-    //   orderData.printwearOrderId = null;
-    //   await orderData.save();
-  
-    //   orderData.paymentStatus = "success";
-    //   orderData.amountPaid = req.body.data.payment.payment_amount;
-    
-    //   // create shiprocket order based on webhook status
-    //   // once created, remove existing order data all the way to orderHistory collection.
-    //   // remove OrderModel's printwearOrderId, cashfree stuff, essentially just empty the whole thing
-    //   // before creating shiprocket order, create wordpress woocommerce order for santhosh with shirt design details and then get id for each one
-    //   // then give shiprocket that data
-    //   // after shiprocket and wocoomerce
+      if (!orderData) return res.json({ message: "ok" });
 
-    //   const shiprocketToken = await generateShiprocketToken();
-  
-    //   const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
-    //   const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+      const designData = await NewDesignModel.findOne({ userId: userid });
+      let orderId = orderData.printwearOrderId;
+      orderData.printwearOrderId = null;
+      await orderData.save();
 
-    //   // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
-  
-    //   const shiprocketOrderData = ({
-    //     "order_id": orderId,
-    //     "order_date": formatDate(new Date()),
-    //     "pickup_location":"Primary",
-    //     "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
-    //     "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
-    //     "billing_customer_name": orderData.billingAddress.firstName,
-    //     "billing_last_name": orderData.billingAddress.lastName,
-    //     "billing_address": orderData.billingAddress.streetLandmark,
-    //     "billing_address_2":"",
-    //     "billing_city": orderData.billingAddress.city,
-    //     "billing_pincode": orderData.billingAddress.pincode,
-    //     "billing_state": orderData.billingAddress.state,
-    //     "billing_country": orderData.billingAddress.country,
-    //     "billing_email": orderData.billingAddress.email,
-    //     "billing_phone": orderData.billingAddress.mobile,
-    //     "shipping_is_billing": false,
-    //     "shipping_customer_name": orderData.shippingAddress.firstName,
-    //     "shipping_last_name": orderData.shippingAddress.lastName,
-    //     "shipping_address": orderData.shippingAddress.streetLandmark,
-    //     "shipping_address_2":"",
-    //     "shipping_city": orderData.shippingAddress.city,
-    //     "shipping_pincode": orderData.shippingAddress.pincode,
-    //     "shipping_state": orderData.shippingAddress.state,
-    //     "shipping_country": orderData.shippingAddress.country,
-    //     "shipping_email": orderData.shippingAddress.email,
-    //     "shipping_phone": orderData.shippingAddress.mobile,
-    //     "order_items": orderData.items.map(item => {
-    //       let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-    //       return {
-    //         "name": currentItemDesignData.designName,
-    //         "sku": currentItemDesignData.designSKU,
-    //         "units": item.quantity,
-    //         "selling_price": currentItemDesignData.price,
-    //         "discount": "",
-    //         "tax": "",
-    //         "hsn": 441122
-    //       }
-    //     }),
-    //     "payment_method":"Prepaid",
-    //     "shipping_charges": orderData.deliveryCharges,
-    //     "giftwrap_charges": 0,
-    //     "transaction_charges": 0,
-    //     "total_discount": 0,
-    //     "sub_total": orderData.totalAmount,
-    //     "length": 28,
-    //     "breadth": 20,
-    //     "height": 0.5,
-    //     "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
-    //   });
+      orderData.paymentStatus = "success";
+      orderData.amountPaid = req.body.data.payment.payment_amount;
 
-    //   console.dir(shiprocketOrderData, { depth: 5 });
-      
-    //   const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-    //       },
-    //       method: "POST",
-    //       body: JSON.stringify(shiprocketOrderData)
-    //   });
-    //   const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
-    //   console.log(createShiprocketOrderResponse);
+      // create shiprocket order based on webhook status
+      // once created, remove existing order data all the way to orderHistory collection.
+      // remove OrderModel's printwearOrderId, cashfree stuff, essentially just empty the whole thing
+      // before creating shiprocket order, create wordpress woocommerce order for santhosh with shirt design details and then get id for each one
+      // then give shiprocket that data
+      // after shiprocket and wocoomerce
 
-    //   if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
-      
+      const shiprocketToken = await generateShiprocketToken();
+
+      const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
+      const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+      // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
+
+      const shiprocketOrderData = ({
+        "order_id": orderId,
+        "order_date": formatDate(new Date()),
+        "pickup_location": "Primary",
+        "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
+        "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
+        "billing_customer_name": orderData.billingAddress.firstName,
+        "billing_last_name": orderData.billingAddress.lastName,
+        "billing_address": orderData.billingAddress.streetLandmark,
+        "billing_address_2": "",
+        "billing_city": orderData.billingAddress.city,
+        "billing_pincode": orderData.billingAddress.pincode,
+        "billing_state": orderData.billingAddress.state,
+        "billing_country": orderData.billingAddress.country,
+        "billing_email": orderData.billingAddress.email,
+        "billing_phone": orderData.billingAddress.mobile,
+        "shipping_is_billing": false,
+        "shipping_customer_name": orderData.shippingAddress.firstName,
+        "shipping_last_name": orderData.shippingAddress.lastName,
+        "shipping_address": orderData.shippingAddress.streetLandmark,
+        "shipping_address_2": "",
+        "shipping_city": orderData.shippingAddress.city,
+        "shipping_pincode": orderData.shippingAddress.pincode,
+        "shipping_state": orderData.shippingAddress.state,
+        "shipping_country": orderData.shippingAddress.country,
+        "shipping_email": orderData.shippingAddress.email,
+        "shipping_phone": orderData.shippingAddress.mobile,
+        "order_items": orderData.items.map(item => {
+          let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+          return {
+            "name": currentItemDesignData.designName,
+            "sku": currentItemDesignData.designSKU,
+            "units": item.quantity,
+            "selling_price": currentItemDesignData.price,
+            "discount": "",
+            "tax": "",
+            "hsn": 441122
+          }
+        }),
+        "payment_method": "Prepaid",
+        "shipping_charges": orderData.deliveryCharges,
+        "giftwrap_charges": 0,
+        "transaction_charges": 0,
+        "total_discount": 0,
+        "sub_total": orderData.totalAmount,
+        "length": 28,
+        "breadth": 20,
+        "height": 0.5,
+        "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
+      });
+
+      console.dir(shiprocketOrderData, { depth: 5 });
+
+      const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+        },
+        method: "POST",
+        body: JSON.stringify(shiprocketOrderData)
+      });
+      const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
+      console.log(createShiprocketOrderResponse);
+
+      if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
+
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-      orderData.deliveryStatus = "processing";
+      orderData.deliveryStatus = "placed";
       orderData.printwearOrderId = orderId;
 
-    //   // implement orderhistory
-    //   await OrderHistoryModel.findOneAndUpdate({ userId: userid },{
-    //     $set: {
-    //       userId: userid
-    //     }, 
-    //     $push: {
-    //       orderData: orderData
-    //     }
-    //   }, { upsert: true, new: true });
-      
-    //   // await orderData.save();
-    //   // console.dir(orderHistory._doc, { depth: 5 });
+      // implement orderhistory
+      await OrderHistoryModel.findOneAndUpdate({ userId: userid }, {
+        $set: {
+          userId: userid
+        },
+        $push: {
+          orderData: orderData
+        }
+      }, { upsert: true, new: true });
 
-    //   await orderData.updateOne({ $unset: { 
-    //     items: 1,
-    //     billingAddress: 1,
-    //     shippingAddress: 1,
-    //     totalAmount: 1,
-    //     amountPaid: 1,
-    //     paymentStatus: 1,
-    //     deliveryStatus: 1,
-    //     deliveryCharges: 1,
-    //     paymentLink: 1,
-    //     paymentLinkId: 1,
-    //     CashfreeOrderId: 1,
-    //     printwearOrderId: 1,
-    //     shipRocketOrderId: 1,
-    //     shipmentId: 1,
-    //     createdAt: 1,
-    //     deliveredOn: 1,
-    //     processed: 1
-    //   } });
+      // await orderData.save();
+      // console.dir(orderHistory._doc, { depth: 5 });
 
-    //   // return res.json(shiprocketOrderData)
-    // } catch (error) {
-    //   console.log(error);
-    //   res.status(500).json({ error });
-    // }
+      await orderData.updateOne({
+        $unset: {
+          items: 1,
+          billingAddress: 1,
+          shippingAddress: 1,
+          totalAmount: 1,
+          amountPaid: 1,
+          paymentStatus: 1,
+          deliveryStatus: 1,
+          deliveryCharges: 1,
+          paymentLink: 1,
+          paymentLinkId: 1,
+          CashfreeOrderId: 1,
+          printwearOrderId: 1,
+          shipRocketOrderId: 1,
+          shipmentId: 1,
+          createdAt: 1,
+          deliveredOn: 1,
+          processed: 1
+        }
+      });
+
+      // return res.json(shiprocketOrderData)
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error });
+    }
   }
 
   if (statusType === 'PAYMENT_FAILED_WEBHOOK') {

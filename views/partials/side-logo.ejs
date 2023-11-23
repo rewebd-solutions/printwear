@@ -6,7 +6,6 @@
 
   .sidebar {
     position: fixed;
-    padding-right: 2rem;
     left: 0;
     height: 100vh;
     top: 4rem;
@@ -24,7 +23,7 @@
   .sidebar a {
     color: #3f3f3f;
     line-height: 47px;
-    padding-left: 1rem;
+    padding: 0rem 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.19);
     border-left: 5px solid transparent;
     text-decoration: none;
@@ -32,10 +31,18 @@
 
   .sidebar a:active,
   .sidebar a:hover,
-  .sidebar a:focus,
-  .sidebar-active  {
+  .sidebar a:focus {
     border-left: 5px solid #F05A30 !important;
-    color: #F05A30 !important;
+    color: #F05A30 ;
+  }
+
+  .sidebar-active {
+    background-color: #F05A30 !important;
+    color: white !important
+  }
+
+  .sidebar-active:hover {
+    color: white !important
   }
 
   .sidebar a i {
@@ -58,15 +65,23 @@
     </a>
     <a href="/productgallery">
       <i class="fas fa-shirt"></i>
-      <span>Product Gallery</span>
+      <span>Create new product</span>
     </a>
-    <a href="/placeorder">
-      <i class="fa-regular fa-cart-plus"></i>
-      <span>Place Order</span>
+    <a href="/designgenerator">
+      <i class="fa-regular fa-image"></i>
+      <span>Design Generator</span>
     </a>
     <a href="/designlib">
       <i class="fa fa-palette"></i>
-      <span>Design Library</span>
+      <span>Your designs</span>
+    </a>
+    <a href="/mockupgenerator">
+      <i class="fa-regular fa-object-group"></i>
+      <span>Mockup Generator</span>
+    </a>
+    <a href="/placeorder">
+      <i class="fa-regular fa-cart-plus"></i>
+      <span>Add new order</span>
     </a>
     <a href="/manageorder">
       <i class="fa-solid fa-rectangle-list"></i>
@@ -75,14 +90,6 @@
     <a href="/stock">
       <i class="fa-solid fa-chart-simple"></i>
       <span>Stock Inventory</span>
-    </a>
-    <a href="/designgenerator">
-      <i class="fa-regular fa-image"></i>
-      <span>Design Generator</span>
-    </a>
-    <a href="/mockupgenerator">
-      <i class="fa-regular fa-object-group"></i>
-      <span>Mockup Generator</span>
     </a>
     <a href="/connectstore">
       <i class="fa-solid fa-store"></i>
