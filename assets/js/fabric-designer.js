@@ -19,6 +19,9 @@ var variantPrice = 0;
 // var for letting top.ejs know there is this var
 var isReadyForRendering = true;
 
+var neckLabelId = null;
+var isNeckLabelSelected = false;
+
 // notyf snackbar 
 var notyf = new Notyf();
 AOS.init();
@@ -36,10 +39,12 @@ const fetchProductData = async () => {
           <img src="/images/missing-shirt.png" width="200" />
           Oops! Select a design from Product Gallery before proceeding!
           <a href="/productgallery"><button class="">Choose my design</button></a>
+          Redirecting now! Please wait!
         </div>
       </div>
       `)
-      return notyf.error({ message: "style paramater not defined in URL", duration: 6000, dismissible: true });
+      notyf.error({ message: "style paramater not defined in URL", duration: 6000, dismissible: true });
+      return location.href = '/productgallery';
     } 
 
     const productStyle = styleParam.split("+").join(" ");
@@ -114,6 +119,7 @@ const sideChangeButtons = document.querySelectorAll(".side-btn");
 const textInputBox = document.querySelector("#canvas-text-input");
 
 const userDesignsWrapper = document.querySelector(".user-design-images");
+const userLabelsWrapper = document.querySelector(".user-label-images");
 
 // function to toggle disabling and enabling button
 const disableButton = (state) => {
@@ -210,9 +216,9 @@ const updateStats = () => {
     priceTable.children[0].children[1].innerHTML = "0 in";
     priceTable.children[1].children[1].innerHTML = "0 in";
     priceTable.children[2].children[1].innerHTML = "0 in²";
-    priceTable.children[3].children[1].innerHTML = "₹." + variantPrice;
-    priceTable.children[4].children[1].innerHTML = "₹.0";
-    priceTable.children[5].children[1].innerHTML = "₹." + variantPrice;
+    priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
+    priceTable.children[4].children[1].innerHTML = "₹0";
+    priceTable.children[5].children[1].innerHTML = "₹" + variantPrice;
     return;
   }
 
@@ -223,9 +229,12 @@ const updateStats = () => {
   priceTable.children[0].children[1].innerHTML = imageHeightInInches + " in";
   priceTable.children[1].children[1].innerHTML = imageWidthInInches + " in";
   priceTable.children[2].children[1].innerHTML = imageAreaInInches + " in²";
-  priceTable.children[3].children[1].innerHTML = "₹." + variantPrice;
-  priceTable.children[4].children[1].innerHTML = "₹." + (imageAreaInInches * 2).toFixed(2);
-  priceTable.children[5].children[1].innerHTML = "₹." + ((imageAreaInInches * 2) + variantPrice).toFixed(2); 
+  priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
+  priceTable.children[4].children[1].innerHTML = "₹" + (imageAreaInInches * 2).toFixed(2);
+  priceTable.children[5].children[1].innerHTML = "₹" + ((imageAreaInInches * 2) + variantPrice).toFixed(2);
+  priceTable.children[6].children[0].innerHTML = isNeckLabelSelected ? "Neck Label(selected)" : "Neck Label(not selected)";
+  priceTable.children[6].children[1].innerHTML = isNeckLabelSelected ? "₹10" : "₹0";
+  priceTable.children[7].children[1].innerHTML = isNeckLabelSelected ? "₹" + ((imageAreaInInches * 2) + variantPrice + 10).toFixed(2) : "₹" + ((imageAreaInInches * 2) + variantPrice).toFixed(2);
 };
 
 const changeSize = (e, size, id) => {
@@ -558,6 +567,7 @@ const saveDesign = async () => {
       formData.append("direction", designDirection);
       formData.append("designImageURL", designImageURL);
       formData.append("designImageName", designImageName);
+      formData.append("neckLabel", neckLabelId);
 
       const saveDesignRequest = await fetch("/createdesign", {
         method: "POST",
@@ -706,10 +716,62 @@ const fetchUserDesigns = async () => {
   }
 }
 
+const populateUserLabels = (data = userLabelsResponse) => {
+  userLabelsWrapper.innerHTML = '';
+  console.log(data)
+  if (!data || data.labels.length == 0) return userLabelsWrapper.innerHTML = 'No labels yet!';
+  data.labels.map(imageItem => {
+    let currentImage = new Image();
+    currentImage.src = imageItem.url;
+
+    userLabelsWrapper.innerHTML += `
+    <div class="user-label-image" onclick="selectLabel(this, '${imageItem.name}')">
+      <img src="${imageItem.url}" alt="${imageItem.name}">
+      <p>${imageItem.name}</p>
+    </div>`;
+  })
+}
+
+const fetchUserLabels = async () => {
+  try {
+    const userLabelsRequest = await fetch("/obtainlabels");
+    userLabelsResponse = await userLabelsRequest.json();
+    if (userLabelsRequest.ok) {
+      populateUserLabels();
+    }
+  } catch (error) {
+    console.log(error);
+    notyf.error("Something went wrong in fetching labels!");
+  }
+}
+
+const includeLabel = (decision) => {
+  if (!decision) {
+    userLabelsWrapper.style.opacity = 0.5;
+    userLabelsWrapper.style.pointerEvents = "none";
+    neckLabelId = null;
+    isNeckLabelSelected = false;
+    document.querySelectorAll(".user-label-image").forEach(element => element.classList.remove("active-selection"))
+  } else {
+    userLabelsWrapper.style.opacity = 1;
+    userLabelsWrapper.style.pointerEvents = "unset";
+    isNeckLabelSelected = true
+  }
+}
+
+const selectLabel = (el, labelId) => {
+  document.querySelectorAll(".user-label-image").forEach(element => element.classList.remove("active-selection"))
+  el.classList.add("active-selection");
+  neckLabelId = labelId;
+  isNeckLabelSelected && updateStats()
+  // upon selecting label, add 10 rupee to the total cost
+}
+
 // also create a fetch function to fetch the products data and obtain the specific style
 //    based on query params passed to the route
 fetchProductData();
 fetchUserDesigns();
+fetchUserLabels();
 
 // Adding delete button listener for fabric canvas
 document.addEventListener(

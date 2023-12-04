@@ -80,4 +80,8 @@ route.post("/createpaymentlink", authServices.authorizeToken, controller.getpaym
 route.post("/createshiporder", controller.createshiporder);
 route.post("/calculateshippingcharges", authServices.authorizeToken, controller.calculateshippingcharges);
 
+route.get("/obtainlabels", authServices.authorizeToken, controller.obtainlabels);
+route.post("/uploadlabel", authServices.authorizeToken, upload.single('labelImage'), controller.uploadlabel)
+route.post("/deletelabel", authServices.authorizeToken, controller.deletelabel)
+
 module.exports = route

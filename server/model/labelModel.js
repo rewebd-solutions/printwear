@@ -8,7 +8,7 @@ const LabelSchema = new mongoose.Schema({
     labels: [
         {
             name: String,
-            URL: String
+            url: String
         }
     ]
 })

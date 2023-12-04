@@ -372,7 +372,7 @@ i.left {
    margin-left: 2rem;
 }
 
-.user-design-images {
+.user-design-images, .user-label-images {
    display: flex;
    gap: 0.5rem;
    overflow-x: scroll;
@@ -380,7 +380,12 @@ i.left {
    width: 550px;
 }
 
-.user-design-image {
+.user-label-images {
+   opacity: 0.5;
+   pointer-events: none;
+}
+
+.user-design-image, .user-label-image {
    box-shadow: 0 0 10px rgba(0, 0, 0, 0.111);
    border-radius: 5px;
    padding: 0.2rem;
@@ -388,7 +393,7 @@ i.left {
    cursor: pointer;
 }
 
-.user-design-image img {
+.user-design-image img, .user-label-image img {
    width: 150px;
    object-fit: cover;
 }

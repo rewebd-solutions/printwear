@@ -154,7 +154,7 @@ exports.uploadimage = async (req, res) => {
   try {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
-    const fileReference = storageReference.child(`images/${req.userId + "_" + req.file.originalname}`);
+    const fileReference = storageReference.child(`images/${req.userId + "_" + otpGen.generate(4) + "_" + req.file.originalname}`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
 
@@ -199,7 +199,7 @@ exports.deleteimage = async (req, res) => {
   // console.log(imageId);
   try {
     const imageToDelete = await ImageModel.findOne({ userId: req.userId, 'images._id': imageId }, { 'images.$': 1 });
-
+    console.log(imageToDelete)
     const fileReference = storageReference.child(`images/${req.userId + "_" + imageToDelete.images[0].name}`);
     await fileReference.delete();
 
@@ -1266,7 +1266,8 @@ exports.createdesign = async (req, res) => {
             designItems: [{
               itemName: req.body.designImageName,
               URL: req.body.designImageURL
-            }]
+            }],
+            neckLabel: req.body.neckLabel ?? 'n/a'
           }
         }
       },
@@ -1984,7 +1985,7 @@ exports.uploadlabel = async (req, res) => {
   try {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
-    const fileReference = storageReference.child(`labels/${req.userId + "_" + req.file.originalname}`);
+    const fileReference = storageReference.child(`labels/${req.userId + "_" + otpGen.generate(4) + "_" + req.file.originalname}`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
 
@@ -1997,7 +1998,7 @@ exports.uploadlabel = async (req, res) => {
         $push: {
           labels: {
             name: req.file.originalname,
-            URL: fileDownloadURL
+            url: fileDownloadURL
           }
         }
       },
@@ -2011,22 +2012,32 @@ exports.uploadlabel = async (req, res) => {
   }
 }
 
+exports.obtainlabels = async (req, res) => {
+  try {
+    const labelData = await LabelModel.findOne({ userId: req.userId });
+    res.status(200).json(labelData)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: "Label data error" })
+  }
+}
+
 exports.deletelabel = async (req, res) => {
   const imageId = req.body.imageId;
   // console.log(imageId);
   try {
-    const imageToDelete = await ImageModel.findOne({ userId: req.userId, 'images._id': imageId }, { 'images.$': 1 });
+    const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels._id': imageId }, { 'labels.$': 1 });
     // const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels.' })
-    const fileReference = storageReference.child(`images/${req.userId + "_" + imageToDelete.images[0].name}`);
+    const fileReference = storageReference.child(`labels/${req.userId + "_" + imageToDelete.labels[0].name}`);
     await fileReference.delete();
 
-    await ImageModel.findOneAndUpdate(
+    await LabelModel.findOneAndUpdate(
       {
         userId: req.userId
       },
       {
         $pull: {
-          images: {
+          labels: {
             _id: imageId
           }
         }
@@ -2035,6 +2046,6 @@ exports.deletelabel = async (req, res) => {
     res.status(200).json({ message: "Deleted successfully!" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ message: "Error deleting label" });
   }
 }

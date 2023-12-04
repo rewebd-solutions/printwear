@@ -176,7 +176,10 @@
     <img src="/images/Logo.png" id="logo">
   </div>
   <div class="nav-icons">
-    <a href="#" class="top-nav-btn" onclick="openDesignUploadModal(event)">
+    <a href="#" class="top-nav-btn" onclick="openDesignUploadModal('label', event)">
+      <i style="font-size: 16px;" class="fa fa-file-upload"></i> Upload label
+    </a>
+    <a href="#" class="top-nav-btn" onclick="openDesignUploadModal('image', event)">
       <i style="font-size: 16px;" class="fa fa-file-upload"></i> Upload design
     </a>
     <a href="/profile" class="top-nav-btn"><i style="font-size: 16px;" class="fa-solid fa-user"></i> Profile</a>
@@ -185,12 +188,35 @@
 </div>
 <script>
   var isReadyForRendering = false;
-  const fetchImageAndPopulate = async () => {
+  const modularData = {
+    image: {
+      obtain: '/obtainimages',
+      type: 'image',
+      delete: '/deleteimage',
+      upload: '/uploadimage',
+      arrayName: 'images',
+      modalTitle: 'Upload your images',
+      modalDesc: 'Click to browse for your images',
+      formLabel: 'image'
+    },
+    label: {
+      obtain: '/obtainlabels',
+      type: 'label',
+      delete: '/deletelabel',
+      upload: '/uploadlabel',
+      arrayName: 'labels',
+      modalTitle: 'Upload your label',
+      modalDesc: 'Click to browse for your labels',
+      formLabel: 'labelImage'
+    },
+  }
+
+  const fetchImageAndPopulate = async (data) => {
       try {
           const userImageWrapper = document.querySelector(".user-images");
           userImageWrapper.innerHTML = 'Loading...';
 
-          const imageFetch = await fetch("/obtainimages");
+          const imageFetch = await fetch(data.obtain);
           const userImageData = await imageFetch.json();
 
           console.log(userImageData)
@@ -199,16 +225,16 @@
 
           userImageWrapper.innerHTML = '';
            
-          if (!userImageData || userImageData.images.length === 0) return userImageWrapper.innerHTML = "No uploads yet!";
-          userImageData.images.map(imageItem => {
+          if (!userImageData || userImageData[data.arrayName].length === 0) return userImageWrapper.innerHTML = "No uploads yet!";
+          userImageData[data.arrayName].map(imageItem => {
             let currentImage = new Image();
             currentImage.src = imageItem.url;
-            
+            //console.log(userImageData[data.arrayName])
             currentImage.addEventListener("load", () => {
               userImageWrapper.innerHTML += `
                 <div class="design-image-wrapper">
                   <button class="image-settings"><a href="${imageItem.url}" target="_blank"><i class="fa fa-download"></i></a></button>
-                  <button class="image-settings image-settings-2" onclick="deleteImage('${imageItem._id}')"><i class="fa fa-trash"></i></button>
+                  <button class="image-settings image-settings-2" onclick="deleteImage('${data.type}','${imageItem._id}')"><i class="fa fa-trash"></i></button>
                   <div
                       style="width: 250px; display: flex; justify-content: center; align-items: center; background: url('images/transp-checker.jpg')">
                       <img class="design-image" src="${imageItem.url}" alt="" />
@@ -217,8 +243,8 @@
                       <h6>${imageItem.name}</h6>
                       <h6>${currentImage.width + 'x' + currentImage.height}</h6>
                       <div class="design-image-meta">
-                          <p>${imageItem.format}</p>
-                          <p>${imageItem.size} KB</p>
+                          <p>${imageItem.format?? ''}</p>
+                          <p>${imageItem.size ? imageItem.size + 'KB': ''}</p>
                       </div>
                   </div>
                 </div> 
@@ -226,14 +252,14 @@
             })
           })
       } catch(err) {
-          console.log(err);
+          //.log(err);
           notyf.error("Something went wrong in loading images!");
       }
   }
 
-  const deleteImage = async (imageId) => {
+  const deleteImage = async (type, imageId) => {
     try {
-      const imageDeleteRequest = await fetch("/deleteimage", {
+      const imageDeleteRequest = await fetch(modularData[type].delete, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -245,7 +271,7 @@
       const imageDeleteResponse = await imageDeleteRequest.json();
       if (imageDeleteRequest.ok) {
         notyf.success("Design Image deleted successfully!");
-        fetchImageAndPopulate();
+        fetchImageAndPopulate(modularData[type]);
       }
     } catch (error) {
       console.log(error);
@@ -253,7 +279,7 @@
     }
   }
 
-  const handleImageFormSubmit = async (e) => {
+  const handleImageFormSubmit = async (type, e) => {
     e.preventDefault();
     const userImageForm = document.getElementById('user-image-form');
     let userImageFormPreviousDOM = userImageForm.innerHTML;
@@ -263,10 +289,10 @@
     const imageUploadData = new FormData();
     let imageToUpload = e.target.files[0];
     if (!imageToUpload) return;
-    imageUploadData.append("image", imageToUpload);
+    imageUploadData.append(modularData[type].formLabel, imageToUpload);
 
     try {
-      const imageUploadRequest = await fetch("/uploadimage", {
+      const imageUploadRequest = await fetch(modularData[type].upload, {
         body: imageUploadData,
         method: 'POST'
       });
@@ -277,15 +303,17 @@
       }
       userImageForm.innerHTML = userImageFormPreviousDOM;
       notyf.success("Design Image uploaded successfully!");
-      fetchImageAndPopulate();
+      fetchImageAndPopulate(modularData[type]);
     } catch (error) {
       console.log(error);
       notyf.error("Something went wrong in uploading!");
     }
   }
 
-  const openDesignUploadModal = (e) => {
+  const openDesignUploadModal = (type, e) => {
     e.preventDefault();
+    const data = modularData[type];
+    //console.log(data)
     document.querySelector(".navbar-top").insertAdjacentHTML("beforeend", `
       <div class="design-upload-backdrop">
         <div class="design-upload-modal" data-aos="fade-up">
@@ -297,10 +325,10 @@
           <form id="user-image-form">
             <label for="file-input" class="file-input">
                 <i class="fa-solid fa-circle-plus fa-5x"></i>
-                <h5>Upload your designs</h5>
-                <p>Drop your designs here or click to browse</p>
+                <h5>${data.modalTitle}</h5>
+                <p>${data.modalDesc}</p>
             </label>
-            <input id="file-input" type="file" onchange="handleImageFormSubmit(event)" name="image" accept="image/png, image/jpg, image/jpeg" />
+            <input id="file-input" type="file" onchange="handleImageFormSubmit('${type}',event)" name="${type}" accept="image/png, image/jpg, image/jpeg" />
           </form>
           <div class="user-images">
     
@@ -309,7 +337,7 @@
       </div>
     `)
 
-    fetchImageAndPopulate();
+    fetchImageAndPopulate(modularData[type]);
   }
   
   const closeDesignUploadModal = (e) => {

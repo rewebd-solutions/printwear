@@ -63,16 +63,36 @@
 				</div>
 				<div style="display: grid;/* align-items: center; */gap:  1rem;align-items: center;grid-template-columns: 1fr auto 1fr;"><hr style="/* width: 200px; */height: 1px;">OR<hr style="/* width: 200px; */height: 1px;"></div>
 				<div>
-					<label for="design-input" onclick="openDesignUploadModal(event)" class="design-input-label">
+					<label for="design-input" onclick="openDesignUploadModal('image', event)" class="design-input-label">
 						<i class="fa fa-file-upload"></i>
 						Upload Design
 					</label>
 					<!-- <input id="design-input" type="file" multiple="true" accept=".png, .jpg, .jpeg" style="display: none" /> -->
 				</div>
 			</div>
+			
+			<!-- Upload label input -->
+			<div class="steps-container">
+				<div class="right-box-steps"><i class="fa fa-circle-4"></i> <h4>Choose your label</h4></div>
+				<div>
+					<input type="checkbox" id="label-check" onchange="includeLabel(event.target.checked)" />
+					<label for="label-check">Include label</label>
+				</div>
+				<div class="user-label-images">
+					
+				</div>
+				<div style="display: grid; gap: 1rem;align-items: center;grid-template-columns: 1fr auto 1fr;"><hr style="height: 1px;">OR<hr style="height: 1px;"></div>
+				<div>
+					<label for="design-input" onclick="openDesignUploadModal('label', event)" class="design-input-label">
+						<i class="fa fa-file-upload"></i>
+						Upload Label
+					</label>
+					<!-- <input id="design-input" type="file" multiple="true" accept=".png, .jpg, .jpeg" style="display: none" /> -->
+				</div>
+			</div>
 			<!-- Design Side -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-4"></i><h4>Creative area!</h4></div>
+				<div class="right-box-steps"><i class="fa fa-circle-5"></i><h4>Creative area!</h4></div>
 				<div class="list sides-list">
 					<h3>Sides</h3>
 					<div>
@@ -157,6 +177,14 @@
 								<td>Base price + Print Price</td>
 								<td class="total-price"></td>
 							</tr>
+							<tr>
+								<td>Neck Label (not selected)</td>
+								<td>₹0</td>
+							</tr>
+							<tr>
+								<td>Grand Total:</td>
+								<td class="total-price"></td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -164,7 +192,7 @@
 			
 			<!-- Enter design name -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-5"></i><h4>Name your design</h4></div>
+				<div class="right-box-steps"><i class="fa fa-circle-7"></i><h4>Name your design</h4></div>
 				<input type="text" placeholder="My top design..." id="design-name" class="design-name-input" required />
 				<h4>Enter unique SKU</h4>
 				<input type="text" oninput="modifySKUInput(event)" placeholder="DESIGN-001, FANCY-2, etc." id="sku-name" class="design-name-input" />

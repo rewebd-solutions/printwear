@@ -50,6 +50,10 @@ var NewDesignSchema = new mongoose.Schema({
                     URL: String
                 }
             ],
+            neckLabel: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'labels',
+            },
             isAddedToShopify: {
                 type: Boolean,
                 default: false
