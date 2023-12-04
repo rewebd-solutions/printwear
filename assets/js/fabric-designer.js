@@ -436,12 +436,13 @@ const downloadDesign = () => {
   const node = document.getElementById("product-design");
 
   const config = {
-    width: 1200,
-    height: 1200,
+    width: node.offsetWidth * 2,
+    height: node.offsetHeight * 2.5,
     style: {
       transformOrigin: "0 0",
       transform: "scale(2)",
     },
+    copyDefaultStyles: true
   };
 
   // Use a short delay to ensure the browser has updated the DOM with the transform
@@ -477,9 +478,11 @@ const saveDesign = async () => {
   };
   
   const SKU = document.getElementById("sku-name");
-  if (!SKU.reportValidity()) {
-    return notyf.error("Give your design a SKU Code");
-  }
+
+  // asked by client to disable SKU mandation
+  // if (!SKU.reportValidity()) {
+  //   return notyf.error("Give your design a SKU Code");
+  // }
 
   disableButton(true);
 
@@ -495,12 +498,13 @@ const saveDesign = async () => {
     const node = document.getElementById("product-design");
 
     const config = {
-      width: 1200,
-      height: 1200,
+      width: node.offsetWidth * 2,
+      height: node.offsetHeight * 2.5,
       style: {
         transformOrigin: "0 0",
         transform: "scale(2)",
       },
+      copyDefaultStyles: true
     };
     
     /* this is the old method where all the client images get sent to the server and everything is uploaded

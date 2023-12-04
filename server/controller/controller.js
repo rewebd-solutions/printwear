@@ -22,6 +22,7 @@ var DesignModel = require("../model/designModel");
 var OrderModel = require("../model/orderModel");
 var NewDesignModel = require("../model/newDesignModel");
 var OrderHistoryModel = require("../model/orderHistory");
+var LabelModel = require("../model/labelModel");
 
 const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 const otpGen = require("otp-generator")
@@ -68,7 +69,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   // console.log(req.body);
   const check = await UserModel.findOne({ email: req.body.email })
-  
+
   if (check === null) {
     return res.render("login", { status: "User does not exist" });
   }
@@ -198,10 +199,10 @@ exports.deleteimage = async (req, res) => {
   // console.log(imageId);
   try {
     const imageToDelete = await ImageModel.findOne({ userId: req.userId, 'images._id': imageId }, { 'images.$': 1 });
-    
+
     const fileReference = storageReference.child(`images/${req.userId + "_" + imageToDelete.images[0].name}`);
     await fileReference.delete();
-    
+
     await ImageModel.findOneAndUpdate(
       {
         userId: req.userId
@@ -698,7 +699,7 @@ const generateShiprocketToken = async () => {
       })
     });
     const shiprocketTokenResponse = await shiprocketTokenRequest.json();
-    return shiprocketTokenResponse;   
+    return shiprocketTokenResponse;
   } catch (error) {
     console.log(error);
     return;
@@ -783,7 +784,7 @@ exports.getshopifyorders = async (req, res) => {
       console.log(error);
       res.status(500).json({ error });
     }
-    
+
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
@@ -810,7 +811,7 @@ exports.connectShopify = async (req, res) => {
     const fetchData = await fetchReq.json();
     // console.log(fetchData);
 
-    if (!fetchReq.ok) return res.status(400).json({error: "Couldn't find store"});
+    if (!fetchReq.ok) return res.status(400).json({ error: "Couldn't find store" });
 
     const store = await StoreModel.findOneAndUpdate(
       { userid: req.userId },
@@ -818,10 +819,10 @@ exports.connectShopify = async (req, res) => {
         $set: {
           userid: req.userId,
           shopifyStore: {
-              shopName: SHOPIFY_SHOP_NAME,
-              shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
-              shopifyStoreURL: SHOPIFY_SHOP_URL
-            }
+            shopName: SHOPIFY_SHOP_NAME,
+            shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
+            shopifyStoreURL: SHOPIFY_SHOP_URL
+          }
         }
       },
       { new: true, upsert: true }
@@ -832,7 +833,7 @@ exports.connectShopify = async (req, res) => {
 
   } catch (error) {
     console.log("Error in Shopify connect " + error)
-    res.status(400).json({error})
+    res.status(400).json({ error })
     return;
   }
 }
@@ -865,11 +866,11 @@ exports.connectWooCommerce = async (req, res) => {
           // _id: 
           userid: req.userId,
           wooCommerceStore: {
-              shopName: WOOCOMMERCE_SHOP_NAME,
-              url: WOOCOMMERCE_SHOP_URL,
-              consumerKey: WOOCOMMERCE_CONSUMER_KEY,
-              consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
-            }
+            shopName: WOOCOMMERCE_SHOP_NAME,
+            url: WOOCOMMERCE_SHOP_URL,
+            consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+            consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
+          }
         }
       },
       { new: true, upsert: true }
@@ -909,8 +910,8 @@ exports.getZohoProductsFromInventory = async (req, res) => {
       return zohoInventoryItemsRequest.json()
     })
 
-     // regex pattern string arrays
-     const shirtFilterKeywords = [
+    // regex pattern string arrays
+    const shirtFilterKeywords = [
       "bw mens",
       "bw womens",
       "hoodie",
@@ -1037,7 +1038,7 @@ exports.getZohoProductsFromInventory = async (req, res) => {
 
     const URLResults = await Promise.all(imageURLsPromise);
     URLResults.forEach((result, i) => {
-        imageURLs[i].url = result
+      imageURLs[i].url = result
     })
 
     Promise.allSettled(pagePromises).then(results => {
@@ -1072,7 +1073,7 @@ exports.getZohoProductsFromInventory = async (req, res) => {
 
           // apply categorization for each product
           zohoInventoryItemsResponse.items.forEach((product, i) => {
-            
+
             const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer, description, group } = product;
             const splitItemName = item_name.split(/\s*[- ]\s*/);
 
@@ -1081,7 +1082,7 @@ exports.getZohoProductsFromInventory = async (req, res) => {
             let shirtMatches = item_name.toLowerCase().match(shirtPattern);
             let sizeMatches = splitItemName[splitItemName.length - 1].toLowerCase().match(sizePattern);
             if (shirtMatches && shirtMatches[0] === "kids half sleeve") sizeMatches = item_name.split(" - ")[1].toLowerCase().match(sizePattern);
-            
+
             // if size and shirt matches, then
             if (colorMatches && shirtMatches && sizeMatches) {
 
@@ -1163,25 +1164,25 @@ exports.getZohoProductsFromInventory = async (req, res) => {
       if (categorizedProducts["HOODIE"]) delete categorizedProducts["HOODIE"];
       if (categorizedProducts["POLO"]) delete categorizedProducts["POLO"];
       if (categorizedProducts["Women Boyfriend"]) delete categorizedProducts["Women Boyfriend"]
-      
+
       // creating regex pattern to match and find cloud image product with colors
       const colorPatterns = {};
       Object.keys(categorizedProducts).forEach(key => {
         colorPatterns[key] = new RegExp(Object.keys(categorizedProducts[key].colors).join("|"), "i");
       })
-      
+
       // iterate thru each pattern and find the style and color match
       Object.keys(colorPatterns).forEach(item => {
         imageURLs.forEach((imageURL, i) => {
           let nameMatch = imageURL.image.toLowerCase().match(new RegExp(item, "i"))
           let colorMatch = imageURL.image.toLowerCase().split("-").join(" ").match(colorPatterns[item])
 
-          if(nameMatch && colorMatch){
+          if (nameMatch && colorMatch) {
             let specificSelection = categorizedProducts[item]
             let specificSelectedProduct = specificSelection.colors[Object.keys(specificSelection.colors).find(x => x.toLowerCase() === colorMatch[0])];
 
             // match pattern la back irundhuchuna, then i assign backimage else frontimage
-            if (colorMatch.input.split(/[ .]/)[colorMatch.input.split(/[ .]/).length-2] === "back")
+            if (colorMatch.input.split(/[ .]/)[colorMatch.input.split(/[ .]/).length - 2] === "back")
               specificSelectedProduct.backImage = imageURL.url;
             else specificSelectedProduct.frontImage = imageURL.url;
 
@@ -1231,7 +1232,7 @@ exports.createdesign = async (req, res) => {
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData)
 
-    let uniqueSKU = req.body.productData.product.SKU + "-" + req.body.productData.designSKU;
+    let uniqueSKU = req.body.productData.product.SKU + "-" + (req.body.productData.designSKU != '' ? req.body.productData.designSKU: otpGen.generate(5, { lowerCaseAlphabets: false, specialChars: false }));
     // console.log(uniqueSKU);
     // console.log(req.body.designImageURL)
 
@@ -1250,28 +1251,30 @@ exports.createdesign = async (req, res) => {
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
       {
-        $push: { designs: {
+        $push: {
+          designs: {
             productId: req.body.productData.productId,
-            product: {...req.body.productData.product},
+            product: { ...req.body.productData.product },
             designSKU: uniqueSKU,
             designName: req.body.productData.designName,
             price: parseFloat((req.body.productData.product.price + (req.body.productData.price * 2)).toFixed(2)),
-            designDimensions: {...req.body.productData.designDimensions},
+            designDimensions: { ...req.body.productData.designDimensions },
             designImage: {
-                front: req.body.direction === "front" && fileDownloadURL,
-                back: req.body.direction === "back" && fileDownloadURL,
+              front: req.body.direction === "front" && fileDownloadURL,
+              back: req.body.direction === "back" && fileDownloadURL,
             },
             designItems: [{
-                  itemName: req.body.designImageName,
-                  URL: req.body.designImageURL
+              itemName: req.body.designImageName,
+              URL: req.body.designImageURL
             }]
-        }}
+          }
+        }
       },
       { upsert: true, new: true }
     )
 
     console.log(req.userName + " saved design");
-    res.status(200).json({message: "Design successful!"});
+    res.status(200).json({ message: "Design successful!" });
   } catch (error) {
     console.log(error);
     res.status(500);
@@ -1285,7 +1288,7 @@ exports.deletedesign = async (req, res) => {
     res.send("OK");
   } catch (error) {
     console.log(error);
-    res.status(500).send({error});
+    res.status(500).send({ error });
   }
 }
 
@@ -1339,13 +1342,13 @@ exports.createshopifyproduct = async (req, res) => {
       ],
       images: [
         {
-          src: designData.designImage.front?? designData.designImage.back
+          src: designData.designImage.front ?? designData.designImage.back
         }
       ]
     }
-  
+
     const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products.json`
-    
+
     const shopifyProductCreateRequest = await fetch(shopifyEndpoint, {
       headers: {
         'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
@@ -1357,23 +1360,23 @@ exports.createshopifyproduct = async (req, res) => {
       })
     });
     const shopifyProductCreateResponse = await shopifyProductCreateRequest.json();
-   
+
     if (shopifyProductCreateRequest.ok) {
-      await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToShopify': true } } )
+      await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToShopify': true } })
       res.status(200).json({ message: "Added to shopify" })
     }
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({error});
+    res.status(500).json({ error });
   }
-  
+
 }
 
 exports.createwoocommerceorder = async (req, res) => {
   const storeData = await StoreModel.findOne({ userid: req.userId });
   // console.log(storeData.wooCommerceStore);
-  if (!(storeData.wooCommerceStore.url)) return res.status(404).json({error: "WooCommerce store not connected!"});
+  if (!(storeData.wooCommerceStore.url)) return res.status(404).json({ error: "WooCommerce store not connected!" });
   const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.find(design => design.designSKU === req.body.designSKU)
 
   const consumerKey = storeData.wooCommerceStore.consumerKey;
@@ -1395,7 +1398,7 @@ exports.createwoocommerceorder = async (req, res) => {
     regular_price: designData.price + '',
     sale_price: designData.price + '',
     sku: req.body.designSKU,
-    description: designData.description || 'User generated design' ,
+    description: designData.description || 'User generated design',
     short_description: designData.product.name,
     dimensions: {
       length: designData.product.dimensions.length + '',
@@ -1441,17 +1444,17 @@ exports.createwoocommerceorder = async (req, res) => {
       body: JSON.stringify(productData),
     });
     const createWooProductResponse = await createWooProductRequest.json();
-    
-    await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToWoocommerce': true } } )
-    if(createWooProductResponse.data?.status && createWooProductResponse.data.status != 200) {
+
+    await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToWoocommerce': true } })
+    if (createWooProductResponse.data?.status && createWooProductResponse.data.status != 200) {
       res.status(createWooProductResponse.data.status).json({ message: createWooProductResponse.message });
       return console.log("Uploaded failed");
     }
-    if(createWooProductRequest.ok) return res.json({ message: "Created successfully. WooCommerce ID: " + createWooProductResponse.id })
-    
+    if (createWooProductRequest.ok) return res.json({ message: "Created successfully. WooCommerce ID: " + createWooProductResponse.id })
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({err});
+    res.status(500).json({ err });
   }
 };
 
@@ -1486,11 +1489,11 @@ exports.addmockup = async (req, res) => {
   try {
     // const productsData = await ZohoProductModel.find({});
     // const sample data = {
-//       "name": "Women's Half Sleeve",
-//       "description": "Women's Half Sleeve T-Shirt ready to print",
-//       "product": "6520cee2094cfa85e4fcbd19",
-//       "image": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/mockups%2Fwomen-tees-mockup.png?alt=media&token=782ccdca-1ca3-437d-a71e-ca1fbb323fb1"
-// }
+    //       "name": "Women's Half Sleeve",
+    //       "description": "Women's Half Sleeve T-Shirt ready to print",
+    //       "product": "6520cee2094cfa85e4fcbd19",
+    //       "image": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/mockups%2Fwomen-tees-mockup.png?alt=media&token=782ccdca-1ca3-437d-a71e-ca1fbb323fb1"
+    // }
     const { name, description, product, image, canvas } = req.body;
     const mockupsData = await MockupModel.create({
       name, description, product, image, canvas
@@ -1523,22 +1526,22 @@ exports.createorder = async (req, res) => {
   try {
     const orderExists = await OrderModel.findOne({ userId: req.userId, 'items.designId': req.body.designId });
     if (orderExists) return res.status(400).json({ message: 'Item already in cart' })
-    let orderData = await OrderModel.findOne({ userId: req.userId }); 
+    let orderData = await OrderModel.findOne({ userId: req.userId });
 
     if (orderData) {
-      orderData.items.push( 
-      {
-        designId: req.body.designId,
-        productId: req.body.productId,
-        price: req.body.price
-      });
+      orderData.items.push(
+        {
+          designId: req.body.designId,
+          productId: req.body.productId,
+          price: req.body.price
+        });
       orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
       await orderData.save();
       // console.dir(orderData, { depth: 5 });
     } else {
       const newOrder = new OrderModel({
         userId: req.userId,
-        items: [ {
+        items: [{
           designId: req.body.designId,
           productId: req.body.productId,
           price: req.body.price
@@ -1562,7 +1565,7 @@ exports.getorders = async (req, res) => {
     const orderData = await OrderModel.findOne({ userId: req.userId });
     // console.log(req.userId, orderData)
     if (!orderData) return res.status(404).json({ message: 'No orders yet!' });
-    const designsFromOrders = orderData.items.map(item => item.designId );
+    const designsFromOrders = orderData.items.map(item => item.designId);
     // console.log(designsFromOrders);
     const designsData = await NewDesignModel.aggregate([
       {
@@ -1597,7 +1600,7 @@ exports.deleteorderitem = async (req, res) => {
     // console.log(req.body.designId)
     const orderData = await OrderModel.findOne({ userId: req.userId });
     if (!orderData) return res.status(400).json({ message: "Couldn't find item" });
-    
+
     orderData.items = orderData.items.filter(item => item.designId + "" != req.body.designId);
     orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0);
     await orderData.save();
@@ -1623,16 +1626,16 @@ exports.updateorder = async (req, res) => {
     // console.log(req.body)
     const orderData = await OrderModel.findOne({ userId: req.userId, 'items.designId': req.body.designId });
     if (!orderData) return res.status(400).json({ message: "Coulnd't find order" });
-    
+
     const currentItem = orderData.items.findIndex(item => item.designId + "" == req.body.designId);
-    
+
     if (!orderData) return res.status(400).json({ message: "Coulnd't find item" });
 
     orderData.items[currentItem].quantity = req.body.quantity;
     orderData.items[currentItem].price = req.body.price * req.body.quantity;
 
     orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
-    
+
     await orderData.save();
 
     res.json({ message: 'Quantity updated!' });
@@ -1647,8 +1650,8 @@ exports.updateorder = async (req, res) => {
 exports.billing = async (req, res) => {
   try {
     const orderData = await OrderModel.findOne({ userId: req.userId });
-    if (!orderData) return res.render("billing", { orderData: {items: []} });
-    const designsFromOrders = orderData.items.map(item => item.designId );
+    if (!orderData) return res.render("billing", { orderData: { items: [] } });
+    const designsFromOrders = orderData.items.map(item => item.designId);
     // console.log(designsFromOrders);
     const designsData = await NewDesignModel.aggregate([
       {
@@ -1690,8 +1693,8 @@ exports.getpaymentlink = async (req, res) => {
       pincode,
       state,
       country,
-     } = req.body;
-    
+    } = req.body;
+
     const orderData = await OrderModel.findOne({ userId: req.userId });
 
     let extraId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
@@ -1732,9 +1735,10 @@ exports.getpaymentlink = async (req, res) => {
 
     if (paymentLinkResponse.code) return res.status(400).json({ message: 'Error creating payment link!', error: paymentLinkResponse.message });
 
-    await OrderModel.findOneAndUpdate({ userId: req.userId }, { 
+    await OrderModel.findOneAndUpdate({ userId: req.userId }, {
       $set: {
-        billingAddress: { firstName,
+        billingAddress: {
+          firstName,
           lastName,
           mobile,
           email,
@@ -1742,9 +1746,10 @@ exports.getpaymentlink = async (req, res) => {
           city,
           pincode,
           state,
-          country 
+          country
         },
-        shippingAddress: { firstName,
+        shippingAddress: {
+          firstName,
           lastName,
           mobile,
           email,
@@ -1752,7 +1757,7 @@ exports.getpaymentlink = async (req, res) => {
           city,
           pincode,
           state,
-          country 
+          country
         },
         printwearOrderId: orderData.printwearOrderId + "-" + extraId,
         CashfreeOrderId: paymentLinkResponse.cf_order_id,
@@ -1780,7 +1785,7 @@ exports.calculateshippingcharges = async (req, res) => {
     const shippingChargeResponse = await shippingChargeRequest.json();
     // console.log(shippingChargeResponse)
     if (shippingChargeResponse.status != 200) return res.status(shippingChargeResponse.status_code || shippingChargeResponse.status).json({ message: shippingChargeResponse.message });
-    
+
     const recommendedCourierID = shippingChargeResponse.data.recommended_courier_company_id;
     const charges = shippingChargeResponse.data.available_courier_companies.find(courier => courier.courier_company_id == recommendedCourierID)["freight_charge"];
     const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, { $set: { deliveryCharges: charges } });
@@ -1971,5 +1976,65 @@ exports.getorderhistory = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error fetching orderhistory" });
+  }
+}
+
+// new endpoint to upload new label
+exports.uploadlabel = async (req, res) => {
+  try {
+    // console.log(req.file);
+    const fileBuffer = req.file.buffer;
+    const fileReference = storageReference.child(`labels/${req.userId + "_" + req.file.originalname}`);
+    await fileReference.put(fileBuffer, { contentType: 'image/png' });
+    const fileDownloadURL = await fileReference.getDownloadURL();
+
+    await LabelModel.findOneAndUpdate(
+      { userId: req.userId },
+      {
+        $setOnInsert: {
+          userId: req.userId,
+        },
+        $push: {
+          labels: {
+            name: req.file.originalname,
+            URL: fileDownloadURL
+          }
+        }
+      },
+      { new: true, upsert: true }
+    )
+
+    res.status(200).json({ message: "Success" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to upload image" });
+  }
+}
+
+exports.deletelabel = async (req, res) => {
+  const imageId = req.body.imageId;
+  // console.log(imageId);
+  try {
+    const imageToDelete = await ImageModel.findOne({ userId: req.userId, 'images._id': imageId }, { 'images.$': 1 });
+    // const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels.' })
+    const fileReference = storageReference.child(`images/${req.userId + "_" + imageToDelete.images[0].name}`);
+    await fileReference.delete();
+
+    await ImageModel.findOneAndUpdate(
+      {
+        userId: req.userId
+      },
+      {
+        $pull: {
+          images: {
+            _id: imageId
+          }
+        }
+      }
+    )
+    res.status(200).json({ message: "Deleted successfully!" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
   }
 }
