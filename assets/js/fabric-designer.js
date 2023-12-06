@@ -226,15 +226,17 @@ const updateStats = () => {
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
 
+  let printingPrice = (imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0) ? 70.00 : imageAreaInInches * 2 
+
   priceTable.children[0].children[1].innerHTML = imageHeightInInches + " in";
   priceTable.children[1].children[1].innerHTML = imageWidthInInches + " in";
   priceTable.children[2].children[1].innerHTML = imageAreaInInches + " in²";
   priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
-  priceTable.children[4].children[1].innerHTML = "₹" + (imageAreaInInches * 2).toFixed(2);
-  priceTable.children[5].children[1].innerHTML = "₹" + ((imageAreaInInches * 2) + variantPrice).toFixed(2);
+  priceTable.children[4].children[1].innerHTML = "₹" + (printingPrice).toFixed(2);
+  priceTable.children[5].children[1].innerHTML = "₹" + (printingPrice + variantPrice).toFixed(2);
   priceTable.children[6].children[0].innerHTML = isNeckLabelSelected ? "Neck Label(selected)" : "Neck Label(not selected)";
   priceTable.children[6].children[1].innerHTML = isNeckLabelSelected ? "₹10" : "₹0";
-  priceTable.children[7].children[1].innerHTML = isNeckLabelSelected ? "₹" + ((imageAreaInInches * 2) + variantPrice + 10).toFixed(2) : "₹" + ((imageAreaInInches * 2) + variantPrice).toFixed(2);
+  priceTable.children[7].children[1].innerHTML = isNeckLabelSelected ? "₹" + (printingPrice + variantPrice + 10).toFixed(2) : "₹" + (printingPrice + variantPrice).toFixed(2);
 };
 
 const changeSize = (e, size, id) => {
@@ -544,7 +546,7 @@ const saveDesign = async () => {
       },
       designName: designName.value,
       designSKU: SKU.value,
-      price: parseFloat(calculateTotalArea().toFixed(2)),
+      price: parseFloat(calculateTotalArea().toFixed(2)), //sending only area because can't trust client with sending calculated price
       designDimensions: {
         width: parseFloat((designImageWidth * Product.pixelToInchRatio).toFixed(3)),
         height: parseFloat((designImageHeight * Product.pixelToInchRatio).toFixed(3)),
@@ -725,7 +727,7 @@ const populateUserLabels = (data = userLabelsResponse) => {
     currentImage.src = imageItem.url;
 
     userLabelsWrapper.innerHTML += `
-    <div class="user-label-image" onclick="selectLabel(this, '${imageItem.name}')">
+    <div class="user-label-image" onclick="selectLabel(this, '${imageItem._id}')">
       <img src="${imageItem.url}" alt="${imageItem.name}">
       <p>${imageItem.name}</p>
     </div>`;
@@ -752,6 +754,7 @@ const includeLabel = (decision) => {
     neckLabelId = null;
     isNeckLabelSelected = false;
     document.querySelectorAll(".user-label-image").forEach(element => element.classList.remove("active-selection"))
+    updateStats()
   } else {
     userLabelsWrapper.style.opacity = 1;
     userLabelsWrapper.style.pointerEvents = "unset";

@@ -1257,7 +1257,7 @@ exports.createdesign = async (req, res) => {
             product: { ...req.body.productData.product },
             designSKU: uniqueSKU,
             designName: req.body.productData.designName,
-            price: parseFloat((req.body.productData.product.price + (req.body.productData.price * 2)).toFixed(2)),
+            price: parseFloat((req.body.productData.product.price + (req.body.productData.price * 2) + (req.body.neckLabel == 'null'? 0: 10)).toFixed(2)),
             designDimensions: { ...req.body.productData.designDimensions },
             designImage: {
               front: req.body.direction === "front" && fileDownloadURL,
@@ -1267,7 +1267,7 @@ exports.createdesign = async (req, res) => {
               itemName: req.body.designImageName,
               URL: req.body.designImageURL
             }],
-            neckLabel: req.body.neckLabel ?? 'n/a'
+            neckLabel: req.body.neckLabel == 'null'? undefined: req.body.neckLabel
           }
         }
       },
