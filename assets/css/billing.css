@@ -1,4 +1,4 @@
-.billing-address-form {
+.billing-address-form, .retail-order-form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -82,6 +82,8 @@ hr {
 .disabled {
     background-color: #ff7653 !important;
     cursor: not-allowed !important;
+    pointer-events: none !important;
+    opacity: 0.6;
  }
 
 .left-bill {

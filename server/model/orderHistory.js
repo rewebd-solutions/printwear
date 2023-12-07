@@ -77,6 +77,8 @@ var OrderHistorySchema = new mongoose.Schema({
             printwearOrderId: String,
             shipRocketOrderId: String,
             shipmentId: String,
+            customerOrderId: String,
+            retailPrice: Number,
             createdAt: {
                 type: mongoose.Schema.Types.Date,
                 default: Date.now

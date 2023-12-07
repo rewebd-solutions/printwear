@@ -646,43 +646,8 @@ const setPosition = (e, position) => {
   fabricCanvas.renderAll();
 };
 
-// Add text to canvas
-// const addTextToCanvas = () => {
-//   const text = document.getElementById("canvas-text-input").value;
-//   if (text.trim() === "" || !fabricCanvas) return;
+// removed text functionality
 
-//   const fontName = document.getElementById("text-font").value;
-//   const fontWeight = document.getElementById("text-font-weight").value;
-//   const textColor = document.getElementById("text-color-picker").value;
-
-//   const textObj = new fabric.IText(text, {
-//     left: 10,
-//     top: 10,
-//     fontFamily: fontName,
-//     angle: 0,
-//     fill: textColor,
-//     scaleX: 0.5,
-//     scaleY: 0.5,
-//     fontWeight: fontWeight,
-//     hasRotatingPoint: true,
-//   });
-
-//   fabricCanvas.add(textObj);
-//   fabricCanvas.setActiveObject(textObj);
-//   fabricCanvas.renderAll();
-//   updateStats();
-// };
-
-// function to change input font to preview the font in input box itself
-// const changeInputFont = (e) => {
-//   textInputBox.style.fontFamily = e.target.value;
-// };
-// // func to change input box font weight for preview → ////// doesnt work! /////
-// const changeInputFontWeight = (e) => {
-//   textInputBox.style.fontWeight = e.target.value;
-// };
-
-// function to change SKU input with correct validity
 const modifySKUInput = (event) => {
   let string = event.target.value;
   event.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase().slice(0, 10);

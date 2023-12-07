@@ -1538,7 +1538,6 @@ exports.createorder = async (req, res) => {
         });
       orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
       await orderData.save();
-      // console.dir(orderData, { depth: 5 });
     } else {
       const newOrder = new OrderModel({
         userId: req.userId,
@@ -1694,10 +1693,15 @@ exports.getpaymentlink = async (req, res) => {
       pincode,
       state,
       country,
+      retailPrice,
+      customerOrderId
     } = req.body;
 
     const orderData = await OrderModel.findOne({ userId: req.userId });
 
+    // this is only for testing where i need to check multiple times if i can process a payment and cashfree demands
+    // unique ID everytime i request a payment like
+    // hence this is for testing only, once the logic is stable, remove it the extraId
     let extraId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
 
     let expiryDate = new Date();
@@ -1713,10 +1717,12 @@ exports.getpaymentlink = async (req, res) => {
         "x-api-version": "2022-09-01"
       },
       body: JSON.stringify({
-        order_id: orderData.printwearOrderId + "-" + extraId,
+        order_id: orderData.printwearOrderId,
+        order_id: orderData.printwearOrderId + '-' + extraId,
         order_amount: parseFloat((orderData.totalAmount + orderData.deliveryCharges).toFixed(2)),
         order_currency: "INR",
-        order_note: `Payment for Order: ${orderData.printwearOrderId + "-" + extraId}`,
+        order_note: `Payment for Order: ${orderData.printwearOrderId}`,
+        order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
         customer_details: {
           customer_id: req.userId,
           customer_name: firstName + " " + lastName,
@@ -1760,14 +1766,17 @@ exports.getpaymentlink = async (req, res) => {
           state,
           country
         },
+        //just for testing.. remove the below line after testing done
         printwearOrderId: orderData.printwearOrderId + "-" + extraId,
         CashfreeOrderId: paymentLinkResponse.cf_order_id,
         paymentLinkId: paymentLinkResponse.payment_session_id,
-        paymentLink: paymentLinkResponse.payments.url
+        paymentLink: paymentLinkResponse.payments.url,
+        retailPrice: retailPrice,
+        customerOrderId: customerOrderId
       },
     });
 
-    res.send({ link: paymentLinkResponse.payment_session_id });
+    res.status(200).json({ link: paymentLinkResponse.payment_session_id });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Failed to create payment link!" });
@@ -1821,9 +1830,12 @@ exports.createshiporder = async (req, res) => {
       if (!orderData) return res.json({ message: "ok" });
 
       const designData = await NewDesignModel.findOne({ userId: userid });
+      // i think i did this for fooling cashfree webhook hitting twice but didnt work ig
       let orderId = orderData.printwearOrderId;
       orderData.printwearOrderId = null;
       await orderData.save();
+
+      let customerOrderId = orderData.customerOrderId;
 
       orderData.paymentStatus = "success";
       orderData.amountPaid = req.body.data.payment.payment_amount;
@@ -1843,7 +1855,7 @@ exports.createshiporder = async (req, res) => {
       // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
 
       const shiprocketOrderData = ({
-        "order_id": orderId,
+        "order_id": customerOrderId,
         "order_date": formatDate(new Date()),
         "pickup_location": "Primary",
         "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
@@ -1886,7 +1898,7 @@ exports.createshiporder = async (req, res) => {
         "giftwrap_charges": 0,
         "transaction_charges": 0,
         "total_discount": 0,
-        "sub_total": orderData.totalAmount,
+        "sub_total": orderData.retailPrice,
         "length": 28,
         "breadth": 20,
         "height": 0.5,
@@ -1910,7 +1922,7 @@ exports.createshiporder = async (req, res) => {
 
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-      orderData.deliveryStatus = "placed";
+      orderData.deliveryStatus = "processing";
       orderData.printwearOrderId = orderId;
 
       // implement orderhistory
@@ -1944,7 +1956,9 @@ exports.createshiporder = async (req, res) => {
           shipmentId: 1,
           createdAt: 1,
           deliveredOn: 1,
-          processed: 1
+          processed: 1,
+          retailPrice: 1,
+          customerOrderId: 1,
         }
       });
 
@@ -2047,5 +2061,24 @@ exports.deletelabel = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error deleting label" });
+  }
+}
+
+
+// endpoint for checking if orderid is unique
+exports.checkorderid = async (req, res) => {
+  try {
+    const currentOrderId = req.body.customerOrderId;
+    const orderIDs = await OrderHistoryModel.findOne({ userId: req.userId });
+    if (!orderIDs) return res.status(200).json({ message: "OK" });
+    const orderIDmatches = orderIDs.orderData.find((order) => order.customerOrderId == currentOrderId);
+    console.log(orderIDmatches)
+    if (!orderIDmatches) {
+      return res.status(200).json({ message: "OK" })
+    }
+    return res.status(400).json({ message: "Order ID already exists!" })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error when checking order id" })
   }
 }

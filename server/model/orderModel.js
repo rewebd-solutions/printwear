@@ -74,6 +74,8 @@ var OrderSchema = new mongoose.Schema({
     CashfreeOrderId: String,
     printwearOrderId: String,
     shipRocketOrderId: String,
+    customerOrderId: String,
+    retailPrice: Number,
     shipmentId: String,
     createdAt: {
         type: mongoose.Schema.Types.Date,

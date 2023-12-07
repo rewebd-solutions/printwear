@@ -62,6 +62,20 @@
                         <% }) %>
                     </ul>
                 </div>
+                <div class="retail-order-form">
+                    <!-- <h3>Billing Address:</h3> -->
+                    <div class="form-group">
+                        <div>
+                            <label for="customerOrderId">Your order ID:</label>
+                            <input type="text" id="customerOrderId" placeholder="Order ID must be 10 characters long" title="Order ID must be 10 characters long!" name="customerOrderId" required>
+                        </div>
+        
+                        <div>
+                            <label for="retailPrice">Retail Price:</label>
+                            <input type="text" id="retailPrice" name="retailPrice" required>
+                        </div>
+                    </div>
+                </div>
                 <div class="billing-address-form">
                     <h3>Billing Address:</h3>
                     <div class="form-group">
@@ -176,12 +190,69 @@
         var notyf = new Notyf();
         var ttlp = "<%= totalPrice %>";
         var disabled = false;
+        var orderIdVerified = false;
+        var retailVerified = false;
 
         const cashfree = Cashfree({
             mode: "sandbox" //or production
         });
 
         const pincode = document.querySelector("#pincode");
+        const orderIdInput = document.querySelector("input#customerOrderId");
+        const retailPriceInput = document.querySelector("input#retailPrice");
+
+        retailPriceInput.oninput = (e) => {
+            let string = e.target.value;
+            e.target.value = string.replace(/ /g, '').replace(/[^.0-9-_]/g, '');
+            if (e.target.value.length < ttlp.split(".")[0].length) return retailVerified = false;
+            // check if the number of digits in design price and retail price are same and then check if it is greater or not
+            if (parseFloat(e.target.value) <= parseFloat(ttlp)) {
+                retailVerified = false;
+                return notyf.error("Retail price is less than billing total!");
+            } else {
+                retailVerified = true;
+                return notyf.success("Retail price set✅");
+            }
+        }
+
+        const checkOrderID = async (orderId) => {
+            try {
+                const checkOrderIDRequest = await fetch ("/checkorderid", { 
+                    method: "POST",
+                    body: JSON.stringify({
+                        customerOrderId: orderId
+                    }),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                const checkOrderIDResponse = await checkOrderIDRequest.json();
+                if (checkOrderIDRequest.ok) {
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.log(error);
+                notyf.error("Something went wrong in checking Order ID");
+                return true; // i return true bcs dont want customer to get stuck bcs of internal server error
+            }
+        }
+
+        orderIdInput.oninput = async (e) => {
+            let string = e.target.value;
+            e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase().slice(0, 10);
+            if (e.target.value.length == 10) {
+                e.target.setAttribute("disabled", true);
+                if (await checkOrderID(e.target.value)) {
+                    e.target.removeAttribute("disabled");
+                    orderIdVerified = true;
+                    return notyf.success("Order ID is verified");
+                }
+                orderIdVerified = false;
+                e.target.removeAttribute("disabled");
+                return notyf.error("Order ID is repeated. Please enter unique Order ID");
+            }
+        }
 
         pincode.oninput = async (e) => {
             if (e.target.value.length == 6) {
@@ -234,17 +305,24 @@
             disabled = true;
             e.target.classList.add("disabled");
             
+            if (!orderIdVerified || !retailVerified) {
+                disabled = false;
+                e.target.classList.remove("disabled");
+                return notyf.error("Please check Order ID and Retail Price");
+            }
+
             const formsData = document.querySelectorAll(".billing-address-form input");
+            
             for(const inputItem of formsData){
                 inputItem.style.outline = "none";
                 if (!inputItem.reportValidity()) {
+                    disabled = false;
                     e.target.classList.remove("disabled");
                     return notyf.error("Check " + inputItem.id);
                 }             
             }
 
             const pincode = document.querySelector("#pincode");
-            console.log(pincode.value)
 
             if (await checkPincode(pincode.value)) {
                 notyf.success("Pincode verified!");
@@ -258,6 +336,8 @@
                     pincode: formsData[6].value,
                     state: document.querySelector('#state').value,
                     country: formsData[7].value,
+                    retailPrice: retailPriceInput.value,
+                    customerOrderId: orderIdInput.value
                 }
                 try {
                     const createPaymentLinkRequest = await fetch("/createpaymentlink", {
@@ -270,15 +350,17 @@
                     const createPaymentLinkResponse = await createPaymentLinkRequest.json();
                     if (!createPaymentLinkRequest.ok) return notyf.error(createPaymentLinkResponse.message);
                     cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
+                    //location.replace(`https://payments-test.cashfree.com/order/#${createPaymentLinkResponse.link}`);
                 } catch (error) {
                     console.log(error);
                     disabled = false;
                     notyf.error("Something went wrong!");
                 }
-        } else {
-            disabled = false;
-            notyf.error("Check pincode");
-        }
+            } else {
+                disabled = false;
+                e.target.classList.remove("disabled");
+                notyf.error("Check pincode");
+            }
 
         });
 
