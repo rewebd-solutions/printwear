@@ -1247,6 +1247,8 @@ exports.createdesign = async (req, res) => {
     const fileDownloadURL = await fileReference.getDownloadURL();
     //   recordOfFileNames[file.originalname] = fileDownloadURL;
     // }
+    const designImageHeight = req.body.productData.designDimensions.height;
+    const designImageWidth = req.body.productData.designDimensions.width;
 
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
@@ -1257,7 +1259,7 @@ exports.createdesign = async (req, res) => {
             product: { ...req.body.productData.product },
             designSKU: uniqueSKU,
             designName: req.body.productData.designName,
-            price: parseFloat((req.body.productData.product.price + (req.body.productData.price * 2) + (req.body.neckLabel == 'null'? 0: 10)).toFixed(2)),
+            price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : req.body.productData.price * 2) + (req.body.neckLabel == 'null'? 0: 10)).toFixed(2)),
             designDimensions: { ...req.body.productData.designDimensions },
             designImage: {
               front: req.body.direction === "front" && fileDownloadURL,
@@ -1537,6 +1539,7 @@ exports.createorder = async (req, res) => {
           price: req.body.price
         });
       orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
+      orderData.printwearOrderId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
       await orderData.save();
     } else {
       const newOrder = new OrderModel({
@@ -1698,11 +1701,11 @@ exports.getpaymentlink = async (req, res) => {
     } = req.body;
 
     const orderData = await OrderModel.findOne({ userId: req.userId });
-
+    console.log(orderData);
     // this is only for testing where i need to check multiple times if i can process a payment and cashfree demands
     // unique ID everytime i request a payment like
     // hence this is for testing only, once the logic is stable, remove it the extraId
-    let extraId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
+    // let extraId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
 
     let expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 2);
@@ -1718,11 +1721,11 @@ exports.getpaymentlink = async (req, res) => {
       },
       body: JSON.stringify({
         order_id: orderData.printwearOrderId,
-        order_id: orderData.printwearOrderId + '-' + extraId,
+        // order_id: orderData.printwearOrderId + '-' + extraId,
         order_amount: parseFloat((orderData.totalAmount + orderData.deliveryCharges).toFixed(2)),
         order_currency: "INR",
         order_note: `Payment for Order: ${orderData.printwearOrderId}`,
-        order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
+        // order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
         customer_details: {
           customer_id: req.userId,
           customer_name: firstName + " " + lastName,
@@ -1767,7 +1770,7 @@ exports.getpaymentlink = async (req, res) => {
           country
         },
         //just for testing.. remove the below line after testing done
-        printwearOrderId: orderData.printwearOrderId + "-" + extraId,
+        // printwearOrderId: orderData.printwearOrderId,
         CashfreeOrderId: paymentLinkResponse.cf_order_id,
         paymentLinkId: paymentLinkResponse.payment_session_id,
         paymentLink: paymentLinkResponse.payments.url,
@@ -1807,6 +1810,15 @@ exports.calculateshippingcharges = async (req, res) => {
   }
 }
 
+//implement idempotency:
+var idempotencyKeys = new Set();
+function clearIdempotencyKeys() {
+  setTimeout(() => {
+    console.log(idempotencyKeys);
+    idempotencyKeys.clear();
+    console.log(idempotencyKeys);
+  }, 10000);
+}
 // webhook for cashfree to hit and notify about payment
 exports.createshiporder = async (req, res) => {
   // every 10 days token refersh.. thru .env manually
@@ -1822,6 +1834,16 @@ exports.createshiporder = async (req, res) => {
 
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
+    const cf_order_id = req.body.data.order.order_id;
+
+    if (idempotencyKeys.has(cf_order_id)) {
+      return res.status(200).send("OK");
+    }
+
+    clearIdempotencyKeys();
+
+    idempotencyKeys.add(cf_order_id);
+
     console.log(`PAYMENT OK for ${userid} on ${new Date().toLocaleString()}`)
 
     try {
@@ -1831,9 +1853,9 @@ exports.createshiporder = async (req, res) => {
 
       const designData = await NewDesignModel.findOne({ userId: userid });
       // i think i did this for fooling cashfree webhook hitting twice but didnt work ig
-      let orderId = orderData.printwearOrderId;
-      orderData.printwearOrderId = null;
-      await orderData.save();
+      // let orderId = orderData.printwearOrderId;
+      // orderData.printwearOrderId = null;
+      // await orderData.save();
 
       let customerOrderId = orderData.customerOrderId;
 
@@ -1923,7 +1945,7 @@ exports.createshiporder = async (req, res) => {
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "processing";
-      orderData.printwearOrderId = orderId;
+      // orderData.printwearOrderId = orderId;
 
       // implement orderhistory
       await OrderHistoryModel.findOneAndUpdate({ userId: userid }, {

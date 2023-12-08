@@ -548,8 +548,8 @@ const saveDesign = async () => {
       designSKU: SKU.value,
       price: parseFloat(calculateTotalArea().toFixed(2)), //sending only area because can't trust client with sending calculated price
       designDimensions: {
-        width: parseFloat((designImageWidth * Product.pixelToInchRatio).toFixed(3)),
-        height: parseFloat((designImageHeight * Product.pixelToInchRatio).toFixed(3)),
+        width: parseFloat(calculateTotalWidth().toFixed(3)),
+        height: parseFloat(calculateTotalHeight().toFixed(3)),
         top: parseFloat((fabricCanvas.getObjects()[0].top * Product.pixelToInchRatio).toFixed(3)),
         left: parseFloat((fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio).toFixed(3)),
       },
