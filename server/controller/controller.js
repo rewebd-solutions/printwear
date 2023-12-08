@@ -32,6 +32,7 @@ const MockupModel = require("../model/mockupModel");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
+const ZOHO_INVOICE_ORGANIZATION_ID = 60010804173;
 
 // common auth endpoints
 exports.register = async (req, res) => {
@@ -1752,7 +1753,84 @@ exports.createshiporder = async (req, res) => {
         }
       });
 
-      // return res.json(shiprocketOrderData)
+
+      // part where i send the line item data to santo woocomms
+      const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
+      const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
+
+      const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
+      const endpoint = `https://print-wear.in/wp-json/wc/v3/products`;
+
+      const productData = orderData.items.map(item => {
+        let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+        return {
+          name: currentItemDesignData.designName,
+          slug: slugify(currentItemDesignData.designName),
+          type: "simple",
+          status: "publish",
+          regular_price: currentItemDesignData.price + '',
+          sale_price: currentItemDesignData.price + '',
+          sku: currentItemDesignData.designSKU,
+          description: currentItemDesignData.description || 'User generated design',
+          short_description: currentItemDesignData.product.name,
+          dimensions: {
+            length: currentItemDesignData.product.dimensions.length + '',
+            width: currentItemDesignData.product.dimensions.chest + '',
+          },
+          images: [
+            {
+              src: currentItemDesignData.designImage.front == "false" ? currentItemDesignData.designImage.back : currentItemDesignData.designImage.front,
+              name: currentItemDesignData.designName + " image",
+            },
+          ],
+          attributes: [
+            {
+              id: 6,
+              name: "Color",
+              position: 0,
+              visible: true,
+              variation: true,
+              options: [
+                currentItemDesignData.product.color
+              ],
+            },
+            {
+              id: 1,
+              name: "Size",
+              position: 0,
+              visible: true,
+              variation: true,
+              options: [
+                currentItemDesignData.product.size
+              ],
+            },
+          ],
+        }
+      });
+
+      console.log(productData);
+
+      // creating multiple POST request for each line item in the order and sending parallel requests
+      const woocommerceProductCreateRequests = productData.map(async dataObject => {
+        let intermediateRequest = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${encodedAuth}`,
+          },
+          body: JSON.stringify(dataObject),
+        })
+        return intermediateRequest.json();
+      });
+
+      Promise.all(woocommerceProductCreateRequests)
+      .then(responseArray => {
+        console.log(responseArray);
+      })
+      .catch(error => {
+        console.log(error);
+      })
+
     } catch (error) {
       console.log(error);
       res.status(500).json({ error });
@@ -1878,14 +1956,121 @@ exports.checkorderid = async (req, res) => {
 exports.generateZohoBooksInvoice = async (req, res) => {
   try {
     const zohoToken = await generateZohoToken();
-    console.log(zohoToken)
-    const zohoInvoiceRequest = await fetch('https://www.zohoapis.in/books/v3/organizations', {
+    // console.log(zohoToken)
+    // the following was just for testing.. listing all invoices and holy shit its 393KB!
+    // const zohoInvoiceRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+    //   headers: {
+    //     Authorization: 'Zoho-oauthtoken ' + zohoToken
+    //   }
+    // });
+    // const zohoInvoiceResponse = await zohoInvoiceRequest.json();
+    const invoiceData = {
+      "customer_id": 982000000560001,
+      "currency_id": 982000000000190,
+      "contact_persons": [
+        "982000000870911",
+        "982000000870915"
+      ],
+      "invoice_number": "INV-00063",
+      "place_of_supply": "TN",
+      "vat_treatment": "string",
+      "tax_treatment": "vat_registered",
+      "gst_treatment": "business_gst",
+      "gst_no": "22AAAAA0000A1Z5",
+      "cfdi_usage": "acquisition_of_merchandise",
+      "reference_number": " ",
+      "template_id": 982000000000143,
+      "date": "2013-11-17",
+      "payment_terms": 15,
+      "payment_terms_label": "Net 15",
+      "due_date": "2013-12-03",
+      "discount": 0,
+      "is_discount_before_tax": true,
+      "discount_type": "item_level",
+      "is_inclusive_tax": false,
+      "exchange_rate": 1,
+      "recurring_invoice_id": " ",
+      "invoiced_estimate_id": " ",
+      "salesperson_name": " ",
+      "custom_fields": [
+        {
+          "customfield_id": "46000000012845",
+          "value": "Normal"
+        }
+      ],
+      "line_items": [
+        {
+          "item_id": 982000000030049,
+          "project_id": 90300000087378,
+          "time_entry_ids": [],
+          "product_type": "goods",
+          "hsn_or_sac": 80540,
+          "sat_item_key_code": 71121206,
+          "unitkey_code": "E48",
+          "warehouse_id": "",
+          "expense_id": " ",
+          "expense_receipt_name": "string",
+          "name": "Hard Drive",
+          "description": "500GB, USB 2.0 interface 1400 rpm, protective hard case.",
+          "item_order": 1,
+          "bcy_rate": 120,
+          "rate": 120,
+          "quantity": 1,
+          "unit": " ",
+          "discount_amount": 0,
+          "discount": 0,
+          "tags": [
+            {
+              "tag_id": 982000000009070,
+              "tag_option_id": 982000000002670
+            }
+          ],
+          "tax_id": 982000000557028,
+          "tds_tax_id": "982000000557012",
+          "tax_name": "VAT",
+          "tax_type": "tax",
+          "tax_percentage": 12.5,
+          "tax_treatment_code": "uae_others",
+          "header_name": "Electronic devices"
+        }
+      ],
+      "payment_options": {
+        "payment_gateways": [
+          {
+            "configured": true,
+            "additional_field1": "standard",
+            "gateway_name": "paypal"
+          }
+        ]
+      },
+      "allow_partial_payments": false,
+      "custom_body": " ",
+      "custom_subject": " ",
+      "notes": "Looking forward for your business.",
+      "terms": "Terms & Conditions apply",
+      "shipping_charge": 0,
+      "adjustment": 0,
+      "adjustment_description": " ",
+      "reason": " ",
+      "tax_authority_id": 11149000000061,
+      "tax_exemption_id": 11149000000061,
+      "avatax_use_code": "string",
+      "avatax_exempt_no": "string",
+      "tax_id": 982000000557028,
+      "expense_id": " ",
+      "salesorder_item_id": " ",
+      "avatax_tax_code": "string",
+      "time_entry_ids": []
+    }
+    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+      method: "POST",
       headers: {
         Authorization: 'Zoho-oauthtoken ' + zohoToken
-      }
+      },
+      body: JSON.stringify(invoiceData)
     });
-    const zohoInvoiceResponse = await zohoInvoiceRequest.json();
-    res.json(zohoInvoiceResponse);
+    const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+    res.json(zohoInvoiceCreateResponse);
   } catch (error) {
     console.log(error);
     res.send(error);

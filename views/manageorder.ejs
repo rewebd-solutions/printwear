@@ -68,13 +68,13 @@
             let searchKey = e.target.value.toLowerCase().trim();
             if (searchKey == '') return populateOrderHistoryTable();
             const orderHistoryFromSearch = orderHistoryData.filter(orderHistory => (
-                    orderHistory.customerOrderId.includes(searchKey)
-                    || orderHistory.CashfreeOrderId.includes(searchKey) 
-                    || orderHistory.printwearOrderId.includes(searchKey)
-                    || orderHistory.shipRocketOrderId.includes(searchKey)
-                    || orderHistory.shipmentId.includes(searchKey)
-                    || Object.values(orderHistory.billingAddress).join(' ').includes(searchKey) 
-                    || Object.values(orderHistory.shippingAddress).join(' ').includes(searchKey)
+                    orderHistory.customerOrderId.toLowerCase().includes(searchKey)
+                    || orderHistory.CashfreeOrderId.toLowerCase().includes(searchKey) 
+                    || orderHistory.printwearOrderId.toLowerCase().includes(searchKey)
+                    || orderHistory.shipRocketOrderId.toLowerCase().includes(searchKey)
+                    || orderHistory.shipmentId.toLowerCase().includes(searchKey)
+                    || Object.values(orderHistory.billingAddress).join(' ').toLowerCase().includes(searchKey) 
+                    || Object.values(orderHistory.shippingAddress).join(' ').toLowerCase().includes(searchKey)
             ));
             if (orderHistoryFromSearch.length < 1) return orderHistoryTable.innerHTML = 'Search not found';
             populateOrderHistoryTable(orderHistoryFromSearch)
