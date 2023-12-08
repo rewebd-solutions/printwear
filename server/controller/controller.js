@@ -430,251 +430,7 @@ exports.adddesign = async (req, res) => {
   }
 }
 
-// deleted endpoints for old designs
-
-
-// cart endpoints
-// exports.addtocart = async (req, res) => {
-//   const cartItem = {
-//     design: req.body.designId,
-//     productId: req.body.productId,
-//     quantity: req.body.quantity,
-//   };
-//   const selectedProduct = await ProductModel.findOne({ _id: cartItem.productId });
-
-//   if (!selectedProduct) {
-//     return res.status(404).json({ message: 'Invalid Product ID!' });
-//   }
-//   try {
-//     let designCost = 0;
-//     const designCostArray = Object.entries(cartItem.quantity).map(x => {
-//       return selectedProduct.price[x[0].toLowerCase()] * x[1]
-//     });
-//     designCostArray.forEach(cost => designCost += cost);
-
-//     cartItem.price = designCost;
-//     var totalAmount = 0;
-
-//     var cartData = await CartModel.findOne({ userId: req.userId })
-//     if (cartData) {
-//       cartData.items.push(cartItem);
-//       // perform a function to calculate total product price
-//       // console.log(cartData);
-//     } else {
-//       cartData = new CartModel({
-//         userId: req.userId,
-//         items: [cartItem]
-//       });
-//       // console.log(cartData);
-//     }
-
-//     cartData.items.forEach(item => totalAmount += item.price);
-//     cartData.totalAmount = totalAmount;
-//     await cartData.save();
-
-//     res.json(cartData);
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ message: "Something went wrong!" });
-//   }
-// }
-
-// exports.getcart = async (req, res) => {
-//   try {
-//     const cartItems = await CartModel.findOne({ userId: req.userId });
-//     if (!cartItems) return res.status(200).json({ items: [] });
-//     const newCartItems = {
-//       ...cartItems._doc
-//     }
-//     const cartProductIDs = new Set(cartItems.items.map(item => item.productId));
-//     const cartDesignIDs = new Set(cartItems.items.map(item => item.design));
-//     const cartProducts = await ProductModel.find({ _id: { $in: [...cartProductIDs] } });
-//     const cartDesignData = await DesignModel.find({ _id: { $in: [...cartDesignIDs] } });
-//     const cartColorIDs = new Set(cartDesignData.map(cartDesign => cartDesign.color));
-//     const cartColorsData = await ColorModel.find({ _id: { $in: [...cartColorIDs] } });
-//     // pull in colors from DB and push it along
-
-//     let newCartItemWithProducts = cartItems.items.map(cartItem => {
-//       return {
-//         ...cartItem._doc,
-//         product: cartProducts.find(cartProduct => cartProduct._id + '' === cartItem.productId + ''),
-//         designData: cartDesignData.find(cartDesign => cartDesign._id + '' === cartItem.design + ''),
-//       }
-//     })
-//     newCartItems.items = newCartItemWithProducts;
-//     newCartItemWithProducts = newCartItems.items.map(cartItem => {
-//       return {
-//         ...cartItem,
-//         color: cartColorsData.find(cartColor => cartColor._id + '' === cartItem.designData.color)
-//       }
-//     });
-//     newCartItems.items = newCartItemWithProducts;
-//     newCartItemWithProducts = newCartItems.items.map(cartItem => {
-//       return {
-//         ...cartItem,
-//         sku: `${cartItem.product.SKU}-${cartItem.color.colorSKU}`
-//       }
-//     })
-//     newCartItems.items = newCartItemWithProducts;
-//     // console.log(newCartItems);
-//     res.json(newCartItems);
-//   } catch (error) {
-//     console.log(error);
-//     res.json({ error });
-//   }
-// }
-
-// exports.deletecartitem = async (req, res) => {
-//   // console.log(req.body.cartId);
-//   try {
-//     await CartModel.updateOne({ _id: req.body.cartId }, { $pull: { items: { _id: req.body.itemId } } });
-//     const cartData = await CartModel.findOne({ _id: req.body.cartId });
-//     let totalAmount = 0;
-//     cartData.items.map(cartItem => totalAmount += cartItem?.price);
-//     cartData.totalAmount = totalAmount;
-//     await cartData.save();
-//     // console.log(x)
-//     res.status(200).json({ message: "success!" });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error });
-//   }
-// }
-
-
-// orders ku eldhu
-// exports.createorder = async (req, res) => {
-//   const orderItem = req.body;
-//   // obtain all items array and then add it along with calculated SKU
-
-//   try {
-//     const userData = await UserModel.findOne({ _id: req.userId });
-
-//     if (!userData) throw new Error("Invalid User");
-
-//     const cartData = await CartModel.findOne({ userId: userData._id });
-
-//     let cartQtyChange = orderItem.items.map(item => {
-//       return {
-//         quantity: item.quantity,
-//         cartItemId: item.cartItemId,
-//         price: item.price,
-//       }
-//     });
-
-//     let x = cartData.items.map(item => {
-//       let thatItem = cartQtyChange.find(cq => cq.cartItemId === item._id + '')
-//       return {
-//         ...item._doc,
-//         quantity: thatItem.quantity,
-//         price: thatItem.price
-//       }
-//     });
-
-//     // console.log(cartQtyChange, x);
-
-//     cartData.items = x;
-
-//     cartData.totalAmount = orderItem.totalAmount;
-
-//     await cartData.save();
-
-//     // console.log(cartData);
-
-//     const orderData = new OrderModel({
-//       userId: req.userId,
-//       cartId: orderItem.cartId,
-//       items: orderItem.items.map(item => {
-//         return {
-//           cartItemId: item.cartItemId,
-//           shippingAddress: item.shippingAddress,
-//           sku: item.sku
-//         }
-//       }),
-//       totalAmount: orderItem.totalAmount,
-//       billingAddress: orderItem.billingAddress
-//     });
-
-//     let expiryDate = new Date();
-//     expiryDate.setDate(expiryDate.getDate() + 2);
-//     expiryDate = expiryDate.toISOString();
-
-//     const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/orders", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         "x-client-id": cashfreeAppID,
-//         "x-client-secret": cashfreeSecretKey,
-//         "x-api-version": "2022-09-01"
-//       },
-//       body: JSON.stringify({
-//         order_id: `${orderItem.billingAddress.firstName.split(" ").join("_")}_${orderItem.billingAddress.lastName.split(" ").join("_")}_${orderData._id}_${otpGen.generate(6, { specialChars: false })}`,
-//         order_amount: orderData.totalAmount,
-//         order_currency: "INR",
-//         order_note: `Payment for Order: ${orderData._id}`,
-//         customer_details: {
-//           customer_id: req.userId,
-//           customer_name: userData.name,
-//           customer_phone: userData.phone,
-//           customer_email: userData.email
-//         },
-//         order_expiry_time: expiryDate
-//         // link_meta: {
-//         //   notify_url: WEBHOOK_URL + "createshiporder"
-//         // }
-//       })
-//     });
-//     const paymentLinkResponse = await paymentLinkRequest.json();
-//     console.log(paymentLinkResponse)
-//     orderData.CFOrderId = paymentLinkResponse.cf_order_id;
-//     orderData.myOrderId = paymentLinkResponse.order_id;
-//     // // orderData.paymentLinkId = paymentLinkResponse.link_id;
-
-//     await orderData.save();
-//     res.status(200).json(paymentLinkResponse);
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error });
-//   }
-// }
-
-
-// create payment link
-// exports.createpaymentlink = async (req, res) => {
-//   try {
-//     const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/links", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         "x-client-id": cashfreeAppID,
-//         "x-client-secret": cashfreeSecretKey,
-//         "x-api-version": "2023-08-01"
-//       }, 
-//       body: JSON.stringify({
-//         link_id: '33dnd2ds',
-//         link_amount: 45.12,
-//         link_currency: "INR",
-//         link_purpose: "payment",
-//         customer_details: {
-//           customer_name: '123ndf32r',
-//           customer_phone: '9150940153'
-//         },
-//         link_partial_payments: false,
-//         link_notify: {
-//           send_email: false,
-//           send_sms: true
-//         }
-//       })
-//     });
-//     const paymentLinkResponse = await paymentLinkRequest.json();
-//     res.json(paymentLinkResponse);
-//   } catch (error) {
-//     console.log(error);
-//     res.json({error});
-//   }
-// }
-
-
+// deleted old commented code for old schema
 // utils 
 const formatDate = (date) => {
   const year = date.getFullYear();
@@ -705,7 +461,27 @@ const generateShiprocketToken = async () => {
     return;
   }
 }
-
+const generateZohoToken = async () => {
+  try {
+    const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, { method: "POST" });
+    const zohoAccResponse = await zohoAccRequest.json();
+    // console.log(zohoAccResponse);
+    const zohoAPIAccessToken = zohoAccResponse.access_token;
+    return zohoAPIAccessToken;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+//implement idempotency:
+var idempotencyKeys = new Set();
+function clearIdempotencyKeys() {
+  setTimeout(() => {
+    console.log(idempotencyKeys);
+    idempotencyKeys.clear();
+    console.log(idempotencyKeys);
+  }, 1000 * 60 * 2);
+}
 
 // endpoints for querying shopify stores
 exports.getshopifystock = async (req, res) => {
@@ -1810,15 +1586,7 @@ exports.calculateshippingcharges = async (req, res) => {
   }
 }
 
-//implement idempotency:
-var idempotencyKeys = new Set();
-function clearIdempotencyKeys() {
-  setTimeout(() => {
-    console.log(idempotencyKeys);
-    idempotencyKeys.clear();
-    console.log(idempotencyKeys);
-  }, 10000);
-}
+
 // webhook for cashfree to hit and notify about payment
 exports.createshiporder = async (req, res) => {
   // every 10 days token refersh.. thru .env manually
@@ -2102,5 +1870,24 @@ exports.checkorderid = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error when checking order id" })
+  }
+}
+
+
+//endpoint for generating zoho books invoice
+exports.generateZohoBooksInvoice = async (req, res) => {
+  try {
+    const zohoToken = await generateZohoToken();
+    console.log(zohoToken)
+    const zohoInvoiceRequest = await fetch('https://www.zohoapis.in/books/v3/organizations', {
+      headers: {
+        Authorization: 'Zoho-oauthtoken ' + zohoToken
+      }
+    });
+    const zohoInvoiceResponse = await zohoInvoiceRequest.json();
+    res.json(zohoInvoiceResponse);
+  } catch (error) {
+    console.log(error);
+    res.send(error);
   }
 }

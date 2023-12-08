@@ -85,5 +85,5 @@ route.post("/uploadlabel", authServices.authorizeToken, upload.single('labelImag
 route.post("/deletelabel", authServices.authorizeToken, controller.deletelabel)
 
 route.post("/checkorderid", authServices.authorizeToken, controller.checkorderid)
-
+route.post("/generatezohoinvoice", controller.generateZohoBooksInvoice); // add authService.authorizeToken soon
 module.exports = route
