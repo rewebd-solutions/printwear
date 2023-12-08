@@ -35,8 +35,6 @@
                         <th>S. No.</th>
                         <th>Printwear Order ID</th>
                         <th>Your Order ID</th>
-                        <th>Name / Qnty / Price</th>
-                        <th>Shipping Address</th>
                         <th>Amount paid</th>
                         <th>Delivery Charges</th>
                         <th>Delivery Status</th>
@@ -49,7 +47,7 @@
                 Refunds
             </div>
         </div>
-
+        <!-- modal comes here -->
     </div>
     
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -63,6 +61,7 @@
         const printwearOrderContainer = document.querySelector("#printwear-order");
         const refundOrderContainer = document.querySelector("#refund-order");
         const searchOrderBox = document.querySelector("#search-orders");
+        const manageOrderContainer = document.querySelector(".manageorder");
 
         searchOrderBox.oninput = (e) => {
             let searchKey = e.target.value.toLowerCase().trim();
@@ -100,6 +99,88 @@
             }
         }
 
+        const openOrderDetailsModal = (e, customerOrderId) => {
+            e.preventDefault();
+            const modalOrderDetails = orderHistoryData.find(orderData => orderData.customerOrderId == customerOrderId);
+            manageOrderContainer.insertAdjacentHTML("beforeend", `
+                <div class="order-details-modal-wrapper">
+                    <div class="order-details-modal" data-aos="fade-up">
+                        <div class="close-button-wrapper">
+                            <button id="close-modal">
+                                <i class="fa fa-close"></i>
+                            </button>
+                        </div>
+                        <div class="order-id-wrapper">
+                            <h4>Printwear Order ID: ${modalOrderDetails.printwearOrderId}</h4>
+                            <h2>${modalOrderDetails.customerOrderId}</h2>
+                        </div>
+                        <h3>Order items:</h3>
+                        <table class="order-details-table">
+                            <thead>
+                                <th>S. No.</th>
+                                <th>Design Name</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>SKU</th>
+                                <th>Price</th>
+                            </thead>
+                            <tbody>
+                                ${modalOrderDetails.items.map((item, i) => {
+                                    let currentDesignItem = designData.designs.find(design => design._id == item.designId);
+                                    return `
+                                        <tr>
+                                            <td>${i+1}</td>
+                                            <td>${currentDesignItem.designName}</td>
+                                            <td>${currentDesignItem.product.name}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>${currentDesignItem.designSKU}</td>
+                                            <td>₹${item.price}</td>
+                                        </tr>
+                                    `
+                                }).join('\n')}
+                            </tbody>
+                        </table>
+                        <p>Address: ${Object.values(modalOrderDetails.billingAddress).join(', ')}</p>
+                        <table>
+                            <thead>
+                                <th>Shiprocket ID</th>
+                                <th>Shipment ID</th>
+                                <th>Tracking ID</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${modalOrderDetails.shipRocketOrderId}</td>
+                                    <td>${modalOrderDetails.shipmentId}</td>
+                                    <td>${modalOrderDetails.shipmentId}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4>Order Tracking:</h4>
+                        <div class="tracking-status">
+                            <ul>
+                                <li data-order-status="unplaced">Unplaced</li>
+                                <li data-order-status="processing">Processing</li>
+                                <li data-order-status="dispatched">Dispatched</li>
+                                <li data-order-status="delivered">Delivered</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `);
+            const trackingStatusBoxes = document.querySelectorAll('.tracking-status ul li');
+
+            for(let i=0; i<trackingStatusBoxes.length; i++) {
+                let el = trackingStatusBoxes[i];
+                el.classList.add('status-complete');
+                if (el.dataset.orderStatus == modalOrderDetails.deliveryStatus) break;
+            }
+
+            const closeModalButton = document.querySelector("#close-modal");
+            closeModalButton.addEventListener("click", (e) => {
+                manageOrderContainer.removeChild(document.querySelector(".order-details-modal-wrapper"))
+            })
+        }
+
         const populateOrderHistoryTable = (data = orderHistoryData) => {
             if (data.length < 1) {
                 orderHistoryTable.innerHTML = `No orders yet!`;
@@ -110,17 +191,7 @@
                     <tr>
                         <td>${i+1}</td>
                         <td>${orderHistory.printwearOrderId}</td>
-                        <td>${orderHistory.customerOrderId}</td>
-                        <td>
-                            ${orderHistory.items.map(item => {
-                                let currentDesign = designData.designs.find(design => design._id == item.designId);
-                                if (!currentDesign) return '';
-                                return `
-                                   <p>${currentDesign.designName} / ${item.quantity} / ${currentDesign.price}</p>
-                                `
-                            }).join('\n')}
-                        </td>
-                        <td>${orderHistory.shippingAddress.firstName} ${orderHistory.shippingAddress.lastName}, ${orderHistory.shippingAddress.streetLandmark}, ${orderHistory.shippingAddress.city}, ${orderHistory.shippingAddress.state}</td>
+                        <td><a href="#" onclick="openOrderDetailsModal(event, '${orderHistory.customerOrderId}')">${orderHistory.customerOrderId}</a></td>
                         <td>₹ ${orderHistory.amountPaid}</td>
                         <td>₹ ${orderHistory.deliveryCharges}</td>
                         <td>${orderHistory.deliveryStatus}</td>

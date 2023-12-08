@@ -57,9 +57,9 @@ tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
-tbody td:nth-child(4) {
+/* tbody td:nth-child(4) {
     min-width: 200px;
-}
+} */
 
 thead th[data-stream]{
     cursor: pointer;
@@ -159,4 +159,68 @@ table a:visited {
   outline: 1px solid #F05A30;
   background-color: #F05A30;
   color: white;
+}
+
+.order-details-modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.order-details-modal {
+    width: 85%;
+    height: 85%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding: 1rem 1.3rem;
+    position: relative;
+    overflow-y: scroll;
+}
+
+.close-button-wrapper {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#close-modal {
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 50%;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+}
+
+.tracking-status ul {
+    display: flex;
+    list-style-type: none;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.status-complete {
+    background-color: #f06943 !important;
+    color: white;
+}
+
+.tracking-status ul li {
+    display: flex;
+    padding: 2rem 3rem;
+    font-size: 1rem;
+    background-color: #ebebeb;
+    border: 1px solid silver;
+    border-radius: 7px;
 }
