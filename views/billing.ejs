@@ -142,7 +142,7 @@
                             <option value="Punjab">Punjab</option>
                             <option value="Rajasthan">Rajasthan</option>
                             <option value="Sikkim">Sikkim</option>
-                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Tamil Nadu" default>Tamil Nadu</option>
                             <option value="Telangana">Telangana</option>
                             <option value="Tripura">Tripura</option>
                             <option value="Uttarakhand">Uttarakhand</option>
@@ -163,21 +163,11 @@
                         <input type="text" id="country" name="country" value="India" disabled>
                     </div>
                 </div>
-                <div class="bill-summary">
-                    <div class="left-bill">
-                        <h3>Bill total: </h3>
-                    </div>
-                    <div class="right-bill">
-                        <h4>₹.<%= orderData.totalAmount %> </h4>
-                        <h4>₹.0.00 (Tax)</h4>
-                        <h4 id="shipping-charges">₹.0.00 (Shipping charges) </h4>
-                        <hr />
-                        <h4 id="total-charges">₹.<%= orderData.totalAmount %></h4>
-                    </div>
+                <div>
+                    <button class="billing-button" id="courier-check">Get available couriers</button>
+                    <input type="checkbox" name="self-pickup" id="self-pickup" />
+                    <label for="self-pickup">Pickup order myself</label>
                 </div>
-                <button type="button" id="btn-checkout">
-                    Proceed to checkout
-                </button>
             </div>
             <% } else { %>
             <h2> Oops! You don't have anything in your cart! </h2>
@@ -192,6 +182,7 @@
         var disabled = false;
         var orderIdVerified = false;
         var retailVerified = false;
+        var itemCount = parseInt('<%= orderData.items.length %>');
 
         const cashfree = Cashfree({
             mode: "sandbox" //or production
@@ -200,6 +191,8 @@
         const pincode = document.querySelector("#pincode");
         const orderIdInput = document.querySelector("input#customerOrderId");
         const retailPriceInput = document.querySelector("input#retailPrice");
+        const billingAddressForm = document.querySelector(".billing-address-form");
+        const courierGetBtn = document.querySelector("#courier-check");
 
         retailPriceInput.oninput = (e) => {
             let string = e.target.value;
@@ -253,117 +246,149 @@
                 return notyf.error("Order ID is repeated. Please enter unique Order ID");
             }
         }
+        
+        const getAvailableCouriers = async (e) => {
+            if (!pincode.value.length == 6) return notyf.error("Pincode does not have 6 digits");
+            e.target.setAttribute("disabled", true);
+            try {
+                const shippingChargesRequest = await fetch("/calculateshippingcharges", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        weight: itemCount * 0.25,
+                        pincode: pincode.value
+                    })
+                });
+                shippingChargesResponse = await shippingChargesRequest.json();
+                // console.log(shippingChargesResponse)
+                if (!shippingChargesRequest.ok) return notyf.error({ message: shippingChargesResponse.message, duration: 10, dismissible: true });
 
-        pincode.oninput = async (e) => {
-            if (e.target.value.length == 6) {
-                e.target.setAttribute("disabled", true);
-                if (await checkPincode(e.target.value)) {
-                    notyf.success("Pincode verified successfully");
+                // code to create a radio group
+                const availableCouriers = shippingChargesResponse.data.available_courier_companies;
+                billingAddressForm.insertAdjacentHTML("afterend", `
+                    <div class="available-couriers">
+                        <fieldset>
+                            <legend>Select a courier:</legend>
+                            ${availableCouriers.map(courier => {
+                                return `
+                                    <div>
+                                        <input type="radio" id="huey" name="${courier.courier_name}" value="${courier.courier_company_id}" checked />
+                                        <label for="huey">${courier.courier_name} (Delivery charge: ₹${courier.freight_charges}, Delivery Date: ${courier.etd}) ${availableCouriers.data.recommended_courier_company_id == courier.courier_company_id && '<strong>RECOMMENDED</strong>'} </label>
+                                    </div>
+                                `
+                            }).join('\n')}
+                        </fieldset>                        
+                    </div>
+                    <div class="bill-summary">
+                        <div class="left-bill">
+                            <h3>Bill total: </h3>
+                        </div>
+                        <div class="right-bill">
+                            <h4>₹.<%= orderData.totalAmount %> </h4>
+                            <h4>₹0.00 (Tax)</h4>
+                            <h4 id="shipping-charges">₹0.00 (Shipping charges) </h4>
+                            <hr />
+                            <h4 id="total-charges">₹<%= orderData.totalAmount %></h4>
+                        </div>
+                    </div>
+                    <button type="button" id="btn-checkout">
+                        Proceed to checkout
+                    </button>
+                `);
+
+                const courierRadioBtns = document.querySelector('fieldset');
+                courierRadioBtns.addEventListener('click', (e) => {
+                    if (e.target.closest('input[type="radio"]')) {
+                        let shippingCharge = availableCouriers.find(courier => courier.data.available_courier_companies.courier_company_id == e.target.value).freight_charges;
+                        document.getElementById("shipping-charges").innerHTML = `₹.${shippingCharge} (Shipping charges)`;
+                        document.getElementById("total-charges").innerHTML = `₹.${(parseFloat(ttlp) + shippingCharge).toFixed(2)}`;
+                    }
+                })
+                
+                const checkoutBtn = document.querySelector("#btn-checkout");
+                
+                checkoutBtn.addEventListener("click", async (e) => {
+                    if (disabled) return;
+                    disabled = true;
+                    e.target.classList.add("disabled");
+                    
+                    if (!orderIdVerified) {
+                        disabled = false;
+                        e.target.classList.remove("disabled");
+                        return notyf.error("Please check Order ID");
+                    }
+                    
+                    if (!retailVerified) {
+                        disabled = false;
+                        e.target.classList.remove("disabled");
+                        return notyf.error("Please check retail price");
+                    }
+
+                    const formsData = document.querySelectorAll(".billing-address-form input");
+                    
+                    for(const inputItem of formsData){
+                        inputItem.style.outline = "none";
+                        if (!inputItem.reportValidity()) {
+                            disabled = false;
+                            e.target.classList.remove("disabled");
+                            return notyf.error("Check " + inputItem.id);
+                        }             
+                    }
+
+                    const pincode = document.querySelector("#pincode");
+
+                    const addressData = {
+                        firstName: formsData[0].value,
+                        lastName: formsData[1].value,
+                        mobile: formsData[2].value,
+                        email: formsData[3].value,
+                        streetLandmark: formsData[4].value,
+                        city: formsData[5].value,
+                        pincode: formsData[6].value,
+                        state: document.querySelector('#state').value,
+                        country: formsData[7].value,
+                        retailPrice: retailPriceInput.value,
+                        customerOrderId: orderIdInput.value
+                    }
                     try {
-                        const shippingChargesRequest = await fetch("/calculateshippingcharges", {
-                            method: 'POST',
+                        const createPaymentLinkRequest = await fetch("/createpaymentlink", {
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({
-                                weight: 0.25,
-                                pincode: e.target.value
-                            })
+                            body: JSON.stringify(addressData),
+                            method: 'POST'
                         });
-                        shippingChargesResponse = await shippingChargesRequest.json();
-                        // console.log(shippingChargesResponse)
-                        if (!shippingChargesRequest.ok) return notyf.error("Couldn't calculate shipping charges! " + shippingChargesResponse.message);
-                        document.getElementById("shipping-charges").innerHTML = `₹.${shippingChargesResponse.message} (Shipping charges)`;
-                        document.getElementById("total-charges").innerHTML = `₹.${(parseFloat(ttlp) + shippingChargesResponse.message).toFixed(2)}`;
+                        const createPaymentLinkResponse = await createPaymentLinkRequest.json();
+                        console.log(createPaymentLinkResponse)
+                        if (!createPaymentLinkRequest.ok) {
+                            disabled = false;
+                            e.target.classList.remove("disabled");
+                            return notyf.error({
+                                message: createPaymentLinkResponse.error,
+                                duration: 10000,
+                            });
+                        } 
+                        cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
+                        //location.replace(`https://payments-test.cashfree.com/order/#${createPaymentLinkResponse.link}`);
                     } catch (error) {
                         console.log(error);
-                        notyf.error("Something went wrong in veriyfing PINCODE");
-                    } finally {
-                        e.target.removeAttribute("disabled");
+                        disabled = false;
+                        notyf.error("Something went wrong!");
                     }
-                }
-            }
-        }
-
-        const checkPincode = async (pincode) => {
-            try {
-                const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
-                const pincodeResponse = await pincodeRequest.json();
-                // console.log(pincodeResponse);
-                if (pincodeResponse[0].Status == "Success") return true;
-                return false;
+                });
             } catch (error) {
                 console.log(error);
-                notyf.error("Something went wrong in verifying PINCODE");
-                return false;
+                notyf.error({ message: "Something went wrong in obtaining couriers", duration: 10, dismissible: true });
+            } finally {
+                e.target.removeAttribute("disabled");
             }
         }
         
-        const checkoutBtn = document.querySelector("#btn-checkout");
-        checkoutBtn.addEventListener("click", async (e) => {
-            if (disabled) return;
-            disabled = true;
-            e.target.classList.add("disabled");
-            
-            if (!orderIdVerified || !retailVerified) {
-                disabled = false;
-                e.target.classList.remove("disabled");
-                return notyf.error("Please check Order ID and Retail Price");
-            }
+        courierGetBtn.onclick = getAvailableCouriers;
 
-            const formsData = document.querySelectorAll(".billing-address-form input");
-            
-            for(const inputItem of formsData){
-                inputItem.style.outline = "none";
-                if (!inputItem.reportValidity()) {
-                    disabled = false;
-                    e.target.classList.remove("disabled");
-                    return notyf.error("Check " + inputItem.id);
-                }             
-            }
-
-            const pincode = document.querySelector("#pincode");
-
-            if (await checkPincode(pincode.value)) {
-                notyf.success("Pincode verified!");
-                const addressData = {
-                    firstName: formsData[0].value,
-                    lastName: formsData[1].value,
-                    mobile: formsData[2].value,
-                    email: formsData[3].value,
-                    streetLandmark: formsData[4].value,
-                    city: formsData[5].value,
-                    pincode: formsData[6].value,
-                    state: document.querySelector('#state').value,
-                    country: formsData[7].value,
-                    retailPrice: retailPriceInput.value,
-                    customerOrderId: orderIdInput.value
-                }
-                try {
-                    const createPaymentLinkRequest = await fetch("/createpaymentlink", {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(addressData),
-                        method: 'POST'
-                    });
-                    const createPaymentLinkResponse = await createPaymentLinkRequest.json();
-                    if (!createPaymentLinkRequest.ok) return notyf.error(createPaymentLinkResponse.message);
-                    cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
-                    //location.replace(`https://payments-test.cashfree.com/order/#${createPaymentLinkResponse.link}`);
-                } catch (error) {
-                    console.log(error);
-                    disabled = false;
-                    notyf.error("Something went wrong!");
-                }
-            } else {
-                disabled = false;
-                e.target.classList.remove("disabled");
-                notyf.error("Check pincode");
-            }
-
-        });
-
+        
     </script>
 </body>
 

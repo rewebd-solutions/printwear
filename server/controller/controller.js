@@ -1567,20 +1567,27 @@ exports.getpaymentlink = async (req, res) => {
 exports.calculateshippingcharges = async (req, res) => {
   try {
     const { weight, pincode } = req.body;
+    //verify pincode
+    const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
+    const pincodeResponse = await pincodeRequest.json();
+    if (!pincodeResponse[0].Status == "Success") return res.status(500).json({ message: "Pincode could not be verified" });
+
+    // get couriers
     const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=0`, {
       headers: {
         'Authorization': 'Bearer ' + (await generateShiprocketToken()).token
       }
     });
     const shippingChargeResponse = await shippingChargeRequest.json();
-    // console.log(shippingChargeResponse)
+    console.log(shippingChargeResponse)
     if (shippingChargeResponse.status != 200) return res.status(shippingChargeResponse.status_code || shippingChargeResponse.status).json({ message: shippingChargeResponse.message });
-
-    const recommendedCourierID = shippingChargeResponse.data.recommended_courier_company_id;
-    const charges = shippingChargeResponse.data.available_courier_companies.find(courier => courier.courier_company_id == recommendedCourierID)["freight_charge"];
-    const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, { $set: { deliveryCharges: charges } });
+    
+    // the following code should be put in getpaymentlink function
+    // const recommendedCourierID = shippingChargeResponse.data.recommended_courier_company_id;
+    // const charges = shippingChargeResponse.data.available_courier_companies.find(courier => courier.courier_company_id == recommendedCourierID)["freight_charge"];
+    // const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, { $set: { deliveryCharges: charges } });
     // console.log(charges);
-    res.status(200).json({ message: charges });
+    res.status(200).json(shippingChargeResponse);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong!" });
@@ -1750,6 +1757,7 @@ exports.createshiporder = async (req, res) => {
           processed: 1,
           retailPrice: 1,
           customerOrderId: 1,
+          shipRocketCourier: 1
         }
       });
 
@@ -1839,14 +1847,71 @@ exports.createshiporder = async (req, res) => {
 
   if (statusType === 'PAYMENT_FAILED_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
+    const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
+    if (!orderData) return res.send("OK");
+
     console.log(`PAYMENT FAILED! for ${userid} on ${new Date().toLocaleString()}`);
-    // orderData.paymentStatus = "failed";
+    orderData.paymentStatus = "failed";
+
+    await OrderHistoryModel.findOneAndUpdate({ userId: userid }, {
+      $set: {
+        userId: userid
+      },
+      $push: {
+        orderData: orderData
+      }
+    }, { upsert: true, new: true });
+
+    // await orderData.save();
+    // console.dir(orderHistory._doc, { depth: 5 });
+
+    await orderData.updateOne({
+      $unset: {
+        items: 1,
+        billingAddress: 1,
+        shippingAddress: 1,
+        totalAmount: 1,
+        amountPaid: 1,
+        paymentStatus: 1,
+        deliveryStatus: 1,
+        deliveryCharges: 1,
+        paymentLink: 1,
+        paymentLinkId: 1,
+        CashfreeOrderId: 1,
+        printwearOrderId: 1,
+        shipRocketOrderId: 1,
+        shipmentId: 1,
+        createdAt: 1,
+        deliveredOn: 1,
+        processed: 1,
+        retailPrice: 1,
+        customerOrderId: 1,
+        shipRocketCourier: 1
+      }
+    });
+
     return res.send("OK");
     // return await orderData.save();
   }
 
+  if (statusType === 'REFUND_STATUS_WEBHOOK') {
+    const userid = req.body.data.customer_details.customer_id;
+    console.log(`REFUND DETAILS for ${userid} on ${new Date().toLocaleString()}`);
+    return res.send("OK");
+  }
+
 }
 
+//endpoint for initiating refund
+exports.initiaterefund = async (req, res) => {
+  // 3 levels: CANCEL ORDER (before its even shipped), RETURN ORDER (after it is shipped)
+  // for CANCEL ORDER: check if order has a courier assigned.. if so first hit shiprocket API and cancel that assigned courier
+  // next hit cashfree API to initiate refund and get the status via webhook
+  // else, if not assigned any courier, then simply hit cashfree API and initiate refund
+  // i think shiprocket also has webhook? idk i need to see
+  // for RETURN ORDER: hit shiprocket API to initiate return, then listen to the event via webhook and then update 
+  // orderHistory with appropriate status and all
+}
 
 // for now create a test endpoint for fetching order data, then later change /manageorder route to do data fetching and implement SSR
 exports.getorderhistory = async (req, res) => {

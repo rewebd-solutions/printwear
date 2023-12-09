@@ -212,15 +212,36 @@ table a:visited {
 }
 
 .status-complete {
-    background-color: #f06943 !important;
-    color: white;
+    color: rgb(122, 255, 137);
 }
 
 .tracking-status ul li {
     display: flex;
-    padding: 2rem 3rem;
+    flex-direction: column;
+    padding: 1rem 1.5rem;
     font-size: 1rem;
     background-color: #ebebeb;
-    border: 1px solid silver;
     border-radius: 7px;
+    justify-content: center;
+    align-items: center;
+}
+
+.address-indent {
+    margin-left: 2rem;
+}
+
+.disable-button {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.refund-btn {
+    padding: 0.3rem 0.6rem;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    color: white;
+    background-color: #F05A30;
+    border: none;
+    cursor: pointer;
 }

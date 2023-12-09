@@ -35,8 +35,10 @@
                         <th>S. No.</th>
                         <th>Printwear Order ID</th>
                         <th>Your Order ID</th>
+                        <th>Customer Name</th>
                         <th>Amount paid</th>
                         <th>Delivery Charges</th>
+                        <th>Order placed on</th>
                         <th>Delivery Status</th>
                     </thead>
                     <tbody>
@@ -99,6 +101,26 @@
             }
         }
 
+        const initiateRefund = async (this, printwearOrderId) => {
+            this.classList.add('disable-button');
+            try {
+                const initiateRefundRequest = await fetch("/initiaterefund", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }, 
+                    body: JSON.stringify({
+                        orderId: printwearOrderId
+                    }),
+                });
+                const initiateRefundResponse = await initiateRefundRequest.json();
+                console.log(initiateRefundResponse);
+                return notyf.success('Refund initiated i think')
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Error in initiating refund!");
+            }
+        } 
+
         const openOrderDetailsModal = (e, customerOrderId) => {
             e.preventDefault();
             const modalOrderDetails = orderHistoryData.find(orderData => orderData.customerOrderId == customerOrderId);
@@ -140,7 +162,13 @@
                                 }).join('\n')}
                             </tbody>
                         </table>
-                        <p>Address: ${Object.values(modalOrderDetails.billingAddress).join(', ')}</p>
+                        <p>Order placed on: ${new Date(modalOrderDetails.createdAt).toLocaleString()}</p>
+                        <div>
+                            <p>Address: </p>
+                            <p class="address-indent"> ${modalOrderDetails.billingAddress.firstName + " " + modalOrderDetails.billingAddress.lastName} </p>
+                            <p class="address-indent"> ${modalOrderDetails.billingAddress.mobile} </p>
+                            <p class="address-indent"> ${Object.values(modalOrderDetails.billingAddress).slice(4).join(', ')} </p>
+                        </div>
                         <table>
                             <thead>
                                 <th>Shiprocket ID</th>
@@ -164,15 +192,26 @@
                                 <li data-order-status="delivered">Delivered</li>
                             </ul>
                         </div>
+                        <button class="refund-btn onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>
                     </div>
                 </div>
             `);
             const trackingStatusBoxes = document.querySelectorAll('.tracking-status ul li');
+                
 
             for(let i=0; i<trackingStatusBoxes.length; i++) {
                 let el = trackingStatusBoxes[i];
-                el.classList.add('status-complete');
-                if (el.dataset.orderStatus == modalOrderDetails.deliveryStatus) break;
+                // el.classList.add("status-complete");
+                el.insertAdjacentHTML("afterbegin",
+                `
+                    <i class="fa fa-check-circle status-complete"></i>
+                `);
+                if (el.dataset.orderStatus == modalOrderDetails.deliveryStatus) {
+                    for(let x = i+1; x < trackingStatusBoxes.length; x++) {
+                        trackingStatusBoxes[x].style.opacity = "0.6";
+                    }
+                    break;
+                }
             }
 
             const closeModalButton = document.querySelector("#close-modal");
@@ -192,8 +231,10 @@
                         <td>${i+1}</td>
                         <td>${orderHistory.printwearOrderId}</td>
                         <td><a href="#" onclick="openOrderDetailsModal(event, '${orderHistory.customerOrderId}')">${orderHistory.customerOrderId}</a></td>
-                        <td>₹ ${orderHistory.amountPaid}</td>
-                        <td>₹ ${orderHistory.deliveryCharges}</td>
+                        <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
+                        <td>₹${orderHistory.amountPaid}</td>
+                        <td>₹${orderHistory.deliveryCharges}</td>
+                        <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
                         <td>${orderHistory.deliveryStatus}</td>
                     </tr>                    
                 `;

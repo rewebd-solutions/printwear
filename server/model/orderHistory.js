@@ -60,12 +60,12 @@ var OrderHistorySchema = new mongoose.Schema({
             paymentStatus: {
                 type: String,
                 default: "pending",
-                enum: ["pending", "success", "failed"]
+                enum: ["pending", "success", "failed", "refund_init", "refunded"]
             },
             deliveryStatus: {
                 type: String,
                 default: "unplaced",
-                enum: ["unplaced", "placed", "dispatched", "delivered"]
+                enum: ["unplaced", "processing", "dispatched", "delivered", "return_init", "returned"]
             },
             deliveryCharges: {
                 type: Number,
@@ -76,6 +76,13 @@ var OrderHistorySchema = new mongoose.Schema({
             CashfreeOrderId: String,
             printwearOrderId: String,
             shipRocketOrderId: String,
+            shipRocketCourier: {
+                courierId: String,
+                courierName: {
+                    type: String,
+                    default: "unassigned"
+                }
+            },
             shipmentId: String,
             customerOrderId: String,
             retailPrice: Number,
