@@ -22,7 +22,7 @@
         <div class="mngord-head">
             <h2>Manage Order</h2>
             <button class="filter-button filter-button-active" onclick="changeWidget(event, 'confirmed')">Confirmed</button>
-            <button class="filter-button" onclick="changeWidget(event,'refund')">Refund</button>         
+            <button class="filter-button" onclick="changeWidget(event,'refund')">Returns</button>         
         </div>
         <div class="order-table">
             <div id="printwear-order">
@@ -46,7 +46,7 @@
                 </table>
             </div>
             <div id="refund-order">
-                Refunds
+                Returns
             </div>
         </div>
         <!-- modal comes here -->
@@ -67,18 +67,31 @@
 
         searchOrderBox.oninput = (e) => {
             let searchKey = e.target.value.toLowerCase().trim();
-            if (searchKey == '') return populateOrderHistoryTable();
+            console.log('Search Key:', searchKey);
+
+            if (searchKey === '') {
+                console.log('Empty search key. Populating all orders.');
+                return populateOrderHistoryTable();
+            }
+
             const orderHistoryFromSearch = orderHistoryData.filter(orderHistory => (
-                    orderHistory.customerOrderId.toLowerCase().includes(searchKey)
-                    || orderHistory.CashfreeOrderId.toLowerCase().includes(searchKey) 
-                    || orderHistory.printwearOrderId.toLowerCase().includes(searchKey)
-                    || orderHistory.shipRocketOrderId.toLowerCase().includes(searchKey)
-                    || orderHistory.shipmentId.toLowerCase().includes(searchKey)
-                    || Object.values(orderHistory.billingAddress).join(' ').toLowerCase().includes(searchKey) 
-                    || Object.values(orderHistory.shippingAddress).join(' ').toLowerCase().includes(searchKey)
+                orderHistory.customerOrderId?.toLowerCase().includes(searchKey) ||
+                orderHistory.printwearOrderId?.toLowerCase().includes(searchKey) ||
+                orderHistory.shipRocketOrderId?.toLowerCase().includes(searchKey) ||
+                orderHistory.shipmentId?.toLowerCase().includes(searchKey) ||
+                Object.values(orderHistory.billingAddress).join(' ').toLowerCase().includes(searchKey) ||
+                Object.values(orderHistory.shippingAddress).join(' ').toLowerCase().includes(searchKey)
             ));
-            if (orderHistoryFromSearch.length < 1) return orderHistoryTable.innerHTML = 'Search not found';
-            populateOrderHistoryTable(orderHistoryFromSearch)
+
+            console.log('Matching orders:', orderHistoryFromSearch);
+
+            if (orderHistoryFromSearch.length < 1) {
+                console.log('No matching orders. Displaying message.');
+                orderHistoryTable.innerHTML = 'Search not found';
+            } else {
+                console.log('Populating table with matching orders.');
+                populateOrderHistoryTable(orderHistoryFromSearch);
+        }
         }
 
         const changeWidget = (e, widget) => {
@@ -115,16 +128,29 @@
                 });
                 const initiateRefundResponse = await initiateRefundRequest.json();
                 console.log(initiateRefundResponse);
-                return notyf.success('Refund initiated i think')
+                if (initiateRefundRequest.ok) {
+                    //let indexToUpdate = orderHistoryData.findIndex(order => order.printwearOrderId == printwearOrderId);
+                    //orderHistoryData[indexToUpdate].paymentStatus = "refund_init";
+                    //orderHistoryData[indexToUpdate].paymentStatus = "refund_init";
+                    //console.log(orderHistoryData);
+                    orderHistoryData = initiateRefundResponse.orderData;
+                    populateOrderHistoryTable();
+                    manageOrderContainer.removeChild(document.querySelector(".order-details-modal-wrapper"))
+                    return notyf.success("Refund initiated. Will be processed within 2-3 working days.");
+                }
+                return notyf.error(initiateRefundResponse.message);
             } catch (error) {
                 console.log(error);
                 return notyf.error("Error in initiating refund!");
+            } finally {
+                el.classList.remove('disable-button');
             }
         } 
 
         const openOrderDetailsModal = (e, customerOrderId) => {
             e.preventDefault();
             const modalOrderDetails = orderHistoryData.find(orderData => orderData.customerOrderId == customerOrderId);
+            let isNegative = (modalOrderDetails.deliveryStatus == "cancelled" || modalOrderDetails.deliveryStatus == "return_init" || modalOrderDetails.deliveryStatus == "returned");
             manageOrderContainer.insertAdjacentHTML("beforeend", `
                 <div class="order-details-modal-wrapper">
                     <div class="order-details-modal" data-aos="fade-up">
@@ -135,7 +161,7 @@
                         </div>
                         <div class="order-id-wrapper">
                             <h4>Printwear Order ID: ${modalOrderDetails.printwearOrderId}</h4>
-                            <h2>${modalOrderDetails.customerOrderId}</h2>
+                            <h2>${modalOrderDetails.customerOrderId}<h4 class="status-badge ${modalOrderDetails.deliveryStatus}">${modalOrderDetails.deliveryStatus}</h4> </h2>
                         </div>
                         <h3>Order items:</h3>
                         <table class="order-details-table">
@@ -170,7 +196,7 @@
                             <p class="address-indent"> ${modalOrderDetails.billingAddress.mobile} </p>
                             <p class="address-indent"> ${Object.values(modalOrderDetails.billingAddress).slice(4).join(', ')} </p>
                         </div>
-                        <table>
+                        <table style='${isNegative? 'opacity: 0.6; pointer-events: none;': 'opacity: 1'}'>
                             <thead>
                                 <th>Shiprocket ID</th>
                                 <th>Shipment ID</th>
@@ -178,9 +204,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>${modalOrderDetails.shipRocketOrderId}</td>
-                                    <td>${modalOrderDetails.shipmentId}</td>
-                                    <td><a href="https://shiprocket.co/tracking/${modalOrderDetails.shipRocketCourier.courierAWB}" target="_blank">${modalOrderDetails.shipRocketCourier.courierAWB}</a></td>
+                                    <td>${isNegative? modalOrderDetails.deliveryStatus: modalOrderDetails.shipRocketOrderId}</td>
+                                    <td>${isNegative? modalOrderDetails.deliveryStatus: modalOrderDetails.shipmentId}</td>
+                                    <td>${isNegative? modalOrderDetails.deliveryStatus: `<a href="https://shiprocket.co/tracking/${modalOrderDetails.shipRocketCourier.courierAWB}" target="_blank">${modalOrderDetails.shipRocketCourier.courierAWB}</a>`}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -194,11 +220,14 @@
                                 <li data-order-status="delivered">Delivered</li>
                             </ul>
                         </div> -->
-                        <button class="refund-btn" onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>
+                        ${modalOrderDetails.paymentStatus == "refund_init"? 
+                            '<button class="disable-button">Refund initiated</button> Will be processed within 2-3 working days!'
+                            : 
+                            `<button class="refund-btn" onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>`}
                     </div>
                 </div>
             `);
-            const trackingStatusBoxes = document.querySelectorAll('.tracking-status ul li');
+            /* const trackingStatusBoxes = document.querySelectorAll('.tracking-status ul li');
                 
 
             for(let i=0; i<trackingStatusBoxes.length; i++) {
@@ -214,7 +243,7 @@
                     }
                     break;
                 }
-            }
+            } */
 
             const closeModalButton = document.querySelector("#close-modal");
             closeModalButton.addEventListener("click", (e) => {

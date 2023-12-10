@@ -226,7 +226,7 @@ const updateStats = () => {
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
 
-  let printingPrice = (imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0) ? 70.00 : imageAreaInInches * 2 
+  let printingPrice = (imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0) ? 70.00 : ((imageAreaInInches * 2) < 70.00 ? 70.00 : imageAreaInInches * 2);
 
   priceTable.children[0].children[1].innerHTML = imageHeightInInches + " in";
   priceTable.children[1].children[1].innerHTML = imageWidthInInches + " in";

@@ -246,3 +246,25 @@ table a:visited {
     cursor: pointer;
     width: fit-content;
 }
+
+.status-badge {
+    display: inline;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    width: min-content;
+}
+
+.processing, .unplaced, .processing, .dispatched, .delivered {
+    background-color: hsl(108, 48%, 94%);
+    color: hsl(136, 100%, 28%);
+}
+
+.return_init, .returned, .cancelled {
+    background-color: hsl(0, 100%, 97%);
+    color: hsl(0, 100%, 57%)
+}
+
+.mngord-head h2 {
+    margin-bottom: 1.2rem;
+}

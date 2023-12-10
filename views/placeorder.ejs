@@ -87,7 +87,7 @@
             previewCell.innerHTML = `<img class="design-preview-image" src='${designObject.designImage.front?? designObject.designImage.back}' />`
             
             const actionCell = document.createElement("td");
-            actionCell.innerHTML = `<button onclick="addToOrder('${designObject.designSKU}')">Add to order</button>`
+            actionCell.innerHTML = `<button onclick="addToOrder(event, '${designObject.designSKU}')">Add to order</button>`
 
             row.appendChild(SNoCell);
             row.appendChild(nameCell);
@@ -242,7 +242,7 @@
         }
 
         const deleteOrder = async (el, designId) => {
-            console.log(designId)
+            //console.log(designId)
             let delButtonContent = el.innerHTML;
             try {
                 el.innerHTML = `<span class="loader"></span>`;
@@ -256,11 +256,11 @@
                     })
                 });
                 const deleteOrderResponse = await deleteOrderRequest.json();
-                console.log(deleteOrderResponse);
+                //console.log(deleteOrderResponse);
                 if (!deleteOrderRequest.ok) return notyf.error("Couldn't delete item!");
                 orderData = orderData.filter(order => order._id !== designId);
                 orderDataResponse.orderData = deleteOrderResponse;
-                console.log(orderData);
+                //console.log(orderData);
                 populateOrderTable();
                 notyf.success("Deleted item successfully!");
             } catch (error) {
@@ -374,9 +374,13 @@
             widgetElements.forEach(widgetElem => widgetElem.dataset.widgetno != widgetNo ? widgetElem.style.display = "none": widgetElem.style.display = "flex");
         }
 
-        const addToOrder = async (searchSKU) => {
+        const addToOrder = async (e, searchSKU) => {
+            e.target.classList.add("disable-button");
             // check if already that design exists, if not, add.. disable button in fetchOrderData() after fetchDesignData() and add new key
-            if (orderData.find(order => order.designSKU == searchSKU)) return notyf.error("Design already added to order");
+            if (orderData.find(order => order.designSKU == searchSKU)) {
+               e.target.classList.remove("disable-button"); 
+                return notyf.error("Design already added to order");
+            }
             const designData = designDataResponse.designs.find(design => design.designSKU == searchSKU);
             orderData.push(designData);
             console.log(designData, orderData);
@@ -396,14 +400,17 @@
                 const addOrderResponse = await addOrderRequest.json();
                 if (!addOrderRequest.ok) {
                     console.log(addOrderResponse);
+                    e.target.classList.remove("disable-button");
                     return notyf.error("Couldn't add to cart!");
                 }
+                e.target.classList.remove("disable-button");
                 orderDataResponse.orderData = addOrderResponse;
                 populateOrderTable();
                 notyf.success("Design added to orders");
                 console.log(addOrderResponse);
             } catch (error) {
                 console.log(error);
+                e.target.classList.remove("disable-button");
                 return notyf.error("Something went wrong!");
             }
         }

@@ -9,7 +9,9 @@
     <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
     <link rel="stylesheet" href="/css/invoice.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <title>Invoice</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Invoicing</title>
 </head>
 
 <body>
@@ -18,213 +20,26 @@
         <%- include('partials/top.ejs') %>
     </div>
     <div class="invoice">
-    
-        <div class="head">
-            <p>INVOICING</p>
-        </div>
-
-        <div class="choice-cnt" data-aos="fade-up">
-            <div class="choice">
-                <p id="ch1" class="chc active">Credits</p>
-                <p id="ch2" class="chc">Payment</p>
-                <p id="ch4" class="chc">Invoice</p>
-            </div>
-        </div>
-        
-        <div class="main-cnt" data-aos="fade-up">
-            <div class="main credit" id="credit">
-                <div class="fil">
-                    <div class="filter">
-                        <div class="name">
-                            <input type="text" placeholder="Order ID">
-                        </div>
-                        <!-- <div class="dropdown">
-                            <p>All <i class="fa-solid fa-sort-down"></i></p>
-                            <div class="dropdown-content">
-                                <p>scroll1</p>
-                                <p>scroll2</p>
-                            </div>
-                        </div> -->
-                    </div>
-                </div>
-                <div class="bts">
-                    <div class="btns">
-                        <div class="bt-n">
-                            <button class="bt-1">Search</button>
-                        </div>
-                        <div class="bt-n">
-                            <button class="bt-2">Reset</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="headings">
-                    <div class="list-topics">
-                        <div class="list date">
-                            <p>Date</p>
-                        </div>
-                        <div class="list ordid">
-                            <p>Order/Payment ID</p>
-                        </div>
-                        <div class="list type">
-                            <p>Type</p>
-                        </div>
-                        <div class="list amt">
-                            <p>Amount</p>
-                        </div>
-                        <div class="list cmnt">
-                            <p>Comments</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contents">
-                    <div class="cnts">
-                        <div class="dates">
-                            <p>14-04-2023</p>
-                        </div>
-                        <div class="ord">
-                            <p>25565</p>
-                        </div>
-                        <div class="type">
-                            <p>Credit</p>
-                        </div>
-                        <div class="amont">
-                            <p>$1000</p>
-                        </div>
-                        <div class="cmnts">
-                            <p>Recharge</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contents">
-                    <div class="cnts">
-                        <div class="dates">
-                            <p>14-04-2023</p>
-                        </div>
-                        <div class="ord">
-                            <p>25565</p>
-                        </div>
-                        <div class="type">
-                            <p>Credit</p>
-                        </div>
-                        <div class="amont">
-                            <p>$1000</p>
-                        </div>
-                        <div class="cmnts">
-                            <p>Recharge</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contents">
-                    <div class="cnts">
-                        <div class="dates">
-                            <p>14-04-2023</p>
-                        </div>
-                        <div class="ord">
-                            <p>25565</p>
-                        </div>
-                        <div class="type">
-                            <p>Credit</p>
-                        </div>
-                        <div class="amont">
-                            <p>$1000</p>
-                        </div>
-                        <div class="cmnts">
-                            <p>Recharge</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="main payment" id="payment">
-                <div class="fil">
-                    <div class="filter">
-                        <div class="name">
-                            <input type="text" placeholder="Reference Number">
-                        </div>
-                    </div>
-                </div>
-                <div class="bts">
-                    <div class="btns">
-                        <div class="bt-n">
-                            <button class="bt-1">Search</button>
-                        </div>
-                        <div class="bt-n">
-                            <button class="bt-2">Reset</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="headings">
-                    <div class="list-topics">
-                        <div class="list date">
-                            <p>Date</p>
-                        </div>
-                        <div class="list ordid">
-                            <p>Reference Number</p>
-                        </div>
-                        <div class="list type">
-                            <p>Amount</p>
-                        </div>
-                        <div class="list amt">
-                            <p>Payment Type</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contents">
-                    <div class="cnts">
-                        <div class="dates">
-                            <p>14-04-2023</p>
-                        </div>
-                        <div class="ord">
-                            <p>25565</p>
-                        </div>
-                        <div class="amont">
-                            <p>$1000</p>
-                        </div>
-                        <div class="cmnts">
-                            <p>Recharge</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contents">
-                    <div class="cnts">
-                        <div class="dates">
-                            <p>14-04-2023</p>
-                        </div>
-                        <div class="ord">
-                            <p>25565</p>
-                        </div>
-                        <div class="amont">
-                            <p>$1000</p>
-                        </div>
-                        <div class="cmnts">
-                            <p>Recharge</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="main invoices" id="invoice">
-                <div class="fil">
-                    <div class="filter">
-                        <div class="name">
-                            <input type="text" placeholder="Invoice Number">
-                        </div>
-                        <div class="name">
-                            <input type="text" placeholder="Order Number">
-                        </div>
-                    </div>
-                </div>
-                <div class="bts">
-                    <div class="btns">
-                        <div class="bt-n">
-                            <button class="bt-1">Search</button>
-                        </div>
-                        <div class="bt-n">
-                            <button class="bt-2">Reset</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="Err">
-                    <p>Oops.. It looks like we couldn't find any data. Please try to change the filters and try again.
-                    </p>
+        <div class="invoice-header">
+            <h2>Invoicing</h2>
+            <div class="invoice-table">
+                <div id="printwear-invoice">
+                    <!-- <div class="search-options">
+                        <label for="search-invoices">Search</label>
+                        <input id="search-invoices" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                    </div> -->
+                    <!-- <table>
+                        <thead>
+                            <th>S. No.</th>
+                            <th>Printwear Order ID</th>
+                            <th>Your Order ID</th>
+                            <th>Amount paid</th>
+                            <th>Customer Name</th>
+                            <th>Invoice link</th>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table> -->
                 </div>
             </div>
         </div>
@@ -232,38 +47,23 @@
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
-    </script>
-    <script>
-        let a = document.getElementById("credit");
-        let b = document.getElementById("payment");
-        let d = document.getElementById("invoice");
-        let ch1 = document.getElementById("ch1");
-        let ch2 = document.getElementById("ch2");
-        let ch4 = document.getElementById("ch4");
-        ch1.addEventListener("click", function () {
-            a.style.display = "block";
-            b.style.display = "none";
-            d.style.display = "none";
-            ch1.classList.add("active");
-            ch2.classList.remove("active");
-            ch4.classList.remove("active");
-        });
-        ch2.addEventListener("click", function () {
-            a.style.display = "none";
-            b.style.display = "block";
-            d.style.display = "none";
-            ch1.classList.remove("active");
-            ch2.classList.add("active");
-            ch4.classList.remove("active");
-        });
-        ch4.addEventListener("click", function () {
-            a.style.display = "none";
-            b.style.display = "none";
-            d.style.display = "block";
-            ch1.classList.remove("active");
-            ch2.classList.remove("active");
-            ch4.classList.add("active");
-        });
+        var notyf = new Notyf();
+
+        const fetchInvoices = async () => {
+            try {
+                const invoiceRequest = await fetch("/getinvoices");
+                invoiceResponse = await invoiceRequest.json();
+                console.log(invoiceResponse);
+                document.querySelector('#printwear-invoice').innerHTML = `
+                    <a href="${invoiceResponse.invoice_url}" target="_blank" download>Click here to download invoices</a>
+                `;
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Something went wrong in fetching invoices");
+            }
+        }
+
+        fetchInvoices();
     </script>
 </body>
 

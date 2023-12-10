@@ -221,7 +221,8 @@
 
           console.log(userImageData)
 
-          if (isReadyForRendering) populateUserDesigns(userImageData);
+          if (isReadyForRendering && data.arrayName == "images") populateUserDesigns(userImageData);
+          if (isReadyForRendering && data.arrayName == "labels") populateUserLabels(userImageData);
 
           userImageWrapper.innerHTML = '';
            
@@ -252,7 +253,7 @@
             })
           })
       } catch(err) {
-          //.log(err);
+          console.log(err);
           notyf.error("Something went wrong in loading images!");
       }
   }

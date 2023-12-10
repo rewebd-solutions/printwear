@@ -1009,7 +1009,7 @@ exports.createdesign = async (req, res) => {
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData)
 
-    let uniqueSKU = req.body.productData.product.SKU + "-" + (req.body.productData.designSKU != '' ? req.body.productData.designSKU: otpGen.generate(5, { lowerCaseAlphabets: false, specialChars: false }));
+    let uniqueSKU = req.body.productData.product.SKU + "-" + (req.body.productData.designSKU != '' ? req.body.productData.designSKU : otpGen.generate(5, { lowerCaseAlphabets: false, specialChars: false }));
     // console.log(uniqueSKU);
     // console.log(req.body.designImageURL)
 
@@ -1036,7 +1036,7 @@ exports.createdesign = async (req, res) => {
             product: { ...req.body.productData.product },
             designSKU: uniqueSKU,
             designName: req.body.productData.designName,
-            price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : req.body.productData.price * 2) + (req.body.neckLabel == 'null'? 0: 10)).toFixed(2)),
+            price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 2) < 70.00 ? 70.00 : (req.body.productData.price * 2))) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
             designDimensions: { ...req.body.productData.designDimensions },
             designImage: {
               front: req.body.direction === "front" && fileDownloadURL,
@@ -1046,7 +1046,7 @@ exports.createdesign = async (req, res) => {
               itemName: req.body.designImageName,
               URL: req.body.designImageURL
             }],
-            neckLabel: req.body.neckLabel == 'null'? undefined: req.body.neckLabel
+            neckLabel: req.body.neckLabel == 'null' ? undefined : req.body.neckLabel
           }
         }
       },
@@ -1590,7 +1590,7 @@ exports.calculateshippingcharges = async (req, res) => {
     const shippingChargeResponse = await shippingChargeRequest.json();
     console.log(shippingChargeResponse)
     if (shippingChargeResponse.status != 200) return res.status(shippingChargeResponse.status_code || shippingChargeResponse.status).json({ message: shippingChargeResponse.message });
-    
+
     // the following code should be put in getpaymentlink function
     // get courier id for the order
     // const recommendedCourierID = shippingChargeResponse.data.recommended_courier_company_id;
@@ -1638,6 +1638,7 @@ exports.createshiporder = async (req, res) => {
       if (!orderData) return res.json({ message: "ok" });
 
       const designData = await NewDesignModel.findOne({ userId: userid });
+      const labelData = await LabelModel.findOne({ userId: userid });
       // i think i did this for fooling cashfree webhook hitting twice but didnt work ig
       // let orderId = orderData.printwearOrderId;
       // orderData.printwearOrderId = null;
@@ -1731,10 +1732,9 @@ exports.createshiporder = async (req, res) => {
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "processing";
-      // orderData.printwearOrderId = orderId;
 
       if (orderData.shipRocketCourier.courierId != -1) {
-        const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb',  {
+        const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
           headers: {
             "Content-Type": "application/json",
             Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
@@ -1747,7 +1747,7 @@ exports.createshiporder = async (req, res) => {
         });
         const shipmentAssignResponse = await shipmentAssignRequest.json();
         console.log(shipmentAssignResponse);
-        orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+        orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;;
       }
 
       // let dummyReeponse = {
@@ -1855,6 +1855,7 @@ exports.createshiporder = async (req, res) => {
 
       const productData = orderData.items.map(item => {
         let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+        let neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
         return {
           name: currentItemDesignData.designName,
           slug: slugify(currentItemDesignData.designName),
@@ -1863,7 +1864,7 @@ exports.createshiporder = async (req, res) => {
           regular_price: currentItemDesignData.price + '',
           sale_price: currentItemDesignData.price + '',
           sku: currentItemDesignData.designSKU,
-          description: currentItemDesignData.description || 'User generated design',
+          description: currentItemDesignData.description || 'User generated design. Neck label:' + neckLabelURl,
           short_description: currentItemDesignData.product.name,
           dimensions: {
             length: currentItemDesignData.product.dimensions.length + '',
@@ -1916,12 +1917,12 @@ exports.createshiporder = async (req, res) => {
       });
 
       Promise.all(woocommerceProductCreateRequests)
-      .then(responseArray => {
-        console.log(responseArray);
-      })
-      .catch(error => {
-        console.log(error);
-      })
+        .then(responseArray => {
+          console.log(responseArray);
+        })
+        .catch(error => {
+          console.log(error);
+        })
 
     } catch (error) {
       console.log(error);
@@ -1995,7 +1996,86 @@ exports.initiaterefund = async (req, res) => {
   // i think shiprocket also has webhook? idk i need to see
   // for RETURN ORDER: hit shiprocket API to initiate return, then listen to the event via webhook and then update 
   // orderHistory with appropriate status and all
-  return res.json({ message: "OK" });
+
+  const refundFunction = async () => {
+    try {
+      const cashfreeRefundRequest = await fetch(CASHFREE_BASE_URL + `/orders/${orderToRefund.printwearOrderId}/refunds`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-client-id": cashfreeAppID,
+          "x-client-secret": cashfreeSecretKey,
+          "x-api-version": "2022-09-01"
+        },
+        body: JSON.stringify({
+          refund_amount: orderToRefund.amountPaid,
+          refund_id: `refund_${orderToRefund.printwearOrderId}`,
+          refund_note: 'Refund initiated by client',
+          refund_speed: 'INSTANT'
+        })
+      });
+      const cashfreeRefundResponse = await cashfreeRefundRequest.json();
+      console.log(cashfreeRefundResponse);
+      if (cashfreeRefundRequest.ok) {
+        return "refund_ok";
+      }
+      return cashfreeRefundResponse.message;
+    } catch (error) {
+      console.log(error);
+      return "Cashfree Refund error";
+    }
+  }
+
+  const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
+  const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
+  const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
+  // console.log(orderToRefund);
+  if (orderToRefund.deliveryStatus == "processing") {
+    // if it is still processing and neither picked up nor delivered, simply hit SR API to cancel that order and issue refund
+    const shiprocketToken = await generateShiprocketToken();
+    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+    try {
+      const cancelSROrderRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/cancel`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+        },
+        method: "POST",
+        body: JSON.stringify({
+          ids: [
+            orderToRefund.shipRocketOrderId
+          ]
+        })
+      });
+      const cancelSROrderResponse = await cancelSROrderRequest.json();
+      console.log(cancelSROrderResponse);
+
+      if (cancelSROrderResponse.status_code == 200 || cancelSROrderResponse.status == 200) {
+        console.log(orderToRefund.printwearOrderId + " order cancelled");
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
+
+        let cashfreeRefundStatus = await refundFunction();
+
+        if (cashfreeRefundStatus == 'refund_ok') {
+          orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+          await orderHistory.save();
+          return res.status(200).json({ orderData: orderHistory.orderData });
+        } else {
+          return res.status(500).json({ message: cashfreeRefundStatus });
+        }
+
+      } else {
+        console.log(orderToRefund.printwearOrderId + " failed to cancel order", cancelSROrderResponse);
+        return res.status(cancelSROrderResponse.status_code || cancelSROrderResponse.status).json({ message: cancelSROrderResponse.message });
+      }
+
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Server error in cancelling order" });
+    }
+  }
+
 }
 
 // for now create a test endpoint for fetching order data, then later change /manageorder route to do data fetching and implement SSR
@@ -2101,6 +2181,37 @@ exports.checkorderid = async (req, res) => {
   }
 }
 
+// endpoint for getting invoice link for the orders
+exports.getinvoices = async (req, res) => {
+  // temporary invoice collecting endpoint as the actual invoices must be obtained from zoho invoice only
+  try {
+    const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
+    const orderIds = orderHistory.orderData.map(order => order.shipRocketOrderId);
+
+    const shiprocketToken = await generateShiprocketToken();
+    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+    const SRinvoiceRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/print/invoice`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+      },
+      method: "POST",
+      body: JSON.stringify({
+        ids: orderIds
+      })
+    });
+
+    const SRinvoiceResponse = await SRinvoiceRequest.json();
+    console.log(SRinvoiceResponse);
+    res.json(SRinvoiceResponse);
+    
+  } catch (error) {
+    console.log(error);
+    res.json(error);
+  }
+}
+
 
 //endpoint for generating zoho books invoice
 exports.generateZohoBooksInvoice = async (req, res) => {
@@ -2114,23 +2225,116 @@ exports.generateZohoBooksInvoice = async (req, res) => {
     //   }
     // });
     // const zohoInvoiceResponse = await zohoInvoiceRequest.json();
+
+    // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
+    let userid = '653e3284308b660442fd55a6';
+    const userData = await UserModel.findById(userid);
+    // if (!userData.isZohoCustomer) {
+    //   // write endpoint to create zoho customer 
+    //   let customerData = {
+    //     "contact_name": userData.name,
+    //     "company_name": userData.brandName ?? 'N/A',
+    //     // "custom_fields": [
+    //     //   {
+    //     //     "value": "GBGD078",
+    //     //     "index": 1
+    //     //   }
+    //     // ],
+    //     "billing_address": {
+    //       "attention": "Mr.John",
+    //       "address": "4900 Hopyard Rd, Suite 310",
+    //       "street2": "Suite 310",
+    //       "state_code": "CA",
+    //       "city": "Pleasanton",
+    //       "state": "CA",
+    //       "zip": 94588,
+    //       "country": "U.S.A",
+    //       "fax": 1234,
+    //       "phone": "1234"
+    //     },
+    //     "shipping_address": {
+    //       "attention": "Mr.John",
+    //       "address": "4900 Hopyard Rd, Suite 310",
+    //       "street2": "Suite 310",
+    //       "state_code": "CA",
+    //       "city": "Pleasanton",
+    //       "state": "CA",
+    //       "zip": 94588,
+    //       "country": "U.S.A",
+    //       "fax": 1234,
+    //       "phone": "1234"
+    //     },
+    //     "contact_persons": [
+    //       {
+    //         "salutation": userData.name,
+    //         "first_name": userData.firstName,
+    //         "last_name": userData.lastName,
+    //         "email": userData.email,
+    //         "phone": userData.phone,
+    //         "mobile": userData.phone,
+    //         "is_primary_contact": true
+    //       }
+    //     ],
+    //     // "default_templates": {
+    //     //   "invoice_template_id": 460000000052069,
+    //     //   "invoice_template_name": "Standard Template",
+    //     // },
+    //     "language_code": "en",
+    //     // "notes": "Payment option : Through check",
+    //     // "vat_reg_no": "string",
+    //     // "tax_reg_no": 12345678912345,
+    //     "country_code": "IN",
+    //     // "vat_treatment": "string",
+    //     // "tax_treatment": "string",
+    //     // "tax_regime": "general_legal_person",
+    //     // "is_tds_registered": true,
+    //     "place_of_contact": "TN",
+    //     // "gst_no": "22AAAAA0000A1Z5",
+    //     // "gst_treatment": "business_gst",
+    //     // "tax_authority_name": "string",
+    //     // "tax_exemption_code": "string",
+    //     // "avatax_exempt_no": "string",
+    //     // "avatax_use_code": "string",
+    //     // "tax_exemption_id": 11149000000061054,
+    //     // "tax_authority_id": 11149000000061052,
+    //     // "tax_id": 11149000000061058,
+    //     // "tds_tax_id": "982000000557012",
+    //     // "is_taxable": true,
+    //     // "facebook": "zoho",
+    //     // "twitter": "zoho"
+    //   }
+    //   const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/invoice/v3/contacts`, {
+    //     method: "POST",
+    //     headers: {
+    //       Authorization: 'Zoho-oauthtoken ' + zohoToken,
+    //       'X-com-zoho-invoice-organizationid': ZOHO_INVOICE_ORGANIZATION_ID,
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify(customerData)
+    //   });
+    //   const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
+    //   console.log(zohoCustomerCreateResponse)
+    //   if (zohoCustomerCreateResponse.code == 0) {
+    //     userData.isZohoCustomer = true;
+    //     userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
+    //   }
+    // }
     const invoiceData = {
-      "customer_id": 982000000560001,
-      "currency_id": 982000000000190,
+      "customer_id": userData._id,
       "contact_persons": [
-        "982000000870911",
-        "982000000870915"
+        userData._id
       ],
-      "invoice_number": "INV-00063",
+      // "currency_id": 982000000000190,
+      // "invoice_number": "INV-00063",
       "place_of_supply": "TN",
-      "vat_treatment": "string",
-      "tax_treatment": "vat_registered",
-      "gst_treatment": "business_gst",
-      "gst_no": "22AAAAA0000A1Z5",
-      "cfdi_usage": "acquisition_of_merchandise",
+      // "vat_treatment": "string",
+      // "tax_treatment": "vat_registered",
+      // "gst_treatment": "business_gst",
+      // "gst_no": "22AAAAA0000A1Z5",
+      // "cfdi_usage": "acquisition_of_merchandise",
       "reference_number": " ",
-      "template_id": 982000000000143,
-      "date": "2013-11-17",
+      // "template_id": 460000000052069,
+      "date": "2023-12-10",
       "payment_terms": 15,
       "payment_terms_label": "Net 15",
       "due_date": "2013-12-03",
@@ -2180,7 +2384,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
           "tax_name": "VAT",
           "tax_type": "tax",
           "tax_percentage": 12.5,
-          "tax_treatment_code": "uae_others",
+          // "tax_treatment_code": "uae_others",
           "header_name": "Electronic devices"
         }
       ],
@@ -2212,6 +2416,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
       "avatax_tax_code": "string",
       "time_entry_ids": []
     }
+
     const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
       method: "POST",
       headers: {
