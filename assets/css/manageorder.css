@@ -244,4 +244,5 @@ table a:visited {
     background-color: #F05A30;
     border: none;
     cursor: pointer;
+    width: fit-content;
 }

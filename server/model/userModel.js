@@ -83,7 +83,12 @@ var UserSchema = new mongoose.Schema({
     profileImage: {
       type: String
     },
-    brandName: String
+    brandName: String,
+    isZohoCustomer: {
+      type: Boolean,
+      default: false
+    },
+    zohoCustomerID: String
 })
 
 const UserModel = mongoose.model('User', UserSchema);

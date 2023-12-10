@@ -214,7 +214,7 @@
                 if (updateQuantityRequest.ok) {
                     document.querySelector(".order-table").lastChild.children[i].children[5].innerHTML = '₹' + (price*quantityToSet).toFixed(2);
                     orderData.find(order => order._id == designId).quantity = parseInt(quantityToSet);
-                    document.querySelector("#total-price h4").innerHTML = "Total Price: ₹" + orderData.reduce((total, order) => (total + (order.price * order.quantity)), 0).toFixed(2);
+                    document.querySelector("#total-price h4").innerHTML = "Total Price: ₹" + updateQuantityResponse.totalPrice;
                     return notyf.success("Updated quantity!");
                 } else {
                     return notyf.error("Couldn't increment quantity");

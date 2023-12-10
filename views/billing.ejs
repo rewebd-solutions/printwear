@@ -163,10 +163,22 @@
                         <input type="text" id="country" name="country" value="India" disabled>
                     </div>
                 </div>
-                <div>
+                <div class="courier-pickup-wrapper">
                     <button class="billing-button" id="courier-check">Get available couriers</button>
                     <input type="checkbox" name="self-pickup" id="self-pickup" />
                     <label for="self-pickup">Pickup order myself</label>
+                </div>
+                <div class="bill-summary">
+                    <div class="left-bill">
+                        <h3>Bill total: </h3>
+                    </div>
+                    <div class="right-bill">
+                        <h4>₹.<%= orderData.totalAmount %> </h4>
+                        <h4>₹0.00 (Tax)</h4>
+                        <h4 id="shipping-charges">₹0.00 (Shipping charges) </h4>
+                        <hr />
+                        <h4 id="total-charges">₹<%= orderData.totalAmount %></h4>
+                    </div>
                 </div>
             </div>
             <% } else { %>
@@ -183,6 +195,7 @@
         var orderIdVerified = false;
         var retailVerified = false;
         var itemCount = parseInt('<%= orderData.items.length %>');
+        var isSelfPickup = false;
 
         const cashfree = Cashfree({
             mode: "sandbox" //or production
@@ -193,6 +206,131 @@
         const retailPriceInput = document.querySelector("input#retailPrice");
         const billingAddressForm = document.querySelector(".billing-address-form");
         const courierGetBtn = document.querySelector("#courier-check");
+        const courierPickupWrapper = document.querySelector(".courier-pickup-wrapper");
+        const selfPickup = document.querySelector('#self-pickup');
+        const billSummary = document.querySelector(".bill-summary");
+
+        const handleCheckout = async (e) => {
+            if (disabled) return;
+            disabled = true;
+            e.target.classList.add("disabled");
+            let hasRadioBeenChecked = false;
+
+            if (!orderIdVerified) {
+                disabled = false;
+                e.target.classList.remove("disabled");
+                e.target.removeAttribute("disabled");
+                return notyf.error("Please check Order ID");
+            }
+            
+            if (!retailVerified) {
+                disabled = false;
+                e.target.classList.remove("disabled");
+                e.target.removeAttribute("disabled");
+                return notyf.error("Please check retail price");
+            }
+            
+            const formsData = document.querySelectorAll(".billing-address-form input");
+            
+            for(const inputItem of formsData){
+                inputItem.style.outline = "none";
+                if (!inputItem.reportValidity()) {
+                    disabled = false;
+                    e.target.classList.remove("disabled");
+                    return notyf.error("Check " + inputItem.id);
+                }             
+            }
+
+            const radioInputBtns = document.querySelectorAll('input[type="radio"]');
+
+            if (radioInputBtns) {
+                radioInputBtns.forEach((radioBtn) => {
+                    if (radioBtn.checked) hasRadioBeenChecked = true;
+                });
+    
+                if (!hasRadioBeenChecked && isSelfPickup == false) {
+                    disabled = false;
+                    e.target.classList.remove("disabled");
+                    return notyf.error("Select a courier");
+                }
+            }
+
+            const checkoutData = {
+                firstName: formsData[0].value,
+                lastName: formsData[1].value,
+                mobile: formsData[2].value,
+                email: formsData[3].value,
+                streetLandmark: formsData[4].value,
+                city: formsData[5].value,
+                pincode: formsData[6].value,
+                state: document.querySelector('#state').value,
+                country: formsData[7].value,
+                retailPrice: retailPriceInput.value,
+                customerOrderId: orderIdInput.value,
+                shippingCharge: 0,
+                courierId: null,
+                courierData: null
+            }
+            if (!isSelfPickup) {
+                checkoutData.shippingCharge = shippingCharge;
+                checkoutData.courierId = courierId;
+                checkoutData.courierData = shippingChargesResponse.data.available_courier_companies.find(courier => courier.courier_company_id == courierId);
+            }
+
+            console.log(checkoutData);
+
+            try {
+                const createPaymentLinkRequest = await fetch("/createpaymentlink", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(checkoutData),
+                    method: 'POST'
+                });
+                const createPaymentLinkResponse = await createPaymentLinkRequest.json();
+                console.log(createPaymentLinkResponse)
+                if (!createPaymentLinkRequest.ok) {
+                    disabled = false;
+                    e.target.classList.remove("disabled");
+                    return notyf.error({
+                        message: createPaymentLinkResponse.error,
+                        duration: 10000,
+                    });
+                } 
+                cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
+                //location.replace(`https://payments-test.cashfree.com/order/#${createPaymentLinkResponse.link}`);
+            } catch (error) {
+                console.log(error);
+                e.target.classList.remove("disabled");
+                disabled = false;
+                notyf.error("Something went wrong!");
+            }
+        }
+
+        selfPickup.oninput = (e) => {
+            const courierRadioBtns = document.querySelector('fieldset');
+            if (e.target.checked) {
+                isSelfPickup = true;
+                modifyBillSummary(0.00);
+                if (courierRadioBtns) {
+                    console.log("radio btns iruku")
+                    courierRadioBtns.style.display = "none";
+                } else {
+                    billSummary.insertAdjacentHTML("afterend", `
+                    <button type="button" class="billing-button" id="btn-checkout">
+                        Proceed to checkout
+                    </button>
+                    `)
+                    document.querySelector("#btn-checkout").onclick = handleCheckout;
+                }
+                return;
+            }
+            isSelfPickup = false;
+            if (courierRadioBtns) {
+                courierRadioBtns.style.display = "unset";
+                modifyBillSummary(shippingCharge);
+            } else document.querySelector("#btn-checkout").remove();
+        }
 
         retailPriceInput.oninput = (e) => {
             let string = e.target.value;
@@ -247,9 +385,21 @@
             }
         }
         
+        const modifyBillSummary = (charges) => {
+            document.getElementById("shipping-charges").innerHTML = `₹${charges} (Shipping charges)`;
+            document.getElementById("total-charges").innerHTML = `₹${(parseFloat(ttlp) + charges).toFixed(2)}`;
+        }
+        
+        //let oldPincode = pincode.value;
         const getAvailableCouriers = async (e) => {
-            if (!pincode.value.length == 6) return notyf.error("Pincode does not have 6 digits");
+            // check for spamming check available couriers
+            //if (oldPincode == pincode.value) return;
+            //oldPincode = pincode.value;
+
+            if (!(pincode.value.length == 6)) return notyf.error("Pincode does not have 6 digits");
+            e.target.classList.add("disabled");
             e.target.setAttribute("disabled", true);
+
             try {
                 const shippingChargesRequest = await fetch("/calculateshippingcharges", {
                     method: 'POST',
@@ -262,125 +412,54 @@
                     })
                 });
                 shippingChargesResponse = await shippingChargesRequest.json();
-                // console.log(shippingChargesResponse)
+                console.log(shippingChargesResponse)
                 if (!shippingChargesRequest.ok) return notyf.error({ message: shippingChargesResponse.message, duration: 10, dismissible: true });
+                
+
+                e.target.classList.remove("disabled");
+                e.target.removeAttribute("disabled");
 
                 // code to create a radio group
                 const availableCouriers = shippingChargesResponse.data.available_courier_companies;
-                billingAddressForm.insertAdjacentHTML("afterend", `
+                courierPickupWrapper.insertAdjacentHTML("afterend", `
                     <div class="available-couriers">
                         <fieldset>
                             <legend>Select a courier:</legend>
                             ${availableCouriers.map(courier => {
                                 return `
                                     <div>
-                                        <input type="radio" id="huey" name="${courier.courier_name}" value="${courier.courier_company_id}" checked />
-                                        <label for="huey">${courier.courier_name} (Delivery charge: ₹${courier.freight_charges}, Delivery Date: ${courier.etd}) ${availableCouriers.data.recommended_courier_company_id == courier.courier_company_id && '<strong>RECOMMENDED</strong>'} </label>
+                                        <input type="radio" id="${courier.courier_company_id}" name="Couriers" value="${courier.courier_company_id}" />
+                                        <label for="${courier.courier_company_id}">${courier.courier_name} <h5>Delivery charge: ₹${courier.freight_charge}</h5> <h5>Delivery Date: ${courier.etd}</h5> ${shippingChargesResponse.data.recommended_courier_company_id == courier.courier_company_id ? '<h6>RECOMMENDED</h6>': ''} </label>
                                     </div>
                                 `
                             }).join('\n')}
                         </fieldset>                        
                     </div>
-                    <div class="bill-summary">
-                        <div class="left-bill">
-                            <h3>Bill total: </h3>
-                        </div>
-                        <div class="right-bill">
-                            <h4>₹.<%= orderData.totalAmount %> </h4>
-                            <h4>₹0.00 (Tax)</h4>
-                            <h4 id="shipping-charges">₹0.00 (Shipping charges) </h4>
-                            <hr />
-                            <h4 id="total-charges">₹<%= orderData.totalAmount %></h4>
-                        </div>
                     </div>
-                    <button type="button" id="btn-checkout">
+                `);
+
+                billSummary.insertAdjacentHTML('afterend', `
+                    <button type="button" class="billing-button" id="btn-checkout">
                         Proceed to checkout
-                    </button>
+                    </button>                    
                 `);
 
                 const courierRadioBtns = document.querySelector('fieldset');
                 courierRadioBtns.addEventListener('click', (e) => {
-                    if (e.target.closest('input[type="radio"]')) {
-                        let shippingCharge = availableCouriers.find(courier => courier.data.available_courier_companies.courier_company_id == e.target.value).freight_charges;
-                        document.getElementById("shipping-charges").innerHTML = `₹.${shippingCharge} (Shipping charges)`;
-                        document.getElementById("total-charges").innerHTML = `₹.${(parseFloat(ttlp) + shippingCharge).toFixed(2)}`;
+                    let el = e.target.closest('input[type="radio"]');
+                    if (el && el.checked) {
+                        shippingCharge = availableCouriers.find(courier => courier.courier_company_id == e.target.value).freight_charge;
+                        courierId = el.value;
+                        modifyBillSummary(shippingCharge);
                     }
                 })
                 
                 const checkoutBtn = document.querySelector("#btn-checkout");
-                
-                checkoutBtn.addEventListener("click", async (e) => {
-                    if (disabled) return;
-                    disabled = true;
-                    e.target.classList.add("disabled");
-                    
-                    if (!orderIdVerified) {
-                        disabled = false;
-                        e.target.classList.remove("disabled");
-                        return notyf.error("Please check Order ID");
-                    }
-                    
-                    if (!retailVerified) {
-                        disabled = false;
-                        e.target.classList.remove("disabled");
-                        return notyf.error("Please check retail price");
-                    }
+                document.querySelector("#btn-checkout").onclick = handleCheckout;
 
-                    const formsData = document.querySelectorAll(".billing-address-form input");
-                    
-                    for(const inputItem of formsData){
-                        inputItem.style.outline = "none";
-                        if (!inputItem.reportValidity()) {
-                            disabled = false;
-                            e.target.classList.remove("disabled");
-                            return notyf.error("Check " + inputItem.id);
-                        }             
-                    }
-
-                    const pincode = document.querySelector("#pincode");
-
-                    const addressData = {
-                        firstName: formsData[0].value,
-                        lastName: formsData[1].value,
-                        mobile: formsData[2].value,
-                        email: formsData[3].value,
-                        streetLandmark: formsData[4].value,
-                        city: formsData[5].value,
-                        pincode: formsData[6].value,
-                        state: document.querySelector('#state').value,
-                        country: formsData[7].value,
-                        retailPrice: retailPriceInput.value,
-                        customerOrderId: orderIdInput.value
-                    }
-                    try {
-                        const createPaymentLinkRequest = await fetch("/createpaymentlink", {
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(addressData),
-                            method: 'POST'
-                        });
-                        const createPaymentLinkResponse = await createPaymentLinkRequest.json();
-                        console.log(createPaymentLinkResponse)
-                        if (!createPaymentLinkRequest.ok) {
-                            disabled = false;
-                            e.target.classList.remove("disabled");
-                            return notyf.error({
-                                message: createPaymentLinkResponse.error,
-                                duration: 10000,
-                            });
-                        } 
-                        cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
-                        //location.replace(`https://payments-test.cashfree.com/order/#${createPaymentLinkResponse.link}`);
-                    } catch (error) {
-                        console.log(error);
-                        disabled = false;
-                        notyf.error("Something went wrong!");
-                    }
-                });
             } catch (error) {
                 console.log(error);
-                notyf.error({ message: "Something went wrong in obtaining couriers", duration: 10, dismissible: true });
+                notyf.error("Something went wrong in obtaining couriers");
             } finally {
                 e.target.removeAttribute("disabled");
             }

@@ -81,6 +81,10 @@ var OrderHistorySchema = new mongoose.Schema({
                 courierName: {
                     type: String,
                     default: "unassigned"
+                },
+                estimatedDelivery: {
+                    type: String,
+                    default: 'N/A'
                 }
             },
             shipmentId: String,

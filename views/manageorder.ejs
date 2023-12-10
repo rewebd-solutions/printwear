@@ -101,8 +101,8 @@
             }
         }
 
-        const initiateRefund = async (this, printwearOrderId) => {
-            this.classList.add('disable-button');
+        const initiateRefund = async (el, printwearOrderId) => {
+            el.classList.add('disable-button');
             try {
                 const initiateRefundRequest = await fetch("/initiaterefund", {
                     headers: {
@@ -111,6 +111,7 @@
                     body: JSON.stringify({
                         orderId: printwearOrderId
                     }),
+                    method: 'POST'
                 });
                 const initiateRefundResponse = await initiateRefundRequest.json();
                 console.log(initiateRefundResponse);
@@ -179,10 +180,11 @@
                                 <tr>
                                     <td>${modalOrderDetails.shipRocketOrderId}</td>
                                     <td>${modalOrderDetails.shipmentId}</td>
-                                    <td>${modalOrderDetails.shipmentId}</td>
+                                    <td><a href="https://shiprocket.co/tracking/${modalOrderDetails.shipRocketCourier.courierAWB}" target="_blank">${modalOrderDetails.shipRocketCourier.courierAWB}</a></td>
                                 </tr>
                             </tbody>
                         </table>
+                        <!--
                         <h4>Order Tracking:</h4>
                         <div class="tracking-status">
                             <ul>
@@ -191,8 +193,8 @@
                                 <li data-order-status="dispatched">Dispatched</li>
                                 <li data-order-status="delivered">Delivered</li>
                             </ul>
-                        </div>
-                        <button class="refund-btn onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>
+                        </div> -->
+                        <button class="refund-btn" onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>
                     </div>
                 </div>
             `);

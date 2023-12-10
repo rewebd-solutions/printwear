@@ -107,3 +107,33 @@ input:valid {
 fieldset input {
     margin: 0.4rem;
 }
+
+fieldset {
+    padding: 1rem;
+    border-radius: 5px;
+}
+
+fieldset label {
+    font-weight: 400;
+}
+
+fieldset h5 {
+    padding: 0.2rem 0.3rem;
+    background-color: #ebebeb;
+    color: #434343;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    width: min-content;
+    font-weight: lighter;
+    display: inline;
+}
+
+fieldset h6 {
+    display: inline;
+    padding: 0.2rem 0.3rem;
+    background-color: hsl(136, 100%, 85%);
+    color: rgb(83, 208, 83);
+    font-size: 0.6rem;
+    border-radius: 6px;
+    width: min-content;
+}

@@ -1418,7 +1418,7 @@ exports.updateorder = async (req, res) => {
 
     await orderData.save();
 
-    res.json({ message: 'Quantity updated!' });
+    res.json({ totalPrice: orderData.totalAmount });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: '500 Internal Server Error' });
@@ -1474,11 +1474,14 @@ exports.getpaymentlink = async (req, res) => {
       state,
       country,
       retailPrice,
-      customerOrderId
+      customerOrderId,
+      shippingCharge,
+      courierId,
+      courierData
     } = req.body;
 
     const orderData = await OrderModel.findOne({ userId: req.userId });
-    console.log(orderData);
+    // console.log(req.body);
     // this is only for testing where i need to check multiple times if i can process a payment and cashfree demands
     // unique ID everytime i request a payment like
     // hence this is for testing only, once the logic is stable, remove it the extraId
@@ -1552,7 +1555,13 @@ exports.getpaymentlink = async (req, res) => {
         paymentLinkId: paymentLinkResponse.payment_session_id,
         paymentLink: paymentLinkResponse.payments.url,
         retailPrice: retailPrice,
-        customerOrderId: customerOrderId
+        deliveryCharges: shippingCharge,
+        customerOrderId: customerOrderId,
+        shipRocketCourier: {
+          courierId: courierId ?? -1,
+          courierName: courierData?.courier_name ?? 'SELF PICKUP',
+          estimatedDelivery: courierData?.etd ?? 'N/A'
+        }
       },
     });
 
@@ -1583,6 +1592,7 @@ exports.calculateshippingcharges = async (req, res) => {
     if (shippingChargeResponse.status != 200) return res.status(shippingChargeResponse.status_code || shippingChargeResponse.status).json({ message: shippingChargeResponse.message });
     
     // the following code should be put in getpaymentlink function
+    // get courier id for the order
     // const recommendedCourierID = shippingChargeResponse.data.recommended_courier_company_id;
     // const charges = shippingChargeResponse.data.available_courier_companies.find(courier => courier.courier_company_id == recommendedCourierID)["freight_charge"];
     // const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, { $set: { deliveryCharges: charges } });
@@ -1722,6 +1732,80 @@ exports.createshiporder = async (req, res) => {
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "processing";
       // orderData.printwearOrderId = orderId;
+
+      if (orderData.shipRocketCourier.courierId != -1) {
+        const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb',  {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+          },
+          method: "POST",
+          body: JSON.stringify({
+            shipment_id: createShiprocketOrderResponse.shipment_id,
+            courier_id: orderData.shipRocketCourier.courierId
+          })
+        });
+        const shipmentAssignResponse = await shipmentAssignRequest.json();
+        console.log(shipmentAssignResponse);
+        orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+      }
+
+      // let dummyReeponse = {
+      //   "awb_assign_status": 1,
+      //   "response": {
+      //     "data": {
+      //       "courier_company_id": 196,
+      //       "awb_code": "X45281487",
+      //       "cod": 0,
+      //       "order_id": 449785485,
+      //       "shipment_id": 447954568,
+      //       "awb_code_status": 1,
+      //       "assigned_date_time": {
+      //         "date": "2023-12-10 13:04:37.000000",
+      //         "timezone_type": 3,
+      //         "timezone": "Asia/Kolkata"
+      //       },
+      //       "applied_weight": 0.25,
+      //       "company_id": 1249024,
+      //       "courier_name": "DTDC 500GMS",
+      //       "child_courier_name": null,
+      //       "freight_charges": 38.37,
+      //       "routing_code": "",
+      //       "rto_routing_code": "",
+      //       "invoice_no": "Retail00661",
+      //       "transporter_id": "88AAACD8017H1ZX",
+      //       "transporter_name": "",
+      //       "shipped_by": {
+      //         "shipper_company_name": "Sasa",
+      //         "shipper_address_1": "no 33 jai garden",
+      //         "shipper_address_2": "3rd street valasaravakkam",
+      //         "shipper_city": "Tiruvallur",
+      //         "shipper_state": "Tamil Nadu",
+      //         "shipper_country": "India",
+      //         "shipper_postcode": "600087",
+      //         "shipper_first_mile_activated": 0,
+      //         "shipper_phone": "9884909019",
+      //         "lat": "13.03865525403214",
+      //         "long": "80.17112016677858",
+      //         "shipper_email": "accounts@printwear.in",
+      //         "extra_info": {
+      //           "vendor_name": null
+      //         },
+      //         "rto_company_name": "Sasa",
+      //         "rto_address_1": "no 33 jai garden",
+      //         "rto_address_2": "3rd street valasaravakkam",
+      //         "rto_city": "Tiruvallur",
+      //         "rto_state": "Tamil Nadu",
+      //         "rto_country": "India",
+      //         "rto_postcode": "600087",
+      //         "rto_phone": "9884909019",
+      //         "rto_email": "accounts@printwear.in"
+      //       }
+      //     }
+      //   },
+      //   "no_pickup_popup": 0,
+      //   "quick_pick": 0
+      // }
 
       // implement orderhistory
       await OrderHistoryModel.findOneAndUpdate({ userId: userid }, {
@@ -1911,6 +1995,7 @@ exports.initiaterefund = async (req, res) => {
   // i think shiprocket also has webhook? idk i need to see
   // for RETURN ORDER: hit shiprocket API to initiate return, then listen to the event via webhook and then update 
   // orderHistory with appropriate status and all
+  return res.json({ message: "OK" });
 }
 
 // for now create a test endpoint for fetching order data, then later change /manageorder route to do data fetching and implement SSR
