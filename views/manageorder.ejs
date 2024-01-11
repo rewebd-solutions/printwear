@@ -37,7 +37,7 @@
                         <th>Your Order ID</th>
                         <th>Customer Name</th>
                         <th>Amount paid</th>
-                        <th>Delivery Charges</th>
+                        <th>Courier Tracking</th>
                         <th>Order placed on</th>
                         <th>Delivery Status</th>
                     </thead>
@@ -260,11 +260,11 @@
                 return `
                     <tr>
                         <td>${i+1}</td>
-                        <td>${orderHistory.printwearOrderId}</td>
-                        <td><a href="#" onclick="openOrderDetailsModal(event, '${orderHistory.customerOrderId}')">${orderHistory.customerOrderId}</a></td>
+                        <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
+                        <td>${orderHistory.customerOrderId}</a></td>
                         <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid}</td>
-                        <td>₹${orderHistory.deliveryCharges}</td>
+                        <td><a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a></td>
                         <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
                         <td>${orderHistory.deliveryStatus}</td>
                     </tr>                    

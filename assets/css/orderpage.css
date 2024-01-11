@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:600|Open+Sans:600&display=swap');
+
+@font-face {
+    font-family: myFont;
+    src: url('BaseNeueTrial-SemiBoldOblique.ttf');
+}
+
+* {
+    font-family: myFont;
+    margin: 0;
+    padding: 0;
+    letter-spacing: 0.05rem;
+    box-sizing: border-box;
+}
+
+.container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: column;
+    margin: auto;
+    padding-top: 6rem;
+    padding-left: 300px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.columns {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.column {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+    margin-right: 10px;
+}
+
+.box {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.timeline {
+    border-left: 2px solid #333;
+    padding-left: 10px;
+    position: relative;
+}
+
+.timeline:before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background-color: #333;
+    border-radius: 50%;
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+p {
+    margin-top: 10px;
+}
+
+.order-info {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid silver;
+}
+
+.order-info:last-of-type {
+    border-bottom: none;
+}
+
+.order-info p {
+    word-wrap: break-word;
+    word-break: break-all;
+    min-width: 230px;
+}
+
+.unplaced, .processing {
+    background-color: hsl(108, 48%, 94%);
+    color: silver;
+}
+
+.dispatched, .delivered {
+    background-color: hsl(108, 48%, 94%);
+    color: hsl(136, 100%, 28%);
+}
+
+.return_init, .returned, .cancelled {
+    background-color: hsl(0, 100%, 97%);
+    color: hsl(0, 100%, 57%)
+}
+
+.status-badge {
+    display: inline;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    width: min-content;
+}

@@ -37,6 +37,7 @@ route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
 route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
 route.get("/manageorder", authServices.authorizeToken, services.manageorder); 
 route.get("/placeorder", authServices.authorizeToken, services.placeorder);
+route.get("/order/:id", authServices.authorizeToken, controller.orderpage);
 route.get("/placeorder/billing", authServices.authorizeToken, controller.billing);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
@@ -66,7 +67,7 @@ route.post("/connect-shopify", authServices.authorizeToken, controller.connectSh
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
 
 route.get("/getzohoproducts", controller.getZohoProducts);
-// route.get("/getzohoproductgroups", controller.getZohoProductGroups);
+route.get("/getzohoproductgroups", controller.getZohoProductGroups);
 
 route.post("/createshopifyproduct", authServices.authorizeToken, controller.createshopifyproduct);
 route.post("/createwoocommerceorder", authServices.authorizeToken, controller.createwoocommerceorder);

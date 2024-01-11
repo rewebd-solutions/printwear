@@ -299,8 +299,14 @@ const addFabricCanvasToTemplateDiv = () => {
   canvasElement.height = Product.inchToPixelRatio * Product.canvas.front.height;
   canvasElement.style.border = "2px dashed silver";
   container.appendChild(canvasElement);
-
+  
   fabricCanvas = new fabric.Canvas(canvasElement);
+  
+  // changing left and top of canvases to fit in the shirt
+  // fabricCanvas.upperCanvasEl.style.top = Product.inchToPixelRatio * Product.canvas.front.startY;
+  // fabricCanvas.upperCanvasEl.style.left = Product.inchToPixelRatio * Product.canvas.front.startX;
+  // fabricCanvas.lowerCanvasEl.style.top = Product.inchToPixelRatio * Product.canvas.front.startY;
+  // fabricCanvas.lowerCanvasEl.style.left = Product.inchToPixelRatio * Product.canvas.front.startX;
 
   // Disabling out of canvas image movement
   fabricCanvas.on("object:moving", function (event) {

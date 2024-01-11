@@ -92,6 +92,7 @@
             if (Object.keys(data).length === Object.keys({}).length) return cardsContainer.innerHTML = 'Search not found!'
             for (let style in data) {
                 let currentProduct = data[style];
+                if (currentProduct.baseImage.front == '') continue;
                 let cardDataDOMString = `
                 <div class="display-card" data-aos="fade-up">
                     <div class="name-price">

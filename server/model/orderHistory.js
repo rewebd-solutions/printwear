@@ -76,6 +76,10 @@ var OrderHistorySchema = new mongoose.Schema({
             CashfreeOrderId: String,
             printwearOrderId: String,
             shipRocketOrderId: String,
+            cashOnDelivery: {
+                type: Boolean,
+                default: false
+            },
             shipRocketCourier: {
                 courierId: String,
                 courierName: {

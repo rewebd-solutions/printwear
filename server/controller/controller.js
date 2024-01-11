@@ -1000,6 +1000,7 @@ exports.getZohoProductGroups = async (req, res) => {
   }
 }
 
+
 // endpoints for uploading design images
 exports.createdesign = async (req, res) => {
   try {
@@ -1081,6 +1082,7 @@ exports.getdesigns = async (req, res) => {
     res.status(500).json({ error });
   }
 }
+
 
 // create shopify order
 exports.createshopifyproduct = async (req, res) => {
@@ -1238,6 +1240,7 @@ exports.createwoocommerceorder = async (req, res) => {
   }
 };
 
+
 // temp for creating zoho products
 exports.createZohoProducts = async (req, res) => {
   const dataToPut = require("../../.test_assets/zohoproductdata")['zohoData']
@@ -1252,6 +1255,7 @@ exports.createZohoProducts = async (req, res) => {
   }
 }
 
+// actual endpoint to fetch zoho products from mongoDB
 exports.getZohoProducts = async (req, res) => {
   try {
     const zohoProductsData = await ZohoProductModel.find({});
@@ -1263,6 +1267,7 @@ exports.getZohoProducts = async (req, res) => {
     res.json({ error });
   }
 }
+
 
 // endpoint for creating a mockup -- test only
 exports.addmockup = async (req, res) => {
@@ -1461,6 +1466,32 @@ exports.billing = async (req, res) => {
 }
 
 
+// render order details page
+exports.orderpage = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    
+    // query db with specific order id
+    const orderDetails = await OrderHistoryModel.findOne(
+      {
+        "userId": req.userId,
+        "orderData": { $elemMatch: { "printwearOrderId": orderId } }
+      },
+      { "orderData.$": 1 },);
+    // check if null, if so return a page with not found error
+    if (!orderDetails) return res.render('orderpage', { orderData: null }); // go to that page and check if null and shout
+    // obtain design data with ids from orderhistory
+    const designIds = orderDetails.orderData[0].items.map(order => order.designId + '');
+    const designDetails = await NewDesignModel.findOne({ userId: req.userId });
+    let designs = designDetails.designs.filter(design => designIds.includes(design._id + ''));
+    res.render('orderpage', { orderData: orderDetails, designData: designs });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error obtaining order details" });
+  }
+}
+
+
 // endpoint for creating cashfree link
 exports.getpaymentlink = async (req, res) => {
   try {
@@ -1572,6 +1603,7 @@ exports.getpaymentlink = async (req, res) => {
   }
 }
 
+
 // endpoints for creating orders in shiprocket
 exports.calculateshippingcharges = async (req, res) => {
   try {
@@ -1623,8 +1655,11 @@ exports.createshiporder = async (req, res) => {
     const cf_order_id = req.body.data.order.order_id;
 
     if (idempotencyKeys.has(cf_order_id)) {
+      console.log("Response 200 sent after checking idempotency");
       return res.status(200).send("OK");
     }
+
+    res.status(200).send("OK");
 
     clearIdempotencyKeys();
 
@@ -1635,7 +1670,7 @@ exports.createshiporder = async (req, res) => {
     try {
       const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
 
-      if (!orderData) return res.json({ message: "ok" });
+      if (!orderData) return console.log(`No such order data found for ${cf_order_id}`);
 
       const designData = await NewDesignModel.findOne({ userId: userid });
       const labelData = await LabelModel.findOne({ userId: userid });
@@ -1714,7 +1749,9 @@ exports.createshiporder = async (req, res) => {
         "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
       });
 
+      console.log("Shiprocket order data:");
       console.dir(shiprocketOrderData, { depth: 5 });
+      console.log("\n");
 
       const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
         headers: {
@@ -1725,6 +1762,7 @@ exports.createshiporder = async (req, res) => {
         body: JSON.stringify(shiprocketOrderData)
       });
       const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
+      console.log("Shiprocket order response:");
       console.log(createShiprocketOrderResponse);
 
       if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
@@ -1733,7 +1771,7 @@ exports.createshiporder = async (req, res) => {
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "processing";
 
-      if (orderData.shipRocketCourier.courierId != -1) {
+      if (!orderData.shipRocketCourier.courierId) {
         const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
           headers: {
             "Content-Type": "application/json",
@@ -1747,8 +1785,8 @@ exports.createshiporder = async (req, res) => {
         });
         const shipmentAssignResponse = await shipmentAssignRequest.json();
         console.log(shipmentAssignResponse);
-        orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;;
-      }
+        orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+      }// for cash on delivery, see how to create cod order in shiprocket
 
       // let dummyReeponse = {
       //   "awb_assign_status": 1,
@@ -1816,9 +1854,6 @@ exports.createshiporder = async (req, res) => {
           orderData: orderData
         }
       }, { upsert: true, new: true });
-
-      // await orderData.save();
-      // console.dir(orderHistory._doc, { depth: 5 });
 
       await orderData.updateOne({
         $unset: {
@@ -1900,7 +1935,7 @@ exports.createshiporder = async (req, res) => {
           ],
         }
       });
-
+      console.log("WooCommerce product data:")
       console.log(productData);
 
       // creating multiple POST request for each line item in the order and sending parallel requests
@@ -1918,13 +1953,16 @@ exports.createshiporder = async (req, res) => {
 
       Promise.all(woocommerceProductCreateRequests)
         .then(responseArray => {
+          console.log("WooCommerce product creation response:")
           console.log(responseArray);
         })
         .catch(error => {
+          console.log("WooCommerce product creation error:")
           console.log(error);
         })
 
     } catch (error) {
+      console.log("General error");
       console.log(error);
       res.status(500).json({ error });
     }
@@ -1986,6 +2024,7 @@ exports.createshiporder = async (req, res) => {
   }
 
 }
+
 
 //endpoint for initiating refund
 exports.initiaterefund = async (req, res) => {
@@ -2078,6 +2117,7 @@ exports.initiaterefund = async (req, res) => {
 
 }
 
+
 // for now create a test endpoint for fetching order data, then later change /manageorder route to do data fetching and implement SSR
 exports.getorderhistory = async (req, res) => {
   try {
@@ -2091,6 +2131,7 @@ exports.getorderhistory = async (req, res) => {
     res.status(500).json({ message: "Error fetching orderhistory" });
   }
 }
+
 
 // new endpoint to upload new label
 exports.uploadlabel = async (req, res) => {
@@ -2170,7 +2211,7 @@ exports.checkorderid = async (req, res) => {
     const orderIDs = await OrderHistoryModel.findOne({ userId: req.userId });
     if (!orderIDs) return res.status(200).json({ message: "OK" });
     const orderIDmatches = orderIDs.orderData.find((order) => order.customerOrderId == currentOrderId);
-    console.log(orderIDmatches)
+    // console.log(orderIDmatches)
     if (!orderIDmatches) {
       return res.status(200).json({ message: "OK" })
     }
@@ -2180,6 +2221,7 @@ exports.checkorderid = async (req, res) => {
     res.status(500).json({ message: "Error when checking order id" })
   }
 }
+
 
 // endpoint for getting invoice link for the orders
 exports.getinvoices = async (req, res) => {
@@ -2205,7 +2247,7 @@ exports.getinvoices = async (req, res) => {
     const SRinvoiceResponse = await SRinvoiceRequest.json();
     console.log(SRinvoiceResponse);
     res.json(SRinvoiceResponse);
-    
+
   } catch (error) {
     console.log(error);
     res.json(error);
@@ -2229,203 +2271,134 @@ exports.generateZohoBooksInvoice = async (req, res) => {
     // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
     let userid = '653e3284308b660442fd55a6';
     const userData = await UserModel.findById(userid);
-    // if (!userData.isZohoCustomer) {
-    //   // write endpoint to create zoho customer 
-    //   let customerData = {
-    //     "contact_name": userData.name,
-    //     "company_name": userData.brandName ?? 'N/A',
-    //     // "custom_fields": [
-    //     //   {
-    //     //     "value": "GBGD078",
-    //     //     "index": 1
-    //     //   }
-    //     // ],
-    //     "billing_address": {
-    //       "attention": "Mr.John",
-    //       "address": "4900 Hopyard Rd, Suite 310",
-    //       "street2": "Suite 310",
-    //       "state_code": "CA",
-    //       "city": "Pleasanton",
-    //       "state": "CA",
-    //       "zip": 94588,
-    //       "country": "U.S.A",
-    //       "fax": 1234,
-    //       "phone": "1234"
-    //     },
-    //     "shipping_address": {
-    //       "attention": "Mr.John",
-    //       "address": "4900 Hopyard Rd, Suite 310",
-    //       "street2": "Suite 310",
-    //       "state_code": "CA",
-    //       "city": "Pleasanton",
-    //       "state": "CA",
-    //       "zip": 94588,
-    //       "country": "U.S.A",
-    //       "fax": 1234,
-    //       "phone": "1234"
-    //     },
-    //     "contact_persons": [
-    //       {
-    //         "salutation": userData.name,
-    //         "first_name": userData.firstName,
-    //         "last_name": userData.lastName,
-    //         "email": userData.email,
-    //         "phone": userData.phone,
-    //         "mobile": userData.phone,
-    //         "is_primary_contact": true
-    //       }
-    //     ],
-    //     // "default_templates": {
-    //     //   "invoice_template_id": 460000000052069,
-    //     //   "invoice_template_name": "Standard Template",
-    //     // },
-    //     "language_code": "en",
-    //     // "notes": "Payment option : Through check",
-    //     // "vat_reg_no": "string",
-    //     // "tax_reg_no": 12345678912345,
-    //     "country_code": "IN",
-    //     // "vat_treatment": "string",
-    //     // "tax_treatment": "string",
-    //     // "tax_regime": "general_legal_person",
-    //     // "is_tds_registered": true,
-    //     "place_of_contact": "TN",
-    //     // "gst_no": "22AAAAA0000A1Z5",
-    //     // "gst_treatment": "business_gst",
-    //     // "tax_authority_name": "string",
-    //     // "tax_exemption_code": "string",
-    //     // "avatax_exempt_no": "string",
-    //     // "avatax_use_code": "string",
-    //     // "tax_exemption_id": 11149000000061054,
-    //     // "tax_authority_id": 11149000000061052,
-    //     // "tax_id": 11149000000061058,
-    //     // "tds_tax_id": "982000000557012",
-    //     // "is_taxable": true,
-    //     // "facebook": "zoho",
-    //     // "twitter": "zoho"
-    //   }
-    //   const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/invoice/v3/contacts`, {
-    //     method: "POST",
-    //     headers: {
-    //       Authorization: 'Zoho-oauthtoken ' + zohoToken,
-    //       'X-com-zoho-invoice-organizationid': ZOHO_INVOICE_ORGANIZATION_ID,
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify(customerData)
-    //   });
-    //   const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
-    //   console.log(zohoCustomerCreateResponse)
-    //   if (zohoCustomerCreateResponse.code == 0) {
-    //     userData.isZohoCustomer = true;
-    //     userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
-    //   }
-    // }
-    const invoiceData = {
-      "customer_id": userData._id,
-      "contact_persons": [
-        userData._id
-      ],
-      // "currency_id": 982000000000190,
-      // "invoice_number": "INV-00063",
-      "place_of_supply": "TN",
-      // "vat_treatment": "string",
-      // "tax_treatment": "vat_registered",
-      // "gst_treatment": "business_gst",
-      // "gst_no": "22AAAAA0000A1Z5",
-      // "cfdi_usage": "acquisition_of_merchandise",
-      "reference_number": " ",
-      // "template_id": 460000000052069,
-      "date": "2023-12-10",
-      "payment_terms": 15,
-      "payment_terms_label": "Net 15",
-      "due_date": "2013-12-03",
-      "discount": 0,
-      "is_discount_before_tax": true,
-      "discount_type": "item_level",
-      "is_inclusive_tax": false,
-      "exchange_rate": 1,
-      "recurring_invoice_id": " ",
-      "invoiced_estimate_id": " ",
-      "salesperson_name": " ",
-      "custom_fields": [
-        {
-          "customfield_id": "46000000012845",
-          "value": "Normal"
-        }
-      ],
-      "line_items": [
-        {
-          "item_id": 982000000030049,
-          "project_id": 90300000087378,
-          "time_entry_ids": [],
-          "product_type": "goods",
-          "hsn_or_sac": 80540,
-          "sat_item_key_code": 71121206,
-          "unitkey_code": "E48",
-          "warehouse_id": "",
-          "expense_id": " ",
-          "expense_receipt_name": "string",
-          "name": "Hard Drive",
-          "description": "500GB, USB 2.0 interface 1400 rpm, protective hard case.",
-          "item_order": 1,
-          "bcy_rate": 120,
-          "rate": 120,
-          "quantity": 1,
-          "unit": " ",
-          "discount_amount": 0,
-          "discount": 0,
-          "tags": [
-            {
-              "tag_id": 982000000009070,
-              "tag_option_id": 982000000002670
-            }
-          ],
-          "tax_id": 982000000557028,
-          "tds_tax_id": "982000000557012",
-          "tax_name": "VAT",
-          "tax_type": "tax",
-          "tax_percentage": 12.5,
-          // "tax_treatment_code": "uae_others",
-          "header_name": "Electronic devices"
-        }
-      ],
-      "payment_options": {
-        "payment_gateways": [
+    if (!userData.isZohoCustomer) {
+      // write endpoint to create zoho customer 
+      let customerData = {
+        "contact_name": userData.name,
+        "company_name": userData.brandName ?? 'N/A',
+        "billing_address": {
+          "attention": "Mr.John",
+          "address": "4900 Hopyard Rd, Suite 310",
+          "street2": "Suite 310",
+          "state_code": "CA",
+          "city": "Pleasanton",
+          "state": "CA",
+          "zip": 94588,
+          "country": "U.S.A",
+          "fax": 1234,
+          "phone": "5625215"
+        },
+        // "shipping_address": {
+        //   "attention": "Mr.John",
+        //   "address": "4900 Hopyard Rd, Suite 310",
+        //   "street2": "Suite 310",
+        //   "state_code": "CA",
+        //   "city": "Pleasanton",
+        //   "state": "CA",
+        //   "zip": 94588,
+        //   "country": "U.S.A",
+        //   "fax": 1234,
+        //   "phone": "1234"
+        // },
+        "contact_persons": [
           {
-            "configured": true,
-            "additional_field1": "standard",
-            "gateway_name": "paypal"
+            "salutation": userData.name,
+            "first_name": userData.firstName,
+            "last_name": userData.lastName,
+            "email": userData.email,
+            "phone": userData.phone,
+            "mobile": userData.phone,
+            "is_primary_contact": true
           }
-        ]
-      },
-      "allow_partial_payments": false,
-      "custom_body": " ",
-      "custom_subject": " ",
-      "notes": "Looking forward for your business.",
-      "terms": "Terms & Conditions apply",
-      "shipping_charge": 0,
-      "adjustment": 0,
-      "adjustment_description": " ",
-      "reason": " ",
-      "tax_authority_id": 11149000000061,
-      "tax_exemption_id": 11149000000061,
-      "avatax_use_code": "string",
-      "avatax_exempt_no": "string",
-      "tax_id": 982000000557028,
-      "expense_id": " ",
-      "salesorder_item_id": " ",
-      "avatax_tax_code": "string",
-      "time_entry_ids": []
+        ],
+        // "default_templates": {
+        //   "invoice_template_id": 460000000052069,
+        //   "invoice_template_name": "Standard Template",
+        // },
+        "language_code": "en",
+        // "notes": "Payment option : Through check",
+        // "vat_reg_no": "string",
+        // "tax_reg_no": 12345678912345,
+        "country_code": "IN",
+        // "vat_treatment": "string",
+        // "tax_treatment": "string",
+        // "tax_regime": "general_legal_person",
+        // "is_tds_registered": true,
+        "place_of_contact": "TN",
+        // "gst_no": "22AAAAA0000A1Z5",
+        // "gst_treatment": "business_gst",
+        // "tax_authority_name": "string",
+        // "tax_exemption_code": "string",
+        // "avatax_exempt_no": "string",
+        // "avatax_use_code": "string",
+        // "tax_exemption_id": 11149000000061054,
+        // "tax_authority_id": 11149000000061052,
+        // "tax_id": 11149000000061058,
+        // "tds_tax_id": "982000000557012",
+        // "is_taxable": true,
+        // "facebook": "zoho",
+        // "twitter": "zoho"
+      }
+      const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+        method: "POST",
+        headers: {
+          Authorization: 'Zoho-oauthtoken ' + zohoToken,
+          // 'X-com-zoho-invoice-organizationid': ZOHO_INVOICE_ORGANIZATION_ID,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(customerData)
+      });
+      const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
+      res.json(zohoCustomerCreateResponse); // remove
+      console.log(zohoCustomerCreateResponse)
+      // if (zohoCustomerCreateResponse.code == 0) {
+      //   userData.isZohoCustomer = true;
+      //   userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
+      // }
     }
 
-    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
-      method: "POST",
-      headers: {
-        Authorization: 'Zoho-oauthtoken ' + zohoToken
-      },
-      body: JSON.stringify(invoiceData)
-    });
-    const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
-    res.json(zohoInvoiceCreateResponse);
+    // create invoice request
+    // const invoiceData = {
+    //   "customer_id": "432834593455",
+    //   "contact_persons": [
+    //     "432834593455"
+    //   ],
+    //   "invoice_number": "INV-696969",
+    //   "place_of_supply": "TN",
+    //   "date": "2024-06-01",
+    //   "due_date": "2024-12-03",
+    //   "discount": 0,
+    //   "line_items": [
+    //     {
+    //       "item_id": "650580000000024135",
+    //       "rate": 120,
+    //       "quantity": 1,
+    //     }
+    //   ],
+    //   "payment_options": {
+    //     "payment_gateways": [
+    //       {
+    //         "configured": true,
+    //         "additional_field1": "standard",
+    //         "gateway_name": "paypal"
+    //       }
+    //     ]
+    //   },
+    //   "terms": "Terms & Conditions apply",
+    //   "shipping_charge": 40,
+    // }
+
+    // const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+    //   method: "POST",
+    //   headers: {
+    //     Authorization: 'Zoho-oauthtoken ' + zohoToken
+    //   },
+    //   body: JSON.stringify(invoiceData)
+    // });
+    // const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+    // res.json(zohoInvoiceCreateResponse);
+    // console.log(zohoInvoiceCreateResponse);
+
   } catch (error) {
     console.log(error);
     res.send(error);
