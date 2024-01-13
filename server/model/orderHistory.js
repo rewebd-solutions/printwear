@@ -89,7 +89,8 @@ var OrderHistorySchema = new mongoose.Schema({
                 estimatedDelivery: {
                     type: String,
                     default: 'N/A'
-                }
+                },
+                courierAWB: String
             },
             shipmentId: String,
             customerOrderId: String,

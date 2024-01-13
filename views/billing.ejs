@@ -163,6 +163,10 @@
                         <input type="text" id="country" name="country" value="India" disabled>
                     </div>
                 </div>
+                <div>
+                    <input type="checkbox" name="cod-toggle" id="cod-toggle" />
+                    <label for="cod-toggle">Cash on Delivery</label>
+                </div>
                 <div class="courier-pickup-wrapper">
                     <button class="billing-button" id="courier-check">Get available couriers</button>
                     <input type="checkbox" name="self-pickup" id="self-pickup" />
@@ -197,10 +201,6 @@
         var itemCount = parseInt('<%= orderData.items.length %>');
         var isSelfPickup = false;
 
-        const cashfree = Cashfree({
-            mode: "sandbox" //or production
-        });
-
         const pincode = document.querySelector("#pincode");
         const orderIdInput = document.querySelector("input#customerOrderId");
         const retailPriceInput = document.querySelector("input#retailPrice");
@@ -209,12 +209,17 @@
         const courierPickupWrapper = document.querySelector(".courier-pickup-wrapper");
         const selfPickup = document.querySelector('#self-pickup');
         const billSummary = document.querySelector(".bill-summary");
+        const CODtoggle = document.querySelector("#cod-toggle");
 
         const handleCheckout = async (e) => {
             if (disabled) return;
             disabled = true;
             e.target.classList.add("disabled");
             let hasRadioBeenChecked = false;
+
+            if (orderIdInput.value.length < 3) return notyf.error("Order ID length should not be less than 3");
+
+            orderIdVerified = await checkOrderID();
 
             if (!orderIdVerified) {
                 disabled = false;
@@ -269,8 +274,10 @@
                 customerOrderId: orderIdInput.value,
                 shippingCharge: 0,
                 courierId: null,
-                courierData: null
+                courierData: null,
+                cashOnDelivery: CODtoggle.checked
             }
+
             if (!isSelfPickup) {
                 checkoutData.shippingCharge = shippingCharge;
                 checkoutData.courierId = courierId;
@@ -296,7 +303,10 @@
                         message: createPaymentLinkResponse.error,
                         duration: 10000,
                     });
-                } 
+                }
+                const cashfree = Cashfree({
+                    mode: "sandbox" //or production
+                });
                 cashfree.checkout({ paymentSessionId: createPaymentLinkResponse.link }).then(check => console.log(check)).catch(err => notyf.error(error) );
                 //location.replace(`https://payments-test.cashfree.com/order/#${createPaymentLinkResponse.link}`);
             } catch (error) {
@@ -332,6 +342,20 @@
             } else document.querySelector("#btn-checkout").remove();
         }
 
+        CODtoggle.oninput = (e) => {
+            if (e.target.checked) {
+                document.getElementById("shipping-charges").insertAdjacentHTML("afterend", `<h4 id="cod-charge">₹50 (COD Charges)`);
+                let p = document.getElementById("total-charges").innerHTML;
+                p = `₹${(parseFloat(p.slice(1)) + 50).toFixed(2)}`;
+                document.getElementById("total-charges").innerHTML = p
+            } else {
+                document.getElementById("cod-charge").remove();
+                let p = document.getElementById("total-charges").innerHTML;
+                p = `₹${(parseFloat(p.slice(1)) - 50).toFixed(2)}`;
+                document.getElementById("total-charges").innerHTML = p
+            }
+        }
+
         retailPriceInput.oninput = (e) => {
             let string = e.target.value;
             e.target.value = string.replace(/ /g, '').replace(/[^.0-9-_]/g, '');
@@ -342,7 +366,7 @@
                 return notyf.error("Retail price is less than billing total!");
             } else {
                 retailVerified = true;
-                return notyf.success("Retail price set✅");
+                return notyf.success("Retail price set");
             }
         }
 
@@ -372,29 +396,18 @@
         orderIdInput.oninput = async (e) => {
             let string = e.target.value;
             e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase().slice(0, 10);
-            if (e.target.value.length == 10) {
-                e.target.setAttribute("disabled", true);
-                if (await checkOrderID(e.target.value)) {
-                    e.target.removeAttribute("disabled");
-                    orderIdVerified = true;
-                    return notyf.success("Order ID is verified");
-                }
-                orderIdVerified = false;
-                e.target.removeAttribute("disabled");
-                return notyf.error("Order ID is repeated. Please enter unique Order ID");
-            }
         }
         
         const modifyBillSummary = (charges) => {
             document.getElementById("shipping-charges").innerHTML = `₹${charges} (Shipping charges)`;
-            document.getElementById("total-charges").innerHTML = `₹${(parseFloat(ttlp) + charges).toFixed(2)}`;
+            document.getElementById("total-charges").innerHTML = `₹${(parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0)).toFixed(2)}`;
         }
         
-        //let oldPincode = pincode.value;
+        let oldPincode = pincode.value;
         const getAvailableCouriers = async (e) => {
             // check for spamming check available couriers
-            //if (oldPincode == pincode.value) return;
-            //oldPincode = pincode.value;
+            if (oldPincode == pincode.value) return;
+            oldPincode = pincode.value;
 
             if (!(pincode.value.length == 6)) return notyf.error("Pincode does not have 6 digits");
             e.target.classList.add("disabled");
@@ -421,6 +434,11 @@
 
                 // code to create a radio group
                 const availableCouriers = shippingChargesResponse.data.available_courier_companies;
+                const availableCouriersUI = document.querySelector(".available-couriers");
+                if (availableCouriersUI) {
+                    availableCouriersUI.remove();
+                    document.querySelector("#btn-checkout").remove();
+                }
                 courierPickupWrapper.insertAdjacentHTML("afterend", `
                     <div class="available-couriers">
                         <fieldset>
@@ -440,7 +458,7 @@
 
                 billSummary.insertAdjacentHTML('afterend', `
                     <button type="button" class="billing-button" id="btn-checkout">
-                        Proceed to checkout
+                        Confirm and Proceed to checkout
                     </button>                    
                 `);
 

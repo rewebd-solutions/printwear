@@ -5,6 +5,7 @@ const zohoClientID = process.env.ZOHO_CLIENT_ID;
 const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
+const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
 
 const crypto = require("crypto")
 const algorithm = "sha256"
@@ -433,14 +434,14 @@ exports.adddesign = async (req, res) => {
 
 // deleted old commented code for old schema
 // utils 
-const formatDate = (date) => {
+const formatDate = (date, removeLast = false) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Adding 1 to month since it's zero-based
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
+  return removeLast ? `${year}-${month}-${day}`:`${year}-${month}-${day} ${hours}:${minutes}`;
 }
 const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
 const generateShiprocketToken = async () => {
@@ -1508,7 +1509,8 @@ exports.getpaymentlink = async (req, res) => {
       customerOrderId,
       shippingCharge,
       courierId,
-      courierData
+      courierData,
+      cashOnDelivery
     } = req.body;
 
     const orderData = await OrderModel.findOne({ userId: req.userId });
@@ -1533,7 +1535,7 @@ exports.getpaymentlink = async (req, res) => {
       body: JSON.stringify({
         order_id: orderData.printwearOrderId,
         // order_id: orderData.printwearOrderId + '-' + extraId,
-        order_amount: parseFloat((orderData.totalAmount + orderData.deliveryCharges).toFixed(2)),
+        order_amount: parseFloat((orderData.totalAmount + orderData.deliveryCharges + (cashOnDelivery ? 50 : 0)).toFixed(2)),
         order_currency: "INR",
         order_note: `Payment for Order: ${orderData.printwearOrderId}`,
         // order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
@@ -1580,8 +1582,6 @@ exports.getpaymentlink = async (req, res) => {
           state,
           country
         },
-        //just for testing.. remove the below line after testing done
-        // printwearOrderId: orderData.printwearOrderId,
         CashfreeOrderId: paymentLinkResponse.cf_order_id,
         paymentLinkId: paymentLinkResponse.payment_session_id,
         paymentLink: paymentLinkResponse.payments.url,
@@ -1592,7 +1592,9 @@ exports.getpaymentlink = async (req, res) => {
           courierId: courierId ?? -1,
           courierName: courierData?.courier_name ?? 'SELF PICKUP',
           estimatedDelivery: courierData?.etd ?? 'N/A'
-        }
+        },
+        cashOnDelivery: cashOnDelivery,
+        totalAmount: orderData.totalAmount + (cashOnDelivery ? 50: 0)
       },
     });
 
@@ -1771,7 +1773,7 @@ exports.createshiporder = async (req, res) => {
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "processing";
 
-      if (!orderData.shipRocketCourier.courierId) {
+      if (orderData.shipRocketCourier.courierId != -1) {
         const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
           headers: {
             "Content-Type": "application/json",
@@ -1876,7 +1878,8 @@ exports.createshiporder = async (req, res) => {
           processed: 1,
           retailPrice: 1,
           customerOrderId: 1,
-          shipRocketCourier: 1
+          shipRocketCourier: 1,
+          cashOnDelivery: 1
         }
       });
 
@@ -2028,7 +2031,7 @@ exports.createshiporder = async (req, res) => {
 
 //endpoint for initiating refund
 exports.initiaterefund = async (req, res) => {
-  // 3 levels: CANCEL ORDER (before its even shipped), RETURN ORDER (after it is shipped)
+  // 2 levels: CANCEL ORDER (before its even shipped), RETURN ORDER (after it is shipped)
   // for CANCEL ORDER: check if order has a courier assigned.. if so first hit shiprocket API and cancel that assigned courier
   // next hit cashfree API to initiate refund and get the status via webhook
   // else, if not assigned any courier, then simply hit cashfree API and initiate refund
@@ -2070,7 +2073,7 @@ exports.initiaterefund = async (req, res) => {
   const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
   // console.log(orderToRefund);
   if (orderToRefund.deliveryStatus == "processing") {
-    // if it is still processing and neither picked up nor delivered, simply hit SR API to cancel that order and issue refund
+    // if it is still processing and neither picked up nor delivered, simply hit SR API to remove that courier and issue refund
     const shiprocketToken = await generateShiprocketToken();
     const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
@@ -2259,47 +2262,16 @@ exports.getinvoices = async (req, res) => {
 exports.generateZohoBooksInvoice = async (req, res) => {
   try {
     const zohoToken = await generateZohoToken();
-    // console.log(zohoToken)
-    // the following was just for testing.. listing all invoices and holy shit its 393KB!
-    // const zohoInvoiceRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
-    //   headers: {
-    //     Authorization: 'Zoho-oauthtoken ' + zohoToken
-    //   }
-    // });
-    // const zohoInvoiceResponse = await zohoInvoiceRequest.json();
-
+    console.log(zohoToken)
     // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
     let userid = '653e3284308b660442fd55a6';
+    let testorderid = 'ZEYEP4';
     const userData = await UserModel.findById(userid);
     if (!userData.isZohoCustomer) {
       // write endpoint to create zoho customer 
       let customerData = {
         "contact_name": userData.name,
         "company_name": userData.brandName ?? 'N/A',
-        "billing_address": {
-          "attention": "Mr.John",
-          "address": "4900 Hopyard Rd, Suite 310",
-          "street2": "Suite 310",
-          "state_code": "CA",
-          "city": "Pleasanton",
-          "state": "CA",
-          "zip": 94588,
-          "country": "U.S.A",
-          "fax": 1234,
-          "phone": "5625215"
-        },
-        // "shipping_address": {
-        //   "attention": "Mr.John",
-        //   "address": "4900 Hopyard Rd, Suite 310",
-        //   "street2": "Suite 310",
-        //   "state_code": "CA",
-        //   "city": "Pleasanton",
-        //   "state": "CA",
-        //   "zip": 94588,
-        //   "country": "U.S.A",
-        //   "fax": 1234,
-        //   "phone": "1234"
-        // },
         "contact_persons": [
           {
             "salutation": userData.name,
@@ -2311,33 +2283,9 @@ exports.generateZohoBooksInvoice = async (req, res) => {
             "is_primary_contact": true
           }
         ],
-        // "default_templates": {
-        //   "invoice_template_id": 460000000052069,
-        //   "invoice_template_name": "Standard Template",
-        // },
         "language_code": "en",
-        // "notes": "Payment option : Through check",
-        // "vat_reg_no": "string",
-        // "tax_reg_no": 12345678912345,
         "country_code": "IN",
-        // "vat_treatment": "string",
-        // "tax_treatment": "string",
-        // "tax_regime": "general_legal_person",
-        // "is_tds_registered": true,
         "place_of_contact": "TN",
-        // "gst_no": "22AAAAA0000A1Z5",
-        // "gst_treatment": "business_gst",
-        // "tax_authority_name": "string",
-        // "tax_exemption_code": "string",
-        // "avatax_exempt_no": "string",
-        // "avatax_use_code": "string",
-        // "tax_exemption_id": 11149000000061054,
-        // "tax_authority_id": 11149000000061052,
-        // "tax_id": 11149000000061058,
-        // "tds_tax_id": "982000000557012",
-        // "is_taxable": true,
-        // "facebook": "zoho",
-        // "twitter": "zoho"
       }
       const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
         method: "POST",
@@ -2350,53 +2298,78 @@ exports.generateZohoBooksInvoice = async (req, res) => {
       });
       const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
       res.json(zohoCustomerCreateResponse); // remove
-      console.log(zohoCustomerCreateResponse)
-      // if (zohoCustomerCreateResponse.code == 0) {
-      //   userData.isZohoCustomer = true;
-      //   userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
-      // }
+      if (zohoCustomerCreateResponse.code == 0) {
+        console.log(`zohoCustomer for ${userid} created!`)
+        userData.isZohoCustomer = true;
+        userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
+        userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
+        await userData.save();
+      }
     }
 
+    // create item
+    // not necessary because when taking data from zoho inventory i got the product id which was saved in newdesigns itself!
+    // so for now, just query the designs, and for each of them simply fetch their id and use it for invoice
+    // following query is for testing only, take actual data from the createshiporder data
+    const orderDetails = await OrderHistoryModel.findOne(
+      {
+        "userId": userid,
+        "orderData": { $elemMatch: { "printwearOrderId": testorderid } }
+      },
+    { "orderData.$": 1 });
+    const designIds = orderDetails.orderData[0].items.map(item => item.designId + '');
+    const designsData = await NewDesignModel.findOne({ userId: userid });
+    let productIds = designsData.designs.filter(design => designIds.includes(design._id + '')).map(design => design.product.id);
+    console.log(designIds, productIds)
     // create invoice request
-    // const invoiceData = {
-    //   "customer_id": "432834593455",
-    //   "contact_persons": [
-    //     "432834593455"
-    //   ],
-    //   "invoice_number": "INV-696969",
-    //   "place_of_supply": "TN",
-    //   "date": "2024-06-01",
-    //   "due_date": "2024-12-03",
-    //   "discount": 0,
-    //   "line_items": [
-    //     {
-    //       "item_id": "650580000000024135",
-    //       "rate": 120,
-    //       "quantity": 1,
-    //     }
-    //   ],
-    //   "payment_options": {
-    //     "payment_gateways": [
-    //       {
-    //         "configured": true,
-    //         "additional_field1": "standard",
-    //         "gateway_name": "paypal"
-    //       }
-    //     ]
-    //   },
-    //   "terms": "Terms & Conditions apply",
-    //   "shipping_charge": 40,
-    // }
+    const zohoCustomerId = userData.zohoCustomerID;
+    const zohoContactId = userData.zohoContactID;
+    
+    const invoiceData = {
+      "customer_id": zohoCustomerId,
+      "contact_persons": [
+        zohoContactId
+      ],
+      "invoice_number": "PW/2023-2024/16069",
+      "currency_id": "650580000000000064",
+      // "invoice_number": "INV-696969",
+      "place_of_supply": "TN",
+      // "gst_treatment": "business_gst",
+      "reference_number": testorderid,
+      discount: 0.0,
+      "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      total: orderDetails.orderData[0].amountPaid,
+      "line_items": [
+        orderDetails.orderData[0].items.map(item => {
+          let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
+          return {
+            item_id: currentDesignItem.product.id,
+            name: currentDesignItem.designName,
+            rate: item.price * 1.00,
+            quantity: parseFloat((+item.quantity).toFixed(2)),
+            discount: 0.0
+          }
+        })
+      ],
+      "shipping_charge": orderDetails.orderData[0].deliveryCharges,
+    }
+    console.log(invoiceData)
+    
+    // const theFuckingData = new URLSearchParams({JSONString: JSON.stringify(invoiceData)}).toString();
+    // console.log(theFuckingData)
 
-    // const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
-    //   method: "POST",
-    //   headers: {
-    //     Authorization: 'Zoho-oauthtoken ' + zohoToken
-    //   },
-    //   body: JSON.stringify(invoiceData)
-    // });
-    // const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
-    // res.json(zohoInvoiceCreateResponse);
+    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices/?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
+      method: "POST",
+      headers: {
+        Authorization: 'Zoho-oauthtoken ' + zohoToken,
+        // "Content-Type": "application/json"
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      body: "JSONString="+JSON.stringify(invoiceData)
+    });
+    const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+    res.json(zohoInvoiceCreateResponse);
     // console.log(zohoInvoiceCreateResponse);
 
   } catch (error) {

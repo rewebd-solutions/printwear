@@ -108,12 +108,12 @@ p {
     min-width: 230px;
 }
 
-.unplaced, .processing {
+.unplaced{
     background-color: hsl(108, 48%, 94%);
     color: silver;
 }
 
-.dispatched, .delivered {
+ .processing, .dispatched, .delivered {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
 }

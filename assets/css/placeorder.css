@@ -98,13 +98,13 @@
     padding: 1rem;
     padding-top: 0;
     display: flex;
-    width: 80%;
+    width: 90%;
     background-color: white;
     flex-direction: column;
     position: relative;
     gap: 1rem;
     border-radius: 5px;
-    max-height: 90%;
+    min-height: 94%;
     overflow-y: scroll;
 }
 

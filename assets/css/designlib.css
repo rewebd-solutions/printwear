@@ -148,8 +148,7 @@ p {
 
 .name-price {
   display: flex;
-  gap: 0.4rem;
-  align-items: center;
+  flex-direction: column;
 }
 
 .name-price h3 {

@@ -145,6 +145,12 @@
                                 <td>Delivery Charge</td>
                                 <td>₹<%= orderData.orderData[0].deliveryCharges %></td>
                             </tr>
+                            <% if (orderData.orderData[0].cashOnDelivery) { %>
+                                <tr>
+                                    <td>COD Charges</td>
+                                    <td>₹50</td>
+                                </tr>
+                            <% } %>
                             <tr>
                                 <td><strong>Total</strong></td>
                                 <td>₹<%= orderData.orderData[0].totalAmount %></td>

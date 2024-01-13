@@ -88,7 +88,8 @@ var UserSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
-    zohoCustomerID: String
+    zohoCustomerID: String,
+    zohoContactID: String
 })
 
 const UserModel = mongoose.model('User', UserSchema);

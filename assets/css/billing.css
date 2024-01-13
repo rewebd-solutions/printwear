@@ -91,8 +91,9 @@ hr {
 }
 
 .right-bill {
-    display: grid;
-    grid-template-rows: 1fr 1fr 1fr auto 1fr;    
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;  
 }
 
 input:focus:not(:valid) {

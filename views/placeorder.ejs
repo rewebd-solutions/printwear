@@ -81,7 +81,7 @@
             skuCell.textContent = designObject.designSKU
             
             const priceCell = document.createElement("td");
-            priceCell.textContent = designObject.price
+            priceCell.textContent = '₹' + designObject.price
             
             const previewCell = document.createElement("td");
             previewCell.innerHTML = `<img class="design-preview-image" src='${designObject.designImage.front?? designObject.designImage.back}' />`
