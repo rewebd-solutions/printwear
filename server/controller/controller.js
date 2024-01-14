@@ -1535,7 +1535,7 @@ exports.getpaymentlink = async (req, res) => {
       body: JSON.stringify({
         order_id: orderData.printwearOrderId,
         // order_id: orderData.printwearOrderId + '-' + extraId,
-        order_amount: parseFloat((orderData.totalAmount + orderData.deliveryCharges + (cashOnDelivery ? 50 : 0)).toFixed(2)),
+        order_amount: parseFloat((orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2)),
         order_currency: "INR",
         order_note: `Payment for Order: ${orderData.printwearOrderId}`,
         // order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
@@ -1739,7 +1739,7 @@ exports.createshiporder = async (req, res) => {
             "hsn": 441122
           }
         }),
-        "payment_method": "Prepaid",
+        "payment_method": orderData.cashOnDelivery? "COD": "Prepaid",
         "shipping_charges": orderData.deliveryCharges,
         "giftwrap_charges": 0,
         "transaction_charges": 0,
@@ -1788,6 +1788,7 @@ exports.createshiporder = async (req, res) => {
         const shipmentAssignResponse = await shipmentAssignRequest.json();
         console.log(shipmentAssignResponse);
         orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+        orderData.deliveryStatus = "courier_assigned";
       }// for cash on delivery, see how to create cod order in shiprocket
 
       // let dummyReeponse = {
@@ -2071,32 +2072,80 @@ exports.initiaterefund = async (req, res) => {
   const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
   const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
   const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
-  // console.log(orderToRefund);
-  if (orderToRefund.deliveryStatus == "processing") {
+
+  if (orderToRefund.deliveryStatus == "cancelled" && (orderToRefund.paymentStatus == "refund_init" || orderToRefund.paymentStatus == "refunded")) {
+    // assign courier automatically again
+      // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
+    const shiprocketToken = await generateShiprocketToken();
+    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+    try {
+      if (orderToRefund.shipRocketCourier.courierId != -1) {
+        const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+          },
+          method: "POST",
+          body: JSON.stringify({
+            shipment_id: orderToRefund.shipmentId,
+            courier_id: orderToRefund.shipRocketCourier.courierId
+          })
+        });
+        const shipmentAssignResponse = await shipmentAssignRequest.json();
+        console.log(shipmentAssignResponse);
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = shipmentAssignResponse.response.data.courier_company_id;
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = shipmentAssignResponse.response.data.courier_name;
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "courier_assigned";
+        orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
+        orderHistory.orderData[orderToRefundIndex].deliveryCharges = shipmentAssignResponse.response.data.freight_charges;
+
+        await orderHistory.save();
+      }// for cash on delivery, see how to create cod order in shiprocket
+      // wallet ku poidum
+  
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Something went wrong!" });
+    }
+    
+    // create payment link for added delivery charge
+    // after payment made, make respective changes in webhook
+    // maybe add a note to payment data and in /createshiporder if the note has "reship for {printwearOrderId}" then change status
+    return res.status(200).send({ message: `Reshipping again to ${orderToRefund.billingAddress.firstName + " " + orderToRefund.billingAddress.lastName}` });
+  }
+
+  if (orderToRefund.deliveryStatus == "courier_assigned") {
     // if it is still processing and neither picked up nor delivered, simply hit SR API to remove that courier and issue refund
     const shiprocketToken = await generateShiprocketToken();
     const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
     try {
-      const cancelSROrderRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/cancel`, {
+      const cancelSROrderRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/cancel/shipment/awbs`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
         },
         method: "POST",
         body: JSON.stringify({
-          ids: [
-            orderToRefund.shipRocketOrderId
+          awbs: [
+            orderToRefund.shipRocketCourier.courierAWB
           ]
         })
       });
       const cancelSROrderResponse = await cancelSROrderRequest.json();
       console.log(cancelSROrderResponse);
 
-      if (cancelSROrderResponse.status_code == 200 || cancelSROrderResponse.status == 200) {
-        console.log(orderToRefund.printwearOrderId + " order cancelled");
+      if (cancelSROrderRequest.status == 200 || cancelSROrderRequest.status == 204) {
+        console.log(orderToRefund.printwearOrderId + " shipment cancelled");
         orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
-
+        (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId != -1) && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = null);
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.estimatedDelivery = 'N/A';
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = null;
+        (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName != 'SELF PICKUP') && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = 'unassigned');
+        orderHistory.orderData[orderToRefundIndex].deliveryCharges = 0.0;
+        
         let cashfreeRefundStatus = await refundFunction();
 
         if (cashfreeRefundStatus == 'refund_ok') {
@@ -2109,7 +2158,7 @@ exports.initiaterefund = async (req, res) => {
 
       } else {
         console.log(orderToRefund.printwearOrderId + " failed to cancel order", cancelSROrderResponse);
-        return res.status(cancelSROrderResponse.status_code || cancelSROrderResponse.status).json({ message: cancelSROrderResponse.message });
+        return res.status(500).json({ message: cancelSROrderResponse.message });
       }
 
     } catch (error) {
@@ -2118,6 +2167,24 @@ exports.initiaterefund = async (req, res) => {
     }
   }
 
+  if (orderToRefund.deliveryStatus == "processing" && orderToRefund.paymentStatus == "success") {
+    // simply call refund function
+    let cashfreeRefundStatus = await refundFunction();
+
+    if (cashfreeRefundStatus == 'refund_ok') {
+      orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+      await orderHistory.save();
+      return res.status(200).json({ orderData: orderHistory.orderData });
+    } else {
+      return res.status(500).json({ message: cashfreeRefundStatus });
+    }
+    // listen to refund event in webhook, then change the status of the order accordingly
+    return res.status(200).send("ok");
+  }
+
+  if (orderToRefund.deliveryStatus == "delivered") {
+    // hit SR API to create a return order
+  }
 }
 
 

@@ -27,6 +27,12 @@
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 1rem 0 0;
 }
 
 .subtitle {
@@ -108,17 +114,17 @@ p {
     min-width: 230px;
 }
 
-.unplaced{
+.unplaced, .pending {
     background-color: hsl(108, 48%, 94%);
     color: silver;
 }
 
- .processing, .dispatched, .delivered {
+.processing, .dispatched, .delivered, .success, .courier_assigned {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
 }
 
-.return_init, .returned, .cancelled {
+.return_init, .returned, .cancelled, .refund_init, .refunded, .failed {
     background-color: hsl(0, 100%, 97%);
     color: hsl(0, 100%, 57%)
 }
@@ -129,4 +135,20 @@ p {
     font-size: 0.8rem;
     border-radius: 6px;
     width: min-content;
+}
+
+.disable-button {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.orderpage-action-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: hsl(0, 100%, 57%);
+    color: white;
+    margin-left: auto;
 }

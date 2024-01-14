@@ -65,7 +65,7 @@ var OrderHistorySchema = new mongoose.Schema({
             deliveryStatus: {
                 type: String,
                 default: "unplaced",
-                enum: ["unplaced", "processing", "dispatched", "delivered", "return_init", "returned", "cancelled"]
+                enum: ["unplaced", "processing", "courier_assigned", "dispatched", "delivered", "return_init", "returned", "cancelled"]
             },
             deliveryCharges: {
                 type: Number,

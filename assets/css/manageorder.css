@@ -255,7 +255,7 @@ table a:visited {
     width: min-content;
 }
 
-.processing, .unplaced, .processing, .dispatched, .delivered {
+.processing, .unplaced, .processing, .dispatched, .delivered, .courier_assigned {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
 }

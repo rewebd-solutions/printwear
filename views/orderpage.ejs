@@ -21,7 +21,20 @@
     <% if (!orderData) { %>
         <div class="title">Invalid Order ID</div> 
     <% } else { %>
-        <div class="title">Order ID: <%= orderData.orderData[0].printwearOrderId %> <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>"><%= orderData.orderData[0].deliveryStatus %></h3> </div>
+        <div class="title">
+            <div>
+                Order ID: <%= orderData.orderData[0].printwearOrderId %>
+                <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>">DELIVERY: <%= orderData.orderData[0].deliveryStatus == "return_init"? "return initiated": orderData.orderData[0].deliveryStatus %></h3>
+                <h3 class="status-badge <%= orderData.orderData[0].paymentStatus %>">PAYMENT: <%= orderData.orderData[0].paymentStatus == "refund_init"? "refund initiated": orderData.orderData[0].paymentStatus %></h3>
+            </div>
+            <% if (orderData.orderData[0].deliveryStatus == "cancelled" && (orderData.orderData[0].paymentStatus == "refund_init" || orderData.orderData[0].paymentStatus == "refunded")) { %>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">Reship order</button>
+            <% } else if (orderData.orderData[0].deliveryStatus != "delivered") { %>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this)">Cancel Order</button>
+            <% } else { %>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this)">Return order</button>
+            <% } %>
+        </div>
         <div class="subtitle">Placed on: <%= new Date(orderData.orderData[0].createdAt).toLocaleString() %> </div>
         <div class="columns">
             <div class="column">
@@ -34,6 +47,7 @@
                                 <th>Product</th>
                                 <th>SKU</th>
                                 <th>Price</th>
+                                <th>Quantity</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -43,18 +57,18 @@
                                         <td><%= design.designName %></td>
                                         <td><%= design.designSKU %></td>
                                         <td>₹<%= design.price %></td>
+                                        <td><%= orderData.orderData[0].items[i].quantity %></td>
                                     </tr>
                             <%  }); %>
                         </tbody>
                     </table>
                 </div>
-
-                <div class="box timeline">
-                    <!-- Your timeline content goes here -->
-                    <div>Event 1</div>
-                    <div>Event 2</div>
-                    <div>Event 3</div>
-                </div>
+                <% if (orderData.orderData[0].shipRocketCourier?.courierAWB) { %>
+                    <div class="box">
+                        You can track your courier live by clicking the link below: 
+                        <a href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier?.courierAWB %>" target="_blank"><%= orderData.orderData[0].shipRocketCourier.courierAWB %></a>
+                    </div>
+                <% } %>
             </div>
 
             <div class="column">
@@ -167,7 +181,36 @@
             var notyf = new Notyf();
             var orderHistoryData = [];
             var designData = {};
-            
+
+            const initiateRefund = async (el, type = 'cancel') => {
+                el.classList.add('disable-button');
+                let cancelOrderConfirmation = type == 'reship'? confirm("Are you sure you want to reship the same order to <%- orderData.orderData[0].billingAddress.firstName %>? Extra shipping charges will be deducted from your wallet") : confirm("Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?");
+                if (!cancelOrderConfirmation) return el.classList.remove('disable-button');;
+                try {
+                    const initiateRefundRequest = await fetch("/initiaterefund", {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }, 
+                        body: JSON.stringify({
+                            orderId: "<%= orderData.orderData[0].printwearOrderId %>"
+                        }),
+                        method: 'POST'
+                    });
+                    const initiateRefundResponse = await initiateRefundRequest.json();
+                    console.log(initiateRefundResponse);
+                    if (initiateRefundRequest.ok) {
+                        setTimeout(() => location.reload(), 3000);
+                        return notyf.success("Refund initiated. Will be processed within 2-3 working days.");
+                    }
+                    return notyf.error(initiateRefundResponse.message);
+                } catch (error) {
+                    console.log(error);
+                    return notyf.error("Error in initiating refund!");
+                } finally {
+                    el.classList.remove('disable-button');
+                }
+            } 
+
         </script>
      <% } %>
 </body>
