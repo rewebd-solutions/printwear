@@ -47,7 +47,9 @@ route.get("/designlib", authServices.authorizeToken, services.designlib);
 route.get("/invoice", authServices.authorizeToken, services.invoice);
 route.get("/profile", authServices.authorizeToken, controller.profilepage);
 route.get("/mockupgenerator", authServices.authorizeToken, services.mockupgenerator);
-route.get("/recharge", authServices.authorizeToken, controller.recharge);
+route.get("/recharge", authServices.authorizeToken, controller.recharge); // recharge page
+route.post("/recharge", authServices.authorizeToken, controller.rechargewallet); // recharge post endpoint
+route.get("/payment-success", services.success);
 
 // route.post("/addtocart", authServices.authorizeToken, controller.addtocart);
 // route.get("/getcart", authServices.authorizeToken, controller.getcart);

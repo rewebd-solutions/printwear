@@ -414,6 +414,13 @@
   const openRecharge = (el) => {
     const walletWindow = open("/recharge", "RechargeWindow", "scrollbars=1,status=yes,popup=true,width=400,height=600,resizable=no");
     walletWindow.focus();
+    walletWindow.addEventListener("message", (e) => {
+      if (e.origin != location.origin) return;
+      const { goTo } = e.data;
+      if (goTo == "dashboard") {
+        location.href = "/dashboard";
+      }
+    })
     console.log(walletWindow)
   }
 </script>

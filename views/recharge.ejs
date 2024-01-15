@@ -7,9 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/recharge.css">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <title>Recharge wallet for <%= data.userName %>
     </title>
 </head>
@@ -20,9 +18,14 @@
     <% } else { %>
         <div class="wallet-box">
             <img src="/images/Logo.png" alt="Printwear logo" />
-            <h5><i class="fa fa-info-circle"></i> Your last recharge was on 
-                <%= new Date(data.walletData.transactions[data.walletData.transactions.length - 1].transactionDate).toLocaleString() %>
-                for ₹<%= data.walletData.transactions[data.walletData.transactions.length - 1].amount %> 
+            <h5><i class="fa fa-info-circle"></i> Your last successful recharge was on
+                <% for( let i = data.walletData.transactions.length - 1; i >= 0; i++ ) { %>
+                    <% if (data.walletData.transactions[i].transactionStatus == "success") { %>
+                        <%= new Date(data.walletData.transactions[data.walletData.transactions.length - 1].transactionDate).toLocaleString() %>
+                        for ₹<%= data.walletData.transactions[data.walletData.transactions.length - 1].amount %> 
+                        <% break %>
+                    <% } %>
+                <% } %>
             </h5>
             <h4>Enter amount to add to wallet</h4>
             <div class="input-wrapper">
@@ -30,7 +33,7 @@
             </div>
             <div class="button-row">
                 <button class="pay-button">Pay</button>
-                <button class="cancel-button" onclick="handleCancel">Cancel</button>
+                <button class="cancel-button" onclick="handleCancel()">Cancel</button>
             </div>
         </div>
         <script>
@@ -39,15 +42,31 @@
                 let instrin = e.target.value;
                 e.target.value = instrin.replace(/[^0-9]/g, '');
             }
-            const handleCancel = () => window.close();
+            const handleCancel = () => {
+                window.close();
+            }
 
             setTimeout(() => {
                 window.close();
             }, 1000 * 90);
 
-            document.querySelector(".pay-button").addEventListener("click", (e) => {
+            document.querySelector(".pay-button").addEventListener("click", async (e) => {
                 try {
                     // make a fetch to backend
+                    const rechargeRequest = await fetch("/recharge", {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            amount: rechargeInput.value
+                        }),
+                        method: "POST"
+                    });
+                    const rechargeResponse = await rechargeRequest.json();
+                    const cashfree = Cashfree({
+                        mode: "sandbox" //or production
+                    });
+                    cashfree.checkout({ paymentSessionId: rechargeResponse.paymentLink }).then(check => console.log(check)).catch(err => alert(error));
                 } catch (error) {
                     console.log(error);
                     handleCancel();

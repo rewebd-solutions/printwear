@@ -93,6 +93,7 @@ exports.login = async (req, res) => {
             transactions: {
               transactionType: "recharge",
               amount: 0,
+              transactionStatus: "success"
             }
           }
         },
@@ -1583,7 +1584,7 @@ exports.getpaymentlink = async (req, res) => {
         order_expiry_time: expiryDate,
         order_meta: {
           notify_url: `${WEBHOOK_URL}createshiporder`,
-          return_url: WEBHOOK_URL + "manageorder"
+          return_url: WEBHOOK_URL + "payment-success?type=purchase"
         }
       })
     });
@@ -1640,18 +1641,83 @@ exports.getpaymentlink = async (req, res) => {
   }
 }
 
+//endpoint for creating payment link for recharge
+exports.rechargewallet = async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    const UserWallet = await WalletModel.findOne({ userId: req.userId });
+    const UserData = await UserModel.findById(req.userId);
+
+    let walletRechargeOrderId = "RECHARGE_" + otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false });
+  
+    let expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 2);
+    expiryDate = expiryDate.toISOString();
+
+    const createRechargePaymentlinkRequest = await fetch(CASHFREE_BASE_URL + "/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-client-id": cashfreeAppID,
+        "x-client-secret": cashfreeSecretKey,
+        "x-api-version": "2022-09-01"
+      },
+      body: JSON.stringify({
+        order_id: walletRechargeOrderId,
+        // order_id: orderData.printwearOrderId + '-' + extraId,
+        order_amount: parseFloat(amount).toFixed(2),
+        order_currency: "INR",
+        order_note: `Recharge for ${req.userName} WalletOrderId: ${walletRechargeOrderId}`,
+        // order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
+        customer_details: {
+          customer_id: req.userId,
+          customer_name: req.userName,
+          customer_phone: UserData.phone,
+          customer_email: UserData.email
+        },
+        order_expiry_time: expiryDate,
+        order_meta: {
+          notify_url: `${WEBHOOK_URL}createshiporder`,
+          return_url: WEBHOOK_URL + "payment-success?type=recharge"
+        }
+      })
+    });
+
+    const createRechargePaymentlinkResponse = await createRechargePaymentlinkRequest.json();
+    console.log(createRechargePaymentlinkResponse);
+
+    UserWallet.transactions.push({
+      walletOrderId: walletRechargeOrderId,
+      amount: amount,
+      transactionType: "recharge",
+      cashfreeOrderId: createRechargePaymentlinkResponse.cf_order_id,
+      cashfreeSessionId: createRechargePaymentlinkResponse.payment_session_id,
+      transactionStatus: "pending",
+    });
+
+    await UserWallet.save();
+
+    if (createRechargePaymentlinkResponse.code) return res.status(400).json({ message: 'Error creating payment link!', error: createRechargePaymentlinkResponse.message });
+    return res.status(200).json({ paymentLink: createRechargePaymentlinkResponse.payment_session_id });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error couldn't create payment link for recharge" });
+  }
+}
+
 
 // endpoints for creating orders in shiprocket
 exports.calculateshippingcharges = async (req, res) => {
   try {
-    const { weight, pincode } = req.body;
+    const { weight, pincode, cod } = req.body;
     //verify pincode
     const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
     const pincodeResponse = await pincodeRequest.json();
     if (!pincodeResponse[0].Status == "Success") return res.status(500).json({ message: "Pincode could not be verified" });
 
     // get couriers
-    const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=0`, {
+    const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=${cod? 1: 0}`, {
       headers: {
         'Authorization': 'Bearer ' + (await generateShiprocketToken()).token
       }
@@ -1705,16 +1771,29 @@ exports.createshiporder = async (req, res) => {
     console.log(`PAYMENT OK for ${userid} on ${new Date().toLocaleString()}`)
 
     try {
-      const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
+      // check if CF order ID has RECHARGE_{no} in it and if so, handle wallet increase and return
+      if (cf_order_id.split("_")[0] == "RECHARGE") {
+        const UserWallet = await WalletModel.findOne({ userId: userid });
+        if (!UserWallet) return console.log(`Couldn't find wallet for ${userid}`);
+
+        const currentTransactionIndex = UserWallet.transactions.findIndex(transaction => transaction.walletOrderId == cf_order_id);
+        console.log(currentTransactionIndex);
+        if (currentTransactionIndex == -1) return console.log(`Couldn't find transaction with ID: ${cf_order_id}`);
+
+        UserWallet.transactions[currentTransactionIndex].amount = req.body.data.payment.payment_amount;
+        UserWallet.transactions[currentTransactionIndex].transactionStatus = "success";
+        UserWallet.balance += req.body.data.payment.payment_amount;
+
+        await UserWallet.save();
+        return;
+      }
+      
+      const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: cf_order_id });
 
       if (!orderData) return console.log(`No such order data found for ${cf_order_id}`);
 
       const designData = await NewDesignModel.findOne({ userId: userid });
       const labelData = await LabelModel.findOne({ userId: userid });
-      // i think i did this for fooling cashfree webhook hitting twice but didnt work ig
-      // let orderId = orderData.printwearOrderId;
-      // orderData.printwearOrderId = null;
-      // await orderData.save();
 
       let customerOrderId = orderData.customerOrderId;
 
@@ -1732,8 +1811,6 @@ exports.createshiporder = async (req, res) => {
 
       const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
       const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-
-      // console.log(SHIPROCKET_ACC_TKN, SHIPROCKET_COMPANY_ID)
 
       const shiprocketOrderData = ({
         "order_id": customerOrderId,
@@ -1788,7 +1865,6 @@ exports.createshiporder = async (req, res) => {
 
       console.log("Shiprocket order data:");
       console.dir(shiprocketOrderData, { depth: 5 });
-      console.log("\n");
 
       const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
         headers: {
@@ -1806,7 +1882,7 @@ exports.createshiporder = async (req, res) => {
 
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-      orderData.deliveryStatus = "processing";
+      orderData.deliveryStatus = "placed";
 
       if (orderData.shipRocketCourier.courierId != -1) {
         const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
@@ -1822,9 +1898,13 @@ exports.createshiporder = async (req, res) => {
         });
         const shipmentAssignResponse = await shipmentAssignRequest.json();
         console.log(shipmentAssignResponse);
-        orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
-        orderData.deliveryStatus = "courier_assigned";
-      }// for cash on delivery, see how to create cod order in shiprocket
+        if (shipmentAssignResponse.status || shipmentAssignResponse.status_code) {
+          orderData.shipRocketCourier.courierAWB = "Assignment failed!" + shipmentAssignResponse.message;
+        } else {
+          orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+          orderData.deliveryStatus = "courier_assigned";
+        }
+      }
 
       // let dummyReeponse = {
       //   "awb_assign_status": 1,
@@ -1921,6 +2001,7 @@ exports.createshiporder = async (req, res) => {
 
 
       // part where i send the line item data to santo woocomms
+      // should create order in woocomms
       const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
       const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 

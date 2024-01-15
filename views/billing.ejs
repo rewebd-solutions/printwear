@@ -421,7 +421,8 @@
                     },
                     body: JSON.stringify({
                         weight: itemCount * 0.25,
-                        pincode: pincode.value
+                        pincode: pincode.value,
+                        cod: CODtoggle.checked
                     })
                 });
                 shippingChargesResponse = await shippingChargesRequest.json();
