@@ -200,7 +200,7 @@
                     console.log(initiateRefundResponse);
                     if (initiateRefundRequest.ok) {
                         setTimeout(() => location.reload(), 3000);
-                        return notyf.success("Refund initiated. Will be processed within 2-3 working days.");
+                        return type == "reship"? notyf.success("Order is now being reshipped!") :notyf.success("Refund initiated. Will be processed within 2-3 working days.");
                     }
                     return notyf.error(initiateRefundResponse.message);
                 } catch (error) {

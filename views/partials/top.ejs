@@ -170,12 +170,61 @@
     text-decoration: none;
     cursor: pointer;
   }
+
+  .dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dropdown-menu-items {
+    display: none;
+    position: absolute;
+    top: 120%;
+    left: -150%;
+    transform: translateX(50%);
+    flex-direction: column;
+    gap: 0.2rem;
+    background: white;
+    border-radius: 6px;
+    padding: 0.5rem 0.3rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .dropdown-link {
+    padding: 0.2rem 0.6rem;
+    width: 100%;
+    color: black;
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .dropdown-link:hover {
+    background: #F05A30;
+    color: white;
+  }
 </style>
 <div class="navbar-top">
   <div class="navbar-logo">
     <img src="/images/Logo.png" id="logo">
   </div>
   <div class="nav-icons">
+    <div class="dropdown-menu">
+      <a href="#" class="top-nav-btn" onclick="toggleWallet(this)">
+        <i style="font-size: 16px;" class="fa fa-wallet"></i> ₹0
+        <i style="font-size: 14px;" class="fa fa-chevron-down"></i>
+      </a>
+      <div class="dropdown-menu-items">
+        <a href="#" onclick="openRecharge(this)" class="dropdown-link">
+          <i class="fa fa-plus"></i> Add cash
+        </a>
+        <a href="#" class="dropdown-link">
+          <i class="fa fa-history"></i> Transactions
+        </a>
+      </div>
+    </div>
     <a href="#" class="top-nav-btn" onclick="openDesignUploadModal('label', event)">
       <i style="font-size: 16px;" class="fa fa-file-upload"></i> Upload label
     </a>
@@ -188,6 +237,7 @@
 </div>
 <script>
   var isReadyForRendering = false;
+  var isWalletOpen = false;
   const modularData = {
     image: {
       obtain: '/obtainimages',
@@ -343,5 +393,27 @@
   
   const closeDesignUploadModal = (e) => {
     document.querySelector(".design-upload-backdrop").remove();
+  }
+  
+  const closeWallet = (el) => {
+    isWalletOpen = false;
+    el.removeAttribute("style");
+    document.querySelector(".dropdown-menu-items").style.display = "none";
+  }
+
+  const toggleWallet = (el) => {
+    if (!isWalletOpen){ 
+      isWalletOpen = true;
+      el.style.background = "#f05a30c1"
+      document.querySelector(".dropdown-menu-items").style.display = "flex";
+    } else {
+      closeWallet(el);    
+    }
+  }
+
+  const openRecharge = (el) => {
+    const walletWindow = open("/recharge", "RechargeWindow", "scrollbars=1,status=yes,popup=true,width=400,height=600,resizable=no");
+    walletWindow.focus();
+    console.log(walletWindow)
   }
 </script>

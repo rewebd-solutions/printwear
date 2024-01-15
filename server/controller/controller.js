@@ -30,6 +30,7 @@ const otpGen = require("otp-generator")
 const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");
 const MockupModel = require("../model/mockupModel");
+const WalletModel = require("../model/walletModel");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
@@ -49,45 +50,65 @@ exports.register = async (req, res) => {
   const existingUser = await UserModel.findOne({ name: req.body.name });
   if (existingUser) return res.render("login", { status: "User already exists" })
 
-  const user = UserModel.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: crypto.createHash(algorithm).update(req.body.password).digest("hex"),
-    phone: '+91' + num.toString(),
-    emailVerified: false,
-    phoneVerified: false,
-    profileImage: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'
-  })
-    .then(() => {
-      //res.send(data)
-      res.render("login", { status: "Account created. Log In" });
-    })
-    .catch(err => {
-      console.log(err);
-      res.render("login", { status: "Error saving data, try again" })
+  try {
+    const user = await UserModel.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: crypto.createHash(algorithm).update(req.body.password).digest("hex"),
+      phone: '+91' + num.toString(),
+      emailVerified: false,
+      phoneVerified: false,
+      profileImage: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'
     });
+    
+    res.render("login", { status: "Account created. Log In" });
+  } catch (error) {
+    console.log(err);
+    res.render("login", { status: "Error saving data, try again" })
+  }
 }
 
 exports.login = async (req, res) => {
   // console.log(req.body);
-  const check = await UserModel.findOne({ email: req.body.email })
+  try {
+    const check = await UserModel.findOne({ email: req.body.email })
 
-  if (check === null) {
-    return res.render("login", { status: "User does not exist" });
-  }
+    if (check === null) {
+      return res.render("login", { status: "User does not exist" });
+    }
 
-  if (check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex")) {
-    // console.log("inga vardhu")
+    if (!(check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex"))) {
+      return res.render("login", { status: "Invalid details" });
+    }
+
+    const wallet = await WalletModel.findOne({ userId: check._id });
+    if (!wallet) {
+      console.log(wallet);
+      await WalletModel.findOneAndUpdate({ userId: check._id },
+        {
+          $setOnInsert: {
+            userId: check._id
+          },
+          $push: {
+            transactions: {
+              transactionType: "recharge",
+              amount: 0,
+            }
+          }
+        },
+        { new: true, upsert: true, });
+    }
+
     const cookieToken = authServices.createToken(check._id, check.name);
     res.cookie("actk", cookieToken, {
       httpOnly: true,
       secure: true
     });
-    // console.log("cookie set");
+    
     return res.redirect("/dashboard");
-  }
-  else {
-    return res.render("login", { status: "Invalid details" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("<h1>Internal server error couldn't log you in</h1>");
   }
 
 }
@@ -432,6 +453,8 @@ exports.adddesign = async (req, res) => {
   }
 }
 
+
+
 // deleted old commented code for old schema
 // utils 
 const formatDate = (date, removeLast = false) => {
@@ -484,6 +507,8 @@ function clearIdempotencyKeys() {
     console.log(idempotencyKeys);
   }, 1000 * 60 * 2);
 }
+
+
 
 // endpoints for querying shopify stores
 exports.getshopifystock = async (req, res) => {
@@ -1431,7 +1456,7 @@ exports.updateorder = async (req, res) => {
   }
 }
 
-
+// RENDER pages:
 // render billing page
 exports.billing = async (req, res) => {
   try {
@@ -1465,8 +1490,6 @@ exports.billing = async (req, res) => {
     res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
   }
 }
-
-
 // render order details page
 exports.orderpage = async (req, res) => {
   try {
@@ -1489,6 +1512,18 @@ exports.orderpage = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error obtaining order details" });
+  }
+}
+// render wallet recharge page
+exports.recharge = async (req, res) => {
+  try {
+    const wallet = await WalletModel.findOne({ userId: req.userId });
+    if (!wallet) {
+      return res.render("recharge", { data: { userName: req.userName, error: true } });
+    }
+    return res.render("recharge", { data: { userName: req.userName, walletData: wallet } });
+  } catch (error) {
+    
   }
 }
 
@@ -2102,7 +2137,11 @@ exports.initiaterefund = async (req, res) => {
         orderHistory.orderData[orderToRefundIndex].deliveryCharges = shipmentAssignResponse.response.data.freight_charges;
 
         await orderHistory.save();
-      }// for cash on delivery, see how to create cod order in shiprocket
+      } else {
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "processing";
+        orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
+        await orderHistory.save();
+      }
       // wallet ku poidum
   
     } catch (error) {
@@ -2173,6 +2212,9 @@ exports.initiaterefund = async (req, res) => {
 
     if (cashfreeRefundStatus == 'refund_ok') {
       orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+      if (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId == -1) {
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
+      }
       await orderHistory.save();
       return res.status(200).json({ orderData: orderHistory.orderData });
     } else {
