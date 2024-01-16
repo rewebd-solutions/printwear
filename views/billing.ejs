@@ -219,7 +219,7 @@
 
             if (orderIdInput.value.length < 3) return notyf.error("Order ID length should not be less than 3");
 
-            orderIdVerified = await checkOrderID();
+            orderIdVerified = await checkOrderID(orderIdInput.value);
 
             if (!orderIdVerified) {
                 disabled = false;

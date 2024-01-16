@@ -300,7 +300,7 @@
                 [orderHistoryTable, cancelledOrderTable, returnedOrderTable].forEach(table => table.innerHTML = noDataMessage);
                 return notyf.error(noDataMessage);
             }
-            orderHistoryTable.innerHTML = data.filter(orderHistory => ['processing', 'courier_assigned', 'dispatched'].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+            orderHistoryTable.innerHTML = data.filter(orderHistory => ['placed', 'processing', 'courier_assigned', 'dispatched'].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
                         <td>${i+1}</td>

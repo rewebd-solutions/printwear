@@ -34,7 +34,7 @@ const WalletModel = require("../model/walletModel");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
-const ZOHO_INVOICE_ORGANIZATION_ID = 60010804173;
+const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
 // common auth endpoints
 exports.register = async (req, res) => {
@@ -60,7 +60,7 @@ exports.register = async (req, res) => {
       phoneVerified: false,
       profileImage: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'
     });
-    
+
     res.render("login", { status: "Account created. Log In" });
   } catch (error) {
     console.log(err);
@@ -105,7 +105,7 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: true
     });
-    
+
     return res.redirect("/dashboard");
   } catch (error) {
     console.log(error);
@@ -465,7 +465,7 @@ const formatDate = (date, removeLast = false) => {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  return removeLast ? `${year}-${month}-${day}`:`${year}-${month}-${day} ${hours}:${minutes}`;
+  return removeLast ? `${year}-${month}-${day}` : `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
 const generateShiprocketToken = async () => {
@@ -1495,7 +1495,7 @@ exports.billing = async (req, res) => {
 exports.orderpage = async (req, res) => {
   try {
     const orderId = req.params.id;
-    
+
     // query db with specific order id
     const orderDetails = await OrderHistoryModel.findOne(
       {
@@ -1524,7 +1524,7 @@ exports.recharge = async (req, res) => {
     }
     return res.render("recharge", { data: { userName: req.userName, walletData: wallet } });
   } catch (error) {
-    
+
   }
 }
 
@@ -1630,7 +1630,7 @@ exports.getpaymentlink = async (req, res) => {
           estimatedDelivery: courierData?.etd ?? 'N/A'
         },
         cashOnDelivery: cashOnDelivery,
-        totalAmount: orderData.totalAmount + (cashOnDelivery ? 50: 0)
+        totalAmount: orderData.totalAmount + (cashOnDelivery ? 50 : 0)
       },
     });
 
@@ -1650,7 +1650,7 @@ exports.rechargewallet = async (req, res) => {
     const UserData = await UserModel.findById(req.userId);
 
     let walletRechargeOrderId = "RECHARGE_" + otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false });
-  
+
     let expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 2);
     expiryDate = expiryDate.toISOString();
@@ -1717,7 +1717,7 @@ exports.calculateshippingcharges = async (req, res) => {
     if (!pincodeResponse[0].Status == "Success") return res.status(500).json({ message: "Pincode could not be verified" });
 
     // get couriers
-    const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=${cod? 1: 0}`, {
+    const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=${cod ? 1 : 0}`, {
       headers: {
         'Authorization': 'Bearer ' + (await generateShiprocketToken()).token
       }
@@ -1787,7 +1787,7 @@ exports.createshiporder = async (req, res) => {
         await UserWallet.save();
         return;
       }
-      
+
       const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: cf_order_id });
 
       if (!orderData) return console.log(`No such order data found for ${cf_order_id}`);
@@ -1851,7 +1851,7 @@ exports.createshiporder = async (req, res) => {
             "hsn": 441122
           }
         }),
-        "payment_method": orderData.cashOnDelivery? "COD": "Prepaid",
+        "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
         "shipping_charges": orderData.deliveryCharges,
         "giftwrap_charges": 0,
         "transaction_charges": 0,
@@ -2191,7 +2191,7 @@ exports.initiaterefund = async (req, res) => {
 
   if (orderToRefund.deliveryStatus == "cancelled" && (orderToRefund.paymentStatus == "refund_init" || orderToRefund.paymentStatus == "refunded")) {
     // assign courier automatically again
-      // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
+    // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
     const shiprocketToken = await generateShiprocketToken();
     const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
@@ -2224,12 +2224,12 @@ exports.initiaterefund = async (req, res) => {
         await orderHistory.save();
       }
       // wallet ku poidum
-  
+
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Something went wrong!" });
     }
-    
+
     // create payment link for added delivery charge
     // after payment made, make respective changes in webhook
     // maybe add a note to payment data and in /createshiporder if the note has "reship for {printwearOrderId}" then change status
@@ -2265,7 +2265,7 @@ exports.initiaterefund = async (req, res) => {
         orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = null;
         (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName != 'SELF PICKUP') && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = 'unassigned');
         orderHistory.orderData[orderToRefundIndex].deliveryCharges = 0.0;
-        
+
         let cashfreeRefundStatus = await refundFunction();
 
         if (cashfreeRefundStatus == 'refund_ok') {
@@ -2403,9 +2403,9 @@ exports.checkorderid = async (req, res) => {
     const currentOrderId = req.body.customerOrderId;
     const orderIDs = await OrderHistoryModel.findOne({ userId: req.userId });
     if (!orderIDs) return res.status(200).json({ message: "OK" });
-    const orderIDmatches = orderIDs.orderData.find((order) => order.customerOrderId == currentOrderId);
-    // console.log(orderIDmatches)
-    if (!orderIDmatches) {
+    const orderIDmatches = orderIDs.orderData.map((order) => order.customerOrderId).findIndex(order => order == currentOrderId);
+    // console.log(currentOrderId, orderIDmatches)
+    if (orderIDmatches == -1) {
       return res.status(200).json({ message: "OK" })
     }
     return res.status(400).json({ message: "Order ID already exists!" })
@@ -2455,7 +2455,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
     console.log(zohoToken)
     // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
     let userid = '653e3284308b660442fd55a6';
-    let testorderid = 'ZEYEP4';
+    let testorderid = '81OIWL';
     const userData = await UserModel.findById(userid);
     if (!userData.isZohoCustomer) {
       // write endpoint to create zoho customer 
@@ -2473,6 +2473,17 @@ exports.generateZohoBooksInvoice = async (req, res) => {
             "is_primary_contact": true
           }
         ],
+        "billing_address": {
+          "address": userData.billingAddress.landmark,
+          "street2": "",
+          "city": userData.billingAddress.city,
+          "state": userData.billingAddress.state,
+          "zipcode": userData.billingAddress.pincode,
+          "country": "India",
+          "phone": userData.phone,
+          "fax": "",
+          "attention": ""
+        },
         "language_code": "en",
         "country_code": "IN",
         "place_of_contact": "TN",
@@ -2481,7 +2492,6 @@ exports.generateZohoBooksInvoice = async (req, res) => {
         method: "POST",
         headers: {
           Authorization: 'Zoho-oauthtoken ' + zohoToken,
-          // 'X-com-zoho-invoice-organizationid': ZOHO_INVOICE_ORGANIZATION_ID,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(customerData)
@@ -2506,7 +2516,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
         "userId": userid,
         "orderData": { $elemMatch: { "printwearOrderId": testorderid } }
       },
-    { "orderData.$": 1 });
+      { "orderData.$": 1 });
     const designIds = orderDetails.orderData[0].items.map(item => item.designId + '');
     const designsData = await NewDesignModel.findOne({ userId: userid });
     let productIds = designsData.designs.filter(design => designIds.includes(design._id + '')).map(design => design.product.id);
@@ -2514,49 +2524,192 @@ exports.generateZohoBooksInvoice = async (req, res) => {
     // create invoice request
     const zohoCustomerId = userData.zohoCustomerID;
     const zohoContactId = userData.zohoContactID;
-    
+
+    // const invoiceData2 = {
+    //   "branch_id": "650580000000098357",
+    //   "autonumbergenerationgroup_id": "650580000004188098",
+    //   "payment_terms": 0,
+    //   "payment_terms_label": "Due on Receipt",
+    //   "customer_id": zohoCustomerId,
+    //   // "contact_persons": [
+    //   //   zohoContactId
+    //   // ],
+    //   // "invoice_number": "PW/2023-2024/16069",
+    //   // "invoice_number": "INV-696969",
+    //   "place_of_supply": "TN",
+    //   "gst_treatment": "business_none",
+    //   "gst_no": "",
+    //   discount: 0.0,
+    //   "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+    //   "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+    //   total: orderDetails.orderData[0].amountPaid,
+    //   "line_items": [
+    //     orderDetails.orderData[0].items.map((item, i) => {
+    //       let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
+    //       return {
+    //         item_id: currentDesignItem.product.id,
+    //         name: currentDesignItem.designName,
+    //         rate: item.price * 1.00,
+    //         quantity: parseFloat((+item.quantity).toFixed(2)),
+    //         "item_order": i + 1,
+    //         "description": "",
+    //         "discount": "0%",
+    //         "tax_id": "650580000000013321",
+    //         "project_id": "",
+    //         "tags": [
+
+    //         ],
+    //         "tax_exemption_code": "",
+    //         "account_id": "650580000000000486",
+    //         "item_custom_fields": [
+
+    //         ],
+    //         "hsn_or_sac": "61130000",
+    //         "gst_treatment_code": "",
+    //         "unit": "pcs"
+    //       }
+    //     })
+    //   ],
+    //   "shipping_charge": orderDetails.orderData[0].deliveryCharges,
+    //   "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
+    //   "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+    //   "allow_partial_payments": false,
+    //   "is_discount_before_tax": "",
+    //   "discount": 0,
+    //   "discount_type": "",
+    //   "adjustment": "",
+    //   "adjustment_description": "Standard Shipping",
+    //   "salesperson_id": "650580000000108050",
+    //   "tax_exemption_code": "",
+    //   "tax_authority_name": "",
+    //   "zcrm_potential_id": "",
+    //   "zcrm_potential_name": "",
+    //   "pricebook_id": "",
+    //   "template_id": ZOHO_INVOICE_TEMPLATE_ID,
+    //   "project_id": "",
+    //   "documents": [
+
+    //   ],
+    //   "mail_attachments": [
+
+    //   ],
+    //   "quick_create_payment": {
+    //     "account_id": "650580000000000459",
+    //     "payment_mode": "Bank Transfer"
+    //   },
+    //   "tds_tax_id": "650580000000013032",
+    //   "is_tds_amount_in_percent": true
+    // }
     const invoiceData = {
+      "branch_id": "650580000000098357",
+      "autonumbergenerationgroup_id": "650580000004188098",
+      "reference_number": testorderid,
+      "payment_terms": 0,
+      "payment_terms_label": "Due on Receipt",
       "customer_id": zohoCustomerId,
       "contact_persons": [
-        zohoContactId
+
       ],
-      "invoice_number": "PW/2023-2024/16069",
-      "currency_id": "650580000000000064",
-      // "invoice_number": "INV-696969",
-      "place_of_supply": "TN",
-      // "gst_treatment": "business_gst",
-      "reference_number": testorderid,
-      discount: 0.0,
       "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
       "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      total: orderDetails.orderData[0].amountPaid,
-      "line_items": [
-        orderDetails.orderData[0].items.map(item => {
+      "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
+      "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+      "is_inclusive_tax": false,
+      "line_items": 
+        orderDetails.orderData[0].items.map((item, i) => {
           let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
           return {
-            item_id: currentDesignItem.product.id,
-            name: currentDesignItem.designName,
-            rate: item.price * 1.00,
-            quantity: parseFloat((+item.quantity).toFixed(2)),
-            discount: 0.0
+            "item_order": 1,
+            "item_id": currentDesignItem.product.id,
+            "rate": currentDesignItem.price * 1.00,
+            "name": currentDesignItem.product.name,
+            "description": currentDesignItem.designName,
+            "quantity": (item.quantity).toFixed(2),
+            "discount": "0%",
+            "tax_id": "650580000000013321",
+            "tax_name": "SGST + CGST",
+            "tax_type": "tax",
+            "tax_percentage": 2.5,
+            "project_id": "",
+            "tags": [
+
+            ],
+            "tax_exemption_code": "",
+            "account_id": "650580000000000486",
+            "item_custom_fields": [
+
+            ],
+            "hsn_or_sac": "61130000",
+            "gst_treatment_code": "",
+            "unit": "pcs"
           }
-        })
+        }),
+      "allow_partial_payments": false,
+      "custom_fields": [
+        {
+          "value": "",
+          "customfield_id": "650580000000103311"
+        }
       ],
+      "is_discount_before_tax": "",
+      "discount": 0,
+      "discount_type": "",
       "shipping_charge": orderDetails.orderData[0].deliveryCharges,
+      "adjustment": "",
+      "adjustment_description": "Standard Shipping",
+      "salesperson_id": "650580000000108050",
+      "tax_exemption_code": "",
+      "tax_authority_name": "",
+      // "zcrm_potential_id": "",
+      // "zcrm_potential_name": "",
+      "pricebook_id": "",
+      "template_id": ZOHO_INVOICE_TEMPLATE_ID,
+      "project_id": "",
+      "documents": [
+
+      ],
+      "mail_attachments": [
+
+      ],
+      // "billing_address_id": "650580000004394004",
+      // "shipping_address_id": "650580000004394006",
+      "gst_treatment": "business_none",
+      "gst_no": "",
+      "place_of_supply": "TN",
+      "quick_create_payment": {
+        "account_id": "650580000000000459",
+        "payment_mode": "Bank Transfer"
+      },
+      "tds_tax_id": "650580000000013032",
+      "is_tds_amount_in_percent": true,
+      "taxes": [
+        {
+          "tax_name": "CGST",
+          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+        },
+        {
+          "tax_name": "SGST",
+          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+        },
+      ],
+      "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05
     }
     console.log(invoiceData)
-    
-    // const theFuckingData = new URLSearchParams({JSONString: JSON.stringify(invoiceData)}).toString();
-    // console.log(theFuckingData)
 
-    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices/?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
+    const zohoInvoiceFormData = new FormData();
+    zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
+    zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
+    zohoInvoiceFormData.append('is_quick_create', 'true');
+    console.log(zohoInvoiceFormData);
+
+    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
+      // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
       method: "POST",
       headers: {
         Authorization: 'Zoho-oauthtoken ' + zohoToken,
         // "Content-Type": "application/json"
-        "content-type": "application/x-www-form-urlencoded"
       },
-      body: "JSONString="+JSON.stringify(invoiceData)
+      body: zohoInvoiceFormData
     });
     const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
     res.json(zohoInvoiceCreateResponse);
