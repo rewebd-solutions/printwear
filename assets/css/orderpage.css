@@ -119,7 +119,7 @@ p {
     color: silver;
 }
 
-.processing, .dispatched, .delivered, .success, .courier_assigned {
+.processing, .dispatched, .delivered, .success, .courier_assigned, .placed {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
 }

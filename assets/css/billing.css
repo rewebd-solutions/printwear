@@ -35,18 +35,19 @@ input[type="text"], input[type="email"], input[type="number"], select {
 
 .orders-list {
     list-style-type: none;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
     gap: 0.4rem;
 }
 
 .orders-list li {
     display: flex;
     gap: 1.2rem;
-    /* width: 600px; */
+    width: 450px;
     padding: 0.3rem;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-evenly;
     outline: 1px solid silver;
     border-radius: 5px;
 }
@@ -54,6 +55,10 @@ input[type="text"], input[type="email"], input[type="number"], select {
 h4 {
     font-weight: 500;
     font-size: 1.1rem;
+}
+
+h5 {
+    font-weight: 500;
 }
 
 .billing-button {

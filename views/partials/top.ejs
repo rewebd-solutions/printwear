@@ -4,6 +4,27 @@
     src: url('/css/BaseNeueTrial-SemiBoldOblique.ttf');
   }
 
+  .loader-w {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #FFF;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+  }
+
+  @keyframes rotation {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
   .navbar-top {
     display: flex;
     justify-content: space-between;
@@ -37,6 +58,7 @@
     align-items: center;
     gap: 0.6rem;
   }
+
   .design-upload-backdrop {
     position: absolute;
     top: 0;
@@ -48,6 +70,7 @@
     justify-content: center;
     align-items: center;
   }
+
   .design-upload-modal {
     padding: 1rem;
     display: flex;
@@ -59,10 +82,12 @@
     gap: 1rem;
     overflow-y: scroll;
   }
+
   .modal-controls {
     display: flex;
     justify-content: flex-end;
   }
+
   .modal-close-button {
     right: 1rem;
     top: 1rem;
@@ -72,6 +97,7 @@
     aspect-ratio: 1;
     border-radius: 50%;
   }
+
   #user-image-form {
     display: flex;
     flex-direction: column;
@@ -84,6 +110,7 @@
     text-align: center;
     border-radius: 1rem;
   }
+
   .file-input {
     display: flex;
     flex-direction: column;
@@ -92,9 +119,11 @@
     padding: 3rem;
     cursor: pointer;
   }
+
   #file-input {
     display: none;
   }
+
   .design-image-wrapper {
     display: flex;
     position: relative;
@@ -104,7 +133,7 @@
     border-radius: 10px;
     box-shadow: 0 0 10px #0000004b;
   }
-  
+
   .image-menu {
     display: flex;
     position: absolute;
@@ -113,7 +142,7 @@
     top: 1.7rem;
     right: 0.2rem;
   }
-  
+
   .image-settings {
     display: flex;
     justify-content: center;
@@ -128,13 +157,14 @@
     border-radius: 50%;
     font-weight: bold;
   }
-  
-  
+
+
   .image-settings-2 {
     right: 2.9rem;
   }
-  
-  .image-details h6, .image-details p {
+
+  .image-details h6,
+  .image-details p {
     font-family: 'Arial', sans-serif;
     letter-spacing: normal;
     padding: 0.3rem;
@@ -143,12 +173,12 @@
     text-overflow: ellipsis;
     font-size: 1rem;
   }
-  
+
   .design-image-meta {
     display: flex;
     justify-content: space-between;
   }
-  
+
   .design-image {
     width: 100%;
     height: 250px;
@@ -160,7 +190,7 @@
     flex-wrap: wrap;
     gap: 1rem
   }
-  
+
   .top-nav-btn {
     color: white;
     font-size: 0.9rem;
@@ -212,8 +242,8 @@
   </div>
   <div class="nav-icons">
     <div class="dropdown-menu">
-      <a href="#" class="top-nav-btn" onclick="toggleWallet(this)">
-        <i style="font-size: 16px;" class="fa fa-wallet"></i> ₹0
+      <a class="top-nav-btn" id="wall" onclick="toggleWallet(this)">
+        <i style="font-size: 16px;" class="fa fa-wallet"></i> <span class="loader-w"></span>
         <i style="font-size: 14px;" class="fa fa-chevron-down"></i>
       </a>
       <div class="dropdown-menu-items">
@@ -233,7 +263,7 @@
     </a>
     <a href="/profile" class="top-nav-btn"><i style="font-size: 16px;" class="fa-solid fa-user"></i> Profile</a>
   </div>
-  
+
 </div>
 <script>
   var isReadyForRendering = false;
@@ -262,27 +292,27 @@
   }
 
   const fetchImageAndPopulate = async (data) => {
-      try {
-          const userImageWrapper = document.querySelector(".user-images");
-          userImageWrapper.innerHTML = 'Loading...';
+    try {
+      const userImageWrapper = document.querySelector(".user-images");
+      userImageWrapper.innerHTML = 'Loading...';
 
-          const imageFetch = await fetch(data.obtain);
-          const userImageData = await imageFetch.json();
+      const imageFetch = await fetch(data.obtain);
+      const userImageData = await imageFetch.json();
 
-          console.log(userImageData)
+      console.log(userImageData)
 
-          if (isReadyForRendering && data.arrayName == "images") populateUserDesigns(userImageData);
-          if (isReadyForRendering && data.arrayName == "labels") populateUserLabels(userImageData);
+      if (isReadyForRendering && data.arrayName == "images") populateUserDesigns(userImageData);
+      if (isReadyForRendering && data.arrayName == "labels") populateUserLabels(userImageData);
 
-          userImageWrapper.innerHTML = '';
-           
-          if (!userImageData || userImageData[data.arrayName].length === 0) return userImageWrapper.innerHTML = "No uploads yet!";
-          userImageData[data.arrayName].map(imageItem => {
-            let currentImage = new Image();
-            currentImage.src = imageItem.url;
-            //console.log(userImageData[data.arrayName])
-            currentImage.addEventListener("load", () => {
-              userImageWrapper.innerHTML += `
+      userImageWrapper.innerHTML = '';
+
+      if (!userImageData || userImageData[data.arrayName].length === 0) return userImageWrapper.innerHTML = "No uploads yet!";
+      userImageData[data.arrayName].map(imageItem => {
+        let currentImage = new Image();
+        currentImage.src = imageItem.url;
+        //console.log(userImageData[data.arrayName])
+        currentImage.addEventListener("load", () => {
+          userImageWrapper.innerHTML += `
                 <div class="design-image-wrapper">
                   <button class="image-settings"><a href="${imageItem.url}" target="_blank"><i class="fa fa-download"></i></a></button>
                   <button class="image-settings image-settings-2" onclick="deleteImage('${data.type}','${imageItem._id}')"><i class="fa fa-trash"></i></button>
@@ -294,18 +324,18 @@
                       <h6>${imageItem.name}</h6>
                       <h6>${currentImage.width + 'x' + currentImage.height}</h6>
                       <div class="design-image-meta">
-                          <p>${imageItem.format?? ''}</p>
-                          <p>${imageItem.size ? imageItem.size + 'KB': ''}</p>
+                          <p>${imageItem.format ?? ''}</p>
+                          <p>${imageItem.size ? imageItem.size + 'KB' : ''}</p>
                       </div>
                   </div>
                 </div> 
               `;
-            })
-          })
-      } catch(err) {
-          console.log(err);
-          notyf.error("Something went wrong in loading images!");
-      }
+        })
+      })
+    } catch (err) {
+      console.log(err);
+      notyf.error("Something went wrong in loading images!");
+    }
   }
 
   const deleteImage = async (type, imageId) => {
@@ -336,7 +366,7 @@
     let userImageFormPreviousDOM = userImageForm.innerHTML;
 
     userImageForm.innerHTML = `<span class="loader"></span>`;
-    
+
     const imageUploadData = new FormData();
     let imageToUpload = e.target.files[0];
     if (!imageToUpload) return;
@@ -390,11 +420,11 @@
 
     fetchImageAndPopulate(modularData[type]);
   }
-  
+
   const closeDesignUploadModal = (e) => {
     document.querySelector(".design-upload-backdrop").remove();
   }
-  
+
   const closeWallet = (el) => {
     isWalletOpen = false;
     el.removeAttribute("style");
@@ -402,12 +432,12 @@
   }
 
   const toggleWallet = (el) => {
-    if (!isWalletOpen){ 
+    if (!isWalletOpen) {
       isWalletOpen = true;
       el.style.background = "#f05a30c1"
       document.querySelector(".dropdown-menu-items").style.display = "flex";
     } else {
-      closeWallet(el);    
+      closeWallet(el);
     }
   }
 
@@ -423,4 +453,19 @@
     })
     console.log(walletWindow)
   }
+
+  const getBal = async () => {
+    try {
+      const walletBalanceRequest = await fetch("/balance");
+      const walletBalanceResponse = await walletBalanceRequest.json();
+      if (walletBalanceResponse.message) throw new Error(walletBalanceResponse.message);
+      document.querySelector("#wall").innerHTML = `<i style="font-size: 16px;" class="fa fa-wallet"></i> ₹${walletBalanceResponse.balance}
+        <i style="font-size: 14px;" class="fa fa-chevron-down"></i>`;
+    } catch (error) {
+      console.log(error);
+      notyf.error(error);
+    }
+  }
+
+  getBal();
 </script>

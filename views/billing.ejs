@@ -54,9 +54,12 @@
                             <% if (data) { %>
                                 <li>
                                     <img width="100" height="100" src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
-                                    <h4><%= design.designName %> • <%= design.product.name %> </h4>
-                                    <h4><%= data.quantity %> pcs </h4>
-                                    <h4>₹.<%= data.price %> </h4>
+                                    <div>
+                                        <h4><%= design.designName %></h4>
+                                        <h6><%= design.product.name %></h6>
+                                    </div>
+                                    <h5><%= data.quantity %> pcs </h5>
+                                    <h5>₹.<%= data.price %> </h5>
                                 </li>
                             <% } %>
                         <% }) %>
@@ -178,10 +181,12 @@
                     </div>
                     <div class="right-bill">
                         <h4>₹.<%= orderData.totalAmount %> </h4>
-                        <h4>₹0.00 (Tax)</h4>
                         <h4 id="shipping-charges">₹0.00 (Shipping charges) </h4>
+                        <div style="display: flex; gap: 0.5rem">
+                            <h4 id="taxes">₹<%= (orderData.totalAmount * 0.05).toFixed(2) %></h4>(CGST (2.5%) + SGST (2.5%))
+                        </div>
                         <hr />
-                        <h4 id="total-charges">₹<%= orderData.totalAmount %></h4>
+                        <h4 id="total-charges">₹<%= (orderData.totalAmount + (orderData.totalAmount * 0.05)).toFixed(2) %></h4>
                     </div>
                 </div>
             </div>
@@ -190,11 +195,10 @@
         <% } %>
     </div>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <% var totalPrice = orderData.totalAmount %>;
     <script>
         AOS.init();
         var notyf = new Notyf();
-        var ttlp = "<%= totalPrice %>";
+        var ttlp = "<%= orderData.totalAmount %>";
         var disabled = false;
         var orderIdVerified = false;
         var retailVerified = false;
@@ -321,11 +325,16 @@
             const courierRadioBtns = document.querySelector('fieldset');
             if (e.target.checked) {
                 isSelfPickup = true;
+                if (CODtoggle.checked) {
+                    document.getElementById("cod-charge").remove();
+                    CODtoggle.checked = false;
+                }
                 modifyBillSummary(0.00);
                 if (courierRadioBtns) {
                     console.log("radio btns iruku")
                     courierRadioBtns.style.display = "none";
                 } else {
+                    // document.querySelector("#taxes").innerHTML = `₹${(parseFloat(ttlp) + parseFloat(ttlp) * 0.05).toFixed(2)}`;
                     billSummary.insertAdjacentHTML("afterend", `
                     <button type="button" class="billing-button" id="btn-checkout">
                         Proceed to checkout
@@ -339,20 +348,35 @@
             if (courierRadioBtns) {
                 courierRadioBtns.style.display = "unset";
                 modifyBillSummary(shippingCharge);
-            } else document.querySelector("#btn-checkout").remove();
+            } else {
+
+                document.querySelector("#btn-checkout").remove();
+            }
         }
 
         CODtoggle.oninput = (e) => {
             if (e.target.checked) {
-                document.getElementById("shipping-charges").insertAdjacentHTML("afterend", `<h4 id="cod-charge">₹50 (COD Charges)`);
-                let p = document.getElementById("total-charges").innerHTML;
-                p = `₹${(parseFloat(p.slice(1)) + 50).toFixed(2)}`;
-                document.getElementById("total-charges").innerHTML = p
+                if (isSelfPickup) return e.target.checked = false;
+                document.getElementById("shipping-charges").insertAdjacentHTML("afterend", `<h4 id="cod-charge">₹50 (COD Charges)</h4>`);
+                let totalPrice = document.getElementById("total-charges").innerHTML;
+                let taxes = document.getElementById("taxes").innerHTML;
+
+                taxes = `₹${(parseFloat(taxes.slice(1)) + (50 * 0.05)).toFixed(2)}`;
+                totalPrice = `₹${(parseFloat(totalPrice.slice(1)) + 50 + (50 * 0.05)).toFixed(2)}`;
+
+                document.getElementById("total-charges").innerHTML = totalPrice
+                document.getElementById("taxes").innerHTML = taxes;
+
             } else {
                 document.getElementById("cod-charge").remove();
-                let p = document.getElementById("total-charges").innerHTML;
-                p = `₹${(parseFloat(p.slice(1)) - 50).toFixed(2)}`;
-                document.getElementById("total-charges").innerHTML = p
+                let totalPrice = document.getElementById("total-charges").innerHTML;
+                let taxes = document.getElementById("taxes").innerHTML;
+
+                taxes = `₹${(parseFloat(taxes.slice(1)) - (50 * 0.05)).toFixed(2)}`;
+                totalPrice = `₹${(parseFloat(totalPrice.slice(1)) - 50 - (50 * 0.05)).toFixed(2)}`;
+
+                document.getElementById("total-charges").innerHTML = totalPrice
+                document.getElementById("taxes").innerHTML = taxes;
             }
         }
 
@@ -361,7 +385,7 @@
             e.target.value = string.replace(/ /g, '').replace(/[^.0-9-_]/g, '');
             if (e.target.value.length < ttlp.split(".")[0].length) return retailVerified = false;
             // check if the number of digits in design price and retail price are same and then check if it is greater or not
-            if (parseFloat(e.target.value) <= parseFloat(ttlp)) {
+            if (parseFloat(e.target.value) <= parseFloat(document.querySelector("#total-charges").innerHTML.slice(1))) {
                 retailVerified = false;
                 return notyf.error("Retail price is less than billing total!");
             } else {
@@ -395,12 +419,14 @@
 
         orderIdInput.oninput = async (e) => {
             let string = e.target.value;
-            e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase().slice(0, 10);
+            e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase();
         }
         
         const modifyBillSummary = (charges) => {
             document.getElementById("shipping-charges").innerHTML = `₹${charges} (Shipping charges)`;
-            document.getElementById("total-charges").innerHTML = `₹${(parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0)).toFixed(2)}`;
+            let tt = parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0);
+            document.getElementById("total-charges").innerHTML = `₹${(tt + tt*0.05).toFixed(2)}`;
+            document.getElementById("taxes").innerHTML = `₹${((parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0)) * 0.05).toFixed(2)}`;
         }
         
         let oldPincode = pincode.value;

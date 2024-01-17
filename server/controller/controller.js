@@ -1571,7 +1571,7 @@ exports.getpaymentlink = async (req, res) => {
       body: JSON.stringify({
         order_id: orderData.printwearOrderId,
         // order_id: orderData.printwearOrderId + '-' + extraId,
-        order_amount: parseFloat((orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2)),
+        order_amount: parseFloat(((orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05).toFixed(2)),
         order_currency: "INR",
         order_note: `Payment for Order: ${orderData.printwearOrderId}`,
         // order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
@@ -1630,7 +1630,7 @@ exports.getpaymentlink = async (req, res) => {
           estimatedDelivery: courierData?.etd ?? 'N/A'
         },
         cashOnDelivery: cashOnDelivery,
-        totalAmount: orderData.totalAmount + (cashOnDelivery ? 50 : 0)
+        totalAmount: (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05
       },
     });
 
@@ -1703,6 +1703,19 @@ exports.rechargewallet = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error couldn't create payment link for recharge" });
+  }
+}
+
+
+// endpoint for wallet balance
+exports.walletballance = async (req, res) => {
+  try {
+    const walletData = await WalletModel.findOne({ userId: req.userId });
+    if (!walletData) return res.status(404).json({ message: "Wallet for user not found!" });
+    return res.json({ balance: walletData.balance });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Couldn't fetch Wallet details!" });
   }
 }
 
@@ -1884,27 +1897,29 @@ exports.createshiporder = async (req, res) => {
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "placed";
 
-      if (orderData.shipRocketCourier.courierId != -1) {
-        const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-          },
-          method: "POST",
-          body: JSON.stringify({
-            shipment_id: createShiprocketOrderResponse.shipment_id,
-            courier_id: orderData.shipRocketCourier.courierId
-          })
-        });
-        const shipmentAssignResponse = await shipmentAssignRequest.json();
-        console.log(shipmentAssignResponse);
-        if (shipmentAssignResponse.status || shipmentAssignResponse.status_code) {
-          orderData.shipRocketCourier.courierAWB = "Assignment failed!" + shipmentAssignResponse.message;
-        } else {
-          orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
-          orderData.deliveryStatus = "courier_assigned";
-        }
-      }
+
+      // manually courier assigned by santo not by us
+      // if (orderData.shipRocketCourier.courierId != -1) {
+      //   const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //       Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+      //     },
+      //     method: "POST",
+      //     body: JSON.stringify({
+      //       shipment_id: createShiprocketOrderResponse.shipment_id,
+      //       courier_id: orderData.shipRocketCourier.courierId
+      //     })
+      //   });
+      //   const shipmentAssignResponse = await shipmentAssignRequest.json();
+      //   console.log(shipmentAssignResponse);
+      //   if (shipmentAssignResponse.status || shipmentAssignResponse.status_code) {
+      //     orderData.shipRocketCourier.courierAWB = "Assignment failed!" + shipmentAssignResponse.message;
+      //   } else {
+      //     orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+      //     orderData.deliveryStatus = "courier_assigned";
+      //   }
+      // }
 
       // let dummyReeponse = {
       //   "awb_assign_status": 1,
@@ -2084,7 +2099,9 @@ exports.createshiporder = async (req, res) => {
     } catch (error) {
       console.log("General error");
       console.log(error);
-      res.status(500).json({ error });
+      const userid = req.body.data.customer_details.customer_id;
+      const cf_order_id = req.body.data.order.order_id;
+      console.log("Failed to create order for: " + userid + "CF Order Id: " + cf_order_id);
     }
   }
 
