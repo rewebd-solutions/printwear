@@ -1707,6 +1707,490 @@ exports.rechargewallet = async (req, res) => {
 }
 
 
+// the brand new endpoint for creating orders
+exports.placeorder = async (req, res) => {
+  try {
+    const { firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country,
+      retailPrice,
+      customerOrderId,
+      shippingCharge,
+      courierId,
+      courierData,
+      cashOnDelivery
+    } = req.body;
+
+    const orderData = await OrderModel.findOne({ userId: req.userId });
+    if (!orderData) {
+      res.status(404).json({ message: "No such order found!" });
+      return console.log(`No such order data found for ${orderData.printwearOrderId}`);
+    }
+
+    /// STEP 1: WALLET GAME
+    const walletData = await WalletModel.findOne({ userId: req.userId });
+    let totalPurchaseCost = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05;
+    
+    if (!walletData) return res.status(404).json({ message: "Wallet not found!" });
+
+    if (walletData.balance < totalPurchaseCost) {
+      return res.status(403).json({ message: "Not enough credits in wallet. Please recharge wallet" });
+    }
+
+    walletData.balance = (walletData.balance - totalPurchaseCost).toFixed(2); // MONEY GONE!!!
+    walletData.transactions.push({
+      amount: totalPurchaseCost,
+      transactionType: "payment",
+      transactionStatus: "success",
+      walletOrderId: "PAYMENT_" + otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false }),
+      transactionNote: `Payment for Order ${orderData.printwearOrderId}`,
+    }); // summa
+    await walletData.save() //summa
+    console.log("Wallet operation successful!");
+
+
+    /// STEP 1.5: ORDERDATA GAM
+    orderData.billingAddress = {
+      firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country
+    }
+    orderData.shippingAddress = {
+      firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country
+    }
+    // CashfreeOrderId: paymentLinkResponse.cf_order_id,
+    // paymentLinkId: paymentLinkResponse.payment_session_id,
+    // paymentLink: paymentLinkResponse.payments.url,
+    orderData.retailPrice = retailPrice,
+    orderData.deliveryCharges = shippingCharge,
+    orderData.customerOrderId = customerOrderId,
+    orderData.shipRocketCourier = {
+      courierId: courierId ?? -1,
+      courierName: courierData?.courier_name ?? 'SELF PICKUP',
+      estimatedDelivery: courierData?.etd ?? 'N/A'
+    },
+    orderData.cashOnDelivery = cashOnDelivery,
+    orderData.totalAmount = ((orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05).toFixed(2);
+
+    await orderData.save();
+    console.log(orderData);
+
+
+
+    /// STEP 2: CREATE SHIPROCKET ORDER
+    const designData = await NewDesignModel.findOne({ userId: req.userId });
+    const labelData = await LabelModel.findOne({ userId: req.userId });
+
+    orderData.paymentStatus = "success";
+    orderData.amountPaid = orderData.totalAmount;
+
+    const shiprocketToken = await generateShiprocketToken();
+
+    const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
+    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+    const shiprocketOrderData = ({
+      "order_id": orderData.printwearOrderId,
+      "order_date": formatDate(new Date()),
+      "pickup_location": "Primary",
+      "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
+      "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
+      "billing_customer_name": orderData.billingAddress.firstName,
+      "billing_last_name": orderData.billingAddress.lastName,
+      "billing_address": orderData.billingAddress.streetLandmark,
+      "billing_address_2": "",
+      "billing_city": orderData.billingAddress.city,
+      "billing_pincode": orderData.billingAddress.pincode,
+      "billing_state": orderData.billingAddress.state,
+      "billing_country": orderData.billingAddress.country,
+      "billing_email": orderData.billingAddress.email,
+      "billing_phone": orderData.billingAddress.mobile,
+      "shipping_is_billing": false,
+      "shipping_customer_name": orderData.shippingAddress.firstName,
+      "shipping_last_name": orderData.shippingAddress.lastName,
+      "shipping_address": orderData.shippingAddress.streetLandmark,
+      "shipping_address_2": "",
+      "shipping_city": orderData.shippingAddress.city,
+      "shipping_pincode": orderData.shippingAddress.pincode,
+      "shipping_state": orderData.shippingAddress.state,
+      "shipping_country": orderData.shippingAddress.country,
+      "shipping_email": orderData.shippingAddress.email,
+      "shipping_phone": orderData.shippingAddress.mobile,
+      "order_items": orderData.items.map(item => {
+        let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+        return {
+          "name": currentItemDesignData.designName,
+          "sku": currentItemDesignData.designSKU,
+          "units": item.quantity,
+          "selling_price": currentItemDesignData.price,
+          "discount": "",
+          "tax": "",
+          "hsn": 441122
+        }
+      }),
+      "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
+      "shipping_charges": orderData.deliveryCharges,
+      "giftwrap_charges": 0,
+      "transaction_charges": 0,
+      "total_discount": 0,
+      "sub_total": orderData.retailPrice,
+      "length": 28,
+      "breadth": 20,
+      "height": 0.5,
+      "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
+    });
+
+    console.log("Shiprocket data:");
+    console.dir(shiprocketOrderData, { depth: 5 });
+
+    const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+      },
+      method: "POST",
+      body: JSON.stringify(shiprocketOrderData)
+    });
+    const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
+    console.log("Shiprocket order response:");
+    console.log(createShiprocketOrderResponse);
+
+    if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
+
+    orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
+    orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
+    orderData.deliveryStatus = "placed";
+
+
+
+    /// STEP 3: TRANSFER ORDERDATA TO ORDERHISTORY
+    await OrderHistoryModel.findOneAndUpdate({ userId: req.userId }, {
+      $set: {
+        userId: req.userId
+      },
+      $push: {
+        orderData: orderData
+      }
+    }, { upsert: true, new: true });
+
+    await orderData.updateOne({
+      $unset: {
+        items: 1,
+        billingAddress: 1,
+        shippingAddress: 1,
+        totalAmount: 1,
+        amountPaid: 1,
+        paymentStatus: 1,
+        deliveryStatus: 1,
+        deliveryCharges: 1,
+        paymentLink: 1,
+        paymentLinkId: 1,
+        CashfreeOrderId: 1,
+        printwearOrderId: 1,
+        shipRocketOrderId: 1,
+        shipmentId: 1,
+        createdAt: 1,
+        deliveredOn: 1,
+        processed: 1,
+        retailPrice: 1,
+        customerOrderId: 1,
+        shipRocketCourier: 1,
+        cashOnDelivery: 1
+      }
+    });
+
+
+
+    /// STEP 4: GENERATE ZOHO INVOICE
+    const zohoToken = await generateZohoToken();
+    const userData = await UserModel.findById(req.userId);
+    if (!userData.isZohoCustomer) {
+      // write endpoint to create zoho customer 
+      let customerData = {
+        "contact_name": userData.name,
+        "company_name": userData.brandName ?? 'N/A',
+        "contact_persons": [
+          {
+            "salutation": userData.name,
+            "first_name": userData.firstName,
+            "last_name": userData.lastName,
+            "email": userData.email,
+            "phone": userData.phone,
+            "mobile": userData.phone,
+            "is_primary_contact": true
+          }
+        ],
+        "billing_address": {
+          "address": userData.billingAddress.landmark,
+          "street2": "",
+          "city": userData.billingAddress.city,
+          "state": userData.billingAddress.state,
+          "zipcode": userData.billingAddress.pincode,
+          "country": "India",
+          "phone": userData.phone,
+          "fax": "",
+          "attention": ""
+        },
+        "language_code": "en",
+        "country_code": "IN",
+        "place_of_contact": "TN",
+      }
+      const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+        method: "POST",
+        headers: {
+          Authorization: 'Zoho-oauthtoken ' + zohoToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(customerData)
+      });
+      const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
+      res.json(zohoCustomerCreateResponse); // remove
+      if (zohoCustomerCreateResponse.code == 0) {
+        console.log(`zohoCustomer for ${userid} created!`)
+        userData.isZohoCustomer = true;
+        userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
+        userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
+        await userData.save();
+      }
+    }
+
+    const orderDetails = await OrderHistoryModel.findOne(
+      {
+        "userId": req.userId,
+        "orderData": { $elemMatch: { "printwearOrderId": orderData.printwearOrderId } }
+      },
+    { "orderData.$": 1 });
+    const zohoCustomerId = userData.zohoCustomerID;
+    const zohoContactId = userData.zohoContactID;
+    const invoiceData = {
+      "branch_id": "650580000000098357",
+      "autonumbergenerationgroup_id": "650580000004188098",
+      "reference_number": orderDetails.orderData[0].printwearOrderId,
+      "payment_terms": 0,
+      "payment_terms_label": "Due on Receipt",
+      "customer_id": zohoCustomerId,
+      "contact_persons": [
+
+      ],
+      "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
+      "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+      "is_inclusive_tax": false,
+      "line_items":
+        orderDetails.orderData[0].items.map((item, i) => {
+          let currentDesignItem = designData.designs.find(design => design._id + '' == item.designId);
+          return {
+            "item_order": (i+1),
+            "item_id": currentDesignItem.product.id,
+            "rate": currentDesignItem.price * 1.00,
+            "name": currentDesignItem.product.name,
+            "description": currentDesignItem.designName,
+            "quantity": (item.quantity).toFixed(2),
+            "discount": "0%",
+            "tax_id": "650580000000013321",
+            "tax_name": "SGST + CGST",
+            "tax_type": "tax",
+            "tax_percentage": 2.5,
+            "project_id": "",
+            "tags": [
+
+            ],
+            "tax_exemption_code": "",
+            "account_id": "650580000000000486",
+            "item_custom_fields": [
+
+            ],
+            "hsn_or_sac": "61130000",
+            "gst_treatment_code": "",
+            "unit": "pcs"
+          }
+        }),
+      "allow_partial_payments": false,
+      "custom_fields": [
+        {
+          "value": "",
+          "customfield_id": "650580000000103311"
+        }
+      ],
+      "is_discount_before_tax": "",
+      "discount": 0,
+      "discount_type": "",
+      "shipping_charge": orderDetails.orderData[0].deliveryCharges,
+      "adjustment": "",
+      "adjustment_description": "Standard Shipping",
+      "salesperson_id": "650580000000108050",
+      "tax_exemption_code": "",
+      "tax_authority_name": "",
+      // "zcrm_potential_id": "",
+      // "zcrm_potential_name": "",
+      "pricebook_id": "",
+      "template_id": ZOHO_INVOICE_TEMPLATE_ID,
+      "project_id": "",
+      "documents": [
+
+      ],
+      "mail_attachments": [
+
+      ],
+      // "billing_address_id": "650580000004394004",
+      // "shipping_address_id": "650580000004394006",
+      "gst_treatment": "business_none",
+      "gst_no": "",
+      "place_of_supply": "TN",
+      "quick_create_payment": {
+        "account_id": "650580000000000459",
+        "payment_mode": "Bank Transfer"
+      },
+      "tds_tax_id": "650580000000013032",
+      "is_tds_amount_in_percent": true,
+      "taxes": [
+        {
+          "tax_name": "CGST",
+          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+        },
+        {
+          "tax_name": "SGST",
+          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+        },
+      ],
+      "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05
+    }
+    console.log("Zoho invoice data: ", invoiceData)
+
+    const zohoInvoiceFormData = new FormData();
+    zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
+    zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
+    zohoInvoiceFormData.append('is_quick_create', 'true');
+    console.log(zohoInvoiceFormData);
+
+    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
+      // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
+      method: "POST",
+      headers: {
+        Authorization: 'Zoho-oauthtoken ' + zohoToken,
+      },
+      body: zohoInvoiceFormData
+    });
+    const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+    if (zohoInvoiceCreateResponse.code != 0 || !zohoInvoiceCreateRequest.ok) {
+      console.log(`Couldn't create invoice for ${orderData.printwearOrderId}`);
+    }
+    let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${orderData.printwearOrderId}`)
+    walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice_url;
+    await walletData.save();
+    res.json({ message: "Order was successfull!" });
+
+    // part where i send the line item data to santo woocomms
+    // should create order in woocomms
+    const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
+    const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
+
+    const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
+    const endpoint = `https://print-wear.in/wp-json/wc/v3/products`;
+
+    const productData = orderData.items.map(item => {
+      let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+      let neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
+      return {
+        name: currentItemDesignData.designName,
+        slug: slugify(currentItemDesignData.designName),
+        type: "simple",
+        status: "publish",
+        regular_price: currentItemDesignData.price + '',
+        sale_price: currentItemDesignData.price + '',
+        sku: currentItemDesignData.designSKU,
+        description: currentItemDesignData.description || 'User generated design. Neck label:' + neckLabelURl,
+        short_description: currentItemDesignData.product.name,
+        dimensions: {
+          length: currentItemDesignData.product.dimensions.length + '',
+          width: currentItemDesignData.product.dimensions.chest + '',
+        },
+        images: [
+          {
+            src: currentItemDesignData.designImage.front == "false" ? currentItemDesignData.designImage.back : currentItemDesignData.designImage.front,
+            name: currentItemDesignData.designName + " image",
+          },
+        ],
+        attributes: [
+          {
+            id: 6,
+            name: "Color",
+            position: 0,
+            visible: true,
+            variation: true,
+            options: [
+              currentItemDesignData.product.color
+            ],
+          },
+          {
+            id: 1,
+            name: "Size",
+            position: 0,
+            visible: true,
+            variation: true,
+            options: [
+              currentItemDesignData.product.size
+            ],
+          },
+        ],
+      }
+    });
+    console.log("WooCommerce product data:")
+    console.log(productData);
+
+    // creating multiple POST request for each line item in the order and sending parallel requests
+    const woocommerceProductCreateRequests = productData.map(async dataObject => {
+      let intermediateRequest = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${encodedAuth}`,
+        },
+        body: JSON.stringify(dataObject),
+      })
+      return intermediateRequest.json();
+    });
+
+    Promise.all(woocommerceProductCreateRequests)
+      .then(responseArray => {
+        console.log("WooCommerce product creation response:")
+        console.log(responseArray);
+      })
+      .catch(error => {
+        console.log("WooCommerce product creation error:")
+        console.log(error);
+      });
+
+  } catch (error) {
+    console.log("General error");
+    console.log(error);
+    console.log("Failed to create order for: " + req.userId + "Order Id: " + req.body.customerOrderId);
+    res.status(500).json({ message: "Internal server Error" });
+  }
+}
+
+
 // endpoint for wallet balance
 exports.walletballance = async (req, res) => {
   try {
@@ -1801,300 +2285,300 @@ exports.createshiporder = async (req, res) => {
         return;
       }
 
-      const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: cf_order_id });
+      // const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: cf_order_id });
 
-      if (!orderData) return console.log(`No such order data found for ${cf_order_id}`);
+      // if (!orderData) return console.log(`No such order data found for ${cf_order_id}`);
 
-      const designData = await NewDesignModel.findOne({ userId: userid });
-      const labelData = await LabelModel.findOne({ userId: userid });
+      // const designData = await NewDesignModel.findOne({ userId: userid });
+      // const labelData = await LabelModel.findOne({ userId: userid });
 
-      let customerOrderId = orderData.customerOrderId;
+      // let customerOrderId = orderData.customerOrderId;
 
-      orderData.paymentStatus = "success";
-      orderData.amountPaid = req.body.data.payment.payment_amount;
+      // orderData.paymentStatus = "success";
+      // orderData.amountPaid = req.body.data.payment.payment_amount;
 
-      // create shiprocket order based on webhook status
-      // once created, remove existing order data all the way to orderHistory collection.
-      // remove OrderModel's printwearOrderId, cashfree stuff, essentially just empty the whole thing
-      // before creating shiprocket order, create wordpress woocommerce order for santhosh with shirt design details and then get id for each one
-      // then give shiprocket that data
-      // after shiprocket and wocoomerce
+      // // create shiprocket order based on webhook status
+      // // once created, remove existing order data all the way to orderHistory collection.
+      // // remove OrderModel's printwearOrderId, cashfree stuff, essentially just empty the whole thing
+      // // before creating shiprocket order, create wordpress woocommerce order for santhosh with shirt design details and then get id for each one
+      // // then give shiprocket that data
+      // // after shiprocket and wocoomerce
 
-      const shiprocketToken = await generateShiprocketToken();
+      // const shiprocketToken = await generateShiprocketToken();
 
-      const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
-      const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+      // const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
+      // const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
-      const shiprocketOrderData = ({
-        "order_id": customerOrderId,
-        "order_date": formatDate(new Date()),
-        "pickup_location": "Primary",
-        "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
-        "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
-        "billing_customer_name": orderData.billingAddress.firstName,
-        "billing_last_name": orderData.billingAddress.lastName,
-        "billing_address": orderData.billingAddress.streetLandmark,
-        "billing_address_2": "",
-        "billing_city": orderData.billingAddress.city,
-        "billing_pincode": orderData.billingAddress.pincode,
-        "billing_state": orderData.billingAddress.state,
-        "billing_country": orderData.billingAddress.country,
-        "billing_email": orderData.billingAddress.email,
-        "billing_phone": orderData.billingAddress.mobile,
-        "shipping_is_billing": false,
-        "shipping_customer_name": orderData.shippingAddress.firstName,
-        "shipping_last_name": orderData.shippingAddress.lastName,
-        "shipping_address": orderData.shippingAddress.streetLandmark,
-        "shipping_address_2": "",
-        "shipping_city": orderData.shippingAddress.city,
-        "shipping_pincode": orderData.shippingAddress.pincode,
-        "shipping_state": orderData.shippingAddress.state,
-        "shipping_country": orderData.shippingAddress.country,
-        "shipping_email": orderData.shippingAddress.email,
-        "shipping_phone": orderData.shippingAddress.mobile,
-        "order_items": orderData.items.map(item => {
-          let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-          return {
-            "name": currentItemDesignData.designName,
-            "sku": currentItemDesignData.designSKU,
-            "units": item.quantity,
-            "selling_price": currentItemDesignData.price,
-            "discount": "",
-            "tax": "",
-            "hsn": 441122
-          }
-        }),
-        "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
-        "shipping_charges": orderData.deliveryCharges,
-        "giftwrap_charges": 0,
-        "transaction_charges": 0,
-        "total_discount": 0,
-        "sub_total": orderData.retailPrice,
-        "length": 28,
-        "breadth": 20,
-        "height": 0.5,
-        "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
-      });
+      // const shiprocketOrderData = ({
+      //   "order_id": customerOrderId,
+      //   "order_date": formatDate(new Date()),
+      //   "pickup_location": "Primary",
+      //   "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
+      //   "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
+      //   "billing_customer_name": orderData.billingAddress.firstName,
+      //   "billing_last_name": orderData.billingAddress.lastName,
+      //   "billing_address": orderData.billingAddress.streetLandmark,
+      //   "billing_address_2": "",
+      //   "billing_city": orderData.billingAddress.city,
+      //   "billing_pincode": orderData.billingAddress.pincode,
+      //   "billing_state": orderData.billingAddress.state,
+      //   "billing_country": orderData.billingAddress.country,
+      //   "billing_email": orderData.billingAddress.email,
+      //   "billing_phone": orderData.billingAddress.mobile,
+      //   "shipping_is_billing": false,
+      //   "shipping_customer_name": orderData.shippingAddress.firstName,
+      //   "shipping_last_name": orderData.shippingAddress.lastName,
+      //   "shipping_address": orderData.shippingAddress.streetLandmark,
+      //   "shipping_address_2": "",
+      //   "shipping_city": orderData.shippingAddress.city,
+      //   "shipping_pincode": orderData.shippingAddress.pincode,
+      //   "shipping_state": orderData.shippingAddress.state,
+      //   "shipping_country": orderData.shippingAddress.country,
+      //   "shipping_email": orderData.shippingAddress.email,
+      //   "shipping_phone": orderData.shippingAddress.mobile,
+      //   "order_items": orderData.items.map(item => {
+      //     let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+      //     return {
+      //       "name": currentItemDesignData.designName,
+      //       "sku": currentItemDesignData.designSKU,
+      //       "units": item.quantity,
+      //       "selling_price": currentItemDesignData.price,
+      //       "discount": "",
+      //       "tax": "",
+      //       "hsn": 441122
+      //     }
+      //   }),
+      //   "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
+      //   "shipping_charges": orderData.deliveryCharges,
+      //   "giftwrap_charges": 0,
+      //   "transaction_charges": 0,
+      //   "total_discount": 0,
+      //   "sub_total": orderData.retailPrice,
+      //   "length": 28,
+      //   "breadth": 20,
+      //   "height": 0.5,
+      //   "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
+      // });
 
-      console.log("Shiprocket order data:");
-      console.dir(shiprocketOrderData, { depth: 5 });
+      // console.log("Shiprocket order data:");
+      // console.dir(shiprocketOrderData, { depth: 5 });
 
-      const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-        },
-        method: "POST",
-        body: JSON.stringify(shiprocketOrderData)
-      });
-      const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
-      console.log("Shiprocket order response:");
-      console.log(createShiprocketOrderResponse);
+      // const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+      //   },
+      //   method: "POST",
+      //   body: JSON.stringify(shiprocketOrderData)
+      // });
+      // const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
+      // console.log("Shiprocket order response:");
+      // console.log(createShiprocketOrderResponse);
 
-      if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
+      // if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
 
-      orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
-      orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-      orderData.deliveryStatus = "placed";
+      // orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
+      // orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
+      // orderData.deliveryStatus = "placed";
 
 
-      // manually courier assigned by santo not by us
-      // if (orderData.shipRocketCourier.courierId != -1) {
-      //   const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
+      // // manually courier assigned by santo not by us
+      // // if (orderData.shipRocketCourier.courierId != -1) {
+      // //   const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
+      // //     headers: {
+      // //       "Content-Type": "application/json",
+      // //       Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+      // //     },
+      // //     method: "POST",
+      // //     body: JSON.stringify({
+      // //       shipment_id: createShiprocketOrderResponse.shipment_id,
+      // //       courier_id: orderData.shipRocketCourier.courierId
+      // //     })
+      // //   });
+      // //   const shipmentAssignResponse = await shipmentAssignRequest.json();
+      // //   console.log(shipmentAssignResponse);
+      // //   if (shipmentAssignResponse.status || shipmentAssignResponse.status_code) {
+      // //     orderData.shipRocketCourier.courierAWB = "Assignment failed!" + shipmentAssignResponse.message;
+      // //   } else {
+      // //     orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+      // //     orderData.deliveryStatus = "courier_assigned";
+      // //   }
+      // // }
+
+      // // let dummyReeponse = {
+      // //   "awb_assign_status": 1,
+      // //   "response": {
+      // //     "data": {
+      // //       "courier_company_id": 196,
+      // //       "awb_code": "X45281487",
+      // //       "cod": 0,
+      // //       "order_id": 449785485,
+      // //       "shipment_id": 447954568,
+      // //       "awb_code_status": 1,
+      // //       "assigned_date_time": {
+      // //         "date": "2023-12-10 13:04:37.000000",
+      // //         "timezone_type": 3,
+      // //         "timezone": "Asia/Kolkata"
+      // //       },
+      // //       "applied_weight": 0.25,
+      // //       "company_id": 1249024,
+      // //       "courier_name": "DTDC 500GMS",
+      // //       "child_courier_name": null,
+      // //       "freight_charges": 38.37,
+      // //       "routing_code": "",
+      // //       "rto_routing_code": "",
+      // //       "invoice_no": "Retail00661",
+      // //       "transporter_id": "88AAACD8017H1ZX",
+      // //       "transporter_name": "",
+      // //       "shipped_by": {
+      // //         "shipper_company_name": "Sasa",
+      // //         "shipper_address_1": "no 33 jai garden",
+      // //         "shipper_address_2": "3rd street valasaravakkam",
+      // //         "shipper_city": "Tiruvallur",
+      // //         "shipper_state": "Tamil Nadu",
+      // //         "shipper_country": "India",
+      // //         "shipper_postcode": "600087",
+      // //         "shipper_first_mile_activated": 0,
+      // //         "shipper_phone": "9884909019",
+      // //         "lat": "13.03865525403214",
+      // //         "long": "80.17112016677858",
+      // //         "shipper_email": "accounts@printwear.in",
+      // //         "extra_info": {
+      // //           "vendor_name": null
+      // //         },
+      // //         "rto_company_name": "Sasa",
+      // //         "rto_address_1": "no 33 jai garden",
+      // //         "rto_address_2": "3rd street valasaravakkam",
+      // //         "rto_city": "Tiruvallur",
+      // //         "rto_state": "Tamil Nadu",
+      // //         "rto_country": "India",
+      // //         "rto_postcode": "600087",
+      // //         "rto_phone": "9884909019",
+      // //         "rto_email": "accounts@printwear.in"
+      // //       }
+      // //     }
+      // //   },
+      // //   "no_pickup_popup": 0,
+      // //   "quick_pick": 0
+      // // }
+
+      // // implement orderhistory
+      // await OrderHistoryModel.findOneAndUpdate({ userId: userid }, {
+      //   $set: {
+      //     userId: userid
+      //   },
+      //   $push: {
+      //     orderData: orderData
+      //   }
+      // }, { upsert: true, new: true });
+
+      // await orderData.updateOne({
+      //   $unset: {
+      //     items: 1,
+      //     billingAddress: 1,
+      //     shippingAddress: 1,
+      //     totalAmount: 1,
+      //     amountPaid: 1,
+      //     paymentStatus: 1,
+      //     deliveryStatus: 1,
+      //     deliveryCharges: 1,
+      //     paymentLink: 1,
+      //     paymentLinkId: 1,
+      //     CashfreeOrderId: 1,
+      //     printwearOrderId: 1,
+      //     shipRocketOrderId: 1,
+      //     shipmentId: 1,
+      //     createdAt: 1,
+      //     deliveredOn: 1,
+      //     processed: 1,
+      //     retailPrice: 1,
+      //     customerOrderId: 1,
+      //     shipRocketCourier: 1,
+      //     cashOnDelivery: 1
+      //   }
+      // });
+
+
+      // // part where i send the line item data to santo woocomms
+      // // should create order in woocomms
+      // const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
+      // const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
+
+      // const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
+      // const endpoint = `https://print-wear.in/wp-json/wc/v3/products`;
+
+      // const productData = orderData.items.map(item => {
+      //   let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+      //   let neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
+      //   return {
+      //     name: currentItemDesignData.designName,
+      //     slug: slugify(currentItemDesignData.designName),
+      //     type: "simple",
+      //     status: "publish",
+      //     regular_price: currentItemDesignData.price + '',
+      //     sale_price: currentItemDesignData.price + '',
+      //     sku: currentItemDesignData.designSKU,
+      //     description: currentItemDesignData.description || 'User generated design. Neck label:' + neckLabelURl,
+      //     short_description: currentItemDesignData.product.name,
+      //     dimensions: {
+      //       length: currentItemDesignData.product.dimensions.length + '',
+      //       width: currentItemDesignData.product.dimensions.chest + '',
+      //     },
+      //     images: [
+      //       {
+      //         src: currentItemDesignData.designImage.front == "false" ? currentItemDesignData.designImage.back : currentItemDesignData.designImage.front,
+      //         name: currentItemDesignData.designName + " image",
+      //       },
+      //     ],
+      //     attributes: [
+      //       {
+      //         id: 6,
+      //         name: "Color",
+      //         position: 0,
+      //         visible: true,
+      //         variation: true,
+      //         options: [
+      //           currentItemDesignData.product.color
+      //         ],
+      //       },
+      //       {
+      //         id: 1,
+      //         name: "Size",
+      //         position: 0,
+      //         visible: true,
+      //         variation: true,
+      //         options: [
+      //           currentItemDesignData.product.size
+      //         ],
+      //       },
+      //     ],
+      //   }
+      // });
+      // console.log("WooCommerce product data:")
+      // console.log(productData);
+
+      // // creating multiple POST request for each line item in the order and sending parallel requests
+      // const woocommerceProductCreateRequests = productData.map(async dataObject => {
+      //   let intermediateRequest = await fetch(endpoint, {
+      //     method: "POST",
       //     headers: {
       //       "Content-Type": "application/json",
-      //       Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+      //       Authorization: `Basic ${encodedAuth}`,
       //     },
-      //     method: "POST",
-      //     body: JSON.stringify({
-      //       shipment_id: createShiprocketOrderResponse.shipment_id,
-      //       courier_id: orderData.shipRocketCourier.courierId
-      //     })
-      //   });
-      //   const shipmentAssignResponse = await shipmentAssignRequest.json();
-      //   console.log(shipmentAssignResponse);
-      //   if (shipmentAssignResponse.status || shipmentAssignResponse.status_code) {
-      //     orderData.shipRocketCourier.courierAWB = "Assignment failed!" + shipmentAssignResponse.message;
-      //   } else {
-      //     orderData.shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
-      //     orderData.deliveryStatus = "courier_assigned";
-      //   }
-      // }
+      //     body: JSON.stringify(dataObject),
+      //   })
+      //   return intermediateRequest.json();
+      // });
 
-      // let dummyReeponse = {
-      //   "awb_assign_status": 1,
-      //   "response": {
-      //     "data": {
-      //       "courier_company_id": 196,
-      //       "awb_code": "X45281487",
-      //       "cod": 0,
-      //       "order_id": 449785485,
-      //       "shipment_id": 447954568,
-      //       "awb_code_status": 1,
-      //       "assigned_date_time": {
-      //         "date": "2023-12-10 13:04:37.000000",
-      //         "timezone_type": 3,
-      //         "timezone": "Asia/Kolkata"
-      //       },
-      //       "applied_weight": 0.25,
-      //       "company_id": 1249024,
-      //       "courier_name": "DTDC 500GMS",
-      //       "child_courier_name": null,
-      //       "freight_charges": 38.37,
-      //       "routing_code": "",
-      //       "rto_routing_code": "",
-      //       "invoice_no": "Retail00661",
-      //       "transporter_id": "88AAACD8017H1ZX",
-      //       "transporter_name": "",
-      //       "shipped_by": {
-      //         "shipper_company_name": "Sasa",
-      //         "shipper_address_1": "no 33 jai garden",
-      //         "shipper_address_2": "3rd street valasaravakkam",
-      //         "shipper_city": "Tiruvallur",
-      //         "shipper_state": "Tamil Nadu",
-      //         "shipper_country": "India",
-      //         "shipper_postcode": "600087",
-      //         "shipper_first_mile_activated": 0,
-      //         "shipper_phone": "9884909019",
-      //         "lat": "13.03865525403214",
-      //         "long": "80.17112016677858",
-      //         "shipper_email": "accounts@printwear.in",
-      //         "extra_info": {
-      //           "vendor_name": null
-      //         },
-      //         "rto_company_name": "Sasa",
-      //         "rto_address_1": "no 33 jai garden",
-      //         "rto_address_2": "3rd street valasaravakkam",
-      //         "rto_city": "Tiruvallur",
-      //         "rto_state": "Tamil Nadu",
-      //         "rto_country": "India",
-      //         "rto_postcode": "600087",
-      //         "rto_phone": "9884909019",
-      //         "rto_email": "accounts@printwear.in"
-      //       }
-      //     }
-      //   },
-      //   "no_pickup_popup": 0,
-      //   "quick_pick": 0
-      // }
-
-      // implement orderhistory
-      await OrderHistoryModel.findOneAndUpdate({ userId: userid }, {
-        $set: {
-          userId: userid
-        },
-        $push: {
-          orderData: orderData
-        }
-      }, { upsert: true, new: true });
-
-      await orderData.updateOne({
-        $unset: {
-          items: 1,
-          billingAddress: 1,
-          shippingAddress: 1,
-          totalAmount: 1,
-          amountPaid: 1,
-          paymentStatus: 1,
-          deliveryStatus: 1,
-          deliveryCharges: 1,
-          paymentLink: 1,
-          paymentLinkId: 1,
-          CashfreeOrderId: 1,
-          printwearOrderId: 1,
-          shipRocketOrderId: 1,
-          shipmentId: 1,
-          createdAt: 1,
-          deliveredOn: 1,
-          processed: 1,
-          retailPrice: 1,
-          customerOrderId: 1,
-          shipRocketCourier: 1,
-          cashOnDelivery: 1
-        }
-      });
-
-
-      // part where i send the line item data to santo woocomms
-      // should create order in woocomms
-      const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
-      const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
-
-      const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
-      const endpoint = `https://print-wear.in/wp-json/wc/v3/products`;
-
-      const productData = orderData.items.map(item => {
-        let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-        let neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
-        return {
-          name: currentItemDesignData.designName,
-          slug: slugify(currentItemDesignData.designName),
-          type: "simple",
-          status: "publish",
-          regular_price: currentItemDesignData.price + '',
-          sale_price: currentItemDesignData.price + '',
-          sku: currentItemDesignData.designSKU,
-          description: currentItemDesignData.description || 'User generated design. Neck label:' + neckLabelURl,
-          short_description: currentItemDesignData.product.name,
-          dimensions: {
-            length: currentItemDesignData.product.dimensions.length + '',
-            width: currentItemDesignData.product.dimensions.chest + '',
-          },
-          images: [
-            {
-              src: currentItemDesignData.designImage.front == "false" ? currentItemDesignData.designImage.back : currentItemDesignData.designImage.front,
-              name: currentItemDesignData.designName + " image",
-            },
-          ],
-          attributes: [
-            {
-              id: 6,
-              name: "Color",
-              position: 0,
-              visible: true,
-              variation: true,
-              options: [
-                currentItemDesignData.product.color
-              ],
-            },
-            {
-              id: 1,
-              name: "Size",
-              position: 0,
-              visible: true,
-              variation: true,
-              options: [
-                currentItemDesignData.product.size
-              ],
-            },
-          ],
-        }
-      });
-      console.log("WooCommerce product data:")
-      console.log(productData);
-
-      // creating multiple POST request for each line item in the order and sending parallel requests
-      const woocommerceProductCreateRequests = productData.map(async dataObject => {
-        let intermediateRequest = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${encodedAuth}`,
-          },
-          body: JSON.stringify(dataObject),
-        })
-        return intermediateRequest.json();
-      });
-
-      Promise.all(woocommerceProductCreateRequests)
-        .then(responseArray => {
-          console.log("WooCommerce product creation response:")
-          console.log(responseArray);
-        })
-        .catch(error => {
-          console.log("WooCommerce product creation error:")
-          console.log(error);
-        })
+      // Promise.all(woocommerceProductCreateRequests)
+      //   .then(responseArray => {
+      //     console.log("WooCommerce product creation response:")
+      //     console.log(responseArray);
+      //   })
+      //   .catch(error => {
+      //     console.log("WooCommerce product creation error:")
+      //     console.log(error);
+      //   })
 
     } catch (error) {
       console.log("General error");

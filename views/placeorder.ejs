@@ -191,7 +191,7 @@
             `).join('');
             createOrderContainer.innerHTML += `
             </tbody></table>
-            <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹ ${orderDataResponse.orderData.totalAmount}</h4> </div>
+            <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹ ${orderDataResponse.orderData.items.reduce((total, curr) => total + curr.price, 0).toFixed(2)}</h4> </div>
             <a href="/placeorder/billing"><button type="button" class="option-button">Proceed to Shipping</button></a>
             `
         }

@@ -459,7 +459,7 @@
       const walletBalanceRequest = await fetch("/balance");
       const walletBalanceResponse = await walletBalanceRequest.json();
       if (walletBalanceResponse.message) throw new Error(walletBalanceResponse.message);
-      document.querySelector("#wall").innerHTML = `<i style="font-size: 16px;" class="fa fa-wallet"></i> ₹${walletBalanceResponse.balance}
+      document.querySelector("#wall").innerHTML = `<i style="font-size: 16px;" class="fa fa-wallet"></i> ₹${walletBalanceResponse.balance.toFixed(2)}
         <i style="font-size: 14px;" class="fa fa-chevron-down"></i>`;
     } catch (error) {
       console.log(error);

@@ -29,6 +29,7 @@ var WalletSchema = new Schema({
             invoiceURL: {
                 type: String
             },
+            transactionNote: String,
             cashfreeOrderId: String,
             walletOrderId: String,
             cashfreeSessionId: String,
