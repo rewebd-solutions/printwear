@@ -19,10 +19,10 @@
         <div class="wallet-box">
             <img src="/images/Logo.png" alt="Printwear logo" />
             <h5><i class="fa fa-info-circle"></i> Your last successful recharge was on
-                <% for( let i = data.walletData.transactions.length - 1; i >= 0; i++ ) { %>
-                    <% if (data.walletData.transactions[i].transactionStatus == "success") { %>
-                        <%= new Date(data.walletData.transactions[data.walletData.transactions.length - 1].transactionDate).toLocaleString() %>
-                        for ₹<%= data.walletData.transactions[data.walletData.transactions.length - 1].amount %> 
+                <% for( let i = data.walletData.transactions.length - 1; i >= 0; i-- ) { %>
+                    <% if (data.walletData.transactions[i].transactionStatus == "success" && data.walletData.transactions[i].transactionType == "recharge") { %>
+                        <%= new Date(data.walletData.transactions[i].transactionDate).toLocaleString() %>
+                        for ₹<%= data.walletData.transactions[i].amount %> 
                         <% break %>
                     <% } %>
                 <% } %>

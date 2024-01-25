@@ -337,7 +337,7 @@
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
                         <td>${orderHistory.customerOrderId}</a></td>
                         <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
-                        <td>₹${orderHistory.amountPaid}</td>
+                        <td>₹${orderHistory.amountPaid.toFixed(2)}</td>
                         <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>`: `unavailable`}</td>
                         <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
                         <td><h3 class="status-badge ${orderHistory.deliveryStatus}">${orderHistory.deliveryStatus}</h3></td>
