@@ -303,6 +303,7 @@
             console.log(checkoutData);
 
             try {
+                openModal();
                 const createPaymentLinkRequest = await fetch("/placeorder", {
                     headers: {
                         'Content-Type': 'application/json'
@@ -321,8 +322,11 @@
                         duration: 10000,
                     });
                 }
-                notyf.success("Pakka!");
-                setTimeout(() => location.href = "/manageorder", 5000);
+                notyf.success("Order created successfuly!");
+                setTimeout(() => {
+                    location.href = "/manageorder"
+                    document.querySelector(".product-modal-wrapper").remove();
+                }, 2000);
             } catch (error) {
                 console.log(error);
                 e.target.classList.remove("disabled");
@@ -520,6 +524,18 @@
         
         courierGetBtn.onclick = getAvailableCouriers;
 
+        const openModal = () => {
+        const designModalDOMString = `
+        <div class="product-modal-wrapper">
+            <div class="product-modal" data-aos="fade-up">             
+                <span class="loader"></span>
+                <h2 style="margin-top: 3rem;">Please wait while your order is being created</h2>
+                <h4 style="color: #F05A30">Do not close this page or refresh the page!</h4>
+            </div>
+        </div>
+        `;
+        document.querySelector(".order-wrapper").insertAdjacentHTML("beforeend", designModalDOMString);
+    }
         
     </script>
 </body>

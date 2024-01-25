@@ -144,7 +144,7 @@
                                 <% totalProductDesignArea.push((design.designDimensions.width * design.designDimensions.width).toFixed(2)) %>
                                 <% totalProductDesignCharges.push((design.price - design.product.price).toFixed(2)) %>
                                 <% if (design.neckLabel) { %>
-                                    <% totalNeckLabel.push(design.neckLabel) %>
+                                    <% totalNeckLabel.push(10) %>
                                 <% } else { %>
                                     <% totalNeckLabel.push(0) %>
                                 <% } %>
@@ -176,6 +176,14 @@
                                     <% totalPP.push(design.price) %>
                                 <% }) %>
                                 <td>₹<%= totalPP.join(" + ₹") %></td>
+                            </tr>
+                            <tr>
+                                <td>Quantity</td>
+                                <% var totalQty = []; %>
+                                <% orderData.orderData[0].items.forEach(design=> { %>
+                                    <% totalQty.push(design.quantity) %>
+                                <% }) %>
+                                <td><%= totalQty.join(" + ") %></td>
                             </tr>
                             <tr>
                                 <td>Delivery Charge</td>
