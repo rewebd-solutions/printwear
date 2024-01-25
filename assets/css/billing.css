@@ -112,6 +112,7 @@ input:valid {
 
 fieldset input {
     margin: 0.4rem;
+    margin-bottom: 0.8rem;
 }
 
 fieldset {

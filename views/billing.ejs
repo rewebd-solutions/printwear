@@ -183,10 +183,10 @@
                         <h4>₹.<%= orderData.totalAmount %> </h4>
                         <h4 id="shipping-charges">₹0.00 (Shipping charges) </h4>
                         <div style="display: flex; gap: 0.5rem">
-                            <h4 id="taxes">₹<%= (orderData.totalAmount * 0.05).toFixed(2) %></h4>(CGST (2.5%) + SGST (2.5%))
+                            <h4 id="taxes">₹<%= (orderData.taxes).toFixed(2) %></h4>(CGST (2.5%) + SGST (2.5%))
                         </div>
                         <hr />
-                        <h4 id="total-charges">₹<%= orderData.totalAmount.toFixed(2) %></h4>
+                        <h4 id="total-charges">₹<%=( orderData.totalAmount + orderData.taxes ).toFixed(2) %></h4>
                     </div>
                 </div>
             </div>
@@ -224,6 +224,10 @@
             e.target.innerHTML = `<span class="loader-w"></span>`;
 
             if (orderIdInput.value.length < 3) {
+                disabled = false;
+                e.target.innerHTML = oldBtnInner;
+                e.target.classList.remove("disabled");
+                e.target.removeAttribute("disabled");
                 return notyf.error("Order ID length should not be less than 3");
             }
             
@@ -311,6 +315,7 @@
                 if (!createPaymentLinkRequest.ok) {
                     disabled = false;
                     e.target.classList.remove("disabled");
+                    e.target.innerHTML = oldBtnInner;
                     return notyf.error({
                         message: createPaymentLinkResponse.message,
                         duration: 10000,
@@ -429,7 +434,7 @@
         }
         
         const modifyBillSummary = (charges) => {
-            document.getElementById("shipping-charges").innerHTML = `₹${charges} (Shipping charges)`;
+            document.getElementById("shipping-charges").innerHTML = `₹${charges.toFixed(2)} (Shipping charges)`;
             let tt = parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0);
             document.getElementById("total-charges").innerHTML = `₹${(tt + tt*0.05).toFixed(2)}`;
             document.getElementById("taxes").innerHTML = `₹${((parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0)) * 0.05).toFixed(2)}`;
@@ -459,11 +464,7 @@
                 });
                 shippingChargesResponse = await shippingChargesRequest.json();
                 console.log(shippingChargesResponse)
-                if (!shippingChargesRequest.ok) return notyf.error({ message: shippingChargesResponse.message, duration: 10, dismissible: true });
-                
-
-                e.target.classList.remove("disabled");
-                e.target.removeAttribute("disabled");
+                if (!shippingChargesRequest.ok) return notyf.error({ message: shippingChargesResponse.message });
 
                 // code to create a radio group
                 const availableCouriers = shippingChargesResponse.data.available_courier_companies;
@@ -513,6 +514,7 @@
                 notyf.error("Something went wrong in obtaining couriers");
             } finally {
                 e.target.removeAttribute("disabled");
+                e.target.classList.remove("disabled");
             }
         }
         

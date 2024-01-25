@@ -1341,14 +1341,15 @@ exports.createorder = async (req, res) => {
     let orderData = await OrderModel.findOne({ userId: req.userId });
 
     if (orderData) {
-      orderData.items.push(
-        {
-          designId: req.body.designId,
-          productId: req.body.productId,
-          price: req.body.price
-        });
-      orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
+      orderData.items.push({
+        designId: req.body.designId,
+        productId: req.body.productId,
+        price: req.body.price
+      });
+      let totalCost = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
+      orderData.totalAmount = totalCost
       orderData.printwearOrderId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
+      orderData.taxes = totalCost * 0.05;
       await orderData.save();
     } else {
       const newOrder = new OrderModel({
@@ -1359,6 +1360,7 @@ exports.createorder = async (req, res) => {
           price: req.body.price
         }],
         totalAmount: req.body.price,
+        taxes: parseFloat(req.body.price) * 0.05,
         printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
       });
       await newOrder.save();
@@ -1447,6 +1449,7 @@ exports.updateorder = async (req, res) => {
     orderData.items[currentItem].price = req.body.price * req.body.quantity;
 
     orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
+    orderData.taxes = orderData.totalAmount * 0.05;
 
     await orderData.save();
 
@@ -1743,12 +1746,13 @@ exports.placeorder = async (req, res) => {
       return res.status(403).json({ message: "Not enough credits in wallet. Please recharge wallet" });
     }
 
+    const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false });
     walletData.balance = (walletData.balance - totalPurchaseCost).toFixed(2); // MONEY GONE!!!
     walletData.transactions.push({
       amount: totalPurchaseCost,
       transactionType: "payment",
       transactionStatus: "success",
-      walletOrderId: "PAYMENT_" + otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false }),
+      walletOrderId: "PAYMENT_" + walletOrderId,
       transactionNote: `Payment for Order ${orderData.printwearOrderId}`,
     }); // summa
     await walletData.save() //summa
@@ -1790,20 +1794,20 @@ exports.placeorder = async (req, res) => {
       estimatedDelivery: courierData?.etd ?? 'N/A'
     },
     orderData.cashOnDelivery = cashOnDelivery,
-    orderData.totalAmount = ((orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05).toFixed(2);
+    orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2);
+    orderData.taxes = orderData.totalAmount * 0.05;
 
     await orderData.save();
     console.log(orderData);
 
-
-
+    
     /// STEP 2: CREATE SHIPROCKET ORDER
     const designData = await NewDesignModel.findOne({ userId: req.userId });
     const labelData = await LabelModel.findOne({ userId: req.userId });
 
     orderData.paymentStatus = "success";
-    orderData.amountPaid = orderData.totalAmount;
-
+    orderData.amountPaid = orderData.totalAmount + orderData.taxes;
+ 
     const shiprocketToken = await generateShiprocketToken();
 
     const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
@@ -1915,7 +1919,8 @@ exports.placeorder = async (req, res) => {
         retailPrice: 1,
         customerOrderId: 1,
         shipRocketCourier: 1,
-        cashOnDelivery: 1
+        cashOnDelivery: 1,
+        taxes: 1,
       }
     });
 
@@ -1964,7 +1969,7 @@ exports.placeorder = async (req, res) => {
         body: JSON.stringify(customerData)
       });
       const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
-      res.json(zohoCustomerCreateResponse); // remove
+      console.log(zohoCustomerCreateResponse); // remove
       if (zohoCustomerCreateResponse.code == 0) {
         console.log(`zohoCustomer for ${userid} created!`)
         userData.isZohoCustomer = true;
@@ -1974,11 +1979,10 @@ exports.placeorder = async (req, res) => {
       }
     }
 
-    const orderDetails = await OrderHistoryModel.findOne(
-      {
-        "userId": req.userId,
-        "orderData": { $elemMatch: { "printwearOrderId": orderData.printwearOrderId } }
-      },
+    const orderDetails = await OrderHistoryModel.findOne({
+      "userId": req.userId,
+      "orderData": { $elemMatch: { "printwearOrderId": orderData.printwearOrderId } }
+    },
     { "orderData.$": 1 });
     const zohoCustomerId = userData.zohoCustomerID;
     const zohoContactId = userData.zohoContactID;
@@ -2093,14 +2097,17 @@ exports.placeorder = async (req, res) => {
       body: zohoInvoiceFormData
     });
     const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+    console.log(zohoInvoiceCreateResponse);
     if (zohoInvoiceCreateResponse.code != 0 || !zohoInvoiceCreateRequest.ok) {
       console.log(`Couldn't create invoice for ${orderData.printwearOrderId}`);
     }
-    let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${orderData.printwearOrderId}`)
-    walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice_url;
+    let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${walletOrderId}`)
+    walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice.invoice_url;
     await walletData.save();
     res.json({ message: "Order was successfull!" });
 
+
+    // STEP 5: SEND ORDER DATA TO WOOCOMMS
     // part where i send the line item data to santo woocomms
     // should create order in woocomms
     const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
@@ -2181,11 +2188,12 @@ exports.placeorder = async (req, res) => {
         console.log("WooCommerce product creation error:")
         console.log(error);
       });
+    
 
   } catch (error) {
     console.log("General error");
     console.log(error);
-    console.log("Failed to create order for: " + req.userId + "Order Id: " + req.body.customerOrderId);
+    console.log("Failed to create order for: " + req.userId + " Order Id: " + req.body.customerOrderId);
     res.status(500).json({ message: "Internal server Error" });
   }
 }
@@ -2209,9 +2217,16 @@ exports.calculateshippingcharges = async (req, res) => {
   try {
     const { weight, pincode, cod } = req.body;
     //verify pincode
-    const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
+    // this endpoint service down
+    // const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
+    // const pincodeResponse = await pincodeRequest.json();
+    // if (pincodeRequest.status == 500 || pincodeRequest.status == 503) console.log("Pincode service down!");
+    // if (!pincodeResponse[0].Status == "Success") return res.status(500).json({ message: "Pincode could not be verified" });
+
+    const pincodeRequest = await fetch("https://api.opencagedata.com/geocode/v1/json?key=518b0ac375bb4bb8bb17019ae3e63818&q=" + pincode);
     const pincodeResponse = await pincodeRequest.json();
-    if (!pincodeResponse[0].Status == "Success") return res.status(500).json({ message: "Pincode could not be verified" });
+    // if (pincodeRequest.status == 500 || pincodeRequest.status == 503) console.log("Pincode service down!");
+    if (!pincodeResponse.total_results > 0 || pincodeResponse.results.findIndex(result => result.components.country == "India") == -1) return res.status(500).json({ message: "Pincode could not be verified" });
 
     // get couriers
     const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=${cod ? 1 : 0}`, {
@@ -2221,7 +2236,7 @@ exports.calculateshippingcharges = async (req, res) => {
     });
     const shippingChargeResponse = await shippingChargeRequest.json();
     console.log(shippingChargeResponse)
-    if (shippingChargeResponse.status != 200) return res.status(shippingChargeResponse.status_code || shippingChargeResponse.status).json({ message: shippingChargeResponse.message });
+    if (shippingChargeResponse.status != 200 || !shippingChargeRequest.ok) return res.status(shippingChargeResponse.status_code || shippingChargeResponse.status).json({ message: shippingChargeResponse.message });
 
     // the following code should be put in getpaymentlink function
     // get courier id for the order

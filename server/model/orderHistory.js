@@ -102,9 +102,9 @@ var OrderHistorySchema = new mongoose.Schema({
             deliveredOn: {
                 type: mongoose.Schema.Types.Date
             },
-            processed: {
-                type: Boolean,
-                default: false
+            taxes: {
+                type: Number,
+                default: 0
             }
         }
     ]
