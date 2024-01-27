@@ -1713,398 +1713,398 @@ exports.rechargewallet = async (req, res) => {
 // the brand new endpoint for creating orders
 exports.placeorder = async (req, res) => {
   try {
-    // const { firstName,
-    //   lastName,
-    //   mobile,
-    //   email,
-    //   streetLandmark,
-    //   city,
-    //   pincode,
-    //   state,
-    //   country,
-    //   retailPrice,
-    //   customerOrderId,
-    //   shippingCharge,
-    //   courierId,
-    //   courierData,
-    //   cashOnDelivery
-    // } = req.body;
+    const { firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country,
+      retailPrice,
+      customerOrderId,
+      shippingCharge,
+      courierId,
+      courierData,
+      cashOnDelivery
+    } = req.body;
 
-    // const orderData = await OrderModel.findOne({ userId: req.userId });
-    // if (!orderData) {
-    //   res.status(404).json({ message: "No such order found!" });
-    //   return console.log(`No such order data found for ${orderData.printwearOrderId}`);
-    // }
+    const orderData = await OrderModel.findOne({ userId: req.userId });
+    if (!orderData) {
+      res.status(404).json({ message: "No such order found!" });
+      return console.log(`No such order data found for ${orderData.printwearOrderId}`);
+    }
 
-    // /// STEP 1: WALLET GAME
-    // const walletData = await WalletModel.findOne({ userId: req.userId });
-    // let totalPurchaseCost = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05;
+    /// STEP 1: WALLET GAME
+    const walletData = await WalletModel.findOne({ userId: req.userId });
+    let totalPurchaseCost = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05;
     
-    // if (!walletData) return res.status(404).json({ message: "Wallet not found!" });
+    if (!walletData) return res.status(404).json({ message: "Wallet not found!" });
 
-    // if (walletData.balance < totalPurchaseCost) {
-    //   return res.status(403).json({ message: "Not enough credits in wallet. Please recharge wallet" });
-    // }
+    if (walletData.balance < totalPurchaseCost) {
+      return res.status(403).json({ message: "Not enough credits in wallet. Please recharge wallet" });
+    }
 
-    // const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false });
-    // walletData.balance = (walletData.balance - totalPurchaseCost).toFixed(2); // MONEY GONE!!!
-    // walletData.transactions.push({
-    //   amount: totalPurchaseCost,
-    //   transactionType: "payment",
-    //   transactionStatus: "success",
-    //   walletOrderId: "PAYMENT_" + walletOrderId,
-    //   transactionNote: `Payment for Order ${orderData.printwearOrderId}`,
-    // }); // summa
-    // await walletData.save() //summa
-    // console.log("Wallet operation successful!");
+    const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false });
+    walletData.balance = (walletData.balance - totalPurchaseCost).toFixed(2); // MONEY GONE!!!
+    walletData.transactions.push({
+      amount: totalPurchaseCost,
+      transactionType: "payment",
+      transactionStatus: "success",
+      walletOrderId: "PAYMENT_" + walletOrderId,
+      transactionNote: `Payment for Order ${orderData.printwearOrderId}`,
+    }); // summa
+    await walletData.save() //summa
+    console.log("Wallet operation successful!");
 
 
-    // /// STEP 1.5: ORDERDATA GAM
-    // orderData.billingAddress = {
-    //   firstName,
-    //   lastName,
-    //   mobile,
-    //   email,
-    //   streetLandmark,
-    //   city,
-    //   pincode,
-    //   state,
-    //   country
-    // }
-    // orderData.shippingAddress = {
-    //   firstName,
-    //   lastName,
-    //   mobile,
-    //   email,
-    //   streetLandmark,
-    //   city,
-    //   pincode,
-    //   state,
-    //   country
-    // }
-    // // CashfreeOrderId: paymentLinkResponse.cf_order_id,
-    // // paymentLinkId: paymentLinkResponse.payment_session_id,
-    // // paymentLink: paymentLinkResponse.payments.url,
-    // orderData.retailPrice = retailPrice,
-    // orderData.deliveryCharges = shippingCharge,
-    // orderData.customerOrderId = customerOrderId,
-    // orderData.shipRocketCourier = {
-    //   courierId: courierId ?? -1,
-    //   courierName: courierData?.courier_name ?? 'SELF PICKUP',
-    //   estimatedDelivery: courierData?.etd ?? 'N/A'
-    // },
-    // orderData.cashOnDelivery = cashOnDelivery,
-    // orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2);
-    // orderData.taxes = orderData.totalAmount * 0.05;
+    /// STEP 1.5: ORDERDATA GAM
+    orderData.billingAddress = {
+      firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country
+    }
+    orderData.shippingAddress = {
+      firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country
+    }
+    // CashfreeOrderId: paymentLinkResponse.cf_order_id,
+    // paymentLinkId: paymentLinkResponse.payment_session_id,
+    // paymentLink: paymentLinkResponse.payments.url,
+    orderData.retailPrice = retailPrice,
+    orderData.deliveryCharges = shippingCharge,
+    orderData.customerOrderId = customerOrderId,
+    orderData.shipRocketCourier = {
+      courierId: courierId ?? -1,
+      courierName: courierData?.courier_name ?? 'SELF PICKUP',
+      estimatedDelivery: courierData?.etd ?? 'N/A'
+    },
+    orderData.cashOnDelivery = cashOnDelivery,
+    orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2);
+    orderData.taxes = orderData.totalAmount * 0.05;
 
-    // await orderData.save();
-    // console.log(orderData);
+    await orderData.save();
+    console.log(orderData);
 
     
-    // /// STEP 2: CREATE SHIPROCKET ORDER
-    // const designData = await NewDesignModel.findOne({ userId: req.userId });
-    // const labelData = await LabelModel.findOne({ userId: req.userId });
+    /// STEP 2: CREATE SHIPROCKET ORDER
+    const designData = await NewDesignModel.findOne({ userId: req.userId });
+    const labelData = await LabelModel.findOne({ userId: req.userId });
 
-    // orderData.paymentStatus = "success";
-    // orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
+    orderData.paymentStatus = "success";
+    orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
  
-    // const shiprocketToken = await generateShiprocketToken();
+    const shiprocketToken = await generateShiprocketToken();
 
-    // const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
-    // const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+    const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
+    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
-    // const shiprocketOrderData = ({
-    //   "order_id": orderData.printwearOrderId,
-    //   "order_date": formatDate(new Date()),
-    //   "pickup_location": "Primary",
-    //   "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
-    //   "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
-    //   "billing_customer_name": orderData.billingAddress.firstName,
-    //   "billing_last_name": orderData.billingAddress.lastName,
-    //   "billing_address": orderData.billingAddress.streetLandmark,
-    //   "billing_address_2": "",
-    //   "billing_city": orderData.billingAddress.city,
-    //   "billing_pincode": orderData.billingAddress.pincode,
-    //   "billing_state": orderData.billingAddress.state,
-    //   "billing_country": orderData.billingAddress.country,
-    //   "billing_email": orderData.billingAddress.email,
-    //   "billing_phone": orderData.billingAddress.mobile,
-    //   "shipping_is_billing": false,
-    //   "shipping_customer_name": orderData.shippingAddress.firstName,
-    //   "shipping_last_name": orderData.shippingAddress.lastName,
-    //   "shipping_address": orderData.shippingAddress.streetLandmark,
-    //   "shipping_address_2": "",
-    //   "shipping_city": orderData.shippingAddress.city,
-    //   "shipping_pincode": orderData.shippingAddress.pincode,
-    //   "shipping_state": orderData.shippingAddress.state,
-    //   "shipping_country": orderData.shippingAddress.country,
-    //   "shipping_email": orderData.shippingAddress.email,
-    //   "shipping_phone": orderData.shippingAddress.mobile,
-    //   "order_items": orderData.items.map(item => {
-    //     let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-    //     return {
-    //       "name": currentItemDesignData.designName,
-    //       "sku": currentItemDesignData.designSKU,
-    //       "units": item.quantity,
-    //       "selling_price": currentItemDesignData.price,
-    //       "discount": "",
-    //       "tax": "",
-    //       "hsn": 441122
-    //     }
-    //   }),
-    //   "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
-    //   "shipping_charges": orderData.deliveryCharges,
-    //   "giftwrap_charges": 0,
-    //   "transaction_charges": 0,
-    //   "total_discount": 0,
-    //   "sub_total": orderData.retailPrice,
-    //   "length": 28,
-    //   "breadth": 20,
-    //   "height": 0.5,
-    //   "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
-    // });
+    const shiprocketOrderData = ({
+      "order_id": orderData.printwearOrderId,
+      "order_date": formatDate(new Date()),
+      "pickup_location": "Primary",
+      "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
+      "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
+      "billing_customer_name": orderData.billingAddress.firstName,
+      "billing_last_name": orderData.billingAddress.lastName,
+      "billing_address": orderData.billingAddress.streetLandmark,
+      "billing_address_2": "",
+      "billing_city": orderData.billingAddress.city,
+      "billing_pincode": orderData.billingAddress.pincode,
+      "billing_state": orderData.billingAddress.state,
+      "billing_country": orderData.billingAddress.country,
+      "billing_email": orderData.billingAddress.email,
+      "billing_phone": orderData.billingAddress.mobile,
+      "shipping_is_billing": false,
+      "shipping_customer_name": orderData.shippingAddress.firstName,
+      "shipping_last_name": orderData.shippingAddress.lastName,
+      "shipping_address": orderData.shippingAddress.streetLandmark,
+      "shipping_address_2": "",
+      "shipping_city": orderData.shippingAddress.city,
+      "shipping_pincode": orderData.shippingAddress.pincode,
+      "shipping_state": orderData.shippingAddress.state,
+      "shipping_country": orderData.shippingAddress.country,
+      "shipping_email": orderData.shippingAddress.email,
+      "shipping_phone": orderData.shippingAddress.mobile,
+      "order_items": orderData.items.map(item => {
+        let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+        return {
+          "name": currentItemDesignData.designName,
+          "sku": currentItemDesignData.designSKU,
+          "units": item.quantity,
+          "selling_price": currentItemDesignData.price,
+          "discount": "",
+          "tax": "",
+          "hsn": 441122
+        }
+      }),
+      "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
+      "shipping_charges": orderData.deliveryCharges,
+      "giftwrap_charges": 0,
+      "transaction_charges": 0,
+      "total_discount": 0,
+      "sub_total": orderData.retailPrice,
+      "length": 28,
+      "breadth": 20,
+      "height": 0.5,
+      "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
+    });
 
-    // console.log("Shiprocket data:");
-    // console.dir(shiprocketOrderData, { depth: 5 });
+    console.log("Shiprocket data:");
+    console.dir(shiprocketOrderData, { depth: 5 });
 
-    // const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-    //   },
-    //   method: "POST",
-    //   body: JSON.stringify(shiprocketOrderData)
-    // });
-    // const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
-    // console.log("Shiprocket order response:");
-    // console.log(createShiprocketOrderResponse);
+    const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+      },
+      method: "POST",
+      body: JSON.stringify(shiprocketOrderData)
+    });
+    const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
+    console.log("Shiprocket order response:");
+    console.log(createShiprocketOrderResponse);
 
-    // if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
+    if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
 
-    // orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
-    // orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-    // orderData.deliveryStatus = "placed";
-
-
-
-    // /// STEP 3: TRANSFER ORDERDATA TO ORDERHISTORY
-    // await OrderHistoryModel.findOneAndUpdate({ userId: req.userId }, {
-    //   $set: {
-    //     userId: req.userId
-    //   },
-    //   $push: {
-    //     orderData: orderData
-    //   }
-    // }, { upsert: true, new: true });
-
-    // await orderData.updateOne({
-    //   $unset: {
-    //     items: 1,
-    //     billingAddress: 1,
-    //     shippingAddress: 1,
-    //     totalAmount: 1,
-    //     amountPaid: 1,
-    //     paymentStatus: 1,
-    //     deliveryStatus: 1,
-    //     deliveryCharges: 1,
-    //     paymentLink: 1,
-    //     paymentLinkId: 1,
-    //     CashfreeOrderId: 1,
-    //     printwearOrderId: 1,
-    //     shipRocketOrderId: 1,
-    //     shipmentId: 1,
-    //     createdAt: 1,
-    //     deliveredOn: 1,
-    //     processed: 1,
-    //     retailPrice: 1,
-    //     customerOrderId: 1,
-    //     shipRocketCourier: 1,
-    //     cashOnDelivery: 1,
-    //     taxes: 1,
-    //   }
-    // });
+    orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
+    orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
+    orderData.deliveryStatus = "placed";
 
 
 
-    // /// STEP 4: GENERATE ZOHO INVOICE
-    // const zohoToken = await generateZohoToken();
-    // const userData = await UserModel.findById(req.userId);
-    // if (!userData.isZohoCustomer) {
-    //   // write endpoint to create zoho customer 
-    //   let customerData = {
-    //     "contact_name": userData.name,
-    //     "company_name": userData.brandName ?? 'N/A',
-    //     "contact_persons": [
-    //       {
-    //         "salutation": userData.name,
-    //         "first_name": userData.firstName,
-    //         "last_name": userData.lastName,
-    //         "email": userData.email,
-    //         "phone": userData.phone,
-    //         "mobile": userData.phone,
-    //         "is_primary_contact": true
-    //       }
-    //     ],
-    //     "billing_address": {
-    //       "address": userData.billingAddress.landmark,
-    //       "street2": "",
-    //       "city": userData.billingAddress.city,
-    //       "state": userData.billingAddress.state,
-    //       "zipcode": userData.billingAddress.pincode,
-    //       "country": "India",
-    //       "phone": userData.phone,
-    //       "fax": "",
-    //       "attention": ""
-    //     },
-    //     "language_code": "en",
-    //     "country_code": "IN",
-    //     "place_of_contact": "TN",
-    //   }
-    //   const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
-    //     method: "POST",
-    //     headers: {
-    //       Authorization: 'Zoho-oauthtoken ' + zohoToken,
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify(customerData)
-    //   });
-    //   const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
-    //   console.log(zohoCustomerCreateResponse); // remove
-    //   if (zohoCustomerCreateResponse.code == 0) {
-    //     console.log(`zohoCustomer for ${userid} created!`)
-    //     userData.isZohoCustomer = true;
-    //     userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
-    //     userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
-    //     await userData.save();
-    //   }
-    // }
+    /// STEP 3: TRANSFER ORDERDATA TO ORDERHISTORY
+    await OrderHistoryModel.findOneAndUpdate({ userId: req.userId }, {
+      $set: {
+        userId: req.userId
+      },
+      $push: {
+        orderData: orderData
+      }
+    }, { upsert: true, new: true });
 
-    // const orderDetails = await OrderHistoryModel.findOne({
-    //   "userId": req.userId,
-    //   "orderData": { $elemMatch: { "printwearOrderId": orderData.printwearOrderId } }
-    // },
-    // { "orderData.$": 1 });
-    // const zohoCustomerId = userData.zohoCustomerID;
-    // const zohoContactId = userData.zohoContactID;
-    // const invoiceData = {
-    //   "branch_id": "650580000000098357",
-    //   "autonumbergenerationgroup_id": "650580000004188098",
-    //   "reference_number": orderDetails.orderData[0].printwearOrderId,
-    //   "payment_terms": 0,
-    //   "payment_terms_label": "Due on Receipt",
-    //   "customer_id": zohoCustomerId,
-    //   "contact_persons": [
+    await orderData.updateOne({
+      $unset: {
+        items: 1,
+        billingAddress: 1,
+        shippingAddress: 1,
+        totalAmount: 1,
+        amountPaid: 1,
+        paymentStatus: 1,
+        deliveryStatus: 1,
+        deliveryCharges: 1,
+        paymentLink: 1,
+        paymentLinkId: 1,
+        CashfreeOrderId: 1,
+        printwearOrderId: 1,
+        shipRocketOrderId: 1,
+        shipmentId: 1,
+        createdAt: 1,
+        deliveredOn: 1,
+        processed: 1,
+        retailPrice: 1,
+        customerOrderId: 1,
+        shipRocketCourier: 1,
+        cashOnDelivery: 1,
+        taxes: 1,
+      }
+    });
 
-    //   ],
-    //   "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-    //   "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-    //   "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
-    //   "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
-    //   "is_inclusive_tax": false,
-    //   "line_items":
-    //     orderDetails.orderData[0].items.map((item, i) => {
-    //       let currentDesignItem = designData.designs.find(design => design._id + '' == item.designId);
-    //       return {
-    //         "item_order": (i+1),
-    //         "item_id": currentDesignItem.product.id,
-    //         "rate": currentDesignItem.price * 1.00,
-    //         "name": currentDesignItem.product.name,
-    //         "description": currentDesignItem.designName,
-    //         "quantity": (item.quantity).toFixed(2),
-    //         "discount": "0%",
-    //         "tax_id": "650580000000013321",
-    //         "tax_name": "SGST + CGST",
-    //         "tax_type": "tax",
-    //         "tax_percentage": 2.5,
-    //         "project_id": "",
-    //         "tags": [
 
-    //         ],
-    //         "tax_exemption_code": "",
-    //         "account_id": "650580000000000486",
-    //         "item_custom_fields": [
 
-    //         ],
-    //         "hsn_or_sac": "61130000",
-    //         "gst_treatment_code": "",
-    //         "unit": "pcs"
-    //       }
-    //     }),
-    //   "allow_partial_payments": false,
-    //   "custom_fields": [
-    //     {
-    //       "value": "",
-    //       "customfield_id": "650580000000103311"
-    //     }
-    //   ],
-    //   "is_discount_before_tax": "",
-    //   "discount": 0,
-    //   "discount_type": "",
-    //   "shipping_charge": orderDetails.orderData[0].deliveryCharges,
-    //   "adjustment": "",
-    //   "adjustment_description": "Standard Shipping",
-    //   "salesperson_id": "650580000000108050",
-    //   "tax_exemption_code": "",
-    //   "tax_authority_name": "",
-    //   // "zcrm_potential_id": "",
-    //   // "zcrm_potential_name": "",
-    //   "pricebook_id": "",
-    //   "template_id": ZOHO_INVOICE_TEMPLATE_ID,
-    //   "project_id": "",
-    //   "documents": [
+    /// STEP 4: GENERATE ZOHO INVOICE
+    const zohoToken = await generateZohoToken();
+    const userData = await UserModel.findById(req.userId);
+    if (!userData.isZohoCustomer) {
+      // write endpoint to create zoho customer 
+      let customerData = {
+        "contact_name": userData.name,
+        "company_name": userData.brandName ?? 'N/A',
+        "contact_persons": [
+          {
+            "salutation": userData.name,
+            "first_name": userData.firstName,
+            "last_name": userData.lastName,
+            "email": userData.email,
+            "phone": userData.phone,
+            "mobile": userData.phone,
+            "is_primary_contact": true
+          }
+        ],
+        "billing_address": {
+          "address": userData.billingAddress.landmark,
+          "street2": "",
+          "city": userData.billingAddress.city,
+          "state": userData.billingAddress.state,
+          "zipcode": userData.billingAddress.pincode,
+          "country": "India",
+          "phone": userData.phone,
+          "fax": "",
+          "attention": ""
+        },
+        "language_code": "en",
+        "country_code": "IN",
+        "place_of_contact": "TN",
+      }
+      const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+        method: "POST",
+        headers: {
+          Authorization: 'Zoho-oauthtoken ' + zohoToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(customerData)
+      });
+      const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
+      console.log(zohoCustomerCreateResponse); // remove
+      if (zohoCustomerCreateResponse.code == 0) {
+        console.log(`zohoCustomer for ${userid} created!`)
+        userData.isZohoCustomer = true;
+        userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
+        userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
+        await userData.save();
+      }
+    }
 
-    //   ],
-    //   "mail_attachments": [
+    const orderDetails = await OrderHistoryModel.findOne({
+      "userId": req.userId,
+      "orderData": { $elemMatch: { "printwearOrderId": orderData.printwearOrderId } }
+    },
+    { "orderData.$": 1 });
+    const zohoCustomerId = userData.zohoCustomerID;
+    const zohoContactId = userData.zohoContactID;
+    const invoiceData = {
+      "branch_id": "650580000000098357",
+      "autonumbergenerationgroup_id": "650580000004188098",
+      "reference_number": orderDetails.orderData[0].printwearOrderId,
+      "payment_terms": 0,
+      "payment_terms_label": "Due on Receipt",
+      "customer_id": zohoCustomerId,
+      "contact_persons": [
 
-    //   ],
-    //   // "billing_address_id": "650580000004394004",
-    //   // "shipping_address_id": "650580000004394006",
-    //   "gst_treatment": "business_none",
-    //   "gst_no": "",
-    //   "place_of_supply": "TN",
-    //   "quick_create_payment": {
-    //     "account_id": "650580000000000459",
-    //     "payment_mode": "Bank Transfer"
-    //   },
-    //   "tds_tax_id": "650580000000013032",
-    //   "is_tds_amount_in_percent": true,
-    //   "taxes": [
-    //     {
-    //       "tax_name": "CGST",
-    //       "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
-    //     },
-    //     {
-    //       "tax_name": "SGST",
-    //       "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
-    //     },
-    //   ],
-    //   "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05
-    // }
-    // console.log("Zoho invoice data: ", invoiceData)
+      ],
+      "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
+      "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+      "is_inclusive_tax": false,
+      "line_items":
+        orderDetails.orderData[0].items.map((item, i) => {
+          let currentDesignItem = designData.designs.find(design => design._id + '' == item.designId);
+          return {
+            "item_order": (i+1),
+            "item_id": currentDesignItem.product.id,
+            "rate": currentDesignItem.price * 1.00,
+            "name": currentDesignItem.product.name,
+            "description": currentDesignItem.designName,
+            "quantity": (item.quantity).toFixed(2),
+            "discount": "0%",
+            "tax_id": "650580000000013321",
+            "tax_name": "SGST + CGST",
+            "tax_type": "tax",
+            "tax_percentage": 2.5,
+            "project_id": "",
+            "tags": [
 
-    // const zohoInvoiceFormData = new FormData();
-    // zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
-    // zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
-    // zohoInvoiceFormData.append('is_quick_create', 'true');
-    // console.log(zohoInvoiceFormData);
+            ],
+            "tax_exemption_code": "",
+            "account_id": "650580000000000486",
+            "item_custom_fields": [
 
-    // const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
-    //   // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
-    //   method: "POST",
-    //   headers: {
-    //     Authorization: 'Zoho-oauthtoken ' + zohoToken,
-    //   },
-    //   body: zohoInvoiceFormData
-    // });
-    // const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
-    // console.log(zohoInvoiceCreateResponse);
-    // if (zohoInvoiceCreateResponse.code != 0 || !zohoInvoiceCreateRequest.ok) {
-    //   console.log(`Couldn't create invoice for ${orderData.printwearOrderId}`);
-    // }
-    // let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${walletOrderId}`)
-    // walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice.invoice_url;
-    // await walletData.save();
-    // res.json({ message: "Order was successfull!" });
+            ],
+            "hsn_or_sac": "61130000",
+            "gst_treatment_code": "",
+            "unit": "pcs"
+          }
+        }),
+      "allow_partial_payments": false,
+      "custom_fields": [
+        {
+          "value": "",
+          "customfield_id": "650580000000103311"
+        }
+      ],
+      "is_discount_before_tax": "",
+      "discount": 0,
+      "discount_type": "",
+      "shipping_charge": orderDetails.orderData[0].deliveryCharges,
+      "adjustment": "",
+      "adjustment_description": "Standard Shipping",
+      "salesperson_id": "650580000000108050",
+      "tax_exemption_code": "",
+      "tax_authority_name": "",
+      // "zcrm_potential_id": "",
+      // "zcrm_potential_name": "",
+      "pricebook_id": "",
+      "template_id": ZOHO_INVOICE_TEMPLATE_ID,
+      "project_id": "",
+      "documents": [
+
+      ],
+      "mail_attachments": [
+
+      ],
+      // "billing_address_id": "650580000004394004",
+      // "shipping_address_id": "650580000004394006",
+      "gst_treatment": "business_none",
+      "gst_no": "",
+      "place_of_supply": "TN",
+      "quick_create_payment": {
+        "account_id": "650580000000000459",
+        "payment_mode": "Bank Transfer"
+      },
+      "tds_tax_id": "650580000000013032",
+      "is_tds_amount_in_percent": true,
+      "taxes": [
+        {
+          "tax_name": "CGST",
+          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+        },
+        {
+          "tax_name": "SGST",
+          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+        },
+      ],
+      "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05
+    }
+    console.log("Zoho invoice data: ", invoiceData)
+
+    const zohoInvoiceFormData = new FormData();
+    zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
+    zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
+    zohoInvoiceFormData.append('is_quick_create', 'true');
+    console.log(zohoInvoiceFormData);
+
+    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
+      // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
+      method: "POST",
+      headers: {
+        Authorization: 'Zoho-oauthtoken ' + zohoToken,
+      },
+      body: zohoInvoiceFormData
+    });
+    const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+    console.log(zohoInvoiceCreateResponse);
+    if (zohoInvoiceCreateResponse.code != 0 || !zohoInvoiceCreateRequest.ok) {
+      console.log(`Couldn't create invoice for ${orderData.printwearOrderId}`);
+    }
+    let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${walletOrderId}`)
+    walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice.invoice_url;
+    await walletData.save();
+    res.json({ message: "Order was successfull!" });
 
 
     // STEP 5: SEND ORDER DATA TO WOOCOMMS
@@ -2166,107 +2166,107 @@ exports.placeorder = async (req, res) => {
     // console.log("WooCommerce product data:")
     // console.log(productData);
 
-    // const wooCommerceOrderData = {
-    //   parent_id: orderDetails.orderData[0].printwearOrderId,
-    //   customer_note: `Order Reference number: ${orderDetails.orderData[0].customerOrderId}`,
-    //   payment_method: "bacs",
-    //   payment_method_title: "Direct Bank Transfer",
-    //   set_paid: true,
-    //   billing: {
-    //     first_name: orderDetails.orderData[0].billingAddress.firstName,
-    //     last_name: orderDetails.orderData[0].billingAddress.lastName,
-    //     address_1: orderDetails.orderData[0].billingAddress.streetLandmark,
-    //     address_2: "",
-    //     city: orderDetails.orderData[0].billingAddress.city,
-    //     state: orderDetails.orderData[0].billingAddress.state,
-    //     postcode: orderDetails.orderData[0].billingAddress.pincode,
-    //     country: orderDetails.orderData[0].billingAddress.country,
-    //     email: orderDetails.orderData[0].billingAddress.email,
-    //     phone: orderDetails.orderData[0].billingAddress.mobile
-    //   },
-    //   shipping: {
-    //     first_name: orderDetails.orderData[0].shippingAddress.firstName,
-    //     last_name: orderDetails.orderData[0].shippingAddress.lastName,
-    //     address_1: orderDetails.orderData[0].shippingAddress.streetLandmark,
-    //     address_2: "",
-    //     city: orderDetails.orderData[0].shippingAddress.city,
-    //     state: orderDetails.orderData[0].shippingAddress.state,
-    //     postcode: orderDetails.orderData[0].shippingAddress.pincode,
-    //     country: orderDetails.orderData[0].shippingAddress.country,
-    //     email: orderDetails.orderData[0].shippingAddress.email,
-    //     phone: orderDetails.orderData[0].shippingAddress.mobile
-    //   },
-    //   line_items: orderDetails.orderData[0].items.map(item => {
-    //     let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-    //     let neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
-    //     return {
-    //       product_id: item.designId,
-    //       quantity: item.quantity,
-    //       meta_data: [{
-    //         key: "front",
-    //         value: currentItemDesignData.designImage.front
-    //       }]
-    //     }
-    //   }),
-    //   shipping_lines: [
-    //     {
-    //       method_id: "total_rate",
-    //       method_title: "Total Rate",
-    //       total: orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].taxes
-    //     }
-    //   ]
-    // };
-    const dummywoodata = {
-      // "parent_id": 451154421,
-      "customer_note": "Order Reference number: 451154421",
-      "payment_method": "bacs",
-      "payment_method_title": "Direct Bank Transfer",
-      "set_paid": true,
-      "billing": {
-        "first_name": "Jolan",
-        "last_name": "Jose",
-        "address_1": "s nagar",
-        "address_2": "",
-        "city": "Chennai",
-        "state": "Andhra Pradesh",
-        "postcode": 600048 + '',
-        "country": "India",
-        "email": "jolanjose2003@gmail.com",
-        "phone": "8347538434"
+    const wooCommerceOrderData = {
+      parent_id: orderDetails.orderData[0].printwearOrderId,
+      customer_note: `Order Reference number: ${orderDetails.orderData[0].customerOrderId}`,
+      payment_method: "bacs",
+      payment_method_title: "Direct Bank Transfer",
+      set_paid: true,
+      billing: {
+        first_name: orderDetails.orderData[0].billingAddress.firstName,
+        last_name: orderDetails.orderData[0].billingAddress.lastName,
+        address_1: orderDetails.orderData[0].billingAddress.streetLandmark,
+        address_2: "",
+        city: orderDetails.orderData[0].billingAddress.city,
+        state: orderDetails.orderData[0].billingAddress.state,
+        postcode: orderDetails.orderData[0].billingAddress.pincode,
+        country: orderDetails.orderData[0].billingAddress.country,
+        email: orderDetails.orderData[0].billingAddress.email,
+        phone: orderDetails.orderData[0].billingAddress.mobile
       },
-      "shipping": {
-        "first_name": "Jolan",
-        "last_name": "Jose",
-        "address_1": "s nagar",
-        "address_2": "",
-        "city": "Chennai",
-        "state": "Andhra Pradesh",
-        "postcode": 600048 + '',
-        "country": "India",
-        "email": "jolanjose2003@gmail.com",
-        "phone": "8347538434"
+      shipping: {
+        first_name: orderDetails.orderData[0].shippingAddress.firstName,
+        last_name: orderDetails.orderData[0].shippingAddress.lastName,
+        address_1: orderDetails.orderData[0].shippingAddress.streetLandmark,
+        address_2: "",
+        city: orderDetails.orderData[0].shippingAddress.city,
+        state: orderDetails.orderData[0].shippingAddress.state,
+        postcode: orderDetails.orderData[0].shippingAddress.pincode,
+        country: orderDetails.orderData[0].shippingAddress.country,
+        email: orderDetails.orderData[0].shippingAddress.email,
+        phone: orderDetails.orderData[0].shippingAddress.mobile
       },
-      "line_items": [
-        {
-          "product_id": "657269d2c40d64b139a9ed14",
-          "quantity": 1,
-          "meta_data": [
-            {
-              "key": "front",
-              "value": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F653e3284308b660442fd55a6_Heart%20hoodie_PWRNMYS-004H-PT525.png?alt=media&token=a7a2e92f-1346-470a-a46f-c2376e36a741"
-            }
-          ]
+      line_items: orderDetails.orderData[0].items.map(item => {
+        let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+        let neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
+        return {
+          product_id: item.designId,
+          quantity: item.quantity,
+          meta_data: [{
+            key: "front",
+            value: currentItemDesignData.designImage.front
+          }]
         }
-      ],
-      "shipping_lines": [
+      }),
+      shipping_lines: [
         {
-          "method_id": "total_rate",
-          "method_title": "Total Rate",
-          "total": 657.972 + ''
+          method_id: "total_rate",
+          method_title: "Total Rate",
+          total: orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].taxes
         }
       ]
-    }
-    console.log(dummywoodata)
+    };
+    // const dummywoodata = {
+    //   // "parent_id": 451154421,
+    //   "customer_note": "Order Reference number: 451154421",
+    //   "payment_method": "bacs",
+    //   "payment_method_title": "Direct Bank Transfer",
+    //   "set_paid": true,
+    //   "billing": {
+    //     "first_name": "Jolan",
+    //     "last_name": "Jose",
+    //     "address_1": "s nagar",
+    //     "address_2": "",
+    //     "city": "Chennai",
+    //     "state": "Andhra Pradesh",
+    //     "postcode": 600048 + '',
+    //     "country": "India",
+    //     "email": "jolanjose2003@gmail.com",
+    //     "phone": "8347538434"
+    //   },
+    //   "shipping": {
+    //     "first_name": "Jolan",
+    //     "last_name": "Jose",
+    //     "address_1": "s nagar",
+    //     "address_2": "",
+    //     "city": "Chennai",
+    //     "state": "Andhra Pradesh",
+    //     "postcode": 600048 + '',
+    //     "country": "India",
+    //     "email": "jolanjose2003@gmail.com",
+    //     "phone": "8347538434"
+    //   },
+    //   "line_items": [
+    //     {
+    //       "product_id": "657269d2c40d64b139a9ed14",
+    //       "quantity": 1,
+    //       "meta_data": [
+    //         {
+    //           "key": "front",
+    //           "value": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F653e3284308b660442fd55a6_Heart%20hoodie_PWRNMYS-004H-PT525.png?alt=media&token=a7a2e92f-1346-470a-a46f-c2376e36a741"
+    //         }
+    //       ]
+    //     }
+    //   ],
+    //   "shipping_lines": [
+    //     {
+    //       "method_id": "total_rate",
+    //       "method_title": "Total Rate",
+    //       "total": 657.972 + ''
+    //     }
+    //   ]
+    // }
+    console.log(wooCommerceOrderData)
 
     const createWooOrderReq = await fetch(endpoint, {
       method: "POST",
@@ -2274,11 +2274,11 @@ exports.placeorder = async (req, res) => {
         "Content-Type": "application/json",
         Authorization: `Basic ${encodedAuth}`,
       },
-      body: JSON.stringify(dummywoodata),
+      body: JSON.stringify(wooCommerceOrderData),
     })
     const createWooOrderRes = await createWooOrderReq.json();
     console.log(createWooOrderRes);
-    res.send(createWooOrderRes)
+    // res.send(createWooOrderRes)
    // creating multiple POST request for each line item in the order and sending parallel requests
     // const woocommerceProductCreateRequests = productData.map(async dataObject => {
     //   let intermediateRequest = await fetch(endpoint, {
@@ -2814,19 +2814,23 @@ exports.initiaterefund = async (req, res) => {
     }
   }
 
+  return res.json({ message: "Refunded!" }); // remove this as idk what to do with below
+
   const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
   const walletData = await WalletModel.findOne({ userId: req.userId });
   const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
   const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
 
   if (orderToRefund.deliveryStatus == "placed") {
-    let cashfreeRefundStatus = await refundFunction();
+    // let cashfreeRefundStatus = await refundFunction();
 
-    if (cashfreeRefundStatus == 'refund_ok') {
-      walletData.balance
-    }
+    // if (cashfreeRefundStatus == 'refund_ok') {
+    //   // enna pannanu?
+    // }
+
   }
 
+  // for now forget all these ifs, mela mattum concentrate pannu
   if (orderToRefund.deliveryStatus == "cancelled" && (orderToRefund.paymentStatus == "refund_init" || orderToRefund.paymentStatus == "refunded")) {
     // assign courier automatically again
     // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
