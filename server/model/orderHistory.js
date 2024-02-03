@@ -105,7 +105,8 @@ var OrderHistorySchema = new mongoose.Schema({
             taxes: {
                 type: Number,
                 default: 0
-            }
+            },
+            wooOrderId: String
         }
     ]
 });

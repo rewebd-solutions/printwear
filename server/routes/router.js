@@ -96,4 +96,8 @@ route.post("/generatezohoinvoice", controller.generateZohoBooksInvoice); // add 
 
 route.get("/getinvoices", authServices.authorizeToken, controller.getinvoices);
 
+route.get("/dummytest", controller.createdummyorder); // remove asap after testing
+
+route.post("/woowebhook", controller.woowebhook);
+
 module.exports = route

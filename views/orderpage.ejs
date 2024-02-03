@@ -139,10 +139,10 @@
                             <% var totalProductDesignArea = [] %>
                             <% var totalProductDesignCharges = [] %>
                             <% var totalNeckLabel = [] %>
-                            <% designData.forEach(design=> { %>
+                            <% designData.forEach(design => { %>
                                 <% totalProductPrice.push(design.product.price) %>
                                 <% totalProductDesignArea.push((design.designDimensions.width * design.designDimensions.width).toFixed(2)) %>
-                                <% totalProductDesignCharges.push((design.price - design.product.price).toFixed(2)) %>
+                                <% totalProductDesignCharges.push((design.price - design.product.price - (design.neckLabel? 10: 0)).toFixed(2)) %>
                                 <% if (design.neckLabel) { %>
                                     <% totalNeckLabel.push(10) %>
                                 <% } else { %>
@@ -161,7 +161,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>Design Charges</td>
+                                <td>Design Print Charges</td>
                                 <td>₹<%= totalProductDesignCharges.join(" + ₹") %>
                                 </td>
                             </tr>
@@ -170,7 +170,7 @@
                                 <td>₹<%= totalNeckLabel.join(" + ₹") %></td>
                             </tr>
                             <tr>
-                                <td>Total Product price</td>
+                                <td>Total Product price (print + label)</td>
                                 <% var totalPP = []; %>
                                 <% designData.forEach(design=> { %>
                                     <% totalPP.push(design.price) %>
@@ -197,11 +197,11 @@
                             <% } %>
                             <tr>
                                 <td>Tax (CGST 2.5% + SGST 2.5%)</td>
-                                <td>₹<%= (orderData.orderData[0].totalAmount * 0.05).toFixed(2) %></td>
+                                <td>₹<%= (orderData.orderData[0].taxes).toFixed(2) %></td>
                             </tr>
                             <tr>
                                 <td><strong>Total</strong></td>
-                                <td>₹<%= orderData.orderData[0].totalAmount.toFixed(2) %></td>
+                                <td>₹<%= orderData.orderData[0].amountPaid.toFixed(2) %></td>
                             </tr>
                         </tbody>
                     </table>
