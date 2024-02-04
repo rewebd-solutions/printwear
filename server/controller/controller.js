@@ -1734,7 +1734,7 @@ exports.placeorder = async (req, res) => {
     
     if (!orderData) {
       res.status(404).json({ message: "No such order found!" });
-      return console.log(`No such order data found for ${orderData.printwearOrderId}`);
+      return console.log(`No such order data found for ${req.userId}`);
     }
 
     /// STEP 1: WALLET GAME
@@ -3057,6 +3057,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
 
 
 // dummy testing endpoint for testing santo woocomms order creation
+// testing done. so probably remove 
 exports.createdummyorder = async (req, res) => {
   try {
     const orderDetails = {
@@ -3437,6 +3438,123 @@ exports.createdummyorder = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500)
+  }
+}
+
+// dummy endpoint for adding new product data in womens rn
+exports.addwomens = async (req, res) => {
+  try {
+    const colorHexCodes = {
+      "black": "#000000",
+      "pink": "#ffb6c1",
+      "charcoal melange": "#464646",
+      "ecru melange": "#F5F5DC",
+      "grey melange": "#808080",
+      "mustard yellow": "#FFDB58",
+      "navy blue": "#000080",
+      "red": "#FF0000",
+      "white": "#FFFFFF",
+      "army green": "#4B5320",
+      "royal blue": "#4169E1",
+      "maroon": "#800000",
+      "lemon yellow": "#FFF44F",
+      "olive green": "#556B2F",
+      "leaf green": "#228B22",
+      "beige": "#F5F5DC",
+      "yellow": "#FFFF00",
+      "navy": "#000080",
+      "turquoise": "#40E0D0",
+      "turcoise blue": "#00FFEF",
+      "turquoise blue": "#40e0d0",
+      "chocolate brown": "#7B3F00",
+      "sky blue": "#87CEEB",
+      "bottle green": "#006A4E",
+      "iris lavender": "#897CAC"
+    };
+    const {zohoProgGroups} = require("../../.test_assets/zohoProgGroups");
+    const womensRN = zohoProgGroups.itemgroups.filter(itemgroup => /WOMENS RN/.test(itemgroup.group_name))
+    const y = {
+      "_id": "6520cee2094cfa85e4fcbd1b",
+      "style": "Womens Round Neck",
+      "brand": "PRINTWEAR",
+      "manufacturer": "I CLOTHING",
+      "description": "Item available for designing",
+      "group": "WOMENS",
+      "baseImage": {
+        "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fwomens%20rn%20WHITE.jpg?alt=media&token=45a08662-ee07-410f-b53d-1d0c02ef5532",
+        "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fwomens%20rn%20WHITE-BACK.jpg?alt=media&token=ffd62e6d-0fe5-4a88-a6d2-08dba8c6e8ee"
+      },
+      "colors": {
+        
+      },
+      "canvas": {
+        "front": {
+          "startX": 0,
+          "startY": 0,
+          "width": 13,
+          "height": 18
+        },
+        "back": {
+          "startX": 0,
+          "startY": 0,
+          "width": 13,
+          "height": 18
+        }
+      }
+    }
+    // womensRN.forEach(women => {
+    //   women.items.forEach(item => {
+    //     let colorName = item.name.split(" ")[6]
+    //     actualData.colors[colorName] = {
+    //       "frontImage": "",
+    //       "backImage": "",
+    //       "colorCode": colorHexCodes[colorName],
+    //     }
+    //   })
+    // })
+    womensRN.forEach(group => {
+      const groupName = group.group_name.replace("WOMENS RN ", ""); // Extract color name
+
+      // Convert color name to title case
+      const colorName = groupName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+      // Initialize colors object if not present
+      if (!y.colors[colorName]) {
+        y.colors[colorName] = {
+          "frontImage": "",
+          "backImage": "",
+          "colorCode": colorHexCodes[colorName.toLowerCase()],
+          sizes: {}
+        };
+      }
+
+      // Iterate through items in the group
+      group.items.forEach(item => {
+        console.log(item.name);
+        let sizeKey = item.name.split(' - ')[1]?.trim(); // Extract size name
+        if (!sizeKey) sizeKey = item.name.split('-')[1].trim()
+        
+        if (!y.colors[colorName].sizes[sizeKey]) {
+          y.colors[colorName].sizes[sizeKey] = {
+            "id": item.item_id,
+            "name": item.name,
+            "stock": item.available_stock,
+            "price": item.rate,
+            "sku": item.sku,
+            "dimensions": {
+              "length": 28,
+              "chest": 38,
+              "sleeve": 7.5,
+              "weight": 0.5
+            }
+          };
+        }
+      });
+    });
+    res.json(y);
+  } catch (error) {
+    console.log("🚀 ~ exports.addwomens= ~ error:", error)
+    res.json({0: 0})
   }
 }
 

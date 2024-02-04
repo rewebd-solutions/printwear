@@ -94,7 +94,7 @@
                 let currentProduct = data[style];
                 if (currentProduct.baseImage.front == '') continue;
                 let cardDataDOMString = `
-                <div class="display-card" data-aos="fade-up">
+                <div class="display-card" data-aos="fade-up" data-aos-anchor="top-bottom">
                     <div class="name-price">
                         <h3>${style}</h3>
                         <h6>by ${currentProduct.brand ? currentProduct.brand: 'Brand'}</h6>
@@ -129,7 +129,6 @@
         const openProductModal = (style) => { 
             const productData = productsData[style];
             const anyColorForSizes = Object.keys(productData.colors)[0];
-            console.log(productData);
             const productImage = productData.baseImage.front;
             let productModalDOMString = `
                 <div class="product-modal-wrapper">
@@ -152,6 +151,7 @@
                             <div class="product-colors">
                                 <p>Colors: </p>
                                 ${Object.keys(productData.colors).map(color => {
+                                        if (productData.colors[color].frontImage)
                                         return `<div class="color-disc" data-color="${color}" title="${color}" style="background: ${productData.colors[color].colorCode}"></div>`
                                     }).join("\n")
                                 }
@@ -159,9 +159,9 @@
                             <div class="product-sizes">
                                 <p>Sizes: </p>
                                 ${
-                                    Object.keys(productData.colors[anyColorForSizes].sizes).map(size => {
-                                        return productData.colors[anyColorForSizes].sizes[size].stock === 0? `<h4 title="Out of Stock" style="background: #ebebeb; opacity: 0.4; cursor: not-allowed">${size}</h4>` :`<h4 style="background: #ebebeb">${size}</h4>`
-                                    }).join('\n')
+                                    new Array(...new Set(Object.keys(productData.colors).map(color => {
+                                        return Object.keys(productData.colors[color].sizes)
+                                    }).flat())).map(size => `<h4 style="background: #ebebeb">${size}</h4>`).join('\n')
                                 }
                             </div>
                             <div class="product-price-button">

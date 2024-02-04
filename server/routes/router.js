@@ -82,7 +82,7 @@ route.post("/addmockup", controller.addmockup);
 route.get("/getmockups", controller.getmockups);
 
 route.post("/createpaymentlink", authServices.authorizeToken, controller.getpaymentlink);
-route.post("/placeorder", controller.placeorder);
+route.post("/placeorder", authServices.authorizeToken, controller.placeorder);
 route.post("/createshiporder", controller.createshiporder);
 route.post("/calculateshippingcharges", authServices.authorizeToken, controller.calculateshippingcharges);
 
@@ -96,7 +96,8 @@ route.post("/generatezohoinvoice", controller.generateZohoBooksInvoice); // add 
 
 route.get("/getinvoices", authServices.authorizeToken, controller.getinvoices);
 
-route.get("/dummytest", controller.createdummyorder); // remove asap after testing
+// route.get("/dummytest", controller.createdummyorder); // remove asap after testing woocommerce order
+route.get("/zohogrptest", controller.addwomens); // remove asap after adding womens rn data
 
 route.post("/woowebhook", controller.woowebhook);
 
