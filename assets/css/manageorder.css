@@ -255,12 +255,34 @@ table a:visited {
     width: min-content;
 }
 
+/* remove */
 .processing, .placed, .unplaced, .processing, .dispatched, .delivered, .courier_assigned {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
 }
 
+/* remove */
 .return_init, .returned, .cancelled {
+    background-color: hsl(0, 100%, 97%);
+    color: hsl(0, 100%, 57%)   
+}
+
+.processing, .rtd, .pickup-scheduled, .out-for-pickup, .delivered, .completed, .rto, .shipped, .rts {
+    background-color: hsl(108, 48%, 94%);
+    color: hsl(136, 100%, 28%);
+}
+
+.received, .invoiced {
+    background-color: #e5e5e5;
+    color: #777;
+}
+
+.on-hold {
+    background-color: #f8dda7;
+    color: #b17a0c;
+}
+
+.undelivered, .shipment-cancel, .cancelled {
     background-color: hsl(0, 100%, 97%);
     color: hsl(0, 100%, 57%)
 }

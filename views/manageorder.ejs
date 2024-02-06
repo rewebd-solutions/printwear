@@ -300,7 +300,20 @@
                 [orderHistoryTable, cancelledOrderTable, returnedOrderTable].forEach(table => table.innerHTML = noDataMessage);
                 return notyf.error(noDataMessage);
             }
-            orderHistoryTable.innerHTML = data.filter(orderHistory => ['placed', 'processing', 'courier_assigned', 'dispatched'].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+            orderHistoryTable.innerHTML = data.filter(orderHistory => [
+                "received", 
+                "rts", 
+                "on-hold", 
+                "processing", 
+                "rtd",    
+                "rto",   
+                "invoiced", 
+                "shipped", 
+                "delivered", 
+                "completed", 
+                "pending",
+                'placed', 'processing', 'courier_assigned', 'dispatched' // this is for old deliveryStatus. Remove in prod
+            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
                         <td>${i+1}</td>
@@ -315,7 +328,12 @@
                 `;
                 
             }).join('\n');
-            returnedOrderTable.innerHTML = data.filter(orderHistory => ['return_init', 'returned'].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+            returnedOrderTable.innerHTML = data.filter(orderHistory => [
+                "pickup-scheduled",
+                "out-for-pickup",
+                "undelivered",
+                'return_init', 'returned'
+            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
                         <td>${i+1}</td>
@@ -330,7 +348,10 @@
                 `;
                 
             }).join('\n');
-            cancelledOrderTable.innerHTML = data.filter(orderHistory => ['cancelled'].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+            cancelledOrderTable.innerHTML = data.filter(orderHistory => [
+                "shipment-cancel",
+                "cancelled",
+            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
                         <td>${i+1}</td>

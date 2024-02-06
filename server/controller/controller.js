@@ -3974,6 +3974,9 @@ exports.woowebhook = async (req, res) => {
   try {
     console.log("🚀 ~ exports.woowebhook= ~ req:", req.body)
     res.send("OK");
+    const wooCommerceOrderId = req.body.number;
+    const OrderHistoryData = await OrderHistoryModel.findOneAndUpdate({ "orderData": { $elemMatch: { wooOrderId: wooCommerceOrderId } } }, { $set: { "orderData.$.deliveryStatus": req.body.status } }, { new: true });
+    console.log("🚀 ~ exports.woowebhook= ~ OrderHistoryData:", OrderHistoryData)
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "error" });
