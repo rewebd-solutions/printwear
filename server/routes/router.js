@@ -44,7 +44,7 @@ route.get("/connectstore", authServices.authorizeToken, services.connectstore);
 route.get("/contact", authServices.authorizeToken, services.contact);
 route.get("/designgenerator", authServices.authorizeToken, services.designgenerator);
 route.get("/designlib", authServices.authorizeToken, services.designlib);
-route.get("/invoice", authServices.authorizeToken, services.invoice);
+// route.get("/invoice", authServices.authorizeToken, services.invoice);
 route.get("/profile", authServices.authorizeToken, controller.profilepage);
 route.get("/mockupgenerator", authServices.authorizeToken, services.mockupgenerator);
 route.get("/recharge", authServices.authorizeToken, controller.recharge); // recharge page
@@ -94,7 +94,7 @@ route.post("/checkorderid", authServices.authorizeToken, controller.checkorderid
 route.post("/initiaterefund", authServices.authorizeToken, controller.initiaterefund);
 route.post("/generatezohoinvoice", controller.generateZohoBooksInvoice); // add authService.authorizeToken soon
 
-route.get("/getinvoices", authServices.authorizeToken, controller.getinvoices);
+route.get("/invoice", authServices.authorizeToken, controller.getinvoices);
 
 // route.get("/dummytest", controller.createdummyorder); // remove asap after testing woocommerce order
 route.get("/zohogrptest", controller.addwomens); // remove asap after adding womens rn data

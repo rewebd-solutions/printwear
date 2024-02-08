@@ -2754,27 +2754,10 @@ exports.checkorderid = async (req, res) => {
 exports.getinvoices = async (req, res) => {
   // temporary invoice collecting endpoint as the actual invoices must be obtained from zoho invoice only
   try {
-    const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
-    const orderIds = orderHistory.orderData.map(order => order.shipRocketOrderId);
-
-    const shiprocketToken = await generateShiprocketToken();
-    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-
-    const SRinvoiceRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/print/invoice`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-      },
-      method: "POST",
-      body: JSON.stringify({
-        ids: orderIds
-      })
-    });
-
-    const SRinvoiceResponse = await SRinvoiceRequest.json();
-    console.log(SRinvoiceResponse);
-    res.json(SRinvoiceResponse);
-
+    const walletData = await WalletModel.findOne({ userId: req.userId });
+    const lastTransaction = walletData.transactions.at(-1);
+    if (lastTransaction.transactionType === "recharge" && lastTransaction.amount === 0) return res.render('invoice', { walletData: null })
+    res.render('invoice', { walletData });
   } catch (error) {
     console.log(error);
     res.json(error);

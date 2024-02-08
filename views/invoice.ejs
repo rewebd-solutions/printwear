@@ -24,22 +24,24 @@
             <h2>Invoicing</h2>
             <div class="invoice-table">
                 <div id="printwear-invoice">
-                    <!-- <div class="search-options">
+                    <div class="search-options">
                         <label for="search-invoices">Search</label>
                         <input id="search-invoices" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
-                    </div> -->
-                    <!-- <table>
+                    </div> 
+                    <table>
                         <thead>
                             <th>S. No.</th>
-                            <th>Printwear Order ID</th>
-                            <th>Your Order ID</th>
+                            <th>Date</th>
+                            <th>Transaction ID</th>
+                            <th>Type</th>
                             <th>Amount paid</th>
-                            <th>Customer Name</th>
+                            <th>Description</th>
                             <th>Invoice link</th>
                         </thead>
-                        <tbody>
+                        <tbody id="invoice-table-data">
+                            
                         </tbody>
-                    </table> -->
+                    </table>
                 </div>
             </div>
         </div>
@@ -48,6 +50,34 @@
     <script>
         AOS.init();
         var notyf = new Notyf();
+        let walletData = <%- JSON.stringify(walletData) %>;
+        const invoiceTableData = document.querySelector("#invoice-table-data");
+
+        const searchWalletData = (searchKey) => {
+            searchKey = searchKey.toLowerCase().trim();
+            console.log("🚀 ~ searchWalletData ~ searchKey:", searchKey)
+            if (!searchKey) {
+                return populateInvoiceTable();
+            }
+            let filteredData = walletData.transactions.filter(transaction =>  transaction.walletOrderId?.toLowerCase().includes(searchKey) || transaction.transactionNote?.toLowerCase().includes(searchKey) || transaction.transactionType?.includes(searchKey));
+            console.log("🚀 ~ filteredData ~ filteredData:", filteredData)
+            populateInvoiceTable({ transactions: filteredData });
+        }
+        
+        const populateInvoiceTable = (data = walletData) => {
+            if (walletData.transactions.length === 0) return invoiceTableData.innerHTML = 'Search not found!';
+            invoiceTableData.innerHTML = data.transactions.map((transaction, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
+                    <td>${transaction.walletOrderId ?? '—'}</td>
+                    <td>${transaction.transactionType === "recharge"? "Recharge": "Payment"}</td>
+                    <td>₹ ${transaction.amount.toFixed(2)}</td>
+                    <td>${transaction.transactionType === "recharge"? `Recharge for ₹ ${transaction.amount.toFixed(2)}`: transaction.transactionNote}</td>
+                    <td>${transaction.transactionType === "recharge"? `<i class="fa fa-ban"></i>`: `<a href='${transaction.invoiceURL}'><i class="fa fa-download"></i></a>` }</td>
+                </tr>
+            `).join('\n');
+        }
 
         const fetchInvoices = async () => {
             try {
@@ -63,7 +93,16 @@
             }
         }
 
-        fetchInvoices();
+        const searchInput = document.querySelector('#search-invoices');
+        searchInput.oninput = (e) => searchWalletData(e.target.value);
+        // fetchInvoices();
+        const URLParams = new URLSearchParams(location.search).get("type");
+        if (URLParams === "recharge") {
+            searchWalletData(URLParams)
+        } else {
+            populateInvoiceTable();
+        }
+        
     </script>
 </body>
 

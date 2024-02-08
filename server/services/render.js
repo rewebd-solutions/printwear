@@ -45,10 +45,6 @@ exports.mycart = (req, res) => {
     res.render("cart");
 }
 
-exports.invoice = (req, res) => {
-    res.render("invoice");
-}
-
 exports.designlib = (req, res) => {
     res.render("designlib");
 }
