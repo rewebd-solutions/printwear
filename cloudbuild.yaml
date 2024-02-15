@@ -1,0 +1,16 @@
+steps:
+  # Install dependencies
+  - name: 'node:14'
+    entrypoint: 'npm'
+    args: ['install']
+
+  # Build Node.js app
+  - name: 'node:14'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+
+  # Deploy to GCP
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'app'
+      - 'deploy'
