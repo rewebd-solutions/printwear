@@ -10,4 +10,6 @@ steps:
       - 'app'
       - 'deploy'
       - 'app.yaml'
-logsBucket: printwear-414416.appspot.com
+logsBucket: 'gs://printwear-414416.appspot.com'
+options:
+  logging: GCS_ONLY
