@@ -3,8 +3,6 @@ steps:
   - name: 'node:20'
     entrypoint: 'npm'
     args: ['install']
-    options:
-      logging: CLOUD_LOGGING_ONLY
 
   # Deploy to GCP
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -12,5 +10,4 @@ steps:
       - 'app'
       - 'deploy'
       - 'app.yaml'
-    options:
-      logging: CLOUD_LOGGING_ONLY
+logsBucket: printwear-414416.appspot.com
