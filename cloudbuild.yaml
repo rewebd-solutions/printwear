@@ -10,7 +10,7 @@ steps:
       - 'app'
       - 'deploy'
       - 'app.yaml'
-      steps:
+      
   - name: 'gcr.io/cloud-builders/go'
     args: ['install', '.']
     logsBucket: 'gs://printwear-414416.appspot.com'
