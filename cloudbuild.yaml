@@ -11,4 +11,4 @@ steps:
       - 'deploy'
       - 'app.yaml'
 options:
-  logsBucket: printwear-414416.appspot.com
+  logging: CLOUD_LOGGING_ONLY
