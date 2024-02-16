@@ -21,18 +21,29 @@
     <% if (!orderData) { %>
         <div class="title">Invalid Order ID</div> 
     <% } else { %>
+        <!-- "rts" | "on-hold" | "processing" | "rtd" | "shipment-cancel" | "pickup-scheduled" |
+                "out-for-pickup" | "rto" | "cancelled" | "undelivered" | "shipped" | "delivered" | "completed" -->
         <div class="title">
             <div>
                 Order ID: <%= orderData.orderData[0].printwearOrderId %>
-                <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>">DELIVERY: <%= orderData.orderData[0].deliveryStatus == "return_init"? "return initiated": orderData.orderData[0].deliveryStatus %></h3>
+                <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>">STATUS: <%= orderData.orderData[0].deliveryStatus == "return_init"? "return initiated": orderData.orderData[0].deliveryStatus %></h3>
                 <h3 class="status-badge <%= orderData.orderData[0].paymentStatus %>">PAYMENT: <%= orderData.orderData[0].paymentStatus == "refund_init"? "refund initiated": orderData.orderData[0].paymentStatus %></h3>
             </div>
+            <!-- remove this shit in prod -->
             <% if (orderData.orderData[0].deliveryStatus == "cancelled" && (orderData.orderData[0].paymentStatus == "refund_init" || orderData.orderData[0].paymentStatus == "refunded")) { %>
                 <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">Reship order</button>
             <% } else if (orderData.orderData[0].deliveryStatus != "delivered") { %>
                 <button class="orderpage-action-btn" onclick="initiateRefund(this)">Cancel Order</button>
             <% } else { %>
                 <button class="orderpage-action-btn" onclick="initiateRefund(this)">Return order</button>
+            <% } %>
+            <!-- use this shit in prod -->
+            <% if (["pending", "received", "invoiced", "undelivered"].includes(orderData.orderData[0].deliveryStatus)) { %>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this)">Cancel Order</button>
+            <% } else if (["delivered"].includes(orderData.orderData[0].deliveryStatus) || (orderData.orderData[0].deliveryStatus === "completed" && orderData.orderData[0].shiprocketCourier.courierId !== "-1")) { %>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'return')">Return Order</button>
+            <% } else if (["rto", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) { %>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">Reship Order</button>
             <% } %>
         </div>
         <div class="subtitle">Placed on: <%= new Date(orderData.orderData[0].createdAt).toLocaleString() %> </div>
@@ -218,7 +229,13 @@
 
             const initiateRefund = async (el, type = 'cancel') => {
                 el.classList.add('disable-button');
-                let cancelOrderConfirmation = type == 'reship'? confirm("Are you sure you want to reship the same order to <%- orderData.orderData[0].billingAddress.firstName %>? Extra shipping charges will be deducted from your wallet") : confirm("Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?");
+                let cancelOrderConfirmation = type == 'reship'? 
+                    confirm("Are you sure you want to reship the same order to <%- orderData.orderData[0].billingAddress.firstName %>? Extra shipping charges will be deducted from your wallet") 
+                    :
+                    type == "return" ? 
+                        confirm("If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?")
+                        :
+                        confirm("Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?")
                 if (!cancelOrderConfirmation) return el.classList.remove('disable-button');;
                 try {
                     const initiateRefundRequest = await fetch("/initiaterefund", {
