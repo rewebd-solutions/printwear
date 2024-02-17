@@ -37,6 +37,11 @@ const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
+//testing
+exports.testing = async (req, res) => {
+  res.send("This is working fine i guess, Plese help me");
+}
+
 // common auth endpoints
 exports.register = async (req, res) => {
 

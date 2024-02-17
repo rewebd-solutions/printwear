@@ -9,6 +9,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 route.get('/', services.homeRoutes)
 
+route.get("/testing", controller.testing);
+
 route.post('/register', controller.register);
 route.post('/login', controller.login);
 route.get('/login', authServices.authorizeLogin, services.loginpage);
