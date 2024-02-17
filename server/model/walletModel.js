@@ -14,7 +14,7 @@ var WalletSchema = new Schema({
         {
             transactionType: {
                 type: String,
-                enum: ["recharge", "payment"],
+                enum: ["recharge", "payment", "refund"],
                 required: true,
             },
             amount: {

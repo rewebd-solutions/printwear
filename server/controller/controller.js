@@ -1805,9 +1805,8 @@ exports.placeorder = async (req, res) => {
     
     /// STEP 2: CREATE SHIPROCKET ORDER
     const designData = await NewDesignModel.findOne({ userId: req.userId });
+    const labelData = await LabelModel.findOne({ userId: req.userId });
     if (courierId) { // check if order is not self pickup, courierId null means, self pickup = no need for shiprocket. 
-      const labelData = await LabelModel.findOne({ userId: req.userId });
-  
       orderData.paymentStatus = "success";
       orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
    
@@ -1887,7 +1886,6 @@ exports.placeorder = async (req, res) => {
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "placed";
-  
     }  
 
     /// STEP 3: TRANSFER ORDERDATA TO ORDERHISTORY
@@ -2499,12 +2497,12 @@ exports.initiaterefund = async (req, res) => {
       const cashfreeRefundResponse = await cashfreeRefundRequest.json();
       console.log("🚀 ~ refundFunction ~ cashfreeRefundResponse:", cashfreeRefundResponse)
       if (cashfreeRefundRequest.ok) {
-        return "refund_ok";
+        return {status: "refund_ok", data: cashfreeRefundResponse};
       }
       return cashfreeRefundResponse.message;
     } catch (error) {
       console.log(error);
-      return "Cashfree Refund error";
+      return {status: "Cashfree Refund error", data: null};
     }
   }
 
@@ -2537,21 +2535,103 @@ exports.initiaterefund = async (req, res) => {
     }
   }
 
+  const cancelShiprocketOrder = async () => {
+    try {
+      const shiprocketToken = await generateShiprocketToken();
+      const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+      const cancelOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/cancel', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+        },
+        method: "POST",
+        body: JSON.stringify({
+          ids: [orderToRefund.shipRocketOrderId]
+        })
+      });
+      const cancelOrderResponse = await cancelOrderRequest.json();
+      console.log("🚀 ~ cancelShiprocketOrder ~ cancelOrderResponse:", cancelOrderResponse)
+      if (!cancelOrderRequest.ok) return cancelOrderResponse; // check the message, code and stuff and then send
+    } catch (error) {
+      console.log(error);
+      return false
+    }
+  }
+  const createShiprocketReturnOrder = async () => {
+    const shiprocketToken = await generateShiprocketToken();
+    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+    try {
+      if (orderToRefund.shipRocketCourier.courierId != -1) {
+        const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+          },
+          method: "POST",
+          body: JSON.stringify({
+            shipment_id: orderToRefund.shipmentId,
+            courier_id: orderToRefund.shipRocketCourier.courierId
+          })
+        });
+        const shipmentAssignResponse = await shipmentAssignRequest.json();
+        console.log(shipmentAssignResponse);
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = shipmentAssignResponse.response.data.courier_company_id;
+        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = shipmentAssignResponse.response.data.courier_name;
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "courier_assigned";
+        orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
+        orderHistory.orderData[orderToRefundIndex].deliveryCharges = shipmentAssignResponse.response.data.freight_charges;
+
+        await orderHistory.save();
+      } else {
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "processing";
+        orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
+        await orderHistory.save();
+      }
+      // wallet ku poidum
+
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Something went wrong!" });
+    }
+  }
+
+  const updateRefundWalletRecord = async (cashfreeOrderId, cashfreeSessionId) => {
+    try {
+      walletData.transactions.push({
+        amount: orderToRefund.totalAmount,
+        transactionType: "refund",
+        walletOrderId: `REFUND_` + walletOrderId,
+        refundAmount: orderToRefund.totalAmount,
+        transactionNote: "Refund for order " + orderToRefund.printwearOrderId,
+        cashfreeOrderId,
+        cashfreeSessionId
+      });
+      await walletData.save();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
  // return res.json({ message: "Refunded!" }); // remove this as idk what to do with below
 
   const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
-  // const walletData = await WalletModel.findOne({ userId: req.userId });
+  const walletData = await WalletModel.findOne({ userId: req.userId });
   const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
   const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
+  const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, specialChars: false });
 
   if (!orderToRefund || orderToRefundIndex === -1) return res.status(404).json({ message: "Order not found!" });
 
-  if (["pending", "recieved", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
+  if (["pending", "received", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
+
     try {
       const isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId);
       const isRefunded = await refundFunction();
       if (!isWooUpdated) return res.status(500).json({ message: "Failed to update order status. Please try later or contact help" })
-      if (!isRefunded) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
+      if (!(isRefunded.status === "return_ok" && isRefunded.data !== null)) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
       await orderHistory.save();
       // call woocommerce santo endpoint to update order status
@@ -2562,9 +2642,14 @@ exports.initiaterefund = async (req, res) => {
       res.status(500).json({ message: "Something went wrong in cancelling this order!" });
     }
     
-  } else if (orderToRefund.deliveryStatus === "received") {
+  } else if (["delivered"].includes(orderToRefund.deliveryStatus) || (orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1")) {
     try {
+
       let cashfreeRefundStatus = await refundFunction();
+      // call func to create shiprocket return order
+      // woo update
+      // pickup-scheduled status
+      // 
       if (cashfreeRefundStatus === "refund_ok") {
         orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
         orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
@@ -2575,6 +2660,7 @@ exports.initiaterefund = async (req, res) => {
       console.log(error);
       res.status(500).json({ message: "Something went wrong in cancelling this order!" });
     }
+
   }
 
 
@@ -2584,43 +2670,6 @@ exports.initiaterefund = async (req, res) => {
   // if (orderToRefund.deliveryStatus == "cancelled" && (orderToRefund.paymentStatus == "refund_init" || orderToRefund.paymentStatus == "refunded")) {
   //   // assign courier automatically again
   //   // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
-  //   const shiprocketToken = await generateShiprocketToken();
-  //   const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-
-  //   try {
-  //     if (orderToRefund.shipRocketCourier.courierId != -1) {
-  //       const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-  //         },
-  //         method: "POST",
-  //         body: JSON.stringify({
-  //           shipment_id: orderToRefund.shipmentId,
-  //           courier_id: orderToRefund.shipRocketCourier.courierId
-  //         })
-  //       });
-  //       const shipmentAssignResponse = await shipmentAssignRequest.json();
-  //       console.log(shipmentAssignResponse);
-  //       orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
-  //       orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = shipmentAssignResponse.response.data.courier_company_id;
-  //       orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = shipmentAssignResponse.response.data.courier_name;
-  //       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "courier_assigned";
-  //       orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
-  //       orderHistory.orderData[orderToRefundIndex].deliveryCharges = shipmentAssignResponse.response.data.freight_charges;
-
-  //       await orderHistory.save();
-  //     } else {
-  //       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "processing";
-  //       orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
-  //       await orderHistory.save();
-  //     }
-  //     // wallet ku poidum
-
-  //   } catch (error) {
-  //     console.log(error);
-  //     res.status(500).json({ message: "Something went wrong!" });
-  //   }
 
   //   // create payment link for added delivery charge
   //   // after payment made, make respective changes in webhook
