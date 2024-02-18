@@ -545,8 +545,8 @@ const saveDesign = async () => {
         SKU: submitProduct.sizeSku,
         price: submitProduct.price,
         baseImage: {
-          front: Product.baseImage.front,
-          back: Product.baseImage.back,
+          front: Product.colors.find(x => x._id === currentColor).colorImage.front,
+          back: Product.colors.find(x => x._id === currentColor).colorImage.back,
         },
         dimensions: submitProduct.dimensions
       },
@@ -584,12 +584,12 @@ const saveDesign = async () => {
 
       const saveDesignResponse = await saveDesignRequest.json();
 
-      if (saveDesignRequest.ok) {
-        console.log(saveDesignResponse)
-        document.querySelector(".save-button").innerHTML = "Saved!";
-        return notyf.success("Design saved successfully!");
+      if (!saveDesignRequest.ok) {
+        throw new Error("Save failed!");
       }
-      canvasContainer.forEach(item => item.style.border = "2px dashed silver");
+      console.log(saveDesignResponse)
+      document.querySelector(".save-button").innerHTML = "Saved!";
+      return notyf.success("Design saved successfully!");
     })
     
   } catch (error) {

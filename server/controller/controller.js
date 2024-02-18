@@ -6,6 +6,7 @@ const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
+const WOO_SANTO_URL = 'https://printwear.in/admin';
 
 const crypto = require("crypto")
 const algorithm = "sha256"
@@ -1810,88 +1811,87 @@ exports.placeorder = async (req, res) => {
     /// STEP 2: CREATE SHIPROCKET ORDER
     const designData = await NewDesignModel.findOne({ userId: req.userId });
     const labelData = await LabelModel.findOne({ userId: req.userId });
-
-    orderData.paymentStatus = "success";
-    orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
- 
-    const shiprocketToken = await generateShiprocketToken();
-
-    const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
-    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-
-    const shiprocketOrderData = ({
-      "order_id": orderData.printwearOrderId,
-      "order_date": formatDate(new Date()),
-      "pickup_location": "Primary",
-      "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
-      "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
-      "billing_customer_name": orderData.billingAddress.firstName,
-      "billing_last_name": orderData.billingAddress.lastName,
-      "billing_address": orderData.billingAddress.streetLandmark,
-      "billing_address_2": "",
-      "billing_city": orderData.billingAddress.city,
-      "billing_pincode": orderData.billingAddress.pincode,
-      "billing_state": orderData.billingAddress.state,
-      "billing_country": orderData.billingAddress.country,
-      "billing_email": orderData.billingAddress.email,
-      "billing_phone": orderData.billingAddress.mobile,
-      "shipping_is_billing": false,
-      "shipping_customer_name": orderData.shippingAddress.firstName,
-      "shipping_last_name": orderData.shippingAddress.lastName,
-      "shipping_address": orderData.shippingAddress.streetLandmark,
-      "shipping_address_2": "",
-      "shipping_city": orderData.shippingAddress.city,
-      "shipping_pincode": orderData.shippingAddress.pincode,
-      "shipping_state": orderData.shippingAddress.state,
-      "shipping_country": orderData.shippingAddress.country,
-      "shipping_email": orderData.shippingAddress.email,
-      "shipping_phone": orderData.shippingAddress.mobile,
-      "order_items": orderData.items.map(item => {
-        let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-        return {
-          "name": currentItemDesignData.designName,
-          "sku": currentItemDesignData.designSKU,
-          "units": item.quantity,
-          "selling_price": currentItemDesignData.price,
-          "discount": "",
-          "tax": "",
-          "hsn": 441122
-        }
-      }),
-      "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
-      "shipping_charges": orderData.deliveryCharges,
-      "giftwrap_charges": 0,
-      "transaction_charges": 0,
-      "total_discount": 0,
-      "sub_total": orderData.retailPrice,
-      "length": 28,
-      "breadth": 20,
-      "height": 0.5,
-      "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
-    });
-
-    console.log("Shiprocket data:");
-    console.dir(shiprocketOrderData, { depth: 5 });
-
-    const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-      },
-      method: "POST",
-      body: JSON.stringify(shiprocketOrderData)
-    });
-    const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
-    console.log("Shiprocket order response:");
-    console.log(createShiprocketOrderResponse);
-
-    if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
-
-    orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
-    orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-    orderData.deliveryStatus = "placed";
-
-
+    if (courierId) { // check if order is not self pickup, courierId null means, self pickup = no need for shiprocket. 
+      orderData.paymentStatus = "success";
+      orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
+   
+      const shiprocketToken = await generateShiprocketToken();
+  
+      const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
+      const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+  
+      const shiprocketOrderData = ({
+        "order_id": orderData.printwearOrderId,
+        "order_date": formatDate(new Date()),
+        "pickup_location": "Primary",
+        "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
+        "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
+        "billing_customer_name": orderData.billingAddress.firstName,
+        "billing_last_name": orderData.billingAddress.lastName,
+        "billing_address": orderData.billingAddress.streetLandmark,
+        "billing_address_2": "",
+        "billing_city": orderData.billingAddress.city,
+        "billing_pincode": orderData.billingAddress.pincode,
+        "billing_state": orderData.billingAddress.state,
+        "billing_country": orderData.billingAddress.country,
+        "billing_email": orderData.billingAddress.email,
+        "billing_phone": orderData.billingAddress.mobile,
+        "shipping_is_billing": false,
+        "shipping_customer_name": orderData.shippingAddress.firstName,
+        "shipping_last_name": orderData.shippingAddress.lastName,
+        "shipping_address": orderData.shippingAddress.streetLandmark,
+        "shipping_address_2": "",
+        "shipping_city": orderData.shippingAddress.city,
+        "shipping_pincode": orderData.shippingAddress.pincode,
+        "shipping_state": orderData.shippingAddress.state,
+        "shipping_country": orderData.shippingAddress.country,
+        "shipping_email": orderData.shippingAddress.email,
+        "shipping_phone": orderData.shippingAddress.mobile,
+        "order_items": orderData.items.map(item => {
+          let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
+          return {
+            "name": currentItemDesignData.designName,
+            "sku": currentItemDesignData.designSKU,
+            "units": item.quantity,
+            "selling_price": currentItemDesignData.price,
+            "discount": "",
+            "tax": "",
+            "hsn": 441122
+          }
+        }),
+        "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
+        "shipping_charges": orderData.deliveryCharges,
+        "giftwrap_charges": 0,
+        "transaction_charges": 0,
+        "total_discount": 0,
+        "sub_total": orderData.retailPrice,
+        "length": 28,
+        "breadth": 20,
+        "height": 0.5,
+        "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
+      });
+  
+      console.log("Shiprocket data:");
+      console.dir(shiprocketOrderData, { depth: 5 });
+  
+      const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+        },
+        method: "POST",
+        body: JSON.stringify(shiprocketOrderData)
+      });
+      const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
+      console.log("Shiprocket order response:");
+      console.log(createShiprocketOrderResponse);
+  
+      if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
+  
+      orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
+      orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
+      orderData.deliveryStatus = "placed";
+    }  
 
     /// STEP 3: TRANSFER ORDERDATA TO ORDERHISTORY
     const updatedOrderHistory = await OrderHistoryModel.findOneAndUpdate({ userId: req.userId }, {
@@ -2393,7 +2393,7 @@ exports.placeorder = async (req, res) => {
     const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
 
     const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
-    const endpoint = `https://printwear.in/admin/wp-json/wc/v3/orders`;
+    const endpoint = `${WOO_SANTO_URL}/wp-json/wc/v3/orders`;
 
     const createWooOrderReq = await fetch(endpoint, {
       method: "POST",
@@ -2500,37 +2500,70 @@ exports.initiaterefund = async (req, res) => {
         })
       });
       const cashfreeRefundResponse = await cashfreeRefundRequest.json();
-      console.log(cashfreeRefundResponse);
+      console.log("🚀 ~ refundFunction ~ cashfreeRefundResponse:", cashfreeRefundResponse)
       if (cashfreeRefundRequest.ok) {
-        return "refund_ok";
+        return {status: "refund_ok", data: cashfreeRefundResponse};
       }
       return cashfreeRefundResponse.message;
     } catch (error) {
       console.log(error);
-      return "Cashfree Refund error";
+      return {status: "Cashfree Refund error", data: null};
     }
   }
 
-  return res.json({ message: "Refunded!" }); // remove this as idk what to do with below
+  const updateWooCommerceOrderStatus = async (wooCommerceOrderId) => {
+    try {
+      const consumerKey = process.env.WOO_PROD_CONSUMER_KEY;
+      const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
 
-  const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
-  const walletData = await WalletModel.findOne({ userId: req.userId });
-  const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
-  const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
+      const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
+      const endpoint = WOO_SANTO_URL + `/wp-json/wc/v3/orders/${wooCommerceOrderId}`;
 
-  if (orderToRefund.deliveryStatus == "placed") {
-    // let cashfreeRefundStatus = await refundFunction();
+      const updateWooOrderReq = await fetch(endpoint, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${encodedAuth}`,
+        },
+        body: JSON.stringify({
+          status: "cancelled"
+        }),
+      })
 
-    // if (cashfreeRefundStatus == 'refund_ok') {
-    //   // enna pannanu?
-    // }
-
+      const updateWooOrderRes = await updateWooOrderReq.json();
+      console.log("🚀 ~ updateWooCommerceOrderStatus ~ updateWooOrderRes:", updateWooOrderRes)
+      if (!updateWooOrderReq.ok) throw new Error(`Update to WooCommerce order failed for ${wooCommerceOrderId}`);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
   }
 
-  // for now forget all these ifs, mela mattum concentrate pannu
-  if (orderToRefund.deliveryStatus == "cancelled" && (orderToRefund.paymentStatus == "refund_init" || orderToRefund.paymentStatus == "refunded")) {
-    // assign courier automatically again
-    // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
+  const cancelShiprocketOrder = async () => {
+    try {
+      const shiprocketToken = await generateShiprocketToken();
+      const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+      const cancelOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/cancel', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+        },
+        method: "POST",
+        body: JSON.stringify({
+          ids: [orderToRefund.shipRocketOrderId]
+        })
+      });
+      const cancelOrderResponse = await cancelOrderRequest.json();
+      console.log("🚀 ~ cancelShiprocketOrder ~ cancelOrderResponse:", cancelOrderResponse)
+      if (!cancelOrderRequest.ok) return cancelOrderResponse; // check the message, code and stuff and then send
+    } catch (error) {
+      console.log(error);
+      return false
+    }
+  }
+  const createShiprocketReturnOrder = async () => {
     const shiprocketToken = await generateShiprocketToken();
     const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
@@ -2568,85 +2601,160 @@ exports.initiaterefund = async (req, res) => {
       console.log(error);
       res.status(500).json({ message: "Something went wrong!" });
     }
-
-    // create payment link for added delivery charge
-    // after payment made, make respective changes in webhook
-    // maybe add a note to payment data and in /createshiporder if the note has "reship for {printwearOrderId}" then change status
-    return res.status(200).send({ message: `Reshipping again to ${orderToRefund.billingAddress.firstName + " " + orderToRefund.billingAddress.lastName}` });
   }
 
-  if (orderToRefund.deliveryStatus == "courier_assigned") {
-    // if it is still processing and neither picked up nor delivered, simply hit SR API to remove that courier and issue refund
-    const shiprocketToken = await generateShiprocketToken();
-    const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-
+  const updateRefundWalletRecord = async (cashfreeOrderId, cashfreeSessionId) => {
     try {
-      const cancelSROrderRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/cancel/shipment/awbs`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-        },
-        method: "POST",
-        body: JSON.stringify({
-          awbs: [
-            orderToRefund.shipRocketCourier.courierAWB
-          ]
-        })
+      walletData.transactions.push({
+        amount: orderToRefund.totalAmount,
+        transactionType: "refund",
+        walletOrderId: `REFUND_` + walletOrderId,
+        refundAmount: orderToRefund.totalAmount,
+        transactionNote: "Refund for order " + orderToRefund.printwearOrderId,
+        cashfreeOrderId,
+        cashfreeSessionId
       });
-      const cancelSROrderResponse = await cancelSROrderRequest.json();
-      console.log(cancelSROrderResponse);
-
-      if (cancelSROrderRequest.status == 200 || cancelSROrderRequest.status == 204) {
-        console.log(orderToRefund.printwearOrderId + " shipment cancelled");
-        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
-        (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId != -1) && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = null);
-        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.estimatedDelivery = 'N/A';
-        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = null;
-        (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName != 'SELF PICKUP') && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = 'unassigned');
-        orderHistory.orderData[orderToRefundIndex].deliveryCharges = 0.0;
-
-        let cashfreeRefundStatus = await refundFunction();
-
-        if (cashfreeRefundStatus == 'refund_ok') {
-          orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
-          await orderHistory.save();
-          return res.status(200).json({ orderData: orderHistory.orderData });
-        } else {
-          return res.status(500).json({ message: cashfreeRefundStatus });
-        }
-
-      } else {
-        console.log(orderToRefund.printwearOrderId + " failed to cancel order", cancelSROrderResponse);
-        return res.status(500).json({ message: cancelSROrderResponse.message });
-      }
-
+      await walletData.save();
     } catch (error) {
       console.log(error);
-      return res.status(500).json({ message: "Server error in cancelling order" });
     }
   }
 
-  if (orderToRefund.deliveryStatus == "processing" && orderToRefund.paymentStatus == "success") {
-    // simply call refund function
-    let cashfreeRefundStatus = await refundFunction();
+ // return res.json({ message: "Refunded!" }); // remove this as idk what to do with below
 
-    if (cashfreeRefundStatus == 'refund_ok') {
-      orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
-      if (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId == -1) {
-        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
-      }
+  const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
+  const walletData = await WalletModel.findOne({ userId: req.userId });
+  const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
+  const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
+  const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, specialChars: false });
+
+  if (!orderToRefund || orderToRefundIndex === -1) return res.status(404).json({ message: "Order not found!" });
+
+  if (["pending", "received", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
+
+    try {
+      const isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId);
+      const isRefunded = await refundFunction();
+      if (!isWooUpdated) return res.status(500).json({ message: "Failed to update order status. Please try later or contact help" })
+      if (!(isRefunded.status === "return_ok" && isRefunded.data !== null)) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
+      orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
       await orderHistory.save();
-      return res.status(200).json({ orderData: orderHistory.orderData });
-    } else {
-      return res.status(500).json({ message: cashfreeRefundStatus });
+      // call woocommerce santo endpoint to update order status
+      // refund if not COD
+      res.json({ message: "Order cancelled successfully!" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Something went wrong in cancelling this order!" });
     }
-    // listen to refund event in webhook, then change the status of the order accordingly
-    return res.status(200).send("ok");
+    
+  } else if (["delivered"].includes(orderToRefund.deliveryStatus) || (orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1")) {
+    try {
+
+      let cashfreeRefundStatus = await refundFunction();
+      // call func to create shiprocket return order
+      // woo update
+      // pickup-scheduled status
+      // 
+      if (cashfreeRefundStatus === "refund_ok") {
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
+        orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+        await orderHistory.save();
+        res.json({ message: "Order cancelled successfully!" });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Something went wrong in cancelling this order!" });
+    }
+
   }
 
-  if (orderToRefund.deliveryStatus == "delivered") {
-    // hit SR API to create a return order
-  }
+
+  /// new comment: for now, indha rendu states dhaan iruka mudiyum... meedhi ask client what and all the actions to be done if 
+  /// if an order is cancelled on various order status changes
+
+  // if (orderToRefund.deliveryStatus == "cancelled" && (orderToRefund.paymentStatus == "refund_init" || orderToRefund.paymentStatus == "refunded")) {
+  //   // assign courier automatically again
+  //   // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
+
+  //   // create payment link for added delivery charge
+  //   // after payment made, make respective changes in webhook
+  //   // maybe add a note to payment data and in /createshiporder if the note has "reship for {printwearOrderId}" then change status
+  //   return res.status(200).send({ message: `Reshipping again to ${orderToRefund.billingAddress.firstName + " " + orderToRefund.billingAddress.lastName}` });
+  // }
+
+  // if (orderToRefund.deliveryStatus == "courier_assigned") {
+  //   // if it is still processing and neither picked up nor delivered, simply hit SR API to remove that courier and issue refund
+  //   const shiprocketToken = await generateShiprocketToken();
+  //   const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+  //   try {
+  //     const cancelSROrderRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/cancel/shipment/awbs`, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+  //       },
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         awbs: [
+  //           orderToRefund.shipRocketCourier.courierAWB
+  //         ]
+  //       })
+  //     });
+  //     const cancelSROrderResponse = await cancelSROrderRequest.json();
+  //     console.log(cancelSROrderResponse);
+
+  //     if (cancelSROrderRequest.status == 200 || cancelSROrderRequest.status == 204) {
+  //       console.log(orderToRefund.printwearOrderId + " shipment cancelled");
+  //       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
+  //       (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId != -1) && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = null);
+  //       orderHistory.orderData[orderToRefundIndex].shipRocketCourier.estimatedDelivery = 'N/A';
+  //       orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = null;
+  //       (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName != 'SELF PICKUP') && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = 'unassigned');
+  //       orderHistory.orderData[orderToRefundIndex].deliveryCharges = 0.0;
+
+  //       let cashfreeRefundStatus = await refundFunction();
+
+  //       if (cashfreeRefundStatus == 'refund_ok') {
+  //         orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+  //         await orderHistory.save();
+  //         return res.status(200).json({ orderData: orderHistory.orderData });
+  //       } else {
+  //         return res.status(500).json({ message: cashfreeRefundStatus });
+  //       }
+
+  //     } else {
+  //       console.log(orderToRefund.printwearOrderId + " failed to cancel order", cancelSROrderResponse);
+  //       return res.status(500).json({ message: cancelSROrderResponse.message });
+  //     }
+
+  //   } catch (error) {
+  //     console.log(error);
+  //     return res.status(500).json({ message: "Server error in cancelling order" });
+  //   }
+  // }
+
+  // once processing start pantaanga na, you cant cancel the order, so below if is waste
+  // if (orderToRefund.deliveryStatus == "processing" && orderToRefund.paymentStatus == "success") {
+  //   // simply call refund function
+  //   let cashfreeRefundStatus = await refundFunction();
+
+  //   if (cashfreeRefundStatus == 'refund_ok') {
+  //     orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+  //     if (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId == -1) {
+  //       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
+  //     }
+  //     await orderHistory.save();
+  //     return res.status(200).json({ orderData: orderHistory.orderData });
+  //   } else {
+  //     return res.status(500).json({ message: cashfreeRefundStatus });
+  //   }
+  //   // listen to refund event in webhook, then change the status of the order accordingly
+  //   return res.status(200).send("ok");
+  // }
+
+  // if (orderToRefund.deliveryStatus == "delivered") {
+  //   // hit SR API to create a return order
+  // }
 }
 
 
@@ -3963,8 +4071,9 @@ exports.woowebhook = async (req, res) => {
     console.log("🚀 ~ exports.woowebhook= ~ req:", req.body)
     res.send("OK");
     const wooCommerceOrderId = req.body.number;
+    if (!wooCommerceOrderId) console.log("WooCommerce webhook failed. No order number.");
     const OrderHistoryData = await OrderHistoryModel.findOneAndUpdate({ "orderData": { $elemMatch: { wooOrderId: wooCommerceOrderId } } }, { $set: { "orderData.$.deliveryStatus": req.body.status } }, { new: true });
-    console.log("🚀 ~ exports.woowebhook= ~ OrderHistoryData:", OrderHistoryData)
+    console.log("🚀 ~ updated order history after webhook", OrderHistoryData)
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "error" });

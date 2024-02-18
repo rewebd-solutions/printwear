@@ -114,17 +114,34 @@ p {
     min-width: 230px;
 }
 
-.unplaced, .pending {
-    background-color: hsl(108, 48%, 94%);
-    color: silver;
-}
-
-.processing, .dispatched, .delivered, .success, .courier_assigned, .placed {
+/* remove */
+.processing, .placed, .unplaced, .processing, .dispatched, .delivered, .courier_assigned, .success {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
 }
 
-.return_init, .returned, .cancelled, .refund_init, .refunded, .failed {
+/* remove */
+.return_init, .returned, .cancelled {
+    background-color: hsl(0, 100%, 97%);
+    color: hsl(0, 100%, 57%)   
+}
+
+.processing, .rtd, .pickup-scheduled, .out-for-pickup, .delivered, .completed, .rto, .shipped, .rts {
+    background-color: hsl(108, 48%, 94%);
+    color: hsl(136, 100%, 28%);
+}
+
+.received, .invoiced {
+    background-color: #e5e5e5;
+    color: #777;
+}
+
+.on-hold {
+    background-color: #f8dda7;
+    color: #b17a0c;
+}
+
+.undelivered, .shipment-cancel, .cancelled {
     background-color: hsl(0, 100%, 97%);
     color: hsl(0, 100%, 57%)
 }
