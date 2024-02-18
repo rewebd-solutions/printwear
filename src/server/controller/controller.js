@@ -39,7 +39,7 @@ const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
 //testing
 exports.testing = async (req, res) => {
-  res.send("This is working fine i guess, Plese help me");
+  res.send("This is a final push to check if cloud build is working fine");
 }
 
 // common auth endpoints
