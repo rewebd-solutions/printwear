@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
+    <link rel="stylesheet" href="/css/invoice.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Invoicing</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+        <%- include('partials/top.ejs') %>
+    </div>
+    <div class="invoice">
+        <div class="invoice-header">
+            <h2>Invoicing</h2>
+            <div class="invoice-table">
+                <div id="printwear-invoice">
+                    <div class="search-options">
+                        <label for="search-invoices">Search</label>
+                        <input id="search-invoices" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                    </div> 
+                    <table>
+                        <thead>
+                            <th>S. No.</th>
+                            <th>Date</th>
+                            <th>Transaction ID</th>
+                            <th>Type</th>
+                            <th>Amount paid</th>
+                            <th>Description</th>
+                            <th>Invoice link</th>
+                        </thead>
+                        <tbody id="invoice-table-data">
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+        let walletData = <%- JSON.stringify(walletData) %>;
+        const invoiceTableData = document.querySelector("#invoice-table-data");
+
+        const searchWalletData = (searchKey) => {
+            searchKey = searchKey.toLowerCase().trim();
+            console.log("🚀 ~ searchWalletData ~ searchKey:", searchKey)
+            if (!searchKey) {
+                return populateInvoiceTable();
+            }
+            let filteredData = walletData.transactions.filter(transaction =>  transaction.walletOrderId?.toLowerCase().includes(searchKey) || transaction.transactionNote?.toLowerCase().includes(searchKey) || transaction.transactionType?.includes(searchKey));
+            console.log("🚀 ~ filteredData ~ filteredData:", filteredData)
+            populateInvoiceTable({ transactions: filteredData });
+        }
+        
+        const populateInvoiceTable = (data = walletData) => {
+            if (walletData.transactions.length === 0) return invoiceTableData.innerHTML = 'Search not found!';
+            invoiceTableData.innerHTML = data.transactions.map((transaction, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
+                    <td>${transaction.walletOrderId ?? '—'}</td>
+                    <td>${transaction.transactionType === "recharge"? "Recharge": "Payment"}</td>
+                    <td>₹ ${transaction.amount.toFixed(2)}</td>
+                    <td>${transaction.transactionType === "recharge"? `Recharge for ₹ ${transaction.amount.toFixed(2)}`: transaction.transactionNote}</td>
+                    <td>${transaction.transactionType === "recharge"? `<i class="fa fa-ban"></i>`: `<a href='${transaction.invoiceURL}'><i class="fa fa-download"></i></a>` }</td>
+                </tr>
+            `).join('\n');
+        }
+
+        const fetchInvoices = async () => {
+            try {
+                const invoiceRequest = await fetch("/getinvoices");
+                invoiceResponse = await invoiceRequest.json();
+                console.log(invoiceResponse);
+                document.querySelector('#printwear-invoice').innerHTML = `
+                    <a href="${invoiceResponse.invoice_url}" target="_blank" download>Click here to download invoices</a>
+                `;
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Something went wrong in fetching invoices");
+            }
+        }
+
+        const searchInput = document.querySelector('#search-invoices');
+        searchInput.oninput = (e) => searchWalletData(e.target.value);
+        // fetchInvoices();
+        const URLParams = new URLSearchParams(location.search).get("type");
+        if (URLParams === "recharge") {
+            searchWalletData(URLParams)
+        } else {
+            populateInvoiceTable();
+        }
+        
+    </script>
+</body>
+
+</html>

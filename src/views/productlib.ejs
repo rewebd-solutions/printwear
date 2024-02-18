@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Import Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Import custom CSS file -->
+  <link rel="stylesheet" href="/css/productlib.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+  <title>Product Library - Printwear</title>
+</head>
+
+<body>
+
+  <!-- navbar -->
+  <!-- Navbar starts here -->
+  <div class="banner">
+    <%- include('partials/side-logo.ejs') %>
+      <%- include('partials/top.ejs') %>
+  </div>
+  <!-- navbar  -->
+
+
+  <main class="product-lib">
+    <div class="row">
+      <div class="col-12">
+        <h1>Product Library</h1>
+      </div>
+    </div>
+    <div class="col-10" data-aos="fade-up">
+
+      <img src="/images/pdtlib.png" id="pdt">
+      <p>Start creating your products and save them for reordering quickly.<br>
+        You can also push them to your online store once you connect your store with Printwear</p>
+      <button type="button" class="btn-orange" onclick="showPopup()">Add Product</button>
+    </div>
+  </main>
+  <!-- The popup page -->
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <button class="close-button" onclick="hidePopup()"> <i class="fa-solid fa-close"></i></button>
+      <div class="row">
+        <div class="col">
+          <img src="images/sync.png" alt="Sync Image" style="display: block; width: 100%;">
+          <h3 class="section-title">Sync</h3>
+          <br>
+
+          <p>Create and sync with an existing product on your store</p>
+        </div>
+        <div class="col">
+          <img src="images/push.png" alt="Push Image" style="display: block; width: 100%;">
+          <h3 class="section-title">Push</h3>
+          <br>
+
+          <p>Create and push the product to your store</p>
+        </div>
+        <div class="col acti">
+          <img src="images/save.png" alt="Save Image" style="display: block; width: 100%;">
+          <h3 class="section-title">Save</h3>
+          <br>
+
+          <p>Create and save the product to Product Library for quick re-ordering</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
+  <!-- Link the script.js file -->
+  <script>
+    function showPopup() {
+      document.getElementById('popup').style.display = 'block';
+    }
+
+    function hidePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="/css/stock.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Stock Inventory</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="stock">
+        <div class="head-search">
+            <h2>Stock inventory</h2>
+            <input type="search" oninput="searchProducts(event.target.value)" placeholder="Search for SKU, product name, etc." />
+        </div>
+        <!-- <div class="stock-choice-container">
+            Summa oru description
+        </div> -->
+        <div class="stock-table" data-aos="fade-up">
+            <table id="printwear-stock">
+                <thead>
+                    <tr>
+                        <th>S.No.</th>
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th data-stream="printwear">Stock</th>
+                    </tr>
+                </thead>
+                <tbody id="printwear-productTableBody">
+                    
+                </tbody>
+            </table>
+            <span class="loader"></span>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+        // Sample data (replace with your own data)
+        // notyf.options.types.forEach(typ => typ.icon = null);
+
+        //notyf.success({
+        //    message: "Check your stock status across 3 stores",
+        //    duration: 5000,
+        //    dismissible: true
+        //});
+
+        var printwearStockDataResponse = {};
+
+        const printwearTableBody = document.getElementById("printwear-productTableBody");
+        const printwearTableContainer = document.getElementById("printwear-stock");
+
+        const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');        
+
+        var columnSortOrder = 0;
+
+        const sortTableByColumn = (tableBody, columnIndex) => {
+            const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+            if (columnSortOrder === 0) {
+                columnSortOrder = 1;
+                rows.sort((a, b) => {
+                    const cellA = a.cells[columnIndex].textContent;
+                    const cellB = b.cells[columnIndex].textContent;
+
+                    return cellA.localeCompare(cellB, undefined, { numeric: true });
+                });
+            } else {
+                columnSortOrder = 0;
+                rows.sort((a, b) => {
+                    const cellA = a.cells[columnIndex].textContent;
+                    const cellB = b.cells[columnIndex].textContent;
+
+                    return cellB.localeCompare(cellA, undefined, { numeric: true });
+                });
+            }
+
+            tableBody.innerHTML = "";
+
+            rows.forEach((row) => {
+                tableBody.appendChild(row);
+            });
+        }
+
+        const searchProducts = (searchKey) => {
+            const searchFilteredData = stockData.filter(stock => stock.name.toLowerCase().includes(searchKey.toLowerCase()) || stock.sku.toLowerCase().includes(searchKey.toLowerCase()));
+            console.log(searchFilteredData)
+            populateTable(searchFilteredData);
+        }
+
+        const createTableRow = (stockObject, sno) => {
+            const row = document.createElement("tr");
+
+            const SNoCell = document.createElement("td");
+            SNoCell.textContent = sno;
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = stockObject.name;
+
+            const stockCell = document.createElement("td");
+            stockCell.textContent = stockObject.stock;
+
+            const skuCell = document.createElement("td");
+            skuCell.textContent = stockObject.sku
+
+            row.appendChild(SNoCell);
+            row.appendChild(nameCell);
+            row.appendChild(skuCell);
+            row.appendChild(stockCell);
+            printwearTableBody.appendChild(row);
+        }
+
+        // sortTableByColumn(printwearTableBody, 3);
+
+        const populateTable = (data = stockData) => {
+            printwearTableBody.innerHTML = '';
+            data.forEach((stock, i) => {
+                createTableRow(stock, i+1);
+            })
+        }
+
+        const fetchStockData = async () => {
+            try {
+                const fetchStockDataRequest = await fetch("/getzohoproducts");
+                printwearStockDataResponse = await fetchStockDataRequest.json();
+                console.log(printwearStockDataResponse);
+                stockData = [];
+                Object.keys(printwearStockDataResponse).map(product => {
+                    //console.log(printwearStockDataResponse[product].colors)
+                    Object.keys(printwearStockDataResponse[product].colors).map(productColor => {
+                        Object.keys(printwearStockDataResponse[product].colors[productColor].sizes).map(productSize => {
+                            stockData.push({
+                                name: printwearStockDataResponse[product].colors[productColor].sizes[productSize].name,
+                                sku: printwearStockDataResponse[product].colors[productColor].sizes[productSize].sku,
+                                stock: printwearStockDataResponse[product].colors[productColor].sizes[productSize].stock,
+                            })
+                        })
+                    })
+                });
+                console.log(stockData);
+                document.querySelector(".loader").remove();
+                populateTable(stockData);
+            } catch (error) {
+                console.log(error);
+                document.querySelector(".stock-table").innerHTML = `<h3>Error: Unable to fetch data. Please refresh`;
+                notyf.error({
+                    message: "Error fetching stock details",
+                    dismissible: true
+                })
+            }
+        }
+
+        fetchStockData();
+    </script>
+</body>
+
+</html>
