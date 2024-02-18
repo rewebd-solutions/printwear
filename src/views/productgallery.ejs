@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="/css/productgallery.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Product Gallery - Printwear</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="stock">
+        <div class="header">
+            <div class="head">
+                <p>Product Gallery</p>
+            </div>
+            <div class="search-box-container">
+                <input type="search" name="product-search" placeholder="Search hoodie, tees.." oninput="searchProducts(event.target.value)" id="product-search" />
+                <i class="fa fa-search"></i>
+            </div>
+        </div>
+        <div class="filter-container">
+            <h3>Filter by category</h3>
+            <div class="gender-filter">
+                <button class="filter-button filter-button-active" onclick="filterProductsByGender(event, 'all')">All</button>
+                <button class="filter-button" onclick="filterProductsByGender(event,'men')">Male</button>
+                <button class="filter-button" onclick="filterProductsByGender(event, 'women')">Female</button>
+                <button class="filter-button" onclick="filterProductsByGender(event, 'unisex')">Unisex</button>
+            </div>
+        </div>
+        <div class="cards" data-aos="fade-up">
+            <span class="loader"></span>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+
+        const cardsContainer = document.querySelector(".cards");
+
+        const getProducts = async () => {
+            try {
+                // const productsDataReq = await fetch("/getzohoproductgroups");
+                const productsDataReq = await fetch("/getzohoproducts");
+                const productsData = await productsDataReq.json();
+                console.log(productsData);
+                return productsData;
+            } catch (error) {
+                console.log(error);
+                return error;
+            }
+        }
+
+        const calculateCardPrice = (cardProduct) => {
+            let result = [];
+            for(let color in cardProduct.colors){
+                const sizes = cardProduct.colors[color]['sizes'];
+                for(let size in sizes) {
+                    result.push(cardProduct.colors[color].sizes[size].price)
+                }
+            }
+            //console.log(result);
+            return result.sort((a, b) => a - b).filter(r => r != 0)[0];
+        }
+
+        const calculateCardStock = (cardProduct) => {
+            let sum = 0;
+            for(let color in cardProduct.colors){
+                const sizes = cardProduct.colors[color]['sizes'];
+                for(let size in sizes) {
+                    sum += cardProduct.colors[color].sizes[size].stock ?? 0
+                }
+            }
+            return sum;
+        }
+
+        const slugifyNames = (string) => string.toLowerCase().replace(/[\/\s]/g, '-').slice(0, 200);
+
+        const populateData = (data = productsData) => {
+            cardsContainer.innerHTML = '';
+            if (Object.keys(data).length === Object.keys({}).length) return cardsContainer.innerHTML = 'Search not found!'
+            for (let style in data) {
+                let currentProduct = data[style];
+                if (currentProduct.baseImage.front == '') continue;
+                let cardDataDOMString = `
+                <div class="display-card" data-aos="fade-up" data-aos-anchor="top-bottom">
+                    <div class="name-price">
+                        <h3>${style}</h3>
+                        <h6>by ${currentProduct.brand ? currentProduct.brand: 'Brand'}</h6>
+                    </div>
+                    <div class="card-img">
+                        <img src="${currentProduct.baseImage.front != ''? currentProduct.baseImage.front: 'images/warning.png'}" id="img" alt="${style}">
+                    </div>
+                    <div class="details">
+                        <div class="stock-avail">
+                            <p style="font-size: 14px">Starts: ₹${calculateCardPrice(currentProduct)}</p>
+                            ${calculateCardStock(currentProduct) === 0? `<p style="color:red; font-size: 14px">Out of stock!</p>`: `<p style="font-size: 14px">Stock: ${calculateCardStock(currentProduct)}</p>`}
+                        </div>
+                        <div class="view-btn">
+                            <button class="toggle-modal" data-productid="${slugifyNames(style)}">Design</button>
+                        </div>
+                    </div>
+                </div>
+                `;
+                cardsContainer.innerHTML += cardDataDOMString;
+            }
+            cardsContainer.addEventListener("click", (e) => {
+                let toggleModalBtn = e.target.closest(".toggle-modal");
+                if (toggleModalBtn) {
+                    let styleToOpen = Object.keys(data).find(product => slugifyNames(e.target.dataset.productid) == slugifyNames(product));
+                    openProductModal(styleToOpen);
+                    e.stopImmediatePropagation()
+                    return
+                }
+            })
+        }
+        
+        const openProductModal = (style) => { 
+            const productData = productsData[style];
+            const anyColorForSizes = Object.keys(productData.colors)[0];
+            const productImage = productData.baseImage.front;
+            let productModalDOMString = `
+                <div class="product-modal-wrapper">
+                    <div class="product-modal" data-aos="fade-up">
+                        <button class="modal-close">
+                            <i class="fa fa-close"></i>
+                        </button>
+                        <div class="product-modal-image">
+                            <img src="${productImage != ''? productImage:'images/warning.png'}"
+                                alt="${style}">
+                        </div>
+                        <div class="product-modal-details">
+                            <h2 class="product-name">${style}</h2>
+                            <div class="product-category-gender">
+                                <h5>${productData.group}</h5>
+                            </div>
+                            <p class="product-description">
+                                ${productImage? productData.description: 'Product is not available yet!'}
+                            </p>
+                            <div class="product-colors">
+                                <p>Colors: </p>
+                                ${Object.keys(productData.colors).map(color => {
+                                        if (productData.colors[color].frontImage)
+                                        return `<div class="color-disc" data-color="${color}" title="${color}" style="background: ${productData.colors[color].colorCode}"></div>`
+                                    }).join("\n")
+                                }
+                            </div>
+                            <div class="product-sizes">
+                                <p>Sizes: </p>
+                                ${
+                                    new Array(...new Set(Object.keys(productData.colors).map(color => {
+                                        return Object.keys(productData.colors[color].sizes)
+                                    }).flat())).map(size => `<h4 style="background: #ebebeb">${size}</h4>`).join('\n')
+                                }
+                            </div>
+                            <div class="product-price-button">
+                                <h4>Starts from ₹${calculateCardPrice(productData)}</h4>
+                                ${productImage?`<a href="/designgenerator?style=${style.split(" ").join("+")}"><button>Design now</button></a>`:`<button disabled="true">Cannot design yet!</button>`}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.querySelector(".stock").insertAdjacentHTML("afterend", productModalDOMString);
+
+            const closeModalButton = document.querySelector(".modal-close");
+            closeModalButton.addEventListener("click", (e) => {
+                document.body.removeChild(document.querySelector(".product-modal-wrapper"));
+            })
+        }
+
+        const filterProductsByGender = (e, category) => {
+            // console.log(category)
+            const filterByGenderButtons = document.querySelectorAll(".filter-button");
+            filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
+
+            e.target.classList.add("filter-button-active");
+
+            if (category === "all") return populateData();
+            const filteredData = {};
+            for(let styleName in productsData) {
+                if (productsData[styleName].gender === category) {
+                    filteredData[styleName] = productsData[styleName];
+                }
+            }
+            // console.log(filteredData)
+            populateData(filteredData)
+        }
+
+        const searchProducts = (searchKey) => {
+            const searchFilteredData = {};
+            for (let styleName in productsData) {
+                // new RegExp(`/${searchKey}/`, 'i').test(styleName) ? searchFilteredData[styleName] = productsData[styleName]: {}
+                styleName.toLowerCase().includes(searchKey.toLowerCase()) ? searchFilteredData[styleName] = productsData[styleName]: {}
+            }
+            populateData(searchFilteredData);
+        }
+
+        getProducts().then(data => {
+            const maleFilterPattern = new RegExp(/\bmen\b|\bmens\b/i);
+            const femaleFilterPattern = new RegExp(/\bwomen\b|\bwomens\b/i);
+            
+            Object.keys(data).forEach(styleName => {
+                if (maleFilterPattern.test(styleName)) data[styleName]['gender'] = "men";
+                else if (femaleFilterPattern.test(styleName)) data[styleName]['gender'] = "women";
+                else data[styleName]['gender'] = "unisex";
+            });
+
+            productsData = data;
+            populateData();
+        }).catch(error => {
+            console.log(error);
+            notyf.error({
+                message: "There was an error trying to fetch data",
+                dismissible: true
+            });
+        }) 
+
+    </script>
+</body>
+
+</html>

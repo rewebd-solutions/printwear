@@ -1,5 +1,15 @@
 runtime: nodejs20
 
+env_variables:
+  MONGODB_URL: mongodb+srv://sit21it063:ifP2Q7QWXU4j3vFw@testcluster.2llp5qx.mongodb.net/printwear?retryWrites=true&w=majority
+  TWILIO_ACCOUNT_SID: AC699a3ffcae69f6ff9fa6cb573827366f
+  TWILIO_AUTH_TOKEN: 48f4f5c7c0826079e8e07cff4861238a
+  CASH_APP_ID: 62549ef60e51095a81325ca1f94526
+  CASH_SECRET_KEY: de9cf065a32c2646afb45c234f721496c0748ab0
+  ZOHO_CLIENT_ID: 1000.Q9IE9RH0XQVEDARXI56IWOFL1WNBOM
+  ZOHO_CLIENT_SECRET: b5aa9b6a5b7b66f931185f283c6f6bc86814aef2a8
+  ZOHO_ACCESS_TOKEN: 1000.06952240ceec93a81bbfb8b0c
+
 handlers:
   - url: /.*
     script: auto

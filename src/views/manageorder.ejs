@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/manageorder.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Manage orders - Printwear</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/side-logo.ejs') %>
+            <%- include('partials/top.ejs') %>
+    </div>
+    <div class="manageorder">
+        <div class="mngord-head">
+            <h2>Manage Order</h2>
+            <button class="filter-button filter-button-active" onclick="changeWidget(event, 'confirmed')">Confirmed</button>
+            <button class="filter-button" onclick="changeWidget(event,'cancelled')">Cancelled</button>         
+            <button class="filter-button" onclick="changeWidget(event,'returned')">Returned</button>         
+        </div>
+        <div class="order-table">
+            <div id="printwear-order">
+                <div class="search-options">
+                    <label for="search-orders">Search</label>
+                    <input id="search-orders" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                </div>
+                <table>
+                    <thead>
+                        <th>S. No.</th>
+                        <th>Printwear Order ID</th>
+                        <th>Your Order ID</th>
+                        <th>Customer Name</th>
+                        <th>Amount paid</th>
+                        <th>Courier Tracking</th>
+                        <th>Order placed on</th>
+                        <th>Delivery Status</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div id="cancelled-order">
+                <div class="search-options">
+                    <label for="search-orders">Search</label>
+                    <input id="search-orders" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                </div>
+                <table>
+                    <thead>
+                        <th>S. No.</th>
+                        <th>Printwear Order ID</th>
+                        <th>Your Order ID</th>
+                        <th>Customer Name</th>
+                        <th>Amount paid</th>
+                        <th>Courier Tracking</th>
+                        <th>Order placed on</th>
+                        <th>Delivery Status</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div id="returned-order">
+                <div class="search-options">
+                    <label for="search-orders">Search</label>
+                    <input id="search-orders" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                </div>
+                <table>
+                    <thead>
+                        <th>S. No.</th>
+                        <th>Printwear Order ID</th>
+                        <th>Your Order ID</th>
+                        <th>Customer Name</th>
+                        <th>Amount paid</th>
+                        <th>Courier Tracking</th>
+                        <th>Order placed on</th>
+                        <th>Delivery Status</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- modal comes here -->
+    </div>
+    
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+        var orderHistoryData = [];
+        var designData = {};
+
+        const orderHistoryTable = document.querySelector("#printwear-order > table tbody");
+        const cancelledOrderTable = document.querySelector("#cancelled-order > table tbody");
+        const returnedOrderTable = document.querySelector("#returned-order > table tbody");
+
+        const printwearOrderContainer = document.querySelector("#printwear-order");
+        const cancelledOrderContainer = document.querySelector("#cancelled-order");
+        const returnedOrderContainer = document.querySelector("#returned-order");
+
+        const searchOrderBox = document.querySelector("#search-orders");
+        const manageOrderContainer = document.querySelector(".manageorder");
+
+        searchOrderBox.oninput = (e) => {
+            let searchKey = e.target.value.toLowerCase().trim();
+            //console.log('Search Key:', searchKey);
+
+            if (searchKey === '') {
+                //console.log('Empty search key. Populating all orders.');
+                return populateOrderHistoryTable();
+            }
+
+            const orderHistoryFromSearch = orderHistoryData.filter(orderHistory => (
+                orderHistory.customerOrderId?.toLowerCase().includes(searchKey) ||
+                orderHistory.printwearOrderId?.toLowerCase().includes(searchKey) ||
+                orderHistory.shipRocketCourier?.courierAWB?.toLowerCase().includes(searchKey) ||
+                orderHistory.deliveryStatus?.toLowerCase().includes(searchKey) ||
+                Object.values(orderHistory.billingAddress).join(' ').toLowerCase().includes(searchKey) ||
+                Object.values(orderHistory.shippingAddress).join(' ').toLowerCase().includes(searchKey) 
+            ));
+
+            //console.log('Matching orders:', orderHistoryFromSearch);
+
+            populateOrderHistoryTable(orderHistoryFromSearch, "Invalid Search");
+        }
+
+        const changeWidget = (e, widget) => {
+            const filterByGenderButtons = document.querySelectorAll(".filter-button");
+            filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
+
+            e.target.classList.add("filter-button-active");
+
+            switch (widget) {
+                case 'cancelled':
+                    printwearOrderContainer.style.display = "none";
+                    returnedOrderContainer.style.display = "none";
+                    cancelledOrderContainer.style.display = "flex";
+                    break;
+                case 'confirmed':
+                    printwearOrderContainer.style.display = "flex";
+                    returnedOrderContainer.style.display = "none";
+                    cancelledOrderContainer.style.display = "none";
+                    break;
+                case 'returned':
+                    printwearOrderContainer.style.display = "none";
+                    returnedOrderContainer.style.display = "flex";
+                    cancelledOrderContainer.style.display = "none";
+                    break;
+                default: 
+                    break;
+            }
+        }
+
+        const initiateRefund = async (el, printwearOrderId) => {
+            el.classList.add('disable-button');
+            try {
+                const initiateRefundRequest = await fetch("/initiaterefund", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }, 
+                    body: JSON.stringify({
+                        orderId: printwearOrderId
+                    }),
+                    method: 'POST'
+                });
+                const initiateRefundResponse = await initiateRefundRequest.json();
+                console.log(initiateRefundResponse);
+                if (initiateRefundRequest.ok) {
+                    //let indexToUpdate = orderHistoryData.findIndex(order => order.printwearOrderId == printwearOrderId);
+                    //orderHistoryData[indexToUpdate].paymentStatus = "refund_init";
+                    //orderHistoryData[indexToUpdate].paymentStatus = "refund_init";
+                    //console.log(orderHistoryData);
+                    orderHistoryData = initiateRefundResponse.orderData;
+                    populateOrderHistoryTable();
+                    manageOrderContainer.removeChild(document.querySelector(".order-details-modal-wrapper"))
+                    return notyf.success("Refund initiated. Will be processed within 2-3 working days.");
+                }
+                return notyf.error(initiateRefundResponse.message);
+            } catch (error) {
+                console.log(error);
+                return notyf.error("Error in initiating refund!");
+            } finally {
+                el.classList.remove('disable-button');
+            }
+        } 
+
+        const openOrderDetailsModal = (e, customerOrderId) => {
+            e.preventDefault();
+            const modalOrderDetails = orderHistoryData.find(orderData => orderData.customerOrderId == customerOrderId);
+            let isNegative = (modalOrderDetails.deliveryStatus == "cancelled" || modalOrderDetails.deliveryStatus == "return_init" || modalOrderDetails.deliveryStatus == "returned");
+            manageOrderContainer.insertAdjacentHTML("beforeend", `
+                <div class="order-details-modal-wrapper">
+                    <div class="order-details-modal" data-aos="fade-up">
+                        <div class="close-button-wrapper">
+                            <button id="close-modal">
+                                <i class="fa fa-close"></i>
+                            </button>
+                        </div>
+                        <div class="order-id-wrapper">
+                            <h4>Printwear Order ID: ${modalOrderDetails.printwearOrderId}</h4>
+                            <h2>${modalOrderDetails.customerOrderId}<h4 class="status-badge ${modalOrderDetails.deliveryStatus}">${modalOrderDetails.deliveryStatus}</h4> </h2>
+                        </div>
+                        <h3>Order items:</h3>
+                        <table class="order-details-table">
+                            <thead>
+                                <th>S. No.</th>
+                                <th>Design Name</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>SKU</th>
+                                <th>Price</th>
+                            </thead>
+                            <tbody>
+                                ${modalOrderDetails.items.map((item, i) => {
+                                    let currentDesignItem = designData.designs.find(design => design._id == item.designId);
+                                    return `
+                                        <tr>
+                                            <td>${i+1}</td>
+                                            <td>${currentDesignItem.designName}</td>
+                                            <td>${currentDesignItem.product.name}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>${currentDesignItem.designSKU}</td>
+                                            <td>₹${item.price}</td>
+                                        </tr>
+                                    `
+                                }).join('\n')}
+                            </tbody>
+                        </table>
+                        <p>Order placed on: ${new Date(modalOrderDetails.createdAt).toLocaleString()}</p>
+                        <div>
+                            <p>Address: </p>
+                            <p class="address-indent"> ${modalOrderDetails.billingAddress.firstName + " " + modalOrderDetails.billingAddress.lastName} </p>
+                            <p class="address-indent"> ${modalOrderDetails.billingAddress.mobile} </p>
+                            <p class="address-indent"> ${Object.values(modalOrderDetails.billingAddress).slice(4).join(', ')} </p>
+                        </div>
+                        <table style='${isNegative? 'opacity: 0.6; pointer-events: none;': 'opacity: 1'}'>
+                            <thead>
+                                <th>Shiprocket ID</th>
+                                <th>Shipment ID</th>
+                                <th>Tracking ID</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${isNegative? modalOrderDetails.deliveryStatus: modalOrderDetails.shipRocketOrderId}</td>
+                                    <td>${isNegative? modalOrderDetails.deliveryStatus: modalOrderDetails.shipmentId}</td>
+                                    <td>${isNegative? modalOrderDetails.deliveryStatus: `<a href="https://shiprocket.co/tracking/${modalOrderDetails.shipRocketCourier.courierAWB}" target="_blank">${modalOrderDetails.shipRocketCourier.courierAWB}</a>`}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!--
+                        <h4>Order Tracking:</h4>
+                        <div class="tracking-status">
+                            <ul>
+                                <li data-order-status="unplaced">Unplaced</li>
+                                <li data-order-status="processing">Processing</li>
+                                <li data-order-status="dispatched">Dispatched</li>
+                                <li data-order-status="delivered">Delivered</li>
+                            </ul>
+                        </div> -->
+                        ${modalOrderDetails.paymentStatus == "refund_init"? 
+                            '<button class="disable-button">Refund initiated</button> Will be processed within 2-3 working days!'
+                            : 
+                            `<button class="refund-btn" onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>`}
+                    </div>
+                </div>
+            `);
+            /* const trackingStatusBoxes = document.querySelectorAll('.tracking-status ul li');
+                
+
+            for(let i=0; i<trackingStatusBoxes.length; i++) {
+                let el = trackingStatusBoxes[i];
+                // el.classList.add("status-complete");
+                el.insertAdjacentHTML("afterbegin",
+                `
+                    <i class="fa fa-check-circle status-complete"></i>
+                `);
+                if (el.dataset.orderStatus == modalOrderDetails.deliveryStatus) {
+                    for(let x = i+1; x < trackingStatusBoxes.length; x++) {
+                        trackingStatusBoxes[x].style.opacity = "0.6";
+                    }
+                    break;
+                }
+            } */
+
+            const closeModalButton = document.querySelector("#close-modal");
+            closeModalButton.addEventListener("click", (e) => {
+                manageOrderContainer.removeChild(document.querySelector(".order-details-modal-wrapper"))
+            })
+        }
+
+        const populateOrderHistoryTable = (data = orderHistoryData, noDataMessage = 'No orders yet!') => {
+            if (data.length < 1) {
+                [orderHistoryTable, cancelledOrderTable, returnedOrderTable].forEach(table => table.innerHTML = noDataMessage);
+                return notyf.error(noDataMessage);
+            }
+            orderHistoryTable.innerHTML = data.filter(orderHistory => [
+                "received", 
+                "rts", 
+                "on-hold", 
+                "processing", 
+                "rtd",    
+                "rto",   
+                "invoiced", 
+                "shipped", 
+                "delivered", 
+                "completed", 
+                "pending",
+                'placed', 'processing', 'courier_assigned', 'dispatched' // this is for old deliveryStatus. Remove in prod
+            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+                return `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
+                        <td>${orderHistory.customerOrderId}</a></td>
+                        <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
+                        <td>₹${orderHistory.amountPaid}</td>
+                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>`: `unavailable`}</td>
+                        <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
+                        <td><h3 class="status-badge ${orderHistory.deliveryStatus}">${orderHistory.deliveryStatus}</h3></td>
+                    </tr>                    
+                `;
+                
+            }).join('\n');
+            returnedOrderTable.innerHTML = data.filter(orderHistory => [
+                "pickup-scheduled",
+                "out-for-pickup",
+                "undelivered",
+                'return_init', 'returned'
+            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+                return `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
+                        <td>${orderHistory.customerOrderId}</a></td>
+                        <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
+                        <td>₹${orderHistory.amountPaid}</td>
+                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>`: `unavailable`}</td>
+                        <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
+                        <td><h3 class="status-badge ${orderHistory.deliveryStatus}">${orderHistory.deliveryStatus}</h3></td>
+                    </tr>                    
+                `;
+                
+            }).join('\n');
+            cancelledOrderTable.innerHTML = data.filter(orderHistory => [
+                "shipment-cancel",
+                "cancelled",
+            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+                return `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
+                        <td>${orderHistory.customerOrderId}</a></td>
+                        <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
+                        <td>₹${orderHistory.amountPaid.toFixed(2)}</td>
+                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>`: `unavailable`}</td>
+                        <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
+                        <td><h3 class="status-badge ${orderHistory.deliveryStatus}">${orderHistory.deliveryStatus}</h3></td>
+                    </tr>                    
+                `;
+                
+            }).join('\n');
+        }
+
+        const fetchOrderHistory = async () => {
+            try {
+                const orderHistoryRequest = await fetch("/getorderhistory");
+                const orderHistoryResponse = await orderHistoryRequest.json();
+                console.log(orderHistoryResponse)
+                if (!orderHistoryRequest.ok) {
+                    console.log(orderHistoryResponse.message || "Unknown error");
+                    return notyf.error(orderHistoryResponse.message || "Unknown error");
+                }
+                orderHistoryData = orderHistoryResponse;
+                populateOrderHistoryTable();
+            } catch (error) {
+                console.log(error);
+                notyf.error("Something went wrong!");
+            }
+        }
+    
+        const fetchDesignsData = async () => {
+            try {
+                const designsFetchRequest = await fetch("/getdesigns");
+                const designsFetchResponse = await designsFetchRequest.json();
+                console.log(designsFetchResponse);
+                if (!designsFetchRequest.ok) {
+                    console.log(designsFetchResponse.message || "Unknown error");
+                    return notyf.error(designsFetchResponse.message || "Unknown error");
+                }
+                designData = designsFetchResponse;
+                fetchOrderHistory();
+            } catch (error) {
+                console.log(error);
+                notyf.error("Something went wrong!");
+            }
+        }
+
+        fetchDesignsData();
+    
+    </script>
+</body>
+
+</html>
