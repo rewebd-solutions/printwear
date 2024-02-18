@@ -1355,7 +1355,7 @@ exports.createorder = async (req, res) => {
       let totalCost = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
       orderData.totalAmount = totalCost
       orderData.printwearOrderId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
-      orderData.taxes = totalCost * 0.05;
+      orderData.taxes = (totalCost * 0.05).toFixed(2);
       await orderData.save();
     } else {
       const newOrder = new OrderModel({
@@ -1366,7 +1366,7 @@ exports.createorder = async (req, res) => {
           price: req.body.price
         }],
         totalAmount: req.body.price,
-        taxes: parseFloat(req.body.price) * 0.05,
+        taxes: (parseFloat(req.body.price) * 0.05).toFixed(2),
         printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
       });
       await newOrder.save();
@@ -1735,7 +1735,7 @@ exports.placeorder = async (req, res) => {
       courierData,
       cashOnDelivery
     } = req.body;
-
+    // validate data
     const orderData = await OrderModel.findOne({ userId: req.userId });
     
     if (!orderData) {
@@ -1763,7 +1763,7 @@ exports.placeorder = async (req, res) => {
       transactionNote: `Payment for Order ${orderData.printwearOrderId}`,
     }); // summa
     await walletData.save() //summa
-    console.log("Wallet operation successful!");
+    console.log(orderData.printwearOrderId + " Wallet operation successful!");
 
 
     /// STEP 1.5: ORDERDATA GAM
@@ -1802,7 +1802,7 @@ exports.placeorder = async (req, res) => {
     },
     orderData.cashOnDelivery = cashOnDelivery,
     orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2);
-    orderData.taxes = orderData.totalAmount * 0.05;
+    orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2);
 
     await orderData.save();
     console.log("🚀 ~ orderData:", orderData)
@@ -1890,7 +1890,7 @@ exports.placeorder = async (req, res) => {
   
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
-      orderData.deliveryStatus = "placed";
+      orderData.deliveryStatus = "received";
     }  
 
     /// STEP 3: TRANSFER ORDERDATA TO ORDERHISTORY
@@ -2408,7 +2408,8 @@ exports.placeorder = async (req, res) => {
     console.log("🚀 ~ createWooOrderRes:", createWooOrderRes)
 
     updatedOrderHistory.orderData.at(-1).wooOrderId = createWooOrderRes.id;
-    await updatedOrderHistory.save();
+    updatedOrderHistory.orderData.at(-1).walletOrderId = walletOrderId;
+    await updatedOrderHistory.save({validateBeforeSave: false});
 
   } catch (error) {
     console.log("General error");
@@ -2482,9 +2483,9 @@ exports.initiaterefund = async (req, res) => {
   // for RETURN ORDER: hit shiprocket API to initiate return, then listen to the event via webhook and then update 
   // orderHistory with appropriate status and all
 
-  const refundFunction = async () => {
+  const refundFunction = async (orderId) => {
     try {
-      const cashfreeRefundRequest = await fetch(CASHFREE_BASE_URL + `/orders/${orderToRefund.printwearOrderId}/refunds`, {
+      const cashfreeRefundRequest = await fetch(CASHFREE_BASE_URL + `/orders/${orderId}/refunds`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -2511,7 +2512,7 @@ exports.initiaterefund = async (req, res) => {
     }
   }
 
-  const updateWooCommerceOrderStatus = async (wooCommerceOrderId) => {
+  const updateWooCommerceOrderStatus = async (wooCommerceOrderId, status) => {
     try {
       const consumerKey = process.env.WOO_PROD_CONSUMER_KEY;
       const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
@@ -2526,7 +2527,7 @@ exports.initiaterefund = async (req, res) => {
           Authorization: `Basic ${encodedAuth}`,
         },
         body: JSON.stringify({
-          status: "cancelled"
+          status: status
         }),
       })
 
@@ -2557,49 +2558,93 @@ exports.initiaterefund = async (req, res) => {
       });
       const cancelOrderResponse = await cancelOrderRequest.json();
       console.log("🚀 ~ cancelShiprocketOrder ~ cancelOrderResponse:", cancelOrderResponse)
-      if (!cancelOrderRequest.ok) return cancelOrderResponse; // check the message, code and stuff and then send
+      if (cancelOrderRequest.status == 200 || cancelOrderRequest.status == 204) return cancelOrderResponse; // check the message, code and stuff and then send
+      return true;
     } catch (error) {
       console.log(error);
       return false
     }
   }
+
   const createShiprocketReturnOrder = async () => {
     const shiprocketToken = await generateShiprocketToken();
     const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
     try {
-      if (orderToRefund.shipRocketCourier.courierId != -1) {
-        const shipmentAssignRequest = await fetch(SHIPROCKET_BASE_URL + '/courier/assign/awb', {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-          },
-          method: "POST",
-          body: JSON.stringify({
-            shipment_id: orderToRefund.shipmentId,
-            courier_id: orderToRefund.shipRocketCourier.courierId
-          })
-        });
-        const shipmentAssignResponse = await shipmentAssignRequest.json();
-        console.log(shipmentAssignResponse);
-        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
-        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = shipmentAssignResponse.response.data.courier_company_id;
-        orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = shipmentAssignResponse.response.data.courier_name;
-        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "courier_assigned";
-        orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
-        orderHistory.orderData[orderToRefundIndex].deliveryCharges = shipmentAssignResponse.response.data.freight_charges;
+      const returnOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/return', {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
+        },
+        method: "POST",
+        body: JSON.stringify({
+          "order_id": orderToRefund.printwearOrderId,
+          "order_date": formatDate(orderToRefund.createdAt),
+          "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
+          "pickup_customer_name": orderToRefund.shippingAddress.firstName,
+          "pickup_last_name": orderToRefund.shippingAddress.lastName,
+          "company_name": "",
+          "pickup_address": orderToRefund.shippingAddress.streetLandmark,
+          "pickup_address_2": "",
+          "pickup_city": orderToRefund.shippingAddress.city,
+          "pickup_state": orderToRefund.shippingAddress.state,
+          "pickup_country": "India",
+          "pickup_pincode": orderToRefund.shippingAddress.pincode,
+          "pickup_email": orderToRefund.shippingAddress.email,
+          "pickup_phone": orderToRefund.shippingAddress.mobile,
+          "pickup_isd_code": "",
+          "shipping_customer_name": "Santhosh",
+          "shipping_last_name": "Sasa",
+          "shipping_address": "no 33 jai garden",
+          "shipping_address_2": "3rd street valasaravakkam",
+          "shipping_city": "Tiruvallur",
+          "shipping_country": "India",
+          "shipping_pincode": 600087,
+          "shipping_state": "Tamil Nadu",
+          "shipping_email": "accounts@printwear.in",
+          "shipping_isd_code": "1121739",
+          "shipping_phone": 9884909019,
+          "order_items": [
+            ...orderToRefund.items.map(item => {
+              let currentDesignItem = designData.designs.find(design => design._id + "" == item.designId + "");
+              return {
+                "name": currentDesignItem.designName,
+                "qc_enable": true,
+                "qc_product_name": currentDesignItem.product.name,
+                "sku": currentDesignItem.designSKU,
+                "units": item.quantity,
+                "selling_price": item.price,
+                "discount": 0,
+                "qc_brand": "",
+                "qc_product_image": currentDesignItem.designImage.front ?? currentDesignItem.designImage.back
+              }
+            })
+          ],
+          "payment_method": orderToRefund.cashOnDelivery ? "COD": "PREPAID",
+          "total_discount": "0",
+          "sub_total": orderToRefund.totalAmount,
+          "length": designData.designs.at(0).designDimensions.height, // these are because for now temporary heights and widths, so adpiye edho oru item oda dimensions tharen
+          "breadth": 1,
+          "height": designData.designs.at(0).designDimensions.width,
+          "weight": 0.25
+        })
+      });
+      const returnOrderResponse = await returnOrderRequest.json();
+      console.log("🚀 ~ createShiprocketReturnOrder ~ returnOrderResponse:", returnOrderResponse)
+      if (returnOrderRequest.status == 200 || returnOrderRequest.status == 204) return returnOrderResponse
+      return false
+      // orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = shipmentAssignResponse.response.data.awb_code;
+      // orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = shipmentAssignResponse.response.data.courier_company_id;
+      // orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = shipmentAssignResponse.response.data.courier_name;
+      // orderHistory.orderData[orderToRefundIndex].deliveryStatus = "courier_assigned";
+      // orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
+      // orderHistory.orderData[orderToRefundIndex].deliveryCharges = shipmentAssignResponse.response.data.freight_charges;
 
-        await orderHistory.save();
-      } else {
-        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "processing";
-        orderHistory.orderData[orderToRefundIndex].paymentStatus = "success";
-        await orderHistory.save();
-      }
-      // wallet ku poidum
-
+      // await orderHistory.save();
+      // return true
     } catch (error) {
       console.log(error);
-      res.status(500).json({ message: "Something went wrong!" });
+      return false;
     }
   }
 
@@ -2614,58 +2659,68 @@ exports.initiaterefund = async (req, res) => {
         cashfreeOrderId,
         cashfreeSessionId
       });
-      await walletData.save();
+      await walletData.save(); // i am relying on mongodb to successfully update everytime this function is called, so i dont return true
     } catch (error) {
       console.log(error);
     }
   }
 
- // return res.json({ message: "Refunded!" }); // remove this as idk what to do with below
+  try {
+    var orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
+    var walletData = await WalletModel.findOne({ userId: req.userId });
+    var designData = await NewDesignModel.findOne({ userId: req.userId });
+    var orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
+    var orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
+    var walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, specialChars: false });
+    // this purchase transaction is to make sure that i correspond the walletorder id that was used to make payment for the order is 
+    // inside the orderhistory data itself so when i need to make a refund i can simply refer it from orderhistory and find that specific 
+    // transaction and then if refund is needed, do so by passing it to refundFunction as argument
+    var purchaseTransaction = walletData.transactions.find(transaction => transaction.walletOrderId == orderToRefund.walletOrderId)
 
-  const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
-  const walletData = await WalletModel.findOne({ userId: req.userId });
-  const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
-  const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
-  const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, specialChars: false });
+    if (!orderToRefund || orderToRefundIndex === -1) return res.status(404).json({ message: "Order not found!" });
+    
+    if (!purchaseTransaction) return res.status(404).json({ message: "Wallet transaction not found!" }); // if no such transaction found, then cant refund, problem with us only
 
-  if (!orderToRefund || orderToRefundIndex === -1) return res.status(404).json({ message: "Order not found!" });
-
-  if (["pending", "received", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
-
-    try {
-      const isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId);
+    if (["pending", "received", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
+  
       const isRefunded = await refundFunction();
+      if (!(isRefunded.status === "refund_ok" && isRefunded.data != null)) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
+      
+      const isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "cancelled");
       if (!isWooUpdated) return res.status(500).json({ message: "Failed to update order status. Please try later or contact help" })
-      if (!(isRefunded.status === "return_ok" && isRefunded.data !== null)) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
+      
+      await updateRefundWalletRecord();
+      
       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
+      orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
       await orderHistory.save();
       // call woocommerce santo endpoint to update order status
       // refund if not COD
+      
       res.json({ message: "Order cancelled successfully!" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: "Something went wrong in cancelling this order!" });
-    }
-    
-  } else if (["delivered"].includes(orderToRefund.deliveryStatus) || (orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1")) {
-    try {
-
-      let cashfreeRefundStatus = await refundFunction();
-      // call func to create shiprocket return order
-      // woo update
-      // pickup-scheduled status
-      // 
-      if (cashfreeRefundStatus === "refund_ok") {
-        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
+  
+    } else if (["delivered"].includes(orderToRefund.deliveryStatus) || (orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1")) {
+        
+        let cashfreeRefundStatus = await refundFunction();
+        let shiprocketReturnCreated = await createShiprocketReturnOrder();
+  
+        if (!(cashfreeRefundStatus.status === "refund_ok" && cashfreeRefundStatus.data != null)) return res.status(500).json({ message: "Something went wrong in initiating refund!" });
+        if (shiprocketReturnCreated.message || shiprocketReturnCreated.status_code !== 21) return res.status(500).json({ message: "Something went wrong in creating return order!" });
+        
+        let isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "pickup-scheduled");
+        if (!isWooUpdated) return res.status(500).json({ message: "Something went wrong in updating return order" });
+  
+        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "pickup-scheduled";
         orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+        orderHistory.orderData[orderToRefundIndex].shipRocketReturn.orderId = shiprocketReturnCreated.order_id;
+        orderHistory.orderData[orderToRefundIndex].shipRocketReturn.shipmentId = shiprocketReturnCreated.shipment_id;
+        orderHistory.orderData[orderToRefundIndex].shipRocketReturn.status = shiprocketReturnCreated.status;
         await orderHistory.save();
-        res.json({ message: "Order cancelled successfully!" });
-      }
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: "Something went wrong in cancelling this order!" });
+        res.json({ message: "Return order created successfully!" });
     }
-
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong in cancelling this order!" });
   }
 
 

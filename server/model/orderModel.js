@@ -63,7 +63,7 @@ var OrderSchema = new mongoose.Schema({
     deliveryStatus: {
         type: String,
         default: "unplaced",
-        enum: ["unplaced", "placed", "processing", "courier_assigned", "dispatched", "delivered", "return_init", "returned", "cancelled"]
+        enum: ["received", "rts", "on-hold", "processing", "rtd", "shipment-cancel", "pickup-scheduled", "out-for-pickup", "rto", "cancelled", "undelivered", "invoiced", "shipped", "delivered", "completed", "pending"]
     },
     deliveryCharges: {
         type: Number,

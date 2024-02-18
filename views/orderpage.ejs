@@ -31,11 +31,11 @@
             </div>
             <!-- remove this shit in prod -->
             <% if (orderData.orderData[0].deliveryStatus == "cancelled" && (orderData.orderData[0].paymentStatus == "refund_init" || orderData.orderData[0].paymentStatus == "refunded")) { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">Reship order</button>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">(unused) Reship order</button>
             <% } else if (orderData.orderData[0].deliveryStatus != "delivered") { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this)">Cancel Order</button>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this)">(unused) Cancel Order</button>
             <% } else { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this)">Return order</button>
+                <button class="orderpage-action-btn" onclick="initiateRefund(this)">(unused) Return order</button>
             <% } %>
             <!-- use this shit in prod -->
             <% if (["pending", "received", "invoiced", "undelivered"].includes(orderData.orderData[0].deliveryStatus)) { %>
@@ -229,14 +229,13 @@
 
             const initiateRefund = async (el, type = 'cancel') => {
                 el.classList.add('disable-button');
-                let cancelOrderConfirmation = type == 'reship'? 
-                    confirm("Are you sure you want to reship the same order to <%- orderData.orderData[0].billingAddress.firstName %>? Extra shipping charges will be deducted from your wallet") 
+                if (type === "reship") return location.href += '/reship';
+                let cancelOrderConfirmation = type == "return" ?
+                    confirm("If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?")
                     :
-                    type == "return" ? 
-                        confirm("If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?")
-                        :
-                        confirm("Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?")
-                if (!cancelOrderConfirmation) return el.classList.remove('disable-button');;
+                    confirm("Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?")
+                    
+                if (!cancelOrderConfirmation) return el.classList.remove('disable-button');
                 try {
                     const initiateRefundRequest = await fetch("/initiaterefund", {
                         headers: {
@@ -249,11 +248,12 @@
                     });
                     const initiateRefundResponse = await initiateRefundRequest.json();
                     console.log(initiateRefundResponse);
-                    if (initiateRefundRequest.ok) {
+                    if (!initiateRefundRequest.ok) {
                         setTimeout(() => location.reload(), 3000);
-                        return type == "reship"? notyf.success("Order is now being reshipped!") :notyf.success("Refund initiated. Will be processed within 2-3 working days.");
+                        return notyf.error(initiateRefundResponse.message);
+                        // return type == "return"? notyf.success("Return order is now being processed! You will be refunded within 2-3 days") :notyf.success("Order cancelled successfully! You will be refunded within 2-3 working days.");
                     }
-                    return notyf.error(initiateRefundResponse.message);
+                    return notyf.success(initiateRefundResponse.message);
                 } catch (error) {
                     console.log(error);
                     return notyf.error("Error in initiating refund!");

@@ -92,6 +92,11 @@ var OrderHistorySchema = new mongoose.Schema({
                 },
                 courierAWB: String
             },
+            shipRocketReturn: {
+                orderId: String,
+                shipmentId: String,
+                status: String
+            },
             shipmentId: String,
             customerOrderId: String,
             retailPrice: Number,
@@ -106,8 +111,9 @@ var OrderHistorySchema = new mongoose.Schema({
                 type: Number,
                 default: 0
             },
-            wooOrderId: String
-        }
+            wooOrderId: String,
+            walletOrderId: String
+        },
     ]
 });
 
