@@ -12,7 +12,7 @@
     "printwear",
     "print-on-demand"
   ],
-  "author": "Sujay-0304, RookieProgrammerSachin, harish, barath, jolanjose",
+  "author": "Sujay-0304, RookieProgrammerSachin, harish, barath, jolanjose, majestymewtwo",
   "license": "ISC",
   "dependencies": {
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
