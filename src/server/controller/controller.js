@@ -38,9 +38,9 @@ const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
 //testing
-exports.testing = async (req, res) => {
-  res.send("This is a final push to check if cloud build is working fine");
-}
+// exports.testing = async (req, res) => {
+//   res.send("This is a final push to check if cloud build is working fine");
+// }
 
 // common auth endpoints
 exports.register = async (req, res) => {
@@ -83,7 +83,11 @@ exports.login = async (req, res) => {
       return res.render("login", { status: "User does not exist" });
     }
 
-    if (!(check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex"))) {
+    // toggle a boolean if pwd match or not
+    const doPwdsMatch = check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex");
+    if (check.password === "RESET") doPwdsMatch = true; // TESTING ONLY!: if pwd is reset for woo, jsut let them in by toggling bool to true
+
+    if (!doPwdsMatch) {
       return res.render("login", { status: "Invalid details" });
     }
 
@@ -2084,7 +2088,8 @@ exports.placeorder = async (req, res) => {
           "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
         },
       ],
-      "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05
+      "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05,
+      payment_made: orderDetails.orderData[0].amountPaid
     }
     console.log("Zoho invoice data: ", invoiceData)
 
@@ -2657,7 +2662,8 @@ exports.initiaterefund = async (req, res) => {
         refundAmount: orderToRefund.totalAmount,
         transactionNote: "Refund for order " + orderToRefund.printwearOrderId,
         cashfreeOrderId,
-        cashfreeSessionId
+        cashfreeSessionId,
+        transactionStatus: "refund_init" // later listen to webhook and change status
       });
       await walletData.save(); // i am relying on mongodb to successfully update everytime this function is called, so i dont return true
     } catch (error) {
@@ -2675,7 +2681,9 @@ exports.initiaterefund = async (req, res) => {
     // this purchase transaction is to make sure that i correspond the walletorder id that was used to make payment for the order is 
     // inside the orderhistory data itself so when i need to make a refund i can simply refer it from orderhistory and find that specific 
     // transaction and then if refund is needed, do so by passing it to refundFunction as argument
-    var purchaseTransaction = walletData.transactions.find(transaction => transaction.walletOrderId == orderToRefund.walletOrderId)
+    var purchaseTransaction = walletData.transactions.find(transaction => transaction.walletOrderId == ('PAYMENT_' + orderToRefund.walletOrderId))
+    //// now that i realised that the last recharge type of transaction can only be used to refund the customer, why even have purchaseTransaction?
+    let purchaseTransactionOrderId = walletData.transactions.filter(transaction => transaction.transactionType === "recharge").at(-1).walletOrderId; // this is what i need 
 
     if (!orderToRefund || orderToRefundIndex === -1) return res.status(404).json({ message: "Order not found!" });
     
@@ -2683,7 +2691,7 @@ exports.initiaterefund = async (req, res) => {
 
     if (["pending", "received", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
   
-      const isRefunded = await refundFunction();
+      const isRefunded = await refundFunction(purchaseTransactionOrderId);
       if (!(isRefunded.status === "refund_ok" && isRefunded.data != null)) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
       
       const isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "cancelled");
@@ -2693,7 +2701,7 @@ exports.initiaterefund = async (req, res) => {
       
       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
       orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
-      await orderHistory.save();
+      await orderHistory.save({ validateBeforeSave: false });
       // call woocommerce santo endpoint to update order status
       // refund if not COD
       
@@ -2701,22 +2709,22 @@ exports.initiaterefund = async (req, res) => {
   
     } else if (["delivered"].includes(orderToRefund.deliveryStatus) || (orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1")) {
         
-        let cashfreeRefundStatus = await refundFunction();
-        let shiprocketReturnCreated = await createShiprocketReturnOrder();
-  
-        if (!(cashfreeRefundStatus.status === "refund_ok" && cashfreeRefundStatus.data != null)) return res.status(500).json({ message: "Something went wrong in initiating refund!" });
-        if (shiprocketReturnCreated.message || shiprocketReturnCreated.status_code !== 21) return res.status(500).json({ message: "Something went wrong in creating return order!" });
-        
-        let isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "pickup-scheduled");
-        if (!isWooUpdated) return res.status(500).json({ message: "Something went wrong in updating return order" });
-  
-        orderHistory.orderData[orderToRefundIndex].deliveryStatus = "pickup-scheduled";
-        orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
-        orderHistory.orderData[orderToRefundIndex].shipRocketReturn.orderId = shiprocketReturnCreated.order_id;
-        orderHistory.orderData[orderToRefundIndex].shipRocketReturn.shipmentId = shiprocketReturnCreated.shipment_id;
-        orderHistory.orderData[orderToRefundIndex].shipRocketReturn.status = shiprocketReturnCreated.status;
-        await orderHistory.save();
-        res.json({ message: "Return order created successfully!" });
+      let cashfreeRefundStatus = await refundFunction(purchaseTransactionOrderId);
+      let shiprocketReturnCreated = await createShiprocketReturnOrder();
+
+      if (!(cashfreeRefundStatus.status === "refund_ok" && cashfreeRefundStatus.data != null)) return res.status(500).json({ message: "Something went wrong in initiating refund!" });
+      if (shiprocketReturnCreated.message || shiprocketReturnCreated.status_code !== 21) return res.status(500).json({ message: "Something went wrong in creating return order!" });
+      
+      let isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "pickup-scheduled");
+      if (!isWooUpdated) return res.status(500).json({ message: "Something went wrong in updating return order" });
+
+      orderHistory.orderData[orderToRefundIndex].deliveryStatus = "pickup-scheduled";
+      orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+      orderHistory.orderData[orderToRefundIndex].shipRocketReturn.orderId = shiprocketReturnCreated.order_id;
+      orderHistory.orderData[orderToRefundIndex].shipRocketReturn.shipmentId = shiprocketReturnCreated.shipment_id;
+      orderHistory.orderData[orderToRefundIndex].shipRocketReturn.status = shiprocketReturnCreated.status;
+      await orderHistory.save({ validateBeforeSave: false });
+      res.json({ message: "Return order created successfully!" });
     }
   } catch (error) {
     console.log(error);
@@ -4132,5 +4140,177 @@ exports.woowebhook = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "error" });
+  }
+}
+
+
+
+//// testing endpoints.. do not commit
+exports.testing = async (req, res) => {
+  const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
+  const pw_users = require("../../../.test_assets/wc-data/pw_users");
+  const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
+  const extractTransactionHistoryFromUserID = () => {
+    const ids = pw_users.at(2).data.map(d => d.ID);
+    const isthere = pw_transaction_history.at(2).data.filter(d => ids.includes(d.user_id))
+    const x = []
+    // const y = new Se;
+    isthere.forEach(i => {
+      let ix = x.findIndex(z => z.user_id == i.user_id);
+      // if (i.current_amount < 0) return;
+      if (ix == -1) {
+        x.push({
+          user_id: i.user_id,
+          transactions: [
+            { ...i }
+          ]
+        })
+      } else {
+        x[ix].transactions.push(i)
+      }
+    })
+
+    return x
+  }
+
+  // the following function needs to be called on every object that has gone thru the above function's filtering process
+  const extractUserDataFromBigJSON = (id) => {
+    let userData = detailedUsers.find(d => d.ID == id);
+    return {
+      name: userData.display_name,
+      email: userData.user_email,
+      // phone: userData.billing_phone,
+      firstName: userData.first_name,
+      lastName: userData.last_name,
+      password: 'RESET',
+      billingAddress: {
+        firstName: userData.billing_first_name == "" ? userData.billing_company : userData.billing_first_name,
+        lastName: userData.billing_last_name,
+        state: userData.billing_state,
+        city: userData.billing_city,
+        pincode: userData.billing_postcode,
+        phone: userData.billing_phone
+      },
+      phone: '+91' + userData.billing_phone,
+      wooCustomerId: userData.ID,
+    }
+  }
+  try {
+    const oneUser = {
+      "user_id": "79",
+      "transactions": [
+        {
+          "id": "242",
+          "user_id": "79",
+          "date": "2022-04-05",
+          "order_id": null,
+          "transaction_id": "1649143222",
+          "type": "credit",
+          "amount": "100",
+          "comments": "Recharge",
+          "current_amount": "100",
+          "created_at": "2022-04-14 05:14:36",
+          "updated_at": "2022-04-14 05:14:36"
+        },
+        {
+          "id": "2340",
+          "user_id": "79",
+          "date": "2022-06-14",
+          "order_id": null,
+          "transaction_id": "25665",
+          "type": "credit",
+          "amount": "1000",
+          "comments": "",
+          "current_amount": "1100",
+          "created_at": "2022-06-14 09:44:03",
+          "updated_at": "2022-06-14 09:44:03"
+        },
+        {
+          "id": "4145",
+          "user_id": "79",
+          "date": "2023-07-29",
+          "order_id": "7513",
+          "transaction_id": "1690616698",
+          "type": "debit",
+          "amount": "403.27",
+          "comments": "Order Placement",
+          "current_amount": "696",
+          "created_at": "2023-07-29 07:44:59",
+          "updated_at": "2023-07-29 13:15:06"
+        },
+        {
+          "id": "4536",
+          "user_id": "79",
+          "date": "2023-11-20",
+          "order_id": "7733",
+          "transaction_id": "1700487339",
+          "type": "debit",
+          "amount": "438.79",
+          "comments": "Order Placement",
+          "current_amount": "257",
+          "created_at": "2023-11-20 13:35:40",
+          "updated_at": "2023-11-20 19:05:47"
+        },
+        {
+          "id": "4679",
+          "user_id": "79",
+          "date": "2024-02-02",
+          "order_id": null,
+          "transaction_id": "3423423",
+          "type": "credit",
+          "amount": "1000",
+          "comments": "",
+          "current_amount": "1257",
+          "created_at": "2024-02-02 12:18:04",
+          "updated_at": "2024-02-02 12:18:04"
+        },
+        {
+          "id": "4680",
+          "user_id": "79",
+          "date": "2024-02-02",
+          "order_id": "7816",
+          "transaction_id": "1706883137",
+          "type": "debit",
+          "amount": "311.31",
+          "comments": "Order Placement",
+          "current_amount": "946",
+          "created_at": "2024-02-02 14:12:18",
+          "updated_at": "2024-02-02 19:42:26"
+        }
+      ]
+    }
+
+    // res.json is for showing me in thunderclient
+    // res.json(extractUserDataFromBigJSON('79'));
+    // res.json(detailedUsers.find(x => x.ID == "79")); // periya JSON landhu 79'th id edukuren
+    // res.json(extractTransactionHistoryFromUserID().find(u => u.user_id == '79')); // transactions laam pannitu, adhulandhu oru id edukren
+
+    // write to DB
+    // const writeToDB = new UserModel(extractUserDataFromBigJSON('79'));
+    // // await writeToDB.save();
+    // res.json(writeToDB);
+
+    // wallet write
+    const user = await UserModel.findOne({ email: 'sales.iclothing@gmail.com' });
+    const walletData = new WalletModel({
+      userId: user._id,
+      balance: oneUser.transactions.at(-1).current_amount,
+      transactions: oneUser.transactions.map(transaction => {
+        return {
+          amount: transaction.amount,
+          wooOrderId: transaction.order_id,
+          walletOrderId: transaction.transaction_id,
+          transactionStatus: "success",
+          transactionNote: transaction.comments,
+          transactionType: transaction.type === "credit" ? "recharge" : "payment",
+          transactionDate: new Date(transaction.updated_at)
+        }
+      })
+    })
+    await walletData.save();
+    res.json(walletData)
+  } catch (error) {
+    console.log(error);
+    res.send(error);
   }
 }

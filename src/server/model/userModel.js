@@ -24,15 +24,11 @@ var UserSchema = new mongoose.Schema({
     },
     emailVerified: {
       type: Boolean,
-      required: true
+      default: false
     },
     phoneVerified: {
       type: Boolean,
-      required: true
-    },
-    cartId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Cart'
+      default: false
     },
     billingAddress: {
       firstName: {
@@ -55,7 +51,8 @@ var UserSchema = new mongoose.Schema({
       },
       pincode: {
         type: Number,
-      }
+      },
+      phone: String
     },
     shippingAddress: {
       firstName: {
@@ -78,7 +75,8 @@ var UserSchema = new mongoose.Schema({
       },
       pincode: {
         type: Number
-      }
+      },
+      phone: String
     },
     profileImage: {
       type: String
@@ -89,7 +87,12 @@ var UserSchema = new mongoose.Schema({
       default: false
     },
     zohoCustomerID: String,
-    zohoContactID: String
+    zohoContactID: String,
+    wooCustomerId: String,
+    dateJoined: {
+      type: mongoose.Schema.Types.Date,
+      default: Date.now
+    }
 })
 
 const UserModel = mongoose.model('User', UserSchema);

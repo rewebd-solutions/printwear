@@ -37,7 +37,8 @@ var WalletSchema = new Schema({
                 type: String,
                 enum: ["pending", "success", "failed", "refund_init", "refunded"]
             },
-            refundAmount: Number
+            refundAmount: Number,
+            wooOrderId: String
         }
     ]
 });
