@@ -7,7 +7,9 @@ const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
 const WOO_SANTO_URL = 'https://printwear.in/admin';
+const OLD_PUBLIC_URL = "https://printwear.in/";
 
+const imageFileSize = require("url-file-size");
 const crypto = require("crypto")
 const algorithm = "sha256"
 const authServices = require("../services/auth");
@@ -32,6 +34,8 @@ const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");
 const MockupModel = require("../model/mockupModel");
 const WalletModel = require("../model/walletModel");
+const pw_wc_order_stats = require("../../../.test_assets/wc-data/pw_wc_order_stats");
+const pw_wc_order_product_lookup = require("../../../.test_assets/wc-data/pw_wc_order_product_lookup");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
@@ -84,7 +88,7 @@ exports.login = async (req, res) => {
     }
 
     // toggle a boolean if pwd match or not
-    const doPwdsMatch = check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex");
+    let doPwdsMatch = check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex");
     if (check.password === "RESET") doPwdsMatch = true; // TESTING ONLY!: if pwd is reset for woo, jsut let them in by toggling bool to true
 
     if (!doPwdsMatch) {
@@ -234,6 +238,11 @@ exports.deleteimage = async (req, res) => {
   try {
     const imageToDelete = await ImageModel.findOne({ userId: req.userId, 'images._id': imageId }, { 'images.$': 1 });
     console.log(imageToDelete)
+    if (imageToDelete.images[0].isWooDeleted === false) {
+      imageToDelete.images[0].isWooDeleted = true;
+      await imageToDelete.save({ validateBeforeSave: false });
+      return res.status(200).json({ message: "Deleted successfully!" });
+    }
     const fileReference = storageReference.child(`images/${req.userId + "_" + imageToDelete.images[0].name}`);
     await fileReference.delete();
 
@@ -1113,6 +1122,7 @@ exports.deletedesign = async (req, res) => {
 exports.getdesigns = async (req, res) => {
   try {
     const userDesigns = await NewDesignModel.findOne({ userId: req.userId });
+    if (!userDesigns) return res.json({designs: []})
     res.json(userDesigns);
   } catch (error) {
     console.log(error);
@@ -4150,6 +4160,10 @@ exports.testing = async (req, res) => {
   const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
   const pw_users = require("../../../.test_assets/wc-data/pw_users");
   const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
+  const pw_wc_customer_lookup = require("../../../.test_assets/wc-data/pw_wc_customer_lookup");
+  const brands = require("../../../.test_assets/wc-data/brands");
+  const design_library = require("../../../.test_assets/wc-data/design_library");
+
   const extractTransactionHistoryFromUserID = () => {
     const ids = pw_users.at(2).data.map(d => d.ID);
     const isthere = pw_transaction_history.at(2).data.filter(d => ids.includes(d.user_id))
@@ -4172,7 +4186,6 @@ exports.testing = async (req, res) => {
 
     return x
   }
-
   // the following function needs to be called on every object that has gone thru the above function's filtering process
   const extractUserDataFromBigJSON = (id) => {
     let userData = detailedUsers.find(d => d.ID == id);
@@ -4192,110 +4205,40 @@ exports.testing = async (req, res) => {
         phone: userData.billing_phone
       },
       phone: '+91' + userData.billing_phone,
-      wooCustomerId: userData.ID,
+      wooCustomerId: getCustomerIdFromUserId(id),
+      wooUserId: id,
     }
   }
-  try {
-    const oneUser = {
-      "user_id": "79",
-      "transactions": [
-        {
-          "id": "242",
-          "user_id": "79",
-          "date": "2022-04-05",
-          "order_id": null,
-          "transaction_id": "1649143222",
-          "type": "credit",
-          "amount": "100",
-          "comments": "Recharge",
-          "current_amount": "100",
-          "created_at": "2022-04-14 05:14:36",
-          "updated_at": "2022-04-14 05:14:36"
-        },
-        {
-          "id": "2340",
-          "user_id": "79",
-          "date": "2022-06-14",
-          "order_id": null,
-          "transaction_id": "25665",
-          "type": "credit",
-          "amount": "1000",
-          "comments": "",
-          "current_amount": "1100",
-          "created_at": "2022-06-14 09:44:03",
-          "updated_at": "2022-06-14 09:44:03"
-        },
-        {
-          "id": "4145",
-          "user_id": "79",
-          "date": "2023-07-29",
-          "order_id": "7513",
-          "transaction_id": "1690616698",
-          "type": "debit",
-          "amount": "403.27",
-          "comments": "Order Placement",
-          "current_amount": "696",
-          "created_at": "2023-07-29 07:44:59",
-          "updated_at": "2023-07-29 13:15:06"
-        },
-        {
-          "id": "4536",
-          "user_id": "79",
-          "date": "2023-11-20",
-          "order_id": "7733",
-          "transaction_id": "1700487339",
-          "type": "debit",
-          "amount": "438.79",
-          "comments": "Order Placement",
-          "current_amount": "257",
-          "created_at": "2023-11-20 13:35:40",
-          "updated_at": "2023-11-20 19:05:47"
-        },
-        {
-          "id": "4679",
-          "user_id": "79",
-          "date": "2024-02-02",
-          "order_id": null,
-          "transaction_id": "3423423",
-          "type": "credit",
-          "amount": "1000",
-          "comments": "",
-          "current_amount": "1257",
-          "created_at": "2024-02-02 12:18:04",
-          "updated_at": "2024-02-02 12:18:04"
-        },
-        {
-          "id": "4680",
-          "user_id": "79",
-          "date": "2024-02-02",
-          "order_id": "7816",
-          "transaction_id": "1706883137",
-          "type": "debit",
-          "amount": "311.31",
-          "comments": "Order Placement",
-          "current_amount": "946",
-          "created_at": "2024-02-02 14:12:18",
-          "updated_at": "2024-02-02 19:42:26"
-        }
-      ]
-    }
+  const getCustomerIdFromUserId = (id) => {
+    return pw_wc_customer_lookup[2].data.find(c => c.user_id == id).customer_id
+  }
+  const extractOrderDataFromCustomerId = (id) => {
+    const orders = pw_wc_order_stats[2].data.filter(x => x.customer_id == id);
+    return orders
+  }
+  const extractLabelDataFromUserId = (id) => {
+    const brandsFromId = brands[2].data.filter(data => data.created_by == id).map(brand => ({ name: brand.brand_image_name, url: OLD_PUBLIC_URL + brand.brand_image_url }));
+    const labelData = new LabelModel({})
+    labelData.labels.push(...brandsFromId);
+    return labelData.labels;
+  }
+  const extractProductLookupFromOrderId = (id) => {
+    return pw_wc_order_product_lookup[2].data.find(x => x.order_id == id)
+  }
+  const extractDesignImagesFromUserId = (id) => {
+    return design_library[2].data.filter(x => x.created_by == id)
+  }
+ 
 
-    // res.json is for showing me in thunderclient
-    // res.json(extractUserDataFromBigJSON('79'));
-    // res.json(detailedUsers.find(x => x.ID == "79")); // periya JSON landhu 79'th id edukuren
-    // res.json(extractTransactionHistoryFromUserID().find(u => u.user_id == '79')); // transactions laam pannitu, adhulandhu oru id edukren
+  const uploadWalletData = async (userId, wooUserId) => {
+    //exttract data from json
+    const transData = extractTransactionHistoryFromUserID().find(x => x.user_id == wooUserId);
 
-    // write to DB
-    // const writeToDB = new UserModel(extractUserDataFromBigJSON('79'));
-    // // await writeToDB.save();
-    // res.json(writeToDB);
-
-    // wallet write
-    const user = await UserModel.findOne({ email: 'sales.iclothing@gmail.com' });
+    // save to mongo
     const walletData = new WalletModel({
-      userId: user._id,
-      balance: oneUser.transactions.at(-1).current_amount,
-      transactions: oneUser.transactions.map(transaction => {
+      userId: userId,
+      // balance: oneUser.transactions.at(-1).current_amount,
+      transactions: transData.transactions.map(transaction => {
         return {
           amount: transaction.amount,
           wooOrderId: transaction.order_id,
@@ -4307,8 +4250,70 @@ exports.testing = async (req, res) => {
         }
       })
     })
-    await walletData.save();
-    res.json(walletData)
+    walletData.balance = ((transData.transactions.reduce((acc, curr) => (curr.type == "credit") ? acc + parseFloat(curr.amount): acc - parseFloat(curr.amount), 0))).toFixed(2)
+    // await walletData.save(); // when done
+    return walletData // test
+  }
+  const uploadLabelData = async (userId, wooUserId) => {
+    const labels = new LabelModel({
+      userId: userId,
+      labels: extractLabelDataFromUserId(wooUserId)
+    })
+    // await labels.save()
+    return labels
+  }
+  const uploadDesignImageData = async (userId, wooUserId) => {
+    const designImages = extractDesignImagesFromUserId(wooUserId);
+    let imss = [];
+    for(let i=0; i<designImages.length; i++) {
+      let fs = (await imageFileSize(OLD_PUBLIC_URL + designImages[i].image_url)) / 1000;
+      imss.push({
+        url: OLD_PUBLIC_URL + designImages[i].image_url,
+        name: designImages[i].image_name,
+        size: fs,
+        format: designImages[i].extension,
+        isWooDeleted: false
+      })
+    }
+    // console.log("🚀 ~ imss ~ imss:", imss)
+    const designImageData = new ImageModel({
+      userId: userId,
+      images: imss
+    })
+    // await designImageData.save();
+    return designImageData;
+  }
+  const uploadUserDataToMongo = async (id) => {
+    // const userData = await UserModel.create(extractUserDataFromBigJSON(id)); // use in prod
+    const userData = new UserModel(extractUserDataFromBigJSON(id));
+    // await userData.save();
+    console.log("🚀 ~ uploadUserDataToMongo ~ userData:", userData.toJSON())
+    const mongoUserId = userData._id;
+    const wooCusomterId = getCustomerIdFromUserId(id); // customer_id vaangu for orders
+    console.log("🚀 ~ uploadUserDataToMongo ~ wooCusomterId:", wooCusomterId)
+    const walletData = await uploadWalletData(mongoUserId, id); 
+    const labelData = await uploadLabelData(mongoUserId, id);
+    const designImageData = await uploadDesignImageData(mongoUserId, id);
+    return ({ userData: userData.toJSON(), walletData: walletData.toJSON(), labelData: labelData.toJSON(), designImageData: designImageData.toJSON() });
+  }
+
+  try {
+    const userIdToFind = "79";
+
+    // res.json({
+    //   user: detailedUsers.find(x => x.ID == userIdToFind),
+    //   trans: extractTransactionHistoryFromUserID().find(x => x.user_id == userIdToFind),
+    //   orders: extractOrderDataFromCustomerId(getCustomerIdFromUserId(userIdToFind)).map(order => {
+    //     return {
+    //       ...order,
+    //       product_lookup: extractProductLookupFromOrderId(order.order_id)
+    //     }
+    //   }),
+    //   labels: extractLabelDataFromUserId(userIdToFind)
+    // });
+
+    res.json(await uploadUserDataToMongo(userIdToFind));
+
   } catch (error) {
     console.log(error);
     res.send(error);

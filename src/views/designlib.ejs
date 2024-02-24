@@ -305,7 +305,6 @@
         const designsFetchRequest = await fetch("/getdesigns");
         designsResponseData = await designsFetchRequest.json();
 
-        
         const maleFilterPattern = new RegExp(/\bmen\b|\bmens\b/i);
         const femaleFilterPattern = new RegExp(/\bwomen\b|\bwomens\b/i);
         

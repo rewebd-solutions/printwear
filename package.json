@@ -26,6 +26,7 @@
     "mongoose": "^7.0.3",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^2.0.22",
-    "otp-generator": "^4.0.1"
+    "otp-generator": "^4.0.1",
+    "url-file-size": "^1.0.5-1"
   }
 }

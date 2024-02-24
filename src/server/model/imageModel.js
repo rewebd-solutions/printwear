@@ -10,7 +10,8 @@ const ImageSchema = new mongoose.Schema({
             url: String,
             name: String,
             size: Number,
-            format: String
+            format: String,
+            isWooDeleted: Boolean
         }
     ]
 });

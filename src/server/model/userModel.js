@@ -89,6 +89,7 @@ var UserSchema = new mongoose.Schema({
     zohoCustomerID: String,
     zohoContactID: String,
     wooCustomerId: String,
+    wooUserId: String,
     dateJoined: {
       type: mongoose.Schema.Types.Date,
       default: Date.now
