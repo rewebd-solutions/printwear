@@ -12,6 +12,9 @@ let designDirection = "front";
 /* Design Image Dimensions */
 let designImg, designImageWidth, designImageHeight;
 
+/* Slider for Design Scaling */
+const slider = document.getElementById("design-scale");
+
 var globalProductID = null;
 
 var isSetPixelRatioCalled = false;
@@ -243,7 +246,7 @@ const calculateTotalArea = () => {
   return totalArea;
 };
 
-/* Desigm Image Stats */
+/* Design Image Stats */
 const table = document.querySelector("#price-stats");
 const updateStats = () => {
   const priceTable = table.children[1];
@@ -351,23 +354,22 @@ const setPixelRatio = (productID) => {
 /* Intialize fabric JS Canvas */
 const addFabricCanvasToTemplateDiv = () => {
   const container = document.querySelector("#mockup-image-canvas");
-  // Create a canvas element
+  /* Create a canvas element */
   const canvasElement = document.createElement("canvas");
-  // Settingh width and height according to ratio
+  /* Setting width and height according to ratio */
   canvasElement.width = Product.inchToPixelRatio * Product.canvas.front.width;
   canvasElement.height = Product.inchToPixelRatio * Product.canvas.front.height;
   canvasElement.style.border = "2px dashed silver";
   container.appendChild(canvasElement);
 
+  /* Initialize fabric Canvas Instance */
   fabricCanvas = new fabric.Canvas(canvasElement);
 
-  // changing left and top of canvases to fit in the shirt
-  // fabricCanvas.upperCanvasEl.style.top = Product.inchToPixelRatio * Product.canvas.front.startY;
-  // fabricCanvas.upperCanvasEl.style.left = Product.inchToPixelRatio * Product.canvas.front.startX;
-  // fabricCanvas.lowerCanvasEl.style.top = Product.inchToPixelRatio * Product.canvas.front.startY;
-  // fabricCanvas.lowerCanvasEl.style.left = Product.inchToPixelRatio * Product.canvas.front.startX;
+  fabricCanvas.skipOffscreen = true;
+  fabricCanvas.stateful = true;
+  fabricCanvas.uniformScaling = true;
 
-  // Disabling out of canvas image movement
+  /* Disabling out of canvas image movement */
   fabricCanvas.on("object:moving", function (event) {
     var designImg = event.target;
     var canvasWidth = fabricCanvas.width;
@@ -391,46 +393,13 @@ const addFabricCanvasToTemplateDiv = () => {
     }
   });
 
-  // Disabling scaling of canvas image element
-  let prevScaleX = 1;
-  let prevScaleY = 1;
-
   fabricCanvas.on("object:scaling", function (event) {
     var designImg = event.target;
 
-    var canvasWidth = fabricCanvas.width;
-    var canvasHeight = fabricCanvas.height;
-
-    var imgLeft = designImg.left;
-    var imgTop = designImg.top;
-    var imgWidth = designImg.getScaledWidth();
-    var imgHeight = designImg.getScaledHeight();
-
-    const previousHeight = designImageHeight;
-    const previousWidth = designImageWidth;
-
-    // Updating sizes during scaling
-    // designImageHeight = designImg.height * designImg.scaleY;
+    /* Updating sizes during scaling */
     designImageHeight = designImg.getScaledHeight();
-    // designImageWidth = designImg.width * designImg.scaleX;
     designImageWidth = designImg.getScaledWidth();
     updateStats();
-
-    // If image draggin exceeds canvas width, setting the designWidth to last value that was inside the canvas
-    if (imgLeft + imgWidth >= canvasWidth || imgLeft <= 0) {
-      designImageWidth = previousWidth;
-      updateStats();
-      designImg.scaleX = prevScaleX;
-    } else {
-      prevScaleX = designImg.scaleX;
-    }
-    if (imgTop + imgHeight >= canvasHeight || imgTop <= 0) {
-      designImageHeight = previousHeight;
-      updateStats();
-      designImg.scaleY = prevScaleY;
-    } else {
-      prevScaleY = designImg.scaleY;
-    }
   });
 };
 
@@ -454,11 +423,26 @@ const addImageToCanvas = async (el, imageURL) => {
     const imageURL = URL.createObjectURL(designImg);
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
-      designImage.scaleToWidth(80);
       designImage.minScaleLimit = 0.05;
-      // Updating sizes initially after adding to canvas
+
+      /* Updating Sizes */
       designImageHeight = designImage.getScaledHeight();
       designImageWidth = designImage.getScaledWidth();
+
+      /* Locking Scaling and Rotating */
+      designImage.lockScalingFlip = true;
+      designImage.lockSkewingX = true;
+      designImage.lockSkewingY = true;
+
+      /* Hiding Controls Visibility */
+      designImage.setControlsVisibility({
+        mb: false,
+        mt: false,
+        mr: false,
+        ml: false,
+      });
+
+
       fabricCanvas.add(designImage);
       updateStats();
       fabricCanvas.setActiveObject(designImage);
@@ -733,10 +717,7 @@ const setPosition = (e, position) => {
       });
       break;
     case "center":
-      designImage.set({
-        left: (canvasWidth - designImage.getScaledWidth()) / 2,
-        top: (canvasHeight - designImage.getScaledHeight()) / 2,
-      });
+      fabricCanvas.centerObject(designImage);
       break;
     case "custom":
       // No operation.
@@ -868,3 +849,6 @@ document.addEventListener(
   },
   false
 );
+
+
+slider.addEventListener('input', scaleObject);
