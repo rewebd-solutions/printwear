@@ -1,13 +1,15 @@
-// Product data old for initializing
+/* Initial Product Data */
 var Product = {};
 
 var productData = {};
 
-// Holds the canvas instance
+/* Canvas Object - fabric.Canvas */
 let fabricCanvas = null;
-// Starting design direction
+
+/* Design Side */
 let designDirection = "front";
-// Storing design image, and its height and width
+
+/* Design Image Dimensions */
 let designImg, designImageWidth, designImageHeight;
 
 var globalProductID = null;
@@ -16,24 +18,26 @@ var isSetPixelRatioCalled = false;
 
 var variantPrice = 0;
 
-// var for letting top.ejs know there is this var
+/* var for letting top.ejs know there is this var */
 var isReadyForRendering = true;
 
 var neckLabelId = null;
 var isNeckLabelSelected = false;
 
-// notyf snackbar 
+/* Notfy - Notification Snackbar */
 var notyf = new Notyf();
+/* Initialize Animate On Scroll */
 AOS.init();
 
-// fetch function and then global functions calling done here
+/* Fetch product data based on query parameter 'style' */
 const fetchProductData = async () => {
   try {
-    // fetch call
     const styleParam = new URLSearchParams(location.search).get("style");
     if (!styleParam) {
-      document.body.style.overflowY = 'hidden';
-      document.querySelector(".App").insertAdjacentHTML("beforeend", `
+      document.body.style.overflowY = "hidden";
+      document.querySelector(".App").insertAdjacentHTML(
+        "beforeend",
+        `
       <div class="design-upload-backdrop" style="z-index:105; position: fixed;">
         <div class="design-upload-modal" data-aos="fade-up" style="justify-content: center; align-items: center">
           <img src="/images/missing-shirt.png" width="200" />
@@ -42,28 +46,34 @@ const fetchProductData = async () => {
           Redirecting now! Please wait!
         </div>
       </div>
-      `)
-      notyf.error({ message: "style paramater not defined in URL", duration: 6000, dismissible: true });
-      return location.href = '/productgallery';
-    } 
+      `
+      );
+      notyf.error({
+        message: "style paramater not defined in URL",
+        duration: 6000,
+        dismissible: true,
+      });
+      return (location.href = "/productgallery");
+    }
 
     const productStyle = styleParam.split("+").join(" ");
-    // console.log(productStyle);
+
     if (!productStyle) {
       return notyf.error({
         message: "Invalid URL",
         dismissible: true,
-        duration: 5000
+        duration: 5000,
       });
     }
-    document.querySelector(".heading").innerHTML = productStyle
+
+    document.querySelector(".heading").innerHTML = productStyle;
     const productDataRequest = await fetch("/getzohoproducts");
     const productDataResponse = await productDataRequest.json();
     productData = productDataResponse[productStyle];
     console.log(productData);
     productData.name = productStyle;
 
-    // modify Product to fill in details from fetch()
+    /* Modify Product Object */
     Product = {
       ...productData,
       brand: productData.brand,
@@ -93,16 +103,14 @@ const fetchProductData = async () => {
         };
       }),
     };
-    console.log(Product);
 
-    // Current selected color - first color is chosen as default
-    currentColor = Product.colors.find((color) => color.frontImage != '')?._id // declare currentColor here like global var
+    /* First Available Color = Current Color by default */
+    currentColor = Product.colors.find((color) => color.frontImage != "")?._id; // declare currentColor here like global var
 
-    // call global funcs
+    /* Global Function Calls */
     renderColors();
     loadMockupImage();
     displaySizes();
-
   } catch (error) {
     console.log(error);
     notyf.error({
@@ -113,7 +121,7 @@ const fetchProductData = async () => {
   }
 };
 
-// DOM select the buttons to draw border on active btn and replace other buttons with default styles
+/* Active and Inactive button styles */
 const positionChangeButtons = document.querySelectorAll(".position-btn");
 const sideChangeButtons = document.querySelectorAll(".side-btn");
 const textInputBox = document.querySelector("#canvas-text-input");
@@ -121,15 +129,21 @@ const textInputBox = document.querySelector("#canvas-text-input");
 const userDesignsWrapper = document.querySelector(".user-design-images");
 const userLabelsWrapper = document.querySelector(".user-label-images");
 
-// function to toggle disabling and enabling button
+/* Toggle Disable and Enable button */
 const disableButton = (state) => {
   const saveButton = document.querySelector(".save-button");
-  state ? saveButton.setAttribute("disabled", true) : saveButton.removeAttribute("disabled");
-  state ? saveButton.classList.add("disabled") : saveButton.classList.remove("disabled");
-  state ? saveButton.innerHTML = 'Saving...' : saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`;
-}
+  state
+    ? saveButton.setAttribute("disabled", true)
+    : saveButton.removeAttribute("disabled");
+  state
+    ? saveButton.classList.add("disabled")
+    : saveButton.classList.remove("disabled");
+  state
+    ? (saveButton.innerHTML = "Saving...")
+    : (saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`);
+};
 
-// Changing current color and its image
+/* Change Current Color and Current Image */
 const changeMockup = (e, color, id) => {
   let mockupImageContainer = document.getElementById("mockup-image");
 
@@ -144,12 +158,18 @@ const changeMockup = (e, color, id) => {
   displaySizes();
 
   if (designDirection === "front") {
-    mockupImageContainer.src = (selectedMockup.colorImage.front != '') ? selectedMockup.colorImage.front : '/images/warning.png';
-  } else mockupImageContainer.src = (selectedMockup.colorImage.back != '') ? selectedMockup.colorImage.back : '/images/warning.png';
-
+    mockupImageContainer.src =
+      selectedMockup.colorImage.front != ""
+        ? selectedMockup.colorImage.front
+        : "/images/warning.png";
+  } else
+    mockupImageContainer.src =
+      selectedMockup.colorImage.back != ""
+        ? selectedMockup.colorImage.back
+        : "/images/warning.png";
 };
 
-// func to draW border around active color
+/* Active Color Styles */
 const renderColorBorder = (color, id) => {
   const colorButtons = document.querySelectorAll(".color-circle");
   const currentColor = document.getElementById(`${color}-${id}`);
@@ -159,59 +179,76 @@ const renderColorBorder = (color, id) => {
   currentColor.style.border = "3px solid red";
 };
 
-// Displaying the colors to user
+/* Display available Colors */
 const renderColors = () => {
   const parent = document.querySelector(".color-list");
-  parent.innerHTML = '';
+  parent.innerHTML = "";
   Product.colors.map((color) => {
     const innerHTML = `
-    <div class="color-options${color.colorImage.front || color.colorImage.back ? '' : ' color-disabled'}" ${color.colorImage.front || color.colorImage.back ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"` : 'title="Image not available"'}>
+    <div class="color-options${
+      color.colorImage.front || color.colorImage.back ? "" : " color-disabled"
+    }" ${
+      color.colorImage.front || color.colorImage.back
+        ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"`
+        : 'title="Image not available"'
+    }>
       <span class="color-circle" style="background: ${color.hex}; border: 
-      ${color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"}" id="${color.colorName}-${color._id}"></span>
+      ${
+        color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
+      }" id="${color.colorName}-${color._id}"></span>
       <p>${color.colorName}</p>
     </div>
     `;
-    parent.innerHTML += innerHTML
+    parent.innerHTML += innerHTML;
   });
 };
 
-// Loading first image of mockupImages
+/* Load First Mockup Image */
 const loadMockupImage = () => {
-
   const image = document.getElementById("mockup-image");
   image.src = Product.colors.find(
     (color) => color._id === currentColor
   ).colorImage.front;
 };
 
-// funcs to calculate height and width of all active canvas objects
+/* Caculate dimensions of Active Canvas Objects */
 const calculateTotalHeight = () => {
   if (!fabricCanvas) return;
   const objects = fabricCanvas.getObjects();
-  let totalHeight = objects.map(obj => obj.getScaledHeight() * Product.pixelToInchRatio).reduce((prev, curr) => prev + curr, 0)
+  let totalHeight = objects
+    .map((obj) => obj.getScaledHeight() * Product.pixelToInchRatio)
+    .reduce((prev, curr) => prev + curr, 0);
   //console.log(totalHeight);
-  return totalHeight
-}
+  return totalHeight;
+};
 const calculateTotalWidth = () => {
   if (!fabricCanvas) return;
   const object = fabricCanvas.getObjects()[0];
   let totalWidth = object.getScaledWidth() * Product.pixelToInchRatio;
   //console.log(totalWidth);
-  return totalWidth
-}
+  return totalWidth;
+};
 const calculateTotalArea = () => {
   if (!fabricCanvas) return;
   const objects = fabricCanvas.getObjects();
-  let totalArea = objects.map(obj => obj.getScaledHeight() * obj.getScaledWidth() * Product.pixelToInchRatio * Product.pixelToInchRatio).reduce((prev, curr) => prev + curr, 0)
+  let totalArea = objects
+    .map(
+      (obj) =>
+        obj.getScaledHeight() *
+        obj.getScaledWidth() *
+        Product.pixelToInchRatio *
+        Product.pixelToInchRatio
+    )
+    .reduce((prev, curr) => prev + curr, 0);
   return totalArea;
-}
+};
 
-// Display design image stats
+/* Desigm Image Stats */
 const table = document.querySelector("#price-stats");
 const updateStats = () => {
   const priceTable = table.children[1];
-  table.style.display = "table"
-  
+  table.style.display = "table";
+
   if (!designImageHeight || !designImageWidth || !designImg) {
     priceTable.children[0].children[1].innerHTML = "0 in";
     priceTable.children[1].children[1].innerHTML = "0 in";
@@ -226,51 +263,71 @@ const updateStats = () => {
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
 
-  let printingPrice = (imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0) ? 70.00 : ((imageAreaInInches * 2) < 70.00 ? 70.00 : imageAreaInInches * 2);
+  let printingPrice =
+    imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0
+      ? 70.0
+      : imageAreaInInches * 2 < 70.0
+      ? 70.0
+      : imageAreaInInches * 2;
 
   priceTable.children[0].children[1].innerHTML = imageHeightInInches + " in";
   priceTable.children[1].children[1].innerHTML = imageWidthInInches + " in";
   priceTable.children[2].children[1].innerHTML = imageAreaInInches + " in²";
   priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
-  priceTable.children[4].children[1].innerHTML = "₹" + (printingPrice).toFixed(2);
-  priceTable.children[5].children[1].innerHTML = "₹" + (printingPrice + variantPrice).toFixed(2);
-  priceTable.children[6].children[0].innerHTML = isNeckLabelSelected ? "Neck Label(selected)" : "Neck Label(not selected)";
-  priceTable.children[6].children[1].innerHTML = isNeckLabelSelected ? "₹10" : "₹0";
-  priceTable.children[7].children[1].innerHTML = isNeckLabelSelected ? "₹" + (printingPrice + variantPrice + 10).toFixed(2) : "₹" + (printingPrice + variantPrice).toFixed(2);
+  priceTable.children[4].children[1].innerHTML = "₹" + printingPrice.toFixed(2);
+  priceTable.children[5].children[1].innerHTML =
+    "₹" + (printingPrice + variantPrice).toFixed(2);
+  priceTable.children[6].children[0].innerHTML = isNeckLabelSelected
+    ? "Neck Label(selected)"
+    : "Neck Label(not selected)";
+  priceTable.children[6].children[1].innerHTML = isNeckLabelSelected
+    ? "₹10"
+    : "₹0";
+  priceTable.children[7].children[1].innerHTML = isNeckLabelSelected
+    ? "₹" + (printingPrice + variantPrice + 10).toFixed(2)
+    : "₹" + (printingPrice + variantPrice).toFixed(2);
 };
 
 const changeSize = (e, size, id) => {
   const sizeButtons = document.querySelectorAll(".size-options");
   const basePriceElement = document.querySelector(".base-price");
-  sizeButtons.forEach(sizeBtn => {
+  sizeButtons.forEach((sizeBtn) => {
     sizeBtn.style.border = "2px solid #6a6969";
-    sizeBtn.style.transform = "scale(1.0)"
+    sizeBtn.style.transform = "scale(1.0)";
   });
   e.target.style.border = "2px solid red";
-  e.target.style.transform = "scale(1.1)"
+  e.target.style.transform = "scale(1.1)";
   console.log(id, size);
   globalProductID = id; // check b4 downloading or saving if this is checked
 
-  variantPrice = Product.colors.find(color => color._id === currentColor).sizes.find(size => size.id === globalProductID).price;
+  variantPrice = Product.colors
+    .find((color) => color._id === currentColor)
+    .sizes.find((size) => size.id === globalProductID).price;
   basePriceElement.innerHTML = "Base Price: ₹" + variantPrice;
   updateStats();
 
   if (!isSetPixelRatioCalled) setPixelRatio(globalProductID);
   // also write code to change ratio dimensions
-}
+};
 
-// Displaying available size of currently selected color
+/* Available Sizes of Current Color */
 const displaySizes = () => {
   const parent = document.querySelector(".size-list");
-  parent.innerHTML = '';
+  parent.innerHTML = "";
   const current = Product.colors.find((item) => item._id === currentColor);
-  let sizeDOMString = current.sizes.map((item) => {
-    return `
-        <div class="size-options" ${item.stock ? `onclick="changeSize(event,'${item.size}', '${item.id}')"` : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`}>
+  let sizeDOMString = current.sizes
+    .map((item) => {
+      return `
+        <div class="size-options" ${
+          item.stock
+            ? `onclick="changeSize(event,'${item.size}', '${item.id}')"`
+            : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`
+        }>
         ${item.size}
         </div>
       `;
-  }).join("");
+    })
+    .join("");
   parent.innerHTML = sizeDOMString;
 };
 /*
@@ -282,14 +339,16 @@ const displaySizes = () => {
 const setPixelRatio = (productID) => {
   // call this func only after a variant has been selected.. and modify the code such that the ratios modify according the size variant
   isSetPixelRatioCalled = true;
-  currentProductVariant = Product.colors.find((color) => color._id === currentColor).sizes.find(size => size.id === productID)
+  currentProductVariant = Product.colors
+    .find((color) => color._id === currentColor)
+    .sizes.find((size) => size.id === productID);
   console.log(currentProductVariant);
   Product.pixelToInchRatio = currentProductVariant.dimensions.length / 500;
   Product.inchToPixelRatio = 500 / currentProductVariant.dimensions.length;
   addFabricCanvasToTemplateDiv();
 };
 
-// Intialize fabric JS canvas
+/* Intialize fabric JS Canvas */
 const addFabricCanvasToTemplateDiv = () => {
   const container = document.querySelector("#mockup-image-canvas");
   // Create a canvas element
@@ -299,9 +358,9 @@ const addFabricCanvasToTemplateDiv = () => {
   canvasElement.height = Product.inchToPixelRatio * Product.canvas.front.height;
   canvasElement.style.border = "2px dashed silver";
   container.appendChild(canvasElement);
-  
+
   fabricCanvas = new fabric.Canvas(canvasElement);
-  
+
   // changing left and top of canvases to fit in the shirt
   // fabricCanvas.upperCanvasEl.style.top = Product.inchToPixelRatio * Product.canvas.front.startY;
   // fabricCanvas.upperCanvasEl.style.left = Product.inchToPixelRatio * Product.canvas.front.startX;
@@ -358,14 +417,14 @@ const addFabricCanvasToTemplateDiv = () => {
     updateStats();
 
     // If image draggin exceeds canvas width, setting the designWidth to last value that was inside the canvas
-    if ((imgLeft + imgWidth) >= canvasWidth || imgLeft <= 0) {
+    if (imgLeft + imgWidth >= canvasWidth || imgLeft <= 0) {
       designImageWidth = previousWidth;
       updateStats();
       designImg.scaleX = prevScaleX;
     } else {
       prevScaleX = designImg.scaleX;
     }
-    if ((imgTop + imgHeight) >= canvasHeight || imgTop <= 0) {
+    if (imgTop + imgHeight >= canvasHeight || imgTop <= 0) {
       designImageHeight = previousHeight;
       updateStats();
       designImg.scaleY = prevScaleY;
@@ -375,15 +434,17 @@ const addFabricCanvasToTemplateDiv = () => {
   });
 };
 
-// Add image to container
+/* Add Image to Canvas */
 const addImageToCanvas = async (el, imageURL) => {
-
-  if (!globalProductID) return notyf.error("Select a shirt size before applying");
+  if (!globalProductID)
+    return notyf.error("Select a shirt size before applying");
   if (!imageURL) return notyf.error("Invalid image, please try another");
-  
-  fabricCanvas.getObjects().map(obj => fabricCanvas.remove(obj)); // remove all stuff before adding image
-  
-  document.querySelectorAll(".user-design-image").forEach(element => element.classList.remove("active-selection"))
+
+  fabricCanvas.getObjects().map((obj) => fabricCanvas.remove(obj)); // remove all stuff before adding image
+
+  document
+    .querySelectorAll(".user-design-image")
+    .forEach((element) => element.classList.remove("active-selection"));
   el.classList.add("active-selection");
 
   const blobReq = await fetch(imageURL);
@@ -401,19 +462,19 @@ const addImageToCanvas = async (el, imageURL) => {
       fabricCanvas.add(designImage);
       updateStats();
       fabricCanvas.setActiveObject(designImage);
-      
+
       const canvasWidth = fabricCanvas.width;
       const canvasHeight = fabricCanvas.height;
 
       fabricCanvas.getActiveObject().set({
         left: (canvasWidth - designImage.getScaledWidth()) / 2,
         top: (canvasHeight - designImage.getScaledHeight()) / 2,
-      });      
+      });
     });
   }
 };
 
-// Change design area side
+/* Change Design Area Side */
 const changeSide = (e, side) => {
   sideChangeButtons.forEach((sideBtn) =>
     sideBtn.classList.remove("active-btn")
@@ -426,16 +487,20 @@ const changeSide = (e, side) => {
   designDirection = side;
   if (designDirection === "front")
     document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.front == "" ? 'images/warning.png' : selectedMockup.colorImage.front;
+      selectedMockup.colorImage.front == ""
+        ? "images/warning.png"
+        : selectedMockup.colorImage.front;
   else
     document.getElementById("mockup-image").src =
-      selectedMockup.colorImage.back == "" ? 'images/warning.png' : selectedMockup.colorImage.back;
+      selectedMockup.colorImage.back == ""
+        ? "images/warning.png"
+        : selectedMockup.colorImage.back;
 };
 
-// Download Image
+/* Download Image */
 const downloadDesign = () => {
   // Deselecting active object
-  if (!designImg) return notyf.error("No design selected!")
+  if (!designImg) return notyf.error("No design selected!");
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
@@ -444,11 +509,11 @@ const downloadDesign = () => {
   let isDesignNameValid = designName.reportValidity();
   if (!isDesignNameValid) {
     return notyf.error("Give your design a name");
-  };
+  }
 
   // disable border when rendering final image
   const canvasContainer = document.querySelectorAll(".canvas-container > *");
-  canvasContainer.forEach(item => item.style.border = "none");
+  canvasContainer.forEach((item) => (item.style.border = "none"));
 
   const node = document.getElementById("product-design");
 
@@ -459,7 +524,7 @@ const downloadDesign = () => {
       transformOrigin: "0 0",
       transform: "scale(2)",
     },
-    copyDefaultStyles: true
+    copyDefaultStyles: true,
   };
 
   // Use a short delay to ensure the browser has updated the DOM with the transform
@@ -470,20 +535,23 @@ const downloadDesign = () => {
 
       window.saveAs(
         blob,
-        userName + "_" +
-        designName.value +
-        "_" +
-        new Date().toLocaleTimeString() +
-        "-" +
-        designDirection +
-        ".png"
+        userName +
+          "_" +
+          designName.value +
+          "_" +
+          new Date().toLocaleTimeString() +
+          "-" +
+          designDirection +
+          ".png"
       );
-      canvasContainer.forEach(item => item.style.border = "2px dashed silver");
+      canvasContainer.forEach(
+        (item) => (item.style.border = "2px dashed silver")
+      );
     });
   }, 100);
 };
 
-// save to cloud
+/* Save to Cloud */
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
   if (!globalProductID) return;
@@ -492,8 +560,8 @@ const saveDesign = async () => {
   let isDesignNameValid = designName.reportValidity();
   if (!isDesignNameValid) {
     return notyf.error("Give your design a name");
-  };
-  
+  }
+
   const SKU = document.getElementById("sku-name");
 
   // asked by client to disable SKU mandation
@@ -506,10 +574,10 @@ const saveDesign = async () => {
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
-  
-  // disable border when rendering final image
+
+  /* Remove Border for Final Image Rendering */
   const canvasContainer = document.querySelectorAll(".canvas-container > *");
-  canvasContainer.forEach(item => item.style.border = "none");
+  canvasContainer.forEach((item) => (item.style.border = "none"));
 
   try {
     const node = document.getElementById("product-design");
@@ -521,17 +589,21 @@ const saveDesign = async () => {
         transformOrigin: "0 0",
         transform: "scale(2)",
       },
-      copyDefaultStyles: true
+      copyDefaultStyles: true,
     };
-    
+
     /* this is the old method where all the client images get sent to the server and everything is uploaded
     but since, they changed it to have only one image, comment the below block, query select active desing,
     send the URL to the formData, then send the design image blob separately. */
 
-    let designImageURL = document.querySelector(".active-selection").children[0].src;
-    let designImageName = document.querySelector(".active-selection").children[1].innerText;
+    let designImageURL =
+      document.querySelector(".active-selection").children[0].src;
+    let designImageName =
+      document.querySelector(".active-selection").children[1].innerText;
 
-    let submitProduct = Product.colors.find(x => x._id === currentColor).sizes.find(size => size.id === globalProductID)
+    let submitProduct = Product.colors
+      .find((x) => x._id === currentColor)
+      .sizes.find((size) => size.id === globalProductID);
 
     let designModelObject = {
       productId: Product._id,
@@ -539,16 +611,18 @@ const saveDesign = async () => {
         id: submitProduct.id,
         name: submitProduct.name,
         style: Product.name,
-        color: Product.colors.find(x => x._id === currentColor).colorName,
-        hex: Product.colors.find(x => x._id === currentColor).hex,
+        color: Product.colors.find((x) => x._id === currentColor).colorName,
+        hex: Product.colors.find((x) => x._id === currentColor).hex,
         size: submitProduct.size,
         SKU: submitProduct.sizeSku,
         price: submitProduct.price,
         baseImage: {
-          front: Product.colors.find(x => x._id === currentColor).colorImage.front,
-          back: Product.colors.find(x => x._id === currentColor).colorImage.back,
+          front: Product.colors.find((x) => x._id === currentColor).colorImage
+            .front,
+          back: Product.colors.find((x) => x._id === currentColor).colorImage
+            .back,
         },
-        dimensions: submitProduct.dimensions
+        dimensions: submitProduct.dimensions,
       },
       designName: designName.value,
       designSKU: SKU.value,
@@ -556,21 +630,41 @@ const saveDesign = async () => {
       designDimensions: {
         width: parseFloat(calculateTotalWidth().toFixed(3)),
         height: parseFloat(calculateTotalHeight().toFixed(3)),
-        top: parseFloat((fabricCanvas.getObjects()[0].top * Product.pixelToInchRatio).toFixed(3)),
-        left: parseFloat((fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio).toFixed(3)),
+        top: parseFloat(
+          (fabricCanvas.getObjects()[0].top * Product.pixelToInchRatio).toFixed(
+            3
+          )
+        ),
+        left: parseFloat(
+          (
+            fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio
+          ).toFixed(3)
+        ),
       },
-    }
+    };
 
-    console.log(submitProduct)
-    console.log(designModelObject)
+    console.log(submitProduct);
+    console.log(designModelObject);
     // console.log(filesFromBlobs)
 
-    domtoimage.toBlob(node, config).then(async blob => {
-
+    domtoimage.toBlob(node, config).then(async (blob) => {
       const formData = new FormData();
-      formData.append("designImage", new File([blob], "ProductDesign-" + designName.value + "-" + designDirection + ".png", { type: 'image/png' }));
-      formData.append("designHeight", parseFloat(calculateTotalHeight().toFixed(2)))
-      formData.append("designWidth", parseFloat(calculateTotalWidth().toFixed(2)))
+      formData.append(
+        "designImage",
+        new File(
+          [blob],
+          "ProductDesign-" + designName.value + "-" + designDirection + ".png",
+          { type: "image/png" }
+        )
+      );
+      formData.append(
+        "designHeight",
+        parseFloat(calculateTotalHeight().toFixed(2))
+      );
+      formData.append(
+        "designWidth",
+        parseFloat(calculateTotalWidth().toFixed(2))
+      );
       formData.append("productData", JSON.stringify(designModelObject));
       formData.append("direction", designDirection);
       formData.append("designImageURL", designImageURL);
@@ -587,20 +681,21 @@ const saveDesign = async () => {
       if (!saveDesignRequest.ok) {
         throw new Error("Save failed!");
       }
-      console.log(saveDesignResponse)
+      console.log(saveDesignResponse);
       document.querySelector(".save-button").innerHTML = "Saved!";
       return notyf.success("Design saved successfully!");
-    })
-    
+    });
   } catch (error) {
     console.log(error);
     disableButton(false);
-    canvasContainer.forEach(item => item.style.border = "2px dashed silver");
+    canvasContainer.forEach(
+      (item) => (item.style.border = "2px dashed silver")
+    );
     return notyf.error("Design failed to save!");
   }
 };
 
-//Set Position
+/* Set Design Position */
 const setPosition = (e, position) => {
   if (!fabricCanvas || !designImg) return;
   // Changing position of selected image
@@ -652,17 +747,20 @@ const setPosition = (e, position) => {
   fabricCanvas.renderAll();
 };
 
-// removed text functionality
-
 const modifySKUInput = (event) => {
   let string = event.target.value;
-  event.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase().slice(0, 10);
-}
+  event.target.value = string
+    .replace(/ /g, "-")
+    .replace(/[^a-zA-Z0-9-_]/g, "")
+    .toUpperCase()
+    .slice(0, 10);
+};
 
 const populateUserDesigns = (data = userDesignResponse) => {
-  userDesignsWrapper.innerHTML = '';
-  if (!data || data.images.length === 0) return userDesignsWrapper.innerHTML = "No uploads yet!";
-  data.images.map(imageItem => {
+  userDesignsWrapper.innerHTML = "";
+  if (!data || data.images.length === 0)
+    return (userDesignsWrapper.innerHTML = "No uploads yet!");
+  data.images.map((imageItem) => {
     let currentImage = new Image();
     currentImage.src = imageItem.url;
 
@@ -673,8 +771,8 @@ const populateUserDesigns = (data = userDesignResponse) => {
     </div>`;
     // currentImage.addEventListener("load", () => {
     // })
-  })
-}
+  });
+};
 
 const fetchUserDesigns = async () => {
   try {
@@ -687,13 +785,14 @@ const fetchUserDesigns = async () => {
     console.log(error);
     notyf.error("Something went wrong!");
   }
-}
+};
 
 const populateUserLabels = (data = userLabelsResponse) => {
-  userLabelsWrapper.innerHTML = '';
-  console.log(data)
-  if (!data || data.labels.length == 0) return userLabelsWrapper.innerHTML = 'No labels yet!';
-  data.labels.map(imageItem => {
+  userLabelsWrapper.innerHTML = "";
+  console.log(data);
+  if (!data || data.labels.length == 0)
+    return (userLabelsWrapper.innerHTML = "No labels yet!");
+  data.labels.map((imageItem) => {
     let currentImage = new Image();
     currentImage.src = imageItem.url;
 
@@ -702,8 +801,8 @@ const populateUserLabels = (data = userLabelsResponse) => {
       <img src="${imageItem.url}" alt="${imageItem.name}">
       <p>${imageItem.name}</p>
     </div>`;
-  })
-}
+  });
+};
 
 const fetchUserLabels = async () => {
   try {
@@ -716,7 +815,7 @@ const fetchUserLabels = async () => {
     console.log(error);
     notyf.error("Something went wrong in fetching labels!");
   }
-}
+};
 
 const includeLabel = (decision) => {
   if (!decision) {
@@ -724,22 +823,26 @@ const includeLabel = (decision) => {
     userLabelsWrapper.style.pointerEvents = "none";
     neckLabelId = null;
     isNeckLabelSelected = false;
-    document.querySelectorAll(".user-label-image").forEach(element => element.classList.remove("active-selection"))
-    updateStats()
+    document
+      .querySelectorAll(".user-label-image")
+      .forEach((element) => element.classList.remove("active-selection"));
+    updateStats();
   } else {
     userLabelsWrapper.style.opacity = 1;
     userLabelsWrapper.style.pointerEvents = "unset";
-    isNeckLabelSelected = true
+    isNeckLabelSelected = true;
   }
-}
+};
 
 const selectLabel = (el, labelId) => {
-  document.querySelectorAll(".user-label-image").forEach(element => element.classList.remove("active-selection"))
+  document
+    .querySelectorAll(".user-label-image")
+    .forEach((element) => element.classList.remove("active-selection"));
   el.classList.add("active-selection");
   neckLabelId = labelId;
-  isNeckLabelSelected && updateStats()
+  isNeckLabelSelected && updateStats();
   // upon selecting label, add 10 rupee to the total cost
-}
+};
 
 // also create a fetch function to fetch the products data and obtain the specific style
 //    based on query params passed to the route
@@ -747,7 +850,7 @@ fetchProductData();
 fetchUserDesigns();
 fetchUserLabels();
 
-// Adding delete button listener for fabric canvas
+/* Delete Active Canvas Object with Delete */
 document.addEventListener(
   "keydown",
   (e) => {
@@ -757,7 +860,9 @@ document.addEventListener(
         designImg = null;
         updateStats();
         fabricCanvas.remove(fabricCanvas.getActiveObject());
-        document.querySelectorAll(".user-design-image").forEach(element => element.classList.remove("active-selection"))
+        document
+          .querySelectorAll(".user-design-image")
+          .forEach((element) => element.classList.remove("active-selection"));
       }
     }
   },
