@@ -9,11 +9,14 @@ let fabricCanvas = null;
 /* Design Side */
 let designDirection = "front";
 
+/* Storing Canvas State */
+let canvasState = {
+  front: null,
+  back: null,
+};
+
 /* Design Image Dimensions */
 let designImg, designImageWidth, designImageHeight;
-
-/* Slider for Design Scaling */
-const slider = document.getElementById("design-scale");
 
 var globalProductID = null;
 
@@ -403,6 +406,13 @@ const addFabricCanvasToTemplateDiv = () => {
   });
 };
 
+/* Load previous state */
+const loadState = () => {
+  if (!fabricCanvas) return;
+  if (canvasState[designDirection] === null) fabricCanvas.clear();
+  else fabricCanvas.loadFromJSON(canvasState[designDirection]);
+};
+
 /* Add Image to Canvas */
 const addImageToCanvas = async (el, imageURL) => {
   if (!globalProductID)
@@ -442,7 +452,6 @@ const addImageToCanvas = async (el, imageURL) => {
         ml: false,
       });
 
-
       fabricCanvas.add(designImage);
       updateStats();
       fabricCanvas.setActiveObject(designImage);
@@ -460,6 +469,9 @@ const addImageToCanvas = async (el, imageURL) => {
 
 /* Change Design Area Side */
 const changeSide = (e, side) => {
+  /* Storing canvas state */
+  if (fabricCanvas) canvasState[designDirection] = fabricCanvas.toJSON();
+
   sideChangeButtons.forEach((sideBtn) =>
     sideBtn.classList.remove("active-btn")
   );
@@ -479,6 +491,8 @@ const changeSide = (e, side) => {
       selectedMockup.colorImage.back == ""
         ? "images/warning.png"
         : selectedMockup.colorImage.back;
+
+  loadState();
 };
 
 /* Download Image */
@@ -850,5 +864,4 @@ document.addEventListener(
   false
 );
 
-
-slider.addEventListener('input', scaleObject);
+slider.addEventListener("input", scaleObject);
