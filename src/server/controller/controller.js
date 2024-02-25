@@ -41,17 +41,17 @@ const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
-  const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
-  const pw_users = require("../../../.test_assets/wc-data/pw_users");
-  const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
-  const pw_wc_customer_lookup = require("../../../.test_assets/wc-data/pw_wc_customer_lookup");
-  const brands = require("../../../.test_assets/wc-data/brands");
-  const design_library = require("../../../.test_assets/wc-data/design_library");
-  const mockup_design = require("../../../.test_assets/wc-data/mockup_design");
-  const pw_wc_product_meta = require("../../../.test_assets/wc-data/pw_wc_product_meta_lookup");
-  const pw_woocommerce_order_items = require("../../../.test_assets/wc-data/pw_woocommerce_order_items");
-  const user_designs = require("../../../.test_assets/wc-data/cart_history");
-  const pw_postmeta = require("../../../.test_assets/wc-data/pw_postmeta");
+  // const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
+  // const pw_users = require("../../../.test_assets/wc-data/pw_users");
+  // const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
+  // const pw_wc_customer_lookup = require("../../../.test_assets/wc-data/pw_wc_customer_lookup");
+  // const brands = require("../../../.test_assets/wc-data/brands");
+  // const design_library = require("../../../.test_assets/wc-data/design_library");
+  // const mockup_design = require("../../../.test_assets/wc-data/mockup_design");
+  // const pw_wc_product_meta = require("../../../.test_assets/wc-data/pw_wc_product_meta_lookup");
+  // const pw_woocommerce_order_items = require("../../../.test_assets/wc-data/pw_woocommerce_order_items");
+  // const user_designs = require("../../../.test_assets/wc-data/cart_history");
+  // const pw_postmeta = require("../../../.test_assets/wc-data/pw_postmeta");
 
 // common auth endpoints
 exports.register = async (req, res) => {
