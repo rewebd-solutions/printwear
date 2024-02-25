@@ -251,9 +251,29 @@ const calculateTotalArea = () => {
 
 /* Design Image Stats */
 const table = document.querySelector("#price-stats");
+
+const capitalizeFirst = (string) => {
+  return string[0].toUpperCase() + string.slice(1);
+};
+
+/* Change Direction Name in Stats */
+const changeStatName = () => {
+  const priceTable = table.children[1];
+  table.style.display = "table";
+
+  /* Updating Design Direction Name */
+  const curDirection = capitalizeFirst(designDirection);
+  priceTable.children[0].children[0].innerHTML =
+    curDirection + " Design Height";
+  priceTable.children[1].children[0].innerHTML = curDirection + " Design Width";
+  priceTable.children[2].children[0].innerHTML = curDirection + " Design Area";
+};
+
 const updateStats = () => {
   const priceTable = table.children[1];
   table.style.display = "table";
+
+  changeStatName();
 
   if (!designImageHeight || !designImageWidth || !designImg) {
     priceTable.children[0].children[1].innerHTML = "0 in";
@@ -493,6 +513,7 @@ const changeSide = (e, side) => {
         : selectedMockup.colorImage.back;
 
   loadState();
+  changeStatName();
 };
 
 /* Download Image */
