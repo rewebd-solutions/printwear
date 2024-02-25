@@ -41,17 +41,17 @@ const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
-  // const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
-  // const pw_users = require("../../../.test_assets/wc-data/pw_users");
-  // const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
-  // const pw_wc_customer_lookup = require("../../../.test_assets/wc-data/pw_wc_customer_lookup");
-  // const brands = require("../../../.test_assets/wc-data/brands");
-  // const design_library = require("../../../.test_assets/wc-data/design_library");
-  // const mockup_design = require("../../../.test_assets/wc-data/mockup_design");
-  // const pw_wc_product_meta = require("../../../.test_assets/wc-data/pw_wc_product_meta_lookup");
-  // const pw_woocommerce_order_items = require("../../../.test_assets/wc-data/pw_woocommerce_order_items");
-  // const user_designs = require("../../../.test_assets/wc-data/cart_history");
-  // const pw_postmeta = require("../../../.test_assets/wc-data/pw_postmeta");
+// const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
+// const pw_users = require("../../../.test_assets/wc-data/pw_users");
+// const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
+// const pw_wc_customer_lookup = require("../../../.test_assets/wc-data/pw_wc_customer_lookup");
+// const brands = require("../../../.test_assets/wc-data/brands");
+// const design_library = require("../../../.test_assets/wc-data/design_library");
+// const mockup_design = require("../../../.test_assets/wc-data/mockup_design");
+// const pw_wc_product_meta = require("../../../.test_assets/wc-data/pw_wc_product_meta_lookup");
+// const pw_woocommerce_order_items = require("../../../.test_assets/wc-data/pw_woocommerce_order_items");
+// const user_designs = require("../../../.test_assets/wc-data/cart_history");
+// const pw_postmeta = require("../../../.test_assets/wc-data/pw_postmeta");
 
 // common auth endpoints
 exports.register = async (req, res) => {
@@ -1129,7 +1129,7 @@ exports.deletedesign = async (req, res) => {
 exports.getdesigns = async (req, res) => {
   try {
     const userDesigns = await NewDesignModel.findOne({ userId: req.userId });
-    if (!userDesigns) return res.json({designs: []})
+    if (!userDesigns) return res.json({ designs: [] })
     res.json(userDesigns);
   } catch (error) {
     console.log(error);
@@ -1768,7 +1768,7 @@ exports.placeorder = async (req, res) => {
     /// STEP 1: WALLET GAME
     const walletData = await WalletModel.findOne({ userId: req.userId });
     let totalPurchaseCost = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05;
-    
+
     if (!walletData) return res.status(404).json({ message: "Wallet not found!" });
 
     if (walletData.balance < totalPurchaseCost) {
@@ -1815,33 +1815,33 @@ exports.placeorder = async (req, res) => {
     // paymentLinkId: paymentLinkResponse.payment_session_id,
     // paymentLink: paymentLinkResponse.payments.url,
     orderData.retailPrice = retailPrice,
-    orderData.deliveryCharges = shippingCharge,
-    orderData.customerOrderId = customerOrderId,
-    orderData.shipRocketCourier = {
-      courierId: courierId ?? -1,
-      courierName: courierData?.courier_name ?? 'SELF PICKUP',
-      estimatedDelivery: courierData?.etd ?? 'N/A'
-    },
-    orderData.cashOnDelivery = cashOnDelivery,
-    orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2);
+      orderData.deliveryCharges = shippingCharge,
+      orderData.customerOrderId = customerOrderId,
+      orderData.shipRocketCourier = {
+        courierId: courierId ?? -1,
+        courierName: courierData?.courier_name ?? 'SELF PICKUP',
+        estimatedDelivery: courierData?.etd ?? 'N/A'
+      },
+      orderData.cashOnDelivery = cashOnDelivery,
+      orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2);
     orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2);
 
     await orderData.save();
     console.log("🚀 ~ orderData:", orderData)
 
-    
+
     /// STEP 2: CREATE SHIPROCKET ORDER
     const designData = await NewDesignModel.findOne({ userId: req.userId });
     const labelData = await LabelModel.findOne({ userId: req.userId });
     if (courierId) { // check if order is not self pickup, courierId null means, self pickup = no need for shiprocket. 
       orderData.paymentStatus = "success";
       orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
-   
+
       const shiprocketToken = await generateShiprocketToken();
-  
+
       const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
       const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-  
+
       const shiprocketOrderData = ({
         "order_id": orderData.printwearOrderId,
         "order_date": formatDate(new Date()),
@@ -1892,10 +1892,10 @@ exports.placeorder = async (req, res) => {
         "height": 0.5,
         "weight": (0.25 * (orderData.items.reduce((total, item) => total + item.quantity, 0))).toFixed(2)
       });
-  
+
       console.log("Shiprocket data:");
       console.dir(shiprocketOrderData, { depth: 5 });
-  
+
       const createShiprocketOrderRequest = await fetch(SHIPROCKET_BASE_URL + '/orders/create/adhoc', {
         headers: {
           "Content-Type": "application/json",
@@ -1907,13 +1907,13 @@ exports.placeorder = async (req, res) => {
       const createShiprocketOrderResponse = await createShiprocketOrderRequest.json();
       console.log("Shiprocket order response:");
       console.log(createShiprocketOrderResponse);
-  
+
       if (!createShiprocketOrderRequest.ok) throw new Error("Failed to create order");
-  
+
       orderData.shipRocketOrderId = createShiprocketOrderResponse.order_id;
       orderData.shipmentId = createShiprocketOrderResponse.shipment_id;
       orderData.deliveryStatus = "received";
-    }  
+    }
 
     /// STEP 3: TRANSFER ORDERDATA TO ORDERHISTORY
     const updatedOrderHistory = await OrderHistoryModel.findOneAndUpdate({ userId: req.userId }, {
@@ -2010,7 +2010,7 @@ exports.placeorder = async (req, res) => {
       "userId": req.userId,
       "orderData": { $elemMatch: { "printwearOrderId": orderData.printwearOrderId } }
     },
-    { "orderData.$": 1 });
+      { "orderData.$": 1 });
     const zohoCustomerId = userData.zohoCustomerID;
     const zohoContactId = userData.zohoContactID;
     const invoiceData = {
@@ -2032,7 +2032,7 @@ exports.placeorder = async (req, res) => {
         orderDetails.orderData[0].items.map((item, i) => {
           let currentDesignItem = designData.designs.find(design => design._id + '' == item.designId);
           return {
-            "item_order": (i+1),
+            "item_order": (i + 1),
             "item_id": currentDesignItem.product.id,
             "rate": currentDesignItem.price * 1.00,
             "name": currentDesignItem.product.name,
@@ -2410,7 +2410,7 @@ exports.placeorder = async (req, res) => {
       }
     ]
     console.log("🚀 ~ wooCommerceOrderData:", wooCommerceOrderData)
-    
+
     const consumerKey = process.env.WOO_PROD_CONSUMER_KEY;
     const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
 
@@ -2431,7 +2431,7 @@ exports.placeorder = async (req, res) => {
 
     updatedOrderHistory.orderData.at(-1).wooOrderId = createWooOrderRes.id;
     updatedOrderHistory.orderData.at(-1).walletOrderId = walletOrderId;
-    await updatedOrderHistory.save({validateBeforeSave: false});
+    await updatedOrderHistory.save({ validateBeforeSave: false });
 
   } catch (error) {
     console.log("General error");
@@ -2525,12 +2525,12 @@ exports.initiaterefund = async (req, res) => {
       const cashfreeRefundResponse = await cashfreeRefundRequest.json();
       console.log("🚀 ~ refundFunction ~ cashfreeRefundResponse:", cashfreeRefundResponse)
       if (cashfreeRefundRequest.ok) {
-        return {status: "refund_ok", data: cashfreeRefundResponse};
+        return { status: "refund_ok", data: cashfreeRefundResponse };
       }
       return cashfreeRefundResponse.message;
     } catch (error) {
       console.log(error);
-      return {status: "Cashfree Refund error", data: null};
+      return { status: "Cashfree Refund error", data: null };
     }
   }
 
@@ -2642,7 +2642,7 @@ exports.initiaterefund = async (req, res) => {
               }
             })
           ],
-          "payment_method": orderToRefund.cashOnDelivery ? "COD": "PREPAID",
+          "payment_method": orderToRefund.cashOnDelivery ? "COD" : "PREPAID",
           "total_discount": "0",
           "sub_total": orderToRefund.totalAmount,
           "length": designData.designs.at(0).designDimensions.height, // these are because for now temporary heights and widths, so adpiye edho oru item oda dimensions tharen
@@ -2703,35 +2703,35 @@ exports.initiaterefund = async (req, res) => {
     let purchaseTransactionOrderId = walletData.transactions.filter(transaction => transaction.transactionType === "recharge").at(-1).walletOrderId; // this is what i need 
 
     if (!orderToRefund || orderToRefundIndex === -1) return res.status(404).json({ message: "Order not found!" });
-    
+
     if (!purchaseTransaction) return res.status(404).json({ message: "Wallet transaction not found!" }); // if no such transaction found, then cant refund, problem with us only
 
     if (["pending", "received", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
-  
+
       const isRefunded = await refundFunction(purchaseTransactionOrderId);
       if (!(isRefunded.status === "refund_ok" && isRefunded.data != null)) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
-      
+
       const isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "cancelled");
       if (!isWooUpdated) return res.status(500).json({ message: "Failed to update order status. Please try later or contact help" })
-      
+
       await updateRefundWalletRecord();
-      
+
       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
       orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
       await orderHistory.save({ validateBeforeSave: false });
       // call woocommerce santo endpoint to update order status
       // refund if not COD
-      
+
       res.json({ message: "Order cancelled successfully!" });
-  
+
     } else if (["delivered"].includes(orderToRefund.deliveryStatus) || (orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1")) {
-        
+
       let cashfreeRefundStatus = await refundFunction(purchaseTransactionOrderId);
       let shiprocketReturnCreated = await createShiprocketReturnOrder();
 
       if (!(cashfreeRefundStatus.status === "refund_ok" && cashfreeRefundStatus.data != null)) return res.status(500).json({ message: "Something went wrong in initiating refund!" });
       if (shiprocketReturnCreated.message || shiprocketReturnCreated.status_code !== 21) return res.status(500).json({ message: "Something went wrong in creating return order!" });
-      
+
       let isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "pickup-scheduled");
       if (!isWooUpdated) return res.status(500).json({ message: "Something went wrong in updating return order" });
 
@@ -3125,7 +3125,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
       "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
       "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
       "is_inclusive_tax": false,
-      "line_items": 
+      "line_items":
         orderDetails.orderData[0].items.map((item, i) => {
           let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
           return {
@@ -3266,7 +3266,7 @@ exports.addwomens = async (req, res) => {
       "bottle green": "#006A4E",
       "iris lavender": "#897CAC"
     };
-    const {zohoProgGroups} = require("../../.test_assets/zohoProgGroups");
+    const { zohoProgGroups } = require("../../.test_assets/zohoProgGroups");
     const womensRN = zohoProgGroups.itemgroups.filter(itemgroup => /WOMENS RN/.test(itemgroup.group_name))
     const y = {
       "_id": "6520cee2094cfa85e4fcbd1b",
@@ -3280,7 +3280,7 @@ exports.addwomens = async (req, res) => {
         "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fwomens%20rn%20WHITE-BACK.jpg?alt=media&token=ffd62e6d-0fe5-4a88-a6d2-08dba8c6e8ee"
       },
       "colors": {
-        
+
       },
       "canvas": {
         "front": {
@@ -3328,7 +3328,7 @@ exports.addwomens = async (req, res) => {
         console.log(item.name);
         let sizeKey = item.name.split(' - ')[1]?.trim(); // Extract size name
         if (!sizeKey) sizeKey = item.name.split('-')[1].trim()
-        
+
         if (!y.colors[colorName].sizes[sizeKey]) {
           y.colors[colorName].sizes[sizeKey] = {
             "id": item.item_id,
@@ -3349,7 +3349,7 @@ exports.addwomens = async (req, res) => {
     res.json(y);
   } catch (error) {
     console.log("🚀 ~ exports.addwomens= ~ error:", error)
-    res.json({0: 0})
+    res.json({ 0: 0 })
   }
 }
 
@@ -3782,362 +3782,364 @@ exports.woowebhook = async (req, res) => {
 
 
 //// testing endpoints.. do not commit
-exports.testing = async (req, res) => {
+// exports.testing = async (req, res) => {
+//   /* can save or not toggle */
+//   const canSave = true;
+
+//   const extractTransactionHistoryFromUserID = () => {
+//     const ids = pw_users.at(2).data.map(d => d.ID);
+//     const isthere = pw_transaction_history.at(2).data.filter(d => ids.includes(d.user_id))
+//     const x = []
+//     // const y = new Se;
+//     isthere.forEach(i => {
+//       let ix = x.findIndex(z => z.user_id == i.user_id);
+//       // if (i.current_amount < 0) return;
+//       if (ix == -1) {
+//         x.push({
+//           user_id: i.user_id,
+//           transactions: [
+//             { ...i }
+//           ]
+//         })
+//       } else {
+//         x[ix].transactions.push(i)
+//       }
+//     })
+
+//     return x
+//   }
+//   // the following function needs to be called on every object that has gone thru the above function's filtering process
+//   const extractUserDataFromBigJSON = (id) => {
+//     let userData = detailedUsers.find(d => d.ID == id);
+//     return {
+//       name: userData.display_name,
+//       email: userData.user_email,
+//       // phone: userData.billing_phone,
+//       firstName: userData.first_name,
+//       lastName: userData.last_name,
+//       password: 'RESET',
+//       billingAddress: {
+//         firstName: userData.billing_first_name == "" ? userData.billing_company : userData.billing_first_name,
+//         lastName: userData.billing_last_name,
+//         state: userData.billing_state,
+//         city: userData.billing_city,
+//         pincode: userData.billing_postcode,
+//         phone: userData.billing_phone
+//       },
+//       phone: '+91' + userData.billing_phone,
+//       wooCustomerId: getCustomerIdFromUserId(id),
+//       wooUserId: id,
+//     }
+//   }
+//   const getCustomerIdFromUserId = (id) => {
+//     return pw_wc_customer_lookup[2].data.find(c => c.user_id == id).customer_id
+//   }
+//   const extractOrderDataFromCustomerId = (id) => {
+//     const orders = pw_wc_order_stats[2].data.filter(x => x.customer_id == id);
+//     return orders
+//   }
+//   const extractLabelDataFromUserId = (id) => {
+//     const brandsFromId = brands[2].data.filter(data => data.created_by == id).map(brand => ({ name: brand.brand_image_name, url: OLD_PUBLIC_URL + brand.brand_image_url }));
+//     const labelData = new LabelModel({})
+//     labelData.labels.push(...brandsFromId);
+//     return labelData.labels;
+//   }
+//   const extractProductLookupFromOrderId = (id) => {
+//     // extrqact product lookup as well as the order meta with order_item_id
+//     return [...pw_woocommerce_order_items[2].data.filter(item => item.order_id == id).map(item => {
+//       if (item.order_item_type == "line_item") {
+//         let current_item_meta = pw_wc_order_product_lookup[2].data.find(x => x.order_item_id == item.order_item_id);
+//         return ({ ...item, order_meta: current_item_meta, design_meta: user_designs[2].data.find(des => des.product_id == current_item_meta.product_id && des.variation_id == current_item_meta.variation_id && des.created_by == id) })
+//       }
+//       return item
+//     })
+//     ]
+//   }
+//   const extractDesignImagesFromUserId = (id) => {
+//     return design_library[2].data.filter(x => x.created_by == id)
+//   }
+//   const extractMockupsFromUserId = (id) => {
+//     return mockup_design[2].data.filter(design => design.created_by == id);
+//   }
+//   const extractProductDataFromProductId = (id) => {
+//     return pw_wc_product_meta[2].data.find(product => product.product_id == id);
+//   }
+//   const extractDesignsFromUserId = (id) => {
+//     return user_designs[2].data.filter(design => design.created_by == id)
+//   }
+//   const extractOrderMetaFromOrderId = (id) => {
+//     const x = pw_postmeta[2].data.filter(data => data.post_id == id)
+//     const order_meta = {}
+//     x.forEach(item => {
+//       order_meta[item.meta_key] = item.meta_value
+//     })
+//     return order_meta
+//   }
 
 
-  const extractTransactionHistoryFromUserID = () => {
-    const ids = pw_users.at(2).data.map(d => d.ID);
-    const isthere = pw_transaction_history.at(2).data.filter(d => ids.includes(d.user_id))
-    const x = []
-    // const y = new Se;
-    isthere.forEach(i => {
-      let ix = x.findIndex(z => z.user_id == i.user_id);
-      // if (i.current_amount < 0) return;
-      if (ix == -1) {
-        x.push({
-          user_id: i.user_id,
-          transactions: [
-            { ...i }
-          ]
-        })
-      } else {
-        x[ix].transactions.push(i)
-      }
-    })
+//   const uploadWalletData = async (userId, wooUserId) => {
+//     //exttract data from json
+//     const transData = extractTransactionHistoryFromUserID().find(x => x.user_id == wooUserId);
 
-    return x
-  }
-  // the following function needs to be called on every object that has gone thru the above function's filtering process
-  const extractUserDataFromBigJSON = (id) => {
-    let userData = detailedUsers.find(d => d.ID == id);
-    return {
-      name: userData.display_name,
-      email: userData.user_email,
-      // phone: userData.billing_phone,
-      firstName: userData.first_name,
-      lastName: userData.last_name,
-      password: 'RESET',
-      billingAddress: {
-        firstName: userData.billing_first_name == "" ? userData.billing_company : userData.billing_first_name,
-        lastName: userData.billing_last_name,
-        state: userData.billing_state,
-        city: userData.billing_city,
-        pincode: userData.billing_postcode,
-        phone: userData.billing_phone
-      },
-      phone: '+91' + userData.billing_phone,
-      wooCustomerId: getCustomerIdFromUserId(id),
-      wooUserId: id,
-    }
-  }
-  const getCustomerIdFromUserId = (id) => {
-    return pw_wc_customer_lookup[2].data.find(c => c.user_id == id).customer_id
-  }
-  const extractOrderDataFromCustomerId = (id) => {
-    const orders = pw_wc_order_stats[2].data.filter(x => x.customer_id == id);
-    return orders
-  }
-  const extractLabelDataFromUserId = (id) => {
-    const brandsFromId = brands[2].data.filter(data => data.created_by == id).map(brand => ({ name: brand.brand_image_name, url: OLD_PUBLIC_URL + brand.brand_image_url }));
-    const labelData = new LabelModel({})
-    labelData.labels.push(...brandsFromId);
-    return labelData.labels;
-  }
-  const extractProductLookupFromOrderId = (id) => {
-    // extrqact product lookup as well as the order meta with order_item_id
-    return [...pw_woocommerce_order_items[2].data.filter(item => item.order_id == id).map(item => {
-        if (item.order_item_type == "line_item") {
-          let current_item_meta = pw_wc_order_product_lookup[2].data.find(x => x.order_item_id == item.order_item_id);
-          return ({ ...item, order_meta: current_item_meta, design_meta: user_designs[2].data.find(des => des.product_id == current_item_meta.product_id && des.variation_id == current_item_meta.variation_id && des.created_by == id) })
-        }
-        return item
-      })
-    ]
-  }
-  const extractDesignImagesFromUserId = (id) => {
-    return design_library[2].data.filter(x => x.created_by == id)
-  }
-  const extractMockupsFromUserId = (id) => {
-    return mockup_design[2].data.filter(design => design.created_by == id);
-  }
-  const extractProductDataFromProductId = (id) => {
-    return pw_wc_product_meta[2].data.find(product => product.product_id == id);
-  }
-  const extractDesignsFromUserId = (id) => {
-    return user_designs[2].data.filter(design => design.created_by == id)
-  }
-  const extractOrderMetaFromOrderId = (id) => {
-    const x = pw_postmeta[2].data.filter(data => data.post_id == id)
-    const order_meta = {}
-    x.forEach(item => {
-      order_meta[item.meta_key] = item.meta_value
-    })
-    return order_meta
-  }
- 
+//     // save to mongo
+//     const walletData = new WalletModel({
+//       userId: userId,
+//       // balance: oneUser.transactions.at(-1).current_amount,
+//       transactions: transData.transactions.map(transaction => {
+//         let orderMeta = extractOrderMetaFromOrderId(transaction.order_id)
+//         let x = {
+//           amount: transaction.amount,
+//           wooOrderId: transaction.order_id,
+//           walletOrderId: transaction.transaction_id,
+//           transactionStatus: "success",
+//           transactionNote: transaction.comments,
+//           transactionType: transaction.type === "credit" ? "recharge" : "payment",
+//           transactionDate: new Date(transaction.updated_at),
+//         }
+//         if (orderMeta.invoice_url) x.invoiceURL = orderMeta.invoice_url
+//         return x
+//       })
+//     })
+//     walletData.balance = ((transData.transactions.reduce((acc, curr) => (curr.type == "credit") ? acc + parseFloat(curr.amount) : acc - parseFloat(curr.amount), 0))).toFixed(2)
+//     if (canSave) await walletData.save({ validateBeforeSave: false }); // when done
+//     return walletData // test
+//   }
+//   const uploadLabelData = async (userId, wooUserId) => {
+//     const labels = new LabelModel({
+//       userId: userId,
+//       labels: extractLabelDataFromUserId(wooUserId)
+//     })
+//     if (canSave) await labels.save({ validateBeforeSave: false });
+//     return labels
+//   }
+//   const uploadDesignImageData = async (userId, wooUserId) => {
+//     const designImages = extractDesignImagesFromUserId(wooUserId);
+//     let imss = [];
+//     for (let i = 0; i < designImages.length; i++) {
+//       let fs = (await imageFileSize(OLD_PUBLIC_URL + designImages[i].image_url)) / 1000;
+//       imss.push({
+//         url: OLD_PUBLIC_URL + designImages[i].image_url,
+//         name: designImages[i].image_name,
+//         size: fs,
+//         format: designImages[i].extension,
+//         isWooDeleted: false
+//       })
+//     }
+//     // console.log("🚀 ~ imss ~ imss:", imss)
+//     const designImageData = new ImageModel({
+//       userId: userId,
+//       images: imss
+//     })
+//     if (canSave) await designImageData.save({ validateBeforeSave: false });
+//     return designImageData;
+//   }
+//   const uploadOrderData = async (userId, wooUserId, designsData) => {
+//     const transactions = extractTransactionHistoryFromUserID().find(x => x.user_id == wooUserId).transactions;
+//     console.log("🚀 ~ uploadOrderData ~ transactions:", transactions)
+//     const orders = extractOrderDataFromCustomerId(getCustomerIdFromUserId(wooUserId)).map(order => {
+//       return {
+//         ...order,
+//         product_lookup: extractProductLookupFromOrderId(order.order_id),
+//         order_meta: extractOrderMetaFromOrderId(order.order_id)
+//       }
+//     });
+//     const orderHistoryData = new OrderHistoryModel({
+//       userId: userId,
+//       orderData: orders.map(order => {
+//         let y = transactions.find(trans => trans.order_id == order.order_id)
+//         console.log("🚀 ~ uploadOrderData ~ y:", y)
+//         return {
+//           createdAt: order.date_created,
+//           printwearOrderId: order.order_id,
+//           wooOrderId: order.order_id,
+//           amountPaid: order.total_sales,
+//           deliveryCharges: order.shipping_total,
+//           taxes: order.tax_total,
+//           deliveryStatus: order.status.split("-")[1],
+//           totalAmount: order.net_total + order.shipping_total,
+//           walletOrderId: y?.transaction_id,
+//           cashOnDelivery: order.product_lookup.find(lkp => lkp.order_item_type == "fee") ? true : false,
+//           shipRocketCourier: {
+//             courierName: order.product_lookup.find(lkp => lkp.order_item_type == "shipping")?.order_item_name,
+//           },
+//           items: order.product_lookup.filter(order => order.order_item_type == "line_item").map(order => {
+//             let currDesignFromMongo = designsData.designs.find(design => (design.wooProductId == order.order_meta.product_id) && (design.wooVariationId == order.order_meta.variation_id));
+//             return {
+//               designId: currDesignFromMongo?._id,
+//               price: currDesignFromMongo?.price,
+//               quantity: order?.product_qty,
+//             }
+//           }),
+//           paymentStatus: "success",
+//           billingAddress: {
+//             firstName: order.order_meta._billing_first_name,
+//             lastName: order.order_meta._billing_last_name,
+//             email: order.order_meta._billing_email,
+//             mobile: order.order_meta._billing_phone,
+//           },
+//           customerOrderId: order.order_meta.reference_number,
+//           shippingAddress: {
+//             firstName: order.order_meta._shipping_first_name,
+//             lastName: order.order_meta._billing_last_name,
+//             email: order.order_meta.shipping_email,
+//             mobile: order.order_meta._billing_phone,
+//             streetLandmark: order.order_meta._shipping_address_1 + order.order_meta._shipping_address_2,
+//             city: order.order_meta._shipping_city,
+//             pincode: order.order_meta._shipping_postcode,
+//             state: order.order_meta._shipping_state,
+//             country: order.order_meta._shipping_country
+//           },
+//         }
+//       })
+//     })
+//     if (canSave) orderHistoryData.save({ validateBeforeSave: false });
+//     return orderHistoryData
+//   }
+//   const uploadMockupsData = async (userId, wooUserId) => {
+//     const mockups = extractMockupsFromUserId(wooUserId);
+//     // console.log("🚀 ~ uploadDesignsData ~ designs:", designs)
+//     // let x = []
+//     // const orderDataBecausePriceIsInThat = extractOrderDataFromCustomerId(getCustomerIdFromUserId(wooUserId)).map(order => x.push(...extractProductLookupFromOrderId(order.order_id)))
+//     mockups.forEach(mockup => {
+//       mockup.product = { ...extractProductDataFromProductId(mockup.product_id) }
+//     })
+//     return mockups
+//   }
+//   const uploadDesignsData = async (userId, wooUserId) => {
+//     const colorHexCodes = {
+//       "black": "#000000",
+//       "pink": "#ffb6c1",
+//       "charcoal melange": "#464646",
+//       "ecru melange": "#F5F5DC",
+//       "grey melange": "#808080",
+//       "mustard yellow": "#FFDB58",
+//       "navy blue": "#000080",
+//       "red": "#FF0000",
+//       "white": "#FFFFFF",
+//       "army green": "#4B5320",
+//       "royal blue": "#4169E1",
+//       "maroon": "#800000",
+//       "lemon yellow": "#FFF44F",
+//       "olive green": "#556B2F",
+//       "leaf green": "#228B22",
+//       "beige": "#F5F5DC",
+//       "yellow": "#FFFF00",
+//       "navy": "#000080",
+//       "turquoise": "#40E0D0",
+//       "turcoise blue": "#00FFEF",
+//       "turquoise blue": "#40e0d0",
+//       "chocolate brown": "#7B3F00",
+//       "sky blue": "#87CEEB",
+//       "bottle green": "#006A4E",
+//       "iris lavender": "#897CAC"
+//     };
+//     const designs = extractDesignsFromUserId(wooUserId);
+//     const designsWithProductData = designs.map(design => ({ ...design, product_meta: extractProductDataFromProductId(design.product_id) }))
+//     // console.log("🚀 ~ uploadDesignsData ~ designsWithProductData:", designsWithProductData)
+//     const designsData = new NewDesignModel({
+//       userId: userId,
+//       designs: designsWithProductData.map(design => {
+//         let currColor = design.product_name.split(",")[0]?.split(" ").at(-1);
+//         return {
+//           product: {
+//             id: design.product_meta?.product_id,
+//             name: design.product_name,
+//             style: '',
+//             color: currColor,
+//             hex: colorHexCodes[currColor.toLowerCase()],
+//             size: design.product_name.split(",")[1],
+//             SKU: design.product_meta?.sku,
+//             price: parseFloat(design.product_meta?.min_price),
+//             // baseImage is missing
+//             // dimensions not necessary
+//           },
+//           designSKU: design.product_meta?.sku ? design.product_meta?.sku + design.cart_id : design.cart_id,
+//           designName: design.product_name,
+//           price: parseFloat(design.product_meta?.min_price) + parseFloat(design.front_printing_price) + parseFloat(design.back_printing_price),
+//           backPrice: design.back_printing_price == "0" ? 0 : parseFloat(design.product_meta?.min_price) + parseFloat(design.back_printing_price),
+//           frontPrice: design.front_printing_price == "0" ? 0 : parseFloat(design.product_meta?.min_price) + parseFloat(design.front_printing_price),
+//           designDimensions: {
+//             width: design.front_size_width,
+//             height: design.front_size_height,
+//             top: design.front_top_position,
+//             left: design.front_left_position,
+//           },
+//           backDesignDimensions: {
+//             width: design.back_size_width,
+//             height: design.back_size_height,
+//             top: design.back_top_position,
+//             left: design.back_left_position,
+//           },
+//           designImage: {
+//             front: design.front_mockup_image ? OLD_PUBLIC_URL + design.front_mockup_image : "",
+//             back: design.back_mockup_image ? OLD_PUBLIC_URL + design.back_mockup_image : "",
+//           },
+//           designItems: [
+//             {
+//               itemName: design.front_design_image?.split("/").at(-1),
+//               URL: design.front_design_image
+//             },
+//             design.back_design_image ? ({
+//               itemName: design.back_design_image.split("/").at(-1),
+//               URL: design.back_design_image
+//             }) : null,
+//           ],
+//           neckLabel: '',
+//           isMigrated: true,
+//           wooProductId: design.product_id,
+//           wooVariationId: design.variation_id
+//         }
+//       })
+//     });
+//     if (canSave) await designsData.save({ validateBeforeSave: false });
+//     return designsData
+//   }
+//   const uploadUserDataToMongo = async (id) => {
+//     // const userData = await UserModel.create(extractUserDataFromBigJSON(id)); // use in prod
+//     const userData = new UserModel(extractUserDataFromBigJSON(id));
+//     if (canSave) await userData.save({ validateBeforeSave: false });
+//     // console.log("🚀 ~ uploadUserDataToMongo ~ userData:", userData.toJSON())
+//     const mongoUserId = userData._id;
+//     const wooCusomterId = getCustomerIdFromUserId(id); // customer_id vaangu for orders
+//     console.log("🚀 ~ uploadUserDataToMongo ~ wooCusomterId:", wooCusomterId)
+//     const walletData = await uploadWalletData(mongoUserId, id);
+//     console.log("upload wallet data over for " + id + " " + userData.name)
+//     const labelData = await uploadLabelData(mongoUserId, id);
+//     console.log("upload label data over for " + id + " " + userData.name)
+//     const designImageData = await uploadDesignImageData(mongoUserId, id);
+//     console.log("upload design images data over for " + id + " " + userData.name)
+//     const designsData = await uploadDesignsData(mongoUserId, id);
+//     console.log("upload designs data over for " + id + " " + userData.name)
+//     const orderData = await uploadOrderData(mongoUserId, id, designsData);
+//     console.log("upload order data over for " + id + " " + userData.name)
+//     return ({ userData: userData.toObject(), walletData: walletData.toObject(), labelData: labelData.toObject(), designImageData: designImageData.toObject(), designsData: designsData.toObject(), orderData: orderData.toObject() });
+//   }
 
-  const uploadWalletData = async (userId, wooUserId) => {
-    //exttract data from json
-    const transData = extractTransactionHistoryFromUserID().find(x => x.user_id == wooUserId);
-    
-    // save to mongo
-    const walletData = new WalletModel({
-      userId: userId,
-      // balance: oneUser.transactions.at(-1).current_amount,
-      transactions: transData.transactions.map(transaction => {
-        let orderMeta = extractOrderMetaFromOrderId(transaction.order_id) 
-        let x =  {
-          amount: transaction.amount,
-          wooOrderId: transaction.order_id,
-          walletOrderId: transaction.transaction_id,
-          transactionStatus: "success",
-          transactionNote: transaction.comments,
-          transactionType: transaction.type === "credit" ? "recharge" : "payment",
-          transactionDate: new Date(transaction.updated_at),
-        }
-        if (orderMeta.invoice_url) x.invoiceURL = orderMeta.invoice_url
-        return x
-      })
-    })
-    walletData.balance = ((transData.transactions.reduce((acc, curr) => (curr.type == "credit") ? acc + parseFloat(curr.amount): acc - parseFloat(curr.amount), 0))).toFixed(2)
-    // await walletData.save(); // when done
-    return walletData // test
-  }
-  const uploadLabelData = async (userId, wooUserId) => {
-    const labels = new LabelModel({
-      userId: userId,
-      labels: extractLabelDataFromUserId(wooUserId)
-    })
-    // await labels.save()
-    return labels
-  }
-  const uploadDesignImageData = async (userId, wooUserId) => {
-    const designImages = extractDesignImagesFromUserId(wooUserId);
-    let imss = [];
-    for(let i=0; i<designImages.length; i++) {
-      let fs = (await imageFileSize(OLD_PUBLIC_URL + designImages[i].image_url)) / 1000;
-      imss.push({
-        url: OLD_PUBLIC_URL + designImages[i].image_url,
-        name: designImages[i].image_name,
-        size: fs,
-        format: designImages[i].extension,
-        isWooDeleted: false
-      })
-    }
-    // console.log("🚀 ~ imss ~ imss:", imss)
-    const designImageData = new ImageModel({
-      userId: userId,
-      images: imss
-    })
-    // await designImageData.save();
-    return designImageData;
-  }
-  const uploadOrderData = async (userId, wooUserId, designsData) => {
-    const transactions = extractTransactionHistoryFromUserID().find(x => x.user_id == wooUserId).transactions;
-    console.log("🚀 ~ uploadOrderData ~ transactions:", transactions)
-    const orders = extractOrderDataFromCustomerId(getCustomerIdFromUserId(wooUserId)).map(order => {
-      return {
-        ...order,
-        product_lookup: extractProductLookupFromOrderId(order.order_id),
-        order_meta: extractOrderMetaFromOrderId(order.order_id)
-      }
-    });
-    const orderHistoryData = new OrderHistoryModel({
-      userId: userId,
-      orderData: orders.map(order => {
-        let y = transactions.find(trans => trans.order_id == order.order_id)
-        console.log("🚀 ~ uploadOrderData ~ y:", y)
-        return {
-          createdAt: order.date_created,
-          printwearOrderId: order.order_id,
-          wooOrderId: order.order_id,
-          amountPaid: order.total_sales,
-          deliveryCharges: order.shipping_total,
-          taxes: order.tax_total,
-          deliveryStatus: order.status.split("-")[1],
-          totalAmount: order.net_total + order.shipping_total,
-          walletOrderId: y?.transaction_id,
-          cashOnDelivery: order.product_lookup.find(lkp => lkp.order_item_type == "fee")? true: false,
-          shipRocketCourier: {
-            courierName: order.product_lookup.find(lkp => lkp.order_item_type == "shipping")?.order_item_name,
-          },
-          items: order.product_lookup.filter(order => order.order_item_type == "line_item").map(order => {
-            let currDesignFromMongo = designsData.designs.find(design => (design.wooProductId == order.order_meta.product_id) && (design.wooVariationId == order.order_meta.variation_id));
-            return {
-              designId: currDesignFromMongo?._id,
-              price: currDesignFromMongo?.price,
-              quantity: order?.product_qty,
-            }
-          }),
-          paymentStatus: "success",
-          billingAddress: {
-            firstName: order.order_meta._billing_first_name,
-            lastName: order.order_meta._billing_last_name,
-            email: order.order_meta._billing_email,
-            mobile: order.order_meta._billing_phone,
-          },
-          customerOrderId: order.order_meta.reference_number,
-          shippingAddress: {
-            firstName: order.order_meta._shipping_first_name,
-            lastName: order.order_meta._billing_last_name,
-            email: order.order_meta.shipping_email,
-            mobile: order.order_meta._billing_phone,
-            streetLandmark: order.order_meta._shipping_address_1 + order.order_meta._shipping_address_2,
-            city: order.order_meta._shipping_city,
-            pincode: order.order_meta._shipping_postcode,
-            state: order.order_meta._shipping_state,
-            country: order.order_meta._shipping_country
-          },
-        }
-      })
-    })
-    return orderHistoryData
-  }
-  const uploadMockupsData = async (userId, wooUserId) => {
-    const mockups = extractMockupsFromUserId(wooUserId);
-    // console.log("🚀 ~ uploadDesignsData ~ designs:", designs)
-    // let x = []
-    // const orderDataBecausePriceIsInThat = extractOrderDataFromCustomerId(getCustomerIdFromUserId(wooUserId)).map(order => x.push(...extractProductLookupFromOrderId(order.order_id)))
-    mockups.forEach(mockup => {
-      mockup.product = {...extractProductDataFromProductId(mockup.product_id)}
-    })
-    return mockups
-  }
-  const uploadDesignsData = async (userId, wooUserId) => {
-    const colorHexCodes = {
-      "black": "#000000",
-      "pink": "#ffb6c1",
-      "charcoal melange": "#464646",
-      "ecru melange": "#F5F5DC",
-      "grey melange": "#808080",
-      "mustard yellow": "#FFDB58",
-      "navy blue": "#000080",
-      "red": "#FF0000",
-      "white": "#FFFFFF",
-      "army green": "#4B5320",
-      "royal blue": "#4169E1",
-      "maroon": "#800000",
-      "lemon yellow": "#FFF44F",
-      "olive green": "#556B2F",
-      "leaf green": "#228B22",
-      "beige": "#F5F5DC",
-      "yellow": "#FFFF00",
-      "navy": "#000080",
-      "turquoise": "#40E0D0",
-      "turcoise blue": "#00FFEF",
-      "turquoise blue": "#40e0d0",
-      "chocolate brown": "#7B3F00",
-      "sky blue": "#87CEEB",
-      "bottle green": "#006A4E",
-      "iris lavender": "#897CAC"
-    };
-    const designs = extractDesignsFromUserId(wooUserId);
-    const designsWithProductData = designs.map(design => ({...design, product_meta: extractProductDataFromProductId(design.product_id)}))
-    // console.log("🚀 ~ uploadDesignsData ~ designsWithProductData:", designsWithProductData)
-    const designsData = new NewDesignModel({
-      userId: userId,
-      designs: designsWithProductData.map(design => {
-        let currColor = design.product_name.split(",")[0]?.split(" ").at(-1);
-        return {
-          product: {
-            id: design.product_meta?.product_id,
-            name: design.product_name,
-            style: '',
-            color: currColor,
-            hex: colorHexCodes[currColor.toLowerCase()],
-            size: design.product_name.split(",")[1],
-            SKU: design.product_meta?.sku,
-            price: parseFloat(design.product_meta?.min_price),
-            // baseImage is missing
-            // dimensions not necessary
-          },
-          designSKU: design.product_meta?.sku? design.product_meta?.sku + design.cart_id: design.cart_id,
-          designName: design.product_name,
-          price: parseFloat(design.product_meta?.min_price) + parseFloat(design.front_printing_price) + parseFloat(design.back_printing_price),
-          backPrice: design.back_printing_price == "0"? 0: parseFloat(design.product_meta?.min_price) + parseFloat(design.back_printing_price),
-          frontPrice: design.front_printing_price == "0"? 0: parseFloat(design.product_meta?.min_price) + parseFloat(design.front_printing_price),
-          designDimensions: {
-            width: design.front_size_width,
-            height: design.front_size_height,
-            top: design.front_top_position,
-            left: design.front_left_position,
-          },
-          backDesignDimensions: {
-            width: design.back_size_width,
-            height: design.back_size_height,
-            top: design.back_top_position,
-            left: design.back_left_position,
-          },
-          designImage: {
-            front: design.front_mockup_image ? OLD_PUBLIC_URL + design.front_mockup_image: "",
-            back: design.back_mockup_image ? OLD_PUBLIC_URL + design.back_mockup_image: "",
-          },
-          designItems: [
-            {
-              itemName: design.front_design_image?.split("/").at(-1),
-              URL: design.front_design_image
-            },
-            design.back_design_image? ({
-                itemName: design.back_design_image.split("/").at(-1),
-                URL: design.back_design_image 
-            }): null,
-          ],
-          neckLabel: '',
-          isMigrated: true,
-          wooProductId: design.product_id,
-          wooVariationId: design.variation_id
-        }
-      })
-    });
-    // await designsData.save({ validateBeforeSave: false })
-    return designsData
-  }
-  const uploadUserDataToMongo = async (id) => {
-    // const userData = await UserModel.create(extractUserDataFromBigJSON(id)); // use in prod
-    const userData = new UserModel(extractUserDataFromBigJSON(id));
-    // await userData.save();
-    // console.log("🚀 ~ uploadUserDataToMongo ~ userData:", userData.toJSON())
-    const mongoUserId = userData._id;
-    const wooCusomterId = getCustomerIdFromUserId(id); // customer_id vaangu for orders
-    console.log("🚀 ~ uploadUserDataToMongo ~ wooCusomterId:", wooCusomterId)
-    const walletData = await uploadWalletData(mongoUserId, id); 
-    console.log("upload wallet data over for " + id + " " + userData.name)
-    const labelData = await uploadLabelData(mongoUserId, id);
-    console.log("upload label data over for " + id + " " + userData.name)
-    const designImageData = await uploadDesignImageData(mongoUserId, id);
-    console.log("upload design images data over for " + id + " " + userData.name)
-    const designsData = await uploadDesignsData(mongoUserId, id);
-    console.log("upload designs data over for " + id + " " + userData.name)
-    const orderData = await uploadOrderData(mongoUserId, id, designsData);
-    console.log("upload order data over for " + id + " " + userData.name)
-    return ({ userData: userData.toObject(), walletData: walletData.toObject(), labelData: labelData.toObject(), designImageData: designImageData.toObject(), designsData: designsData.toObject(), orderData: orderData.toObject() });
-  }
+//   try {
+//     const userIdToFind = "2980";
 
-  try {
-    const userIdToFind = "2980";
-
-    // res.json({
-    //   // user: detailedUsers.find(x => x.ID == userIdToFind),
-    //   // trans: extractTransactionHistoryFromUserID().find(x => x.user_id == userIdToFind),
-    //   orders: extractOrderDataFromCustomerId(getCustomerIdFromUserId(userIdToFind)).map(order => {
-    //     return {
-    //       ...order,
-    //       product_lookup: extractProductLookupFromOrderId(order.order_id),
-    //       order_meta: extractOrderMetaFromOrderId(order.order_id)
-    //     }
-    //   }),
-    //   // mockups: await uploadMockupsData('', userIdToFind),
-    //   // designs: await uploadDesignsData('', userIdToFind)
-    //   // labels: extractLabelDataFromUserId(userIdToFind)
-    // }); 
+//     // res.json({
+//     //   // user: detailedUsers.find(x => x.ID == userIdToFind),
+//     //   // trans: extractTransactionHistoryFromUserID().find(x => x.user_id == userIdToFind),
+//     //   orders: extractOrderDataFromCustomerId(getCustomerIdFromUserId(userIdToFind)).map(order => {
+//     //     return {
+//     //       ...order,
+//     //       product_lookup: extractProductLookupFromOrderId(order.order_id),
+//     //       order_meta: extractOrderMetaFromOrderId(order.order_id)
+//     //     }
+//     //   }),
+//     //   // mockups: await uploadMockupsData('', userIdToFind),
+//     //   // designs: await uploadDesignsData('', userIdToFind)
+//     //   // labels: extractLabelDataFromUserId(userIdToFind)
+//     // });
 
 
-    const finalDataBeforeSavingToMongo = await uploadUserDataToMongo(userIdToFind)
-    console.log("🚀 ~ exports.testing= ~ finalDataBeforeSavingToMongo:", finalDataBeforeSavingToMongo)
-    res.json(finalDataBeforeSavingToMongo);
+//     const finalDataBeforeSavingToMongo = await uploadUserDataToMongo(userIdToFind)
+//     console.log("🚀 ~ exports.testing= ~ finalDataBeforeSavingToMongo:", finalDataBeforeSavingToMongo)
+//     res.json(finalDataBeforeSavingToMongo);
 
-  } catch (error) {
-    console.log(error);
-    res.send(error);
-  }
-}
+//   } catch (error) {
+//     console.log(error);
+//     res.send(error);
+//   }
+// }

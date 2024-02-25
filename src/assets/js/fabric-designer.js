@@ -191,16 +191,13 @@ const renderColors = () => {
   parent.innerHTML = "";
   Product.colors.map((color) => {
     const innerHTML = `
-    <div class="color-options${
-      color.colorImage.front || color.colorImage.back ? "" : " color-disabled"
-    }" ${
-      color.colorImage.front || color.colorImage.back
+    <div class="color-options${color.colorImage.front || color.colorImage.back ? "" : " color-disabled"
+      }" ${color.colorImage.front || color.colorImage.back
         ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"`
         : 'title="Image not available"'
-    }>
+      }>
       <span class="color-circle" style="background: ${color.hex}; border: 
-      ${
-        color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
+      ${color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
       }" id="${color.colorName}-${color._id}"></span>
       <p>${color.colorName}</p>
     </div>
@@ -293,8 +290,8 @@ const updateStats = () => {
     imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0
       ? 70.0
       : imageAreaInInches * 2 < 70.0
-      ? 70.0
-      : imageAreaInInches * 2;
+        ? 70.0
+        : imageAreaInInches * 2;
 
   priceTable.children[0].children[1].innerHTML = imageHeightInInches + " in";
   priceTable.children[1].children[1].innerHTML = imageWidthInInches + " in";
@@ -344,10 +341,9 @@ const displaySizes = () => {
   let sizeDOMString = current.sizes
     .map((item) => {
       return `
-        <div class="size-options" ${
-          item.stock
-            ? `onclick="changeSize(event,'${item.size}', '${item.id}')"`
-            : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`
+        <div class="size-options" ${item.stock
+          ? `onclick="changeSize(event,'${item.size}', '${item.id}')"`
+          : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`
         }>
         ${item.size}
         </div>
@@ -393,28 +389,29 @@ const addFabricCanvasToTemplateDiv = () => {
   fabricCanvas.uniformScaling = true;
 
   /* Disabling out of canvas image movement */
-  fabricCanvas.on("object:moving", function (event) {
-    var designImg = event.target;
-    var canvasWidth = fabricCanvas.width;
-    var canvasHeight = fabricCanvas.height;
+  //// Not necessary as this feature does not exist in old printwear
+  // fabricCanvas.on("object:moving", function (event) {
+  //   var designImg = event.target;
+  //   var canvasWidth = fabricCanvas.width;
+  //   var canvasHeight = fabricCanvas.height;
 
-    var imgLeft = designImg.left;
-    var imgTop = designImg.top;
-    var imgWidth = designImg.getScaledWidth();
-    var imgHeight = designImg.getScaledHeight();
+  //   var imgLeft = designImg.left;
+  //   var imgTop = designImg.top;
+  //   var imgWidth = designImg.getScaledWidth();
+  //   var imgHeight = designImg.getScaledHeight();
 
-    if (imgLeft < 0) {
-      designImg.set({ left: 0 });
-    } else if (imgLeft + imgWidth > canvasWidth) {
-      designImg.set({ left: canvasWidth - imgWidth });
-    }
+  //   if (imgLeft < 0) {
+  //     designImg.set({ left: 0 });
+  //   } else if (imgLeft + imgWidth > canvasWidth) {
+  //     designImg.set({ left: canvasWidth - imgWidth });
+  //   }
 
-    if (imgTop < 0) {
-      designImg.set({ top: 0 });
-    } else if (imgTop + imgHeight > canvasHeight) {
-      designImg.set({ top: canvasHeight - imgHeight });
-    }
-  });
+  //   if (imgTop < 0) {
+  //     designImg.set({ top: 0 });
+  //   } else if (imgTop + imgHeight > canvasHeight) {
+  //     designImg.set({ top: canvasHeight - imgHeight });
+  //   }
+  // });
 
   fabricCanvas.on("object:scaling", function (event) {
     var designImg = event.target;
@@ -448,6 +445,7 @@ const addImageToCanvas = async (el, imageURL) => {
 
   const blobReq = await fetch(imageURL);
   const blobRes = await blobReq.blob();
+  console.log("🚀 ~ addImageToCanvas ~ blobRes:", blobRes)
   designImg = blobRes;
   if (imageURL && fabricCanvas) {
     const imageURL = URL.createObjectURL(designImg);
@@ -555,13 +553,13 @@ const downloadDesign = () => {
       window.saveAs(
         blob,
         userName +
-          "_" +
-          designName.value +
-          "_" +
-          new Date().toLocaleTimeString() +
-          "-" +
-          designDirection +
-          ".png"
+        "_" +
+        designName.value +
+        "_" +
+        new Date().toLocaleTimeString() +
+        "-" +
+        designDirection +
+        ".png"
       );
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed silver")
@@ -782,7 +780,7 @@ const populateUserDesigns = (data = userDesignResponse) => {
 
     userDesignsWrapper.innerHTML += `
     <div class="user-design-image" onclick="addImageToCanvas(this, this.children[0].src)">
-      <img src="${imageItem.url}" alt="">
+      <img src="${imageItem.url}" alt="" loading="lazy">
       <p>${imageItem.name}</p>
     </div>`;
     // currentImage.addEventListener("load", () => {
@@ -814,7 +812,7 @@ const populateUserLabels = (data = userLabelsResponse) => {
 
     userLabelsWrapper.innerHTML += `
     <div class="user-label-image" onclick="selectLabel(this, '${imageItem._id}')">
-      <img src="${imageItem.url}" alt="${imageItem.name}">
+      <img src="${imageItem.url}" loading="lazy" alt="${imageItem.name}">
       <p>${imageItem.name}</p>
     </div>`;
   });
