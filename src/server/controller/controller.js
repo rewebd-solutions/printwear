@@ -41,10 +41,17 @@ const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
-//testing
-// exports.testing = async (req, res) => {
-//   res.send("This is a final push to check if cloud build is working fine");
-// }
+  const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
+  const pw_users = require("../../../.test_assets/wc-data/pw_users");
+  const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
+  const pw_wc_customer_lookup = require("../../../.test_assets/wc-data/pw_wc_customer_lookup");
+  const brands = require("../../../.test_assets/wc-data/brands");
+  const design_library = require("../../../.test_assets/wc-data/design_library");
+  const mockup_design = require("../../../.test_assets/wc-data/mockup_design");
+  const pw_wc_product_meta = require("../../../.test_assets/wc-data/pw_wc_product_meta_lookup");
+  const pw_woocommerce_order_items = require("../../../.test_assets/wc-data/pw_woocommerce_order_items");
+  const user_designs = require("../../../.test_assets/wc-data/cart_history");
+  const pw_postmeta = require("../../../.test_assets/wc-data/pw_postmeta");
 
 // common auth endpoints
 exports.register = async (req, res) => {
@@ -1751,7 +1758,8 @@ exports.placeorder = async (req, res) => {
     } = req.body;
     // validate data
     const orderData = await OrderModel.findOne({ userId: req.userId });
-    
+    const userData = await UserModel.findById(req.userId);
+
     if (!orderData) {
       res.status(404).json({ message: "No such order found!" });
       return console.log(`No such order data found for ${req.userId}`);
@@ -1782,15 +1790,15 @@ exports.placeorder = async (req, res) => {
 
     /// STEP 1.5: ORDERDATA GAM
     orderData.billingAddress = {
-      firstName,
-      lastName,
-      mobile,
-      email,
-      streetLandmark,
-      city,
-      pincode,
-      state,
-      country
+      firstName: userData.billingAddress?.firstName,
+      lastName: userData.billingAddress?.lastName,
+      mobile: userData.billingAddress?.phone,
+      email: userData.billingAddress?.email,
+      streetLandmark: userData.billingAddress?.street + ' ' + userData.billingAddress?.landmark,
+      city: userData.billingAddress?.city,
+      pincode: userData.billingAddress?.pincode,
+      state: userData.billingAddress?.state,
+      country: userData.billingAddress?.country
     }
     orderData.shippingAddress = {
       firstName,
@@ -1948,7 +1956,6 @@ exports.placeorder = async (req, res) => {
 
     /// STEP 4: GENERATE ZOHO INVOICE
     const zohoToken = await generateZohoToken();
-    const userData = await UserModel.findById(req.userId);
     if (!userData.isZohoCustomer) {
       // write endpoint to create zoho customer 
       let customerData = {
@@ -3227,388 +3234,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
 
 // dummy testing endpoint for testing santo woocomms order creation
 // testing done. so probably remove 
-exports.createdummyorder = async (req, res) => {
-  try {
-    const orderDetails = {
-      _id: '65725ca47085636cd395fb7b',
-      orderData: [
-        {
-          items: [
-            {
-              productId: '6520cee2094cfa85e4fcbd0c',
-              designId: '657269d2c40d64b139a9ed14',
-              quantity: 1,
-              price: 570,
-              _id: '65b275ece8fb0f30db201654'
-            }
-          ],
-          billingAddress: {
-            firstName: 'Jolan',
-            lastName: 'Jose',
-            mobile: '8347538434',
-            email: 'jolanjose2003@gmail.com',
-            streetLandmark: 's nagar',
-            city: 'Chennai',
-            pincode: 600048,
-            state: 'Andhra Pradesh',
-            country: 'India'
-          },
-          shippingAddress: {
-            firstName: 'Jolan',
-            lastName: 'Jose',
-            mobile: '8347538434',
-            email: 'jolanjose2003@gmail.com',
-            streetLandmark: 's nagar',
-            city: 'Chennai',
-            pincode: 600048,
-            state: 'Andhra Pradesh',
-            country: 'India'
-          },
-          totalAmount: 626.64,
-          amountPaid: 657.97,
-          paymentStatus: 'success',
-          deliveryStatus: 'placed',
-          deliveryCharges: 56.64,
-          printwearOrderId: '3Z8CH3',
-          shipRocketOrderId: '476085162',
-          cashOnDelivery: false,
-          shipRocketCourier: {
-            courierId: '142',
-            courierName: 'Amazon Surface 500gm Prepaid',
-            estimatedDelivery: 'Jan 27, 2024'
-          },
-          shipmentId: '474243194',
-          customerOrderId: '451154421',
-          retailPrice: 600,
-          // createdAt: 2024-01 - 25T14: 53: 32.491Z,
-          taxes: 31.332,
-          _id: '65a77d98d8c5a095308994f1'
-        }
-      ]
-    }
-    const designData = {
-      _id: ('653e3361a7898b1bebbecf41'),
-      designs: [
-        {
-          productId: ('6520cee2094cfa85e4fcbd0c'),
-          product: {
-            id: '650580000000195252',
-            name: 'Hoodies  Mustard Yellow -  S',
-            style: 'Hoodie',
-            color: 'Mustard Yellow',
-            hex: '#FFDB58',
-            size: 'S',
-            SKU: 'PWRNMYS-004H',
-            price: 490,
-            baseImage: {
-              front: 'https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodies%20white.png?alt=media&token=3ba51b35-98c8-4e9a-ae42-bfd8244ce244',
-              back: ''
-            },
-            dimensions: {
-              length: 28,
-              chest: 38,
-              sleeve: 7.5,
-              weight: 0.5
-            }
-          },
-          designSKU: 'PWRNMYS-004H-PT525',
-          designName: 'Heart hoodie',
-          price: 570,
-          designDimensions: {
-            width: 6.385,
-            height: 6.385,
-            top: 1.823,
-            left: 3.528
-          },
-          designImage: {
-            front: 'https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/designs%2F653e3284308b660442fd55a6_Heart%20hoodie_PWRNMYS-004H-PT525.png?alt=media&token=a7a2e92f-1346-470a-a46f-c2376e36a741',
-            back: 'false'
-          },
-          designItems: [
-            {
-              itemName: 'red-heart-pixel-art-png.webp',
-              URL: 'https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/images%2F653e3284308b660442fd55a6_ZoX4_red-heart-pixel-art-png.webp?alt=media&token=5d1bf418-da07-4e87-83ec-e54903f06153',
-              _id: ('657269d2c40d64b139a9ed15')
-            }
-          ],
-          neckLabel: ('656d771d1b480e9a5d74ae9b'),
-          isAddedToShopify: false,
-          isAddedToWoocommerce: false,
-          _id: ('657269d2c40d64b139a9ed14')
-        }
-      ]
-    }
-    const labelData = {
-      _id: ('656d727d7085636cd3a5421f'),
-      userId: ('653e3284308b660442fd55a6'),
-      __v: 0,
-      labels: [
-        {
-          name: 'instagram.png',
-          url: 'https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/labels%2F653e3284308b660442fd55a6_instagram.png?alt=media&token=565712dc-4771-4ab8-9bb6-7595cd262269',
-          _id: ('656d771a1b480e9a5d74ae96')
-        },
-        {
-          name: 'caret-right.png',
-          url: 'https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/labels%2F653e3284308b660442fd55a6_caret-right.png?alt=media&token=407ccecd-31ef-4440-a792-4bab92f6040c',
-          _id: ('656d771d1b480e9a5d74ae9b')
-        },
-        {
-          name: 'red-heart-pixel-art-png.webp',
-          url: 'https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/labels%2F653e3284308b660442fd55a6_XrHX_red-heart-pixel-art-png.webp?alt=media&token=7e9ccf09-13e7-47f5-bf25-492da1b324a5',
-          _id: ('6572bb7dea5336185a63a04c')
-        },
-        {
-          name: 'warning.png',
-          url: 'https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/labels%2F653e3284308b660442fd55a6_Bw4u_warning.png?alt=media&token=f8646679-6d03-4a6b-babd-13114dce8077',
-          _id: ('6575c6390fd12162cdfae6a0')
-        }
-      ]
-    }
-    const wooCommerceOrderData = {
-      // parent_id: orderDetails.orderData[0].customerOrderId + "23",
-      customer_note: `Order Reference number: ${orderDetails.orderData[0].customerOrderId}`,
-      payment_method: orderDetails.orderData[0].cashOnDelivery ? "cod" : "wallet",
-      payment_method_title: orderDetails.orderData[0].cashOnDelivery ? "Cash on Delivery" : "Wallet Payment",
-      transaction_id: "someblah-blah",
-      shipping_total: orderDetails.orderData[0].deliveryCharges,
-      total: orderDetails.orderData[0].amountPaid,
-      total_tax: orderDetails.orderData[0].taxes,
-      prices_include_tax: false,
-      set_paid: orderDetails.orderData[0].cashOnDelivery ? false : true,
-      status: 'received', // for santo
-      // status: 'pending',
-      billing: {
-        first_name: orderDetails.orderData[0].billingAddress.firstName,
-        last_name: orderDetails.orderData[0].billingAddress.lastName,
-        address_1: orderDetails.orderData[0].billingAddress.streetLandmark,
-        address_2: "",
-        city: orderDetails.orderData[0].billingAddress.city,
-        state: orderDetails.orderData[0].billingAddress.state,
-        postcode: orderDetails.orderData[0].billingAddress.pincode + '',
-        country: orderDetails.orderData[0].billingAddress.country,
-        email: orderDetails.orderData[0].billingAddress.email,
-        phone: orderDetails.orderData[0].billingAddress.mobile
-      },
-      shipping: {
-        first_name: orderDetails.orderData[0].shippingAddress.firstName,
-        last_name: orderDetails.orderData[0].shippingAddress.lastName,
-        address_1: orderDetails.orderData[0].shippingAddress.streetLandmark,
-        address_2: "",
-        city: orderDetails.orderData[0].shippingAddress.city,
-        state: orderDetails.orderData[0].shippingAddress.state,
-        postcode: orderDetails.orderData[0].shippingAddress.pincode + '',
-        country: orderDetails.orderData[0].shippingAddress.country,
-        email: orderDetails.orderData[0].shippingAddress.email,
-        phone: orderDetails.orderData[0].shippingAddress.mobile
-      },
-      "meta_data": [
-        {
-          "key": "billing_landmark",
-          "value": "3rd street"
-        },
-        {
-          "key": "shipping_landmark",
-          "value": ""
-        },
-        {
-          "key": "shipping_email",
-          "value": orderDetails.orderData[0].shippingAddress.email
-        },
-        {
-          "key": "shipping_courier",
-          "value": orderDetails.orderData[0].cashOnDelivery ? "COD" : orderDetails.orderData[0].shipRocketCourier.courierName
-        },
-        {
-          "key": "shipping_type",
-          "value": orderDetails.orderData[0].cashOnDelivery ? "COD" : "Standard Shipping"
-        },
-        {
-          "key": "reference_number",
-          "value": orderDetails.orderData[0].customerOrderId
-        },
-        {
-          "key": "retail_price",
-          "value": orderDetails.orderData[0].retailPrice
-        },
-        {
-          "key": "tracking_number",
-          "value": ""
-        },
-        {
-          "key": "invoice",
-          "value": 'https://zohosecurepay.in/books/sasaprintwearprivatelimited/secure?CInvoiceID=2-cc3b23ff12ea08daf036e9cae11447cdec9738de673bc0dd86e9d8558a438137e8e4d51898f8675a06be3901efa80a18a6042fe3c694f633f4e1e99955d63c355ff36ce7c9675220'
-        },
-        {
-          "key": "is_pickup_option",
-          "value": orderDetails.orderData[0].shipRocketCourier.courierId == "-1" ? "Yes" : "No"
-        },
-        {
-          "key": "shipping_label_file",
-          "value": ""
-        },
-        {
-          "key": "printwear_cod_order_charges",
-          "value": orderDetails.orderData[0].cashOnDelivery ? 50 : 0
-        }
-      ],
-      line_items: orderDetails.orderData[0].items.map(item => {
-        const currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-        const neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
-        return {
-          product_id: item.designId,
-          variation_id: 0,
-          name: currentItemDesignData.product.name,
-          price: currentItemDesignData.product.price + '',
-          subtotal: currentItemDesignData.price + '',
-          total: currentItemDesignData.price + '',
-          quantity: item.quantity,
-          sku: currentItemDesignData.designSKU,
-          meta_data: [
-            {
-              meta_key: 'front_design_image',
-              meta_value: currentItemDesignData.designItems[0].URL
-            },
-            {
-              meta_key: 'front_mockup_image',
-              meta_value: currentItemDesignData.product.baseImage.front
-            },
-            {
-              meta_key: 'frontimageurl',
-              meta_value: currentItemDesignData.designImage.front
-            },
-            {
-              meta_key: 'back_design_image',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_mockup_image',
-              meta_value: ''
-            },
-            {
-              meta_key: 'backimageurl',
-              meta_value: ''
-            },
-            {
-              meta_key: 'front_printing_price',
-              meta_value: currentItemDesignData.price - currentItemDesignData.product.price - (currentItemDesignData.neckLabel ? 10 : 0)
-            },
-            {
-              meta_key: 'back_printing_price',
-              meta_value: 0
-            },
-            {
-              meta_key: 'handling_fulfilement_charges',
-              meta_value: 0
-            },
-            {
-              meta_key: 'printwear_branding_charges',
-              meta_value: currentItemDesignData.neckLabel ? 10 : 0
-            },
-            {
-              meta_key: 'gst_charges',
-              meta_value: currentItemDesignData.price * 0.05
-            },
-            {
-              meta_key: 'gst_percentage',
-              meta_value: 5
-            },
-            {
-              meta_key: 'lumise_data',
-              meta_value: ''
-            },
-            {
-              meta_key: 'temp_order_data_file',
-              meta_value: ''
-            },
-            {
-              meta_key: 'brand_image_url',
-              meta_value: currentItemDesignData.neckLabel ? neckLabelURl : ''
-            },
-            {
-              meta_key: 'front_top',
-              meta_value: currentItemDesignData.designDimensions.top
-            },
-            {
-              meta_key: 'front_left',
-              meta_value: currentItemDesignData.designDimensions.left
-            },
-            {
-              meta_key: 'front_width',
-              meta_value: currentItemDesignData.designDimensions.width
-            },
-            {
-              meta_key: 'front_height',
-              meta_value: currentItemDesignData.designDimensions.height
-            },
-            {
-              meta_key: 'back_top',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_left',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_width',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_height',
-              meta_value: ''
-            },
-            {
-              meta_key: 'front_dpi',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_dpi',
-              meta_value: ''
-            }
-          ]
-        }
-      }),
-      shipping_lines: [
-        {
-          method_id: "flat_rate",
-          method_title: orderDetails.orderData[0].shipRocketCourier?.courierId === "-1" ? "Self pickup" : orderDetails.orderData[0].shipRocketCourier?.courierName,
-          total: orderDetails.orderData[0].shipRocketCourier?.courierId === "-1" ? '0' : orderDetails.orderData[0].deliveryCharges + '',
-          total_tax: orderDetails.orderData[0].shipRocketCourier?.courierId === "-1" ? '0' : orderDetails.orderData[0].deliveryCharges * 0.05 + ''
-        }
-      ],
-    };
-    console.log("🚀 ~ exports.createdummyorder= ~ wooCommerceOrderData:", wooCommerceOrderData)
-    if (orderDetails.orderData[0].cashOnDelivery) wooCommerceOrderData.fee_lines = [
-      {
-        name: "COD Charges",
-        total: 50,
-        tax_status: "none",
-        tax_class: "",
-        total_tax: "2.5"
-      }
-    ]
-    const consumerKey = process.env.WOO_PROD_CONSUMER_KEY;
-    const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
-
-    const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
-    const endpoint = `https://printwear.in/admin/wp-json/wc/v3/orders`;
-    const createWooOrderReq = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${encodedAuth}`,
-      },
-      body: JSON.stringify(wooCommerceOrderData),
-    })
-    const createWooOrderRes = await createWooOrderReq.json();
-    console.log("🚀 ~ exports.createdummyorder= ~ createWooOrderRes:", createWooOrderRes)
-    
-    res.json(createWooOrderRes);
-  } catch (error) {
-    console.log(error);
-    res.status(500)
-  }
-}
+// removed, maybe need na add from git
 
 // dummy endpoint for adding new product data in womens rn
 exports.addwomens = async (req, res) => {
@@ -4157,12 +3783,7 @@ exports.woowebhook = async (req, res) => {
 
 //// testing endpoints.. do not commit
 exports.testing = async (req, res) => {
-  const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history");
-  const pw_users = require("../../../.test_assets/wc-data/pw_users");
-  const { detailedUsers } = require("../../../.test_assets/wc-data/pw_wc-users");
-  const pw_wc_customer_lookup = require("../../../.test_assets/wc-data/pw_wc_customer_lookup");
-  const brands = require("../../../.test_assets/wc-data/brands");
-  const design_library = require("../../../.test_assets/wc-data/design_library");
+
 
   const extractTransactionHistoryFromUserID = () => {
     const ids = pw_users.at(2).data.map(d => d.ID);
@@ -4223,31 +3844,59 @@ exports.testing = async (req, res) => {
     return labelData.labels;
   }
   const extractProductLookupFromOrderId = (id) => {
-    return pw_wc_order_product_lookup[2].data.find(x => x.order_id == id)
+    // extrqact product lookup as well as the order meta with order_item_id
+    return [...pw_woocommerce_order_items[2].data.filter(item => item.order_id == id).map(item => {
+        if (item.order_item_type == "line_item") {
+          let current_item_meta = pw_wc_order_product_lookup[2].data.find(x => x.order_item_id == item.order_item_id);
+          return ({ ...item, order_meta: current_item_meta, design_meta: user_designs[2].data.find(des => des.product_id == current_item_meta.product_id && des.variation_id == current_item_meta.variation_id && des.created_by == id) })
+        }
+        return item
+      })
+    ]
   }
   const extractDesignImagesFromUserId = (id) => {
     return design_library[2].data.filter(x => x.created_by == id)
+  }
+  const extractMockupsFromUserId = (id) => {
+    return mockup_design[2].data.filter(design => design.created_by == id);
+  }
+  const extractProductDataFromProductId = (id) => {
+    return pw_wc_product_meta[2].data.find(product => product.product_id == id);
+  }
+  const extractDesignsFromUserId = (id) => {
+    return user_designs[2].data.filter(design => design.created_by == id)
+  }
+  const extractOrderMetaFromOrderId = (id) => {
+    const x = pw_postmeta[2].data.filter(data => data.post_id == id)
+    const order_meta = {}
+    x.forEach(item => {
+      order_meta[item.meta_key] = item.meta_value
+    })
+    return order_meta
   }
  
 
   const uploadWalletData = async (userId, wooUserId) => {
     //exttract data from json
     const transData = extractTransactionHistoryFromUserID().find(x => x.user_id == wooUserId);
-
+    
     // save to mongo
     const walletData = new WalletModel({
       userId: userId,
       // balance: oneUser.transactions.at(-1).current_amount,
       transactions: transData.transactions.map(transaction => {
-        return {
+        let orderMeta = extractOrderMetaFromOrderId(transaction.order_id) 
+        let x =  {
           amount: transaction.amount,
           wooOrderId: transaction.order_id,
           walletOrderId: transaction.transaction_id,
           transactionStatus: "success",
           transactionNote: transaction.comments,
           transactionType: transaction.type === "credit" ? "recharge" : "payment",
-          transactionDate: new Date(transaction.updated_at)
+          transactionDate: new Date(transaction.updated_at),
         }
+        if (orderMeta.invoice_url) x.invoiceURL = orderMeta.invoice_url
+        return x
       })
     })
     walletData.balance = ((transData.transactions.reduce((acc, curr) => (curr.type == "credit") ? acc + parseFloat(curr.amount): acc - parseFloat(curr.amount), 0))).toFixed(2)
@@ -4283,36 +3932,209 @@ exports.testing = async (req, res) => {
     // await designImageData.save();
     return designImageData;
   }
+  const uploadOrderData = async (userId, wooUserId, designsData) => {
+    const transactions = extractTransactionHistoryFromUserID().find(x => x.user_id == wooUserId).transactions;
+    console.log("🚀 ~ uploadOrderData ~ transactions:", transactions)
+    const orders = extractOrderDataFromCustomerId(getCustomerIdFromUserId(wooUserId)).map(order => {
+      return {
+        ...order,
+        product_lookup: extractProductLookupFromOrderId(order.order_id),
+        order_meta: extractOrderMetaFromOrderId(order.order_id)
+      }
+    });
+    const orderHistoryData = new OrderHistoryModel({
+      userId: userId,
+      orderData: orders.map(order => {
+        let y = transactions.find(trans => trans.order_id == order.order_id)
+        console.log("🚀 ~ uploadOrderData ~ y:", y)
+        return {
+          createdAt: order.date_created,
+          printwearOrderId: order.order_id,
+          wooOrderId: order.order_id,
+          amountPaid: order.total_sales,
+          deliveryCharges: order.shipping_total,
+          taxes: order.tax_total,
+          deliveryStatus: order.status.split("-")[1],
+          totalAmount: order.net_total + order.shipping_total,
+          walletOrderId: y?.transaction_id,
+          cashOnDelivery: order.product_lookup.find(lkp => lkp.order_item_type == "fee")? true: false,
+          shipRocketCourier: {
+            courierName: order.product_lookup.find(lkp => lkp.order_item_type == "shipping")?.order_item_name,
+          },
+          items: order.product_lookup.filter(order => order.order_item_type == "line_item").map(order => {
+            let currDesignFromMongo = designsData.designs.find(design => (design.wooProductId == order.order_meta.product_id) && (design.wooVariationId == order.order_meta.variation_id));
+            return {
+              designId: currDesignFromMongo?._id,
+              price: currDesignFromMongo?.price,
+              quantity: order?.product_qty,
+            }
+          }),
+          paymentStatus: "success",
+          billingAddress: {
+            firstName: order.order_meta._billing_first_name,
+            lastName: order.order_meta._billing_last_name,
+            email: order.order_meta._billing_email,
+            mobile: order.order_meta._billing_phone,
+          },
+          customerOrderId: order.order_meta.reference_number,
+          shippingAddress: {
+            firstName: order.order_meta._shipping_first_name,
+            lastName: order.order_meta._billing_last_name,
+            email: order.order_meta.shipping_email,
+            mobile: order.order_meta._billing_phone,
+            streetLandmark: order.order_meta._shipping_address_1 + order.order_meta._shipping_address_2,
+            city: order.order_meta._shipping_city,
+            pincode: order.order_meta._shipping_postcode,
+            state: order.order_meta._shipping_state,
+            country: order.order_meta._shipping_country
+          },
+        }
+      })
+    })
+    return orderHistoryData
+  }
+  const uploadMockupsData = async (userId, wooUserId) => {
+    const mockups = extractMockupsFromUserId(wooUserId);
+    // console.log("🚀 ~ uploadDesignsData ~ designs:", designs)
+    // let x = []
+    // const orderDataBecausePriceIsInThat = extractOrderDataFromCustomerId(getCustomerIdFromUserId(wooUserId)).map(order => x.push(...extractProductLookupFromOrderId(order.order_id)))
+    mockups.forEach(mockup => {
+      mockup.product = {...extractProductDataFromProductId(mockup.product_id)}
+    })
+    return mockups
+  }
+  const uploadDesignsData = async (userId, wooUserId) => {
+    const colorHexCodes = {
+      "black": "#000000",
+      "pink": "#ffb6c1",
+      "charcoal melange": "#464646",
+      "ecru melange": "#F5F5DC",
+      "grey melange": "#808080",
+      "mustard yellow": "#FFDB58",
+      "navy blue": "#000080",
+      "red": "#FF0000",
+      "white": "#FFFFFF",
+      "army green": "#4B5320",
+      "royal blue": "#4169E1",
+      "maroon": "#800000",
+      "lemon yellow": "#FFF44F",
+      "olive green": "#556B2F",
+      "leaf green": "#228B22",
+      "beige": "#F5F5DC",
+      "yellow": "#FFFF00",
+      "navy": "#000080",
+      "turquoise": "#40E0D0",
+      "turcoise blue": "#00FFEF",
+      "turquoise blue": "#40e0d0",
+      "chocolate brown": "#7B3F00",
+      "sky blue": "#87CEEB",
+      "bottle green": "#006A4E",
+      "iris lavender": "#897CAC"
+    };
+    const designs = extractDesignsFromUserId(wooUserId);
+    const designsWithProductData = designs.map(design => ({...design, product_meta: extractProductDataFromProductId(design.product_id)}))
+    // console.log("🚀 ~ uploadDesignsData ~ designsWithProductData:", designsWithProductData)
+    const designsData = new NewDesignModel({
+      userId: userId,
+      designs: designsWithProductData.map(design => {
+        let currColor = design.product_name.split(",")[0]?.split(" ").at(-1);
+        return {
+          product: {
+            id: design.product_meta?.product_id,
+            name: design.product_name,
+            style: '',
+            color: currColor,
+            hex: colorHexCodes[currColor.toLowerCase()],
+            size: design.product_name.split(",")[1],
+            SKU: design.product_meta?.sku,
+            price: parseFloat(design.product_meta?.min_price),
+            // baseImage is missing
+            // dimensions not necessary
+          },
+          designSKU: design.product_meta?.sku? design.product_meta?.sku + design.cart_id: design.cart_id,
+          designName: design.product_name,
+          price: parseFloat(design.product_meta?.min_price) + parseFloat(design.front_printing_price) + parseFloat(design.back_printing_price),
+          backPrice: design.back_printing_price == "0"? 0: parseFloat(design.product_meta?.min_price) + parseFloat(design.back_printing_price),
+          frontPrice: design.front_printing_price == "0"? 0: parseFloat(design.product_meta?.min_price) + parseFloat(design.front_printing_price),
+          designDimensions: {
+            width: design.front_size_width,
+            height: design.front_size_height,
+            top: design.front_top_position,
+            left: design.front_left_position,
+          },
+          backDesignDimensions: {
+            width: design.back_size_width,
+            height: design.back_size_height,
+            top: design.back_top_position,
+            left: design.back_left_position,
+          },
+          designImage: {
+            front: design.front_mockup_image ? OLD_PUBLIC_URL + design.front_mockup_image: "",
+            back: design.back_mockup_image ? OLD_PUBLIC_URL + design.back_mockup_image: "",
+          },
+          designItems: [
+            {
+              itemName: design.front_design_image?.split("/").at(-1),
+              URL: design.front_design_image
+            },
+            design.back_design_image? ({
+                itemName: design.back_design_image.split("/").at(-1),
+                URL: design.back_design_image 
+            }): null,
+          ],
+          neckLabel: '',
+          isMigrated: true,
+          wooProductId: design.product_id,
+          wooVariationId: design.variation_id
+        }
+      })
+    });
+    // await designsData.save({ validateBeforeSave: false })
+    return designsData
+  }
   const uploadUserDataToMongo = async (id) => {
     // const userData = await UserModel.create(extractUserDataFromBigJSON(id)); // use in prod
     const userData = new UserModel(extractUserDataFromBigJSON(id));
     // await userData.save();
-    console.log("🚀 ~ uploadUserDataToMongo ~ userData:", userData.toJSON())
+    // console.log("🚀 ~ uploadUserDataToMongo ~ userData:", userData.toJSON())
     const mongoUserId = userData._id;
     const wooCusomterId = getCustomerIdFromUserId(id); // customer_id vaangu for orders
     console.log("🚀 ~ uploadUserDataToMongo ~ wooCusomterId:", wooCusomterId)
     const walletData = await uploadWalletData(mongoUserId, id); 
+    console.log("upload wallet data over for " + id + " " + userData.name)
     const labelData = await uploadLabelData(mongoUserId, id);
+    console.log("upload label data over for " + id + " " + userData.name)
     const designImageData = await uploadDesignImageData(mongoUserId, id);
-    return ({ userData: userData.toJSON(), walletData: walletData.toJSON(), labelData: labelData.toJSON(), designImageData: designImageData.toJSON() });
+    console.log("upload design images data over for " + id + " " + userData.name)
+    const designsData = await uploadDesignsData(mongoUserId, id);
+    console.log("upload designs data over for " + id + " " + userData.name)
+    const orderData = await uploadOrderData(mongoUserId, id, designsData);
+    console.log("upload order data over for " + id + " " + userData.name)
+    return ({ userData: userData.toObject(), walletData: walletData.toObject(), labelData: labelData.toObject(), designImageData: designImageData.toObject(), designsData: designsData.toObject(), orderData: orderData.toObject() });
   }
 
   try {
-    const userIdToFind = "79";
+    const userIdToFind = "2980";
 
     // res.json({
-    //   user: detailedUsers.find(x => x.ID == userIdToFind),
-    //   trans: extractTransactionHistoryFromUserID().find(x => x.user_id == userIdToFind),
+    //   // user: detailedUsers.find(x => x.ID == userIdToFind),
+    //   // trans: extractTransactionHistoryFromUserID().find(x => x.user_id == userIdToFind),
     //   orders: extractOrderDataFromCustomerId(getCustomerIdFromUserId(userIdToFind)).map(order => {
     //     return {
     //       ...order,
-    //       product_lookup: extractProductLookupFromOrderId(order.order_id)
+    //       product_lookup: extractProductLookupFromOrderId(order.order_id),
+    //       order_meta: extractOrderMetaFromOrderId(order.order_id)
     //     }
     //   }),
-    //   labels: extractLabelDataFromUserId(userIdToFind)
-    // });
+    //   // mockups: await uploadMockupsData('', userIdToFind),
+    //   // designs: await uploadDesignsData('', userIdToFind)
+    //   // labels: extractLabelDataFromUserId(userIdToFind)
+    // }); 
 
-    res.json(await uploadUserDataToMongo(userIdToFind));
+
+    const finalDataBeforeSavingToMongo = await uploadUserDataToMongo(userIdToFind)
+    console.log("🚀 ~ exports.testing= ~ finalDataBeforeSavingToMongo:", finalDataBeforeSavingToMongo)
+    res.json(finalDataBeforeSavingToMongo);
 
   } catch (error) {
     console.log(error);

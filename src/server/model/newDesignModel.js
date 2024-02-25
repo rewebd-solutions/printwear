@@ -34,7 +34,15 @@ var NewDesignSchema = new mongoose.Schema({
             designSKU: String,
             designName: String,
             price: Number,
+            backPrice: Number,
+            frontPrice: Number,
             designDimensions: {
+                width: Number,
+                height: Number,
+                top: Number,
+                left: Number,
+            },
+            backDesignDimensions: {
                 width: Number,
                 height: Number,
                 top: Number,
@@ -61,7 +69,13 @@ var NewDesignSchema = new mongoose.Schema({
             isAddedToWoocommerce: {
                 type: Boolean,
                 default: false
-            }
+            },
+            isMigrated: {
+                type: Boolean,
+                default: false
+            },
+            wooProductId: String,
+            wooVariationId: String
         }
     ],
 });
