@@ -9,7 +9,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 route.get('/', services.homeRoutes)
 
-route.get("/testing", controller.testing);
+// route.get("/testing", controller.testing);
 
 route.post('/register', controller.register);
 route.post('/login', controller.login);
@@ -37,7 +37,7 @@ route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 
 route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
 route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
-route.get("/manageorder", authServices.authorizeToken, services.manageorder); 
+route.get("/manageorder", authServices.authorizeToken, services.manageorder);
 route.get("/placeorder", authServices.authorizeToken, services.placeorder);
 route.get("/order/:id", authServices.authorizeToken, controller.orderpage);
 route.get("/placeorder/billing", authServices.authorizeToken, controller.billing);

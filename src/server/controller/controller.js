@@ -34,8 +34,6 @@ const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");
 const MockupModel = require("../model/mockupModel");
 const WalletModel = require("../model/walletModel");
-const pw_wc_order_stats = require("../../../.test_assets/wc-data/pw_wc_order_stats");
-const pw_wc_order_product_lookup = require("../../../.test_assets/wc-data/pw_wc_order_product_lookup");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
@@ -52,6 +50,8 @@ const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 // const pw_woocommerce_order_items = require("../../../.test_assets/wc-data/pw_woocommerce_order_items");
 // const user_designs = require("../../../.test_assets/wc-data/cart_history");
 // const pw_postmeta = require("../../../.test_assets/wc-data/pw_postmeta");
+// const pw_wc_order_stats = require("../../../.test_assets/wc-data/pw_wc_order_stats");
+// const pw_wc_order_product_lookup = require("../../../.test_assets/wc-data/pw_wc_order_product_lookup");
 
 // common auth endpoints
 exports.register = async (req, res) => {
