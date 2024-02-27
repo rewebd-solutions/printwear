@@ -21,15 +21,17 @@
     <div class="manageorder">
         <div class="mngord-head">
             <h2>Manage Order</h2>
-            <button class="filter-button filter-button-active" onclick="changeWidget(event, 'confirmed')">Confirmed</button>
-            <button class="filter-button" onclick="changeWidget(event,'cancelled')">Cancelled</button>         
-            <button class="filter-button" onclick="changeWidget(event,'returned')">Returned</button>         
+            <button class="filter-button filter-button-active"
+                onclick="changeWidget(event, 'confirmed')">Confirmed</button>
+            <button class="filter-button" onclick="changeWidget(event,'cancelled')">Cancelled</button>
+            <button class="filter-button" onclick="changeWidget(event,'returned')">Returned</button>
         </div>
         <div class="order-table">
             <div id="printwear-order">
                 <div class="search-options">
                     <label for="search-orders">Search</label>
-                    <input id="search-orders" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                    <input id="search-orders" type="search"
+                        placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
                 </div>
                 <table>
                     <thead>
@@ -49,7 +51,8 @@
             <div id="cancelled-order">
                 <div class="search-options">
                     <label for="search-orders">Search</label>
-                    <input id="search-orders" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                    <input id="search-orders" type="search"
+                        placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
                 </div>
                 <table>
                     <thead>
@@ -69,7 +72,8 @@
             <div id="returned-order">
                 <div class="search-options">
                     <label for="search-orders">Search</label>
-                    <input id="search-orders" type="search" placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                    <input id="search-orders" type="search"
+                        placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
                 </div>
                 <table>
                     <thead>
@@ -89,7 +93,7 @@
         </div>
         <!-- modal comes here -->
     </div>
-    
+
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
@@ -123,7 +127,7 @@
                 orderHistory.shipRocketCourier?.courierAWB?.toLowerCase().includes(searchKey) ||
                 orderHistory.deliveryStatus?.toLowerCase().includes(searchKey) ||
                 Object.values(orderHistory.billingAddress).join(' ').toLowerCase().includes(searchKey) ||
-                Object.values(orderHistory.shippingAddress).join(' ').toLowerCase().includes(searchKey) 
+                Object.values(orderHistory.shippingAddress).join(' ').toLowerCase().includes(searchKey)
             ));
 
             //console.log('Matching orders:', orderHistoryFromSearch);
@@ -153,7 +157,7 @@
                     returnedOrderContainer.style.display = "flex";
                     cancelledOrderContainer.style.display = "none";
                     break;
-                default: 
+                default:
                     break;
             }
         }
@@ -164,7 +168,7 @@
                 const initiateRefundRequest = await fetch("/initiaterefund", {
                     headers: {
                         'Content-Type': 'application/json'
-                    }, 
+                    },
                     body: JSON.stringify({
                         orderId: printwearOrderId
                     }),
@@ -189,7 +193,7 @@
             } finally {
                 el.classList.remove('disable-button');
             }
-        } 
+        }
 
         const openOrderDetailsModal = (e, customerOrderId) => {
             e.preventDefault();
@@ -219,10 +223,10 @@
                             </thead>
                             <tbody>
                                 ${modalOrderDetails.items.map((item, i) => {
-                                    let currentDesignItem = designData.designs.find(design => design._id == item.designId);
-                                    return `
+                let currentDesignItem = designData.designs.find(design => design._id == item.designId);
+                return `
                                         <tr>
-                                            <td>${i+1}</td>
+                                            <td>${i + 1}</td>
                                             <td>${currentDesignItem.designName}</td>
                                             <td>${currentDesignItem.product.name}</td>
                                             <td>${item.quantity}</td>
@@ -230,7 +234,7 @@
                                             <td>₹${item.price}</td>
                                         </tr>
                                     `
-                                }).join('\n')}
+            }).join('\n')}
                             </tbody>
                         </table>
                         <p>Order placed on: ${new Date(modalOrderDetails.createdAt).toLocaleString()}</p>
@@ -240,7 +244,7 @@
                             <p class="address-indent"> ${modalOrderDetails.billingAddress.mobile} </p>
                             <p class="address-indent"> ${Object.values(modalOrderDetails.billingAddress).slice(4).join(', ')} </p>
                         </div>
-                        <table style='${isNegative? 'opacity: 0.6; pointer-events: none;': 'opacity: 1'}'>
+                        <table style='${isNegative ? 'opacity: 0.6; pointer-events: none;' : 'opacity: 1'}'>
                             <thead>
                                 <th>Shiprocket ID</th>
                                 <th>Shipment ID</th>
@@ -248,9 +252,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>${isNegative? modalOrderDetails.deliveryStatus: modalOrderDetails.shipRocketOrderId}</td>
-                                    <td>${isNegative? modalOrderDetails.deliveryStatus: modalOrderDetails.shipmentId}</td>
-                                    <td>${isNegative? modalOrderDetails.deliveryStatus: `<a href="https://shiprocket.co/tracking/${modalOrderDetails.shipRocketCourier.courierAWB}" target="_blank">${modalOrderDetails.shipRocketCourier.courierAWB}</a>`}</td>
+                                    <td>${isNegative ? modalOrderDetails.deliveryStatus : modalOrderDetails.shipRocketOrderId}</td>
+                                    <td>${isNegative ? modalOrderDetails.deliveryStatus : modalOrderDetails.shipmentId}</td>
+                                    <td>${isNegative ? modalOrderDetails.deliveryStatus : `<a href="https://shiprocket.co/tracking/${modalOrderDetails.shipRocketCourier.courierAWB}" target="_blank">${modalOrderDetails.shipRocketCourier.courierAWB}</a>`}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -264,10 +268,10 @@
                                 <li data-order-status="delivered">Delivered</li>
                             </ul>
                         </div> -->
-                        ${modalOrderDetails.paymentStatus == "refund_init"? 
-                            '<button class="disable-button">Refund initiated</button> Will be processed within 2-3 working days!'
-                            : 
-                            `<button class="refund-btn" onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>`}
+                        ${modalOrderDetails.paymentStatus == "refund_init" ?
+                    '<button class="disable-button">Refund initiated</button> Will be processed within 2-3 working days!'
+                    :
+                    `<button class="refund-btn" onclick="initiateRefund(this, '${modalOrderDetails.printwearOrderId}')">Initiate Refund</button>`}
                     </div>
                 </div>
             `);
@@ -301,32 +305,32 @@
                 return notyf.error(noDataMessage);
             }
             orderHistoryTable.innerHTML = data.filter(orderHistory => [
-                "received", 
-                "rts", 
-                "on-hold", 
-                "processing", 
-                "rtd",    
-                "rto",   
-                "invoiced", 
-                "shipped", 
-                "delivered", 
-                "completed", 
+                "received",
+                "rts",
+                "on-hold",
+                "processing",
+                "rtd",
+                "rto",
+                "invoiced",
+                "shipped",
+                "delivered",
+                "completed",
                 "pending",
                 'placed', 'processing', 'courier_assigned', 'dispatched' // this is for old deliveryStatus. Remove in prod
             ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
-                        <td>${i+1}</td>
+                        <td>${i + 1}</td>
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
                         <td>${orderHistory.customerOrderId}</a></td>
-                        <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
+                        <td>${orderHistory.shippingAddress.firstName + ' ' + orderHistory.shippingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid}</td>
-                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>`: `unavailable`}</td>
+                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>` : `unavailable`}</td>
                         <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
                         <td><h3 class="status-badge ${orderHistory.deliveryStatus}">${orderHistory.deliveryStatus}</h3></td>
                     </tr>                    
                 `;
-                
+
             }).join('\n');
             returnedOrderTable.innerHTML = data.filter(orderHistory => [
                 "pickup-scheduled",
@@ -336,17 +340,17 @@
             ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
-                        <td>${i+1}</td>
+                        <td>${i + 1}</td>
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
                         <td>${orderHistory.customerOrderId}</a></td>
                         <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid}</td>
-                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>`: `unavailable`}</td>
+                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>` : `unavailable`}</td>
                         <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
                         <td><h3 class="status-badge ${orderHistory.deliveryStatus}">${orderHistory.deliveryStatus}</h3></td>
                     </tr>                    
                 `;
-                
+
             }).join('\n');
             cancelledOrderTable.innerHTML = data.filter(orderHistory => [
                 "shipment-cancel",
@@ -354,17 +358,17 @@
             ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
-                        <td>${i+1}</td>
+                        <td>${i + 1}</td>
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
                         <td>${orderHistory.customerOrderId}</a></td>
                         <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid.toFixed(2)}</td>
-                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>`: `unavailable`}</td>
+                        <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>` : `unavailable`}</td>
                         <td>${new Date(orderHistory.createdAt).toLocaleString()}</td>
                         <td><h3 class="status-badge ${orderHistory.deliveryStatus}">${orderHistory.deliveryStatus}</h3></td>
                     </tr>                    
                 `;
-                
+
             }).join('\n');
         }
 
@@ -384,7 +388,7 @@
                 notyf.error("Something went wrong!");
             }
         }
-    
+
         const fetchDesignsData = async () => {
             try {
                 const designsFetchRequest = await fetch("/getdesigns");
@@ -403,7 +407,7 @@
         }
 
         fetchDesignsData();
-    
+
     </script>
 </body>
 

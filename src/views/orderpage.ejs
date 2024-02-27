@@ -1,268 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/orderpage.css">
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/orderpage.css" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css"
+    />
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css"
+    />
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-    <title>Order Details for <%= orderData ? orderData.orderData[0].printwearOrderId: "Invalid Order ID" %></title>
-</head>
-<body>
+    <title>
+      Order Details for <%= orderData ? orderData.orderData[0].printwearOrderId:
+      "Invalid Order ID" %>
+    </title>
+  </head>
+
+  <body>
     <div class="banner">
-        <%- include('partials/side-logo.ejs') %>
-        <%- include('partials/top.ejs') %>
+      <%- include('partials/side-logo.ejs') %> <%- include('partials/top.ejs')
+      %>
     </div>
     <div class="container">
-    <% if (!orderData) { %>
-        <div class="title">Invalid Order ID</div> 
-    <% } else { %>
-        <!-- "rts" | "on-hold" | "processing" | "rtd" | "shipment-cancel" | "pickup-scheduled" |
+      <% if (!orderData) { %>
+      <div class="title">Invalid Order ID</div>
+      <% } else { %>
+      <!-- "rts" | "on-hold" | "processing" | "rtd" | "shipment-cancel" | "pickup-scheduled" |
                 "out-for-pickup" | "rto" | "cancelled" | "undelivered" | "shipped" | "delivered" | "completed" -->
-        <div class="title">
-            <div>
-                Order ID: <%= orderData.orderData[0].printwearOrderId %>
-                <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>">STATUS: <%= orderData.orderData[0].deliveryStatus == "return_init"? "return initiated": orderData.orderData[0].deliveryStatus %></h3>
-                <h3 class="status-badge <%= orderData.orderData[0].paymentStatus %>">PAYMENT: <%= orderData.orderData[0].paymentStatus == "refund_init"? "refund initiated": orderData.orderData[0].paymentStatus %></h3>
-            </div>
-            <!-- remove this shit in prod -->
-            <% if (orderData.orderData[0].deliveryStatus == "cancelled" && (orderData.orderData[0].paymentStatus == "refund_init" || orderData.orderData[0].paymentStatus == "refunded")) { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">(unused) Reship order</button>
-            <% } else if (orderData.orderData[0].deliveryStatus != "delivered") { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this)">(unused) Cancel Order</button>
-            <% } else { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this)">(unused) Return order</button>
-            <% } %>
-            <!-- use this shit in prod -->
-            <% if (["pending", "received", "invoiced", "undelivered"].includes(orderData.orderData[0].deliveryStatus)) { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this)">Cancel Order</button>
-            <% } else if (["delivered"].includes(orderData.orderData[0].deliveryStatus) || (orderData.orderData[0].deliveryStatus === "completed" && orderData.orderData[0].shiprocketCourier.courierId !== "-1")) { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'return')">Return Order</button>
-            <% } else if (["rto", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) { %>
-                <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">Reship Order</button>
-            <% } %>
+      <div class="title">
+        <div>
+          Order ID: <%= orderData.orderData[0].printwearOrderId %>
+          <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>">
+            STATUS: <%= orderData.orderData[0].deliveryStatus=="return_init" ?
+            "return initiated" : orderData.orderData[0].deliveryStatus %>
+          </h3>
+          <h3 class="status-badge <%= orderData.orderData[0].paymentStatus %>">
+            PAYMENT: <%= orderData.orderData[0].paymentStatus=="refund_init" ?
+            "refund initiated" : orderData.orderData[0].paymentStatus %>
+          </h3>
         </div>
-        <div class="subtitle">Placed on: <%= new Date(orderData.orderData[0].createdAt).toLocaleString() %> </div>
-        <div class="columns">
-            <div class="column">
-                <div class="box">
-                    <h2>Items</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>S.No</th>
-                                <th>Product</th>
-                                <th>SKU</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% designData.forEach((design, i) => { %>
-                                    <tr>
-                                        <td><%= i+1 %></td>
-                                        <td><%= design.designName %></td>
-                                        <td><%= design.designSKU %></td>
-                                        <td>₹<%= design.price %></td>
-                                        <td><%= orderData.orderData[0].items[i].quantity %></td>
-                                    </tr>
-                            <%  }); %>
-                        </tbody>
-                    </table>
-                </div>
-                <% if (orderData.orderData[0].shipRocketCourier?.courierAWB) { %>
-                    <div class="box">
-                        You can track your courier live by clicking the link below: 
-                        <a href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier?.courierAWB %>" target="_blank"><%= orderData.orderData[0].shipRocketCourier.courierAWB %></a>
-                    </div>
+        <!-- remove this shit in prod -->
+        <% if (orderData.orderData[0].deliveryStatus=="cancelled" && (orderData.orderData[0].paymentStatus=="refund_init" || orderData.orderData[0].paymentStatus=="refunded" )) { %>
+        <button
+          class="orderpage-action-btn"
+          onclick="initiateRefund(this, 'reship')"
+        >
+          (unused) Reship order
+        </button>
+        <% } else if (orderData.orderData[0].deliveryStatus !="delivered" ) { %>
+        <button class="orderpage-action-btn" onclick="initiateRefund(this)">
+          (unused) Cancel Order
+        </button>
+        <% } else { %>
+        <button class="orderpage-action-btn" onclick="initiateRefund(this)">
+          (unused) Return order
+        </button>
+        <% } %>
+        <!-- use this shit in prod -->
+        <% if (["pending", "received" , "invoiced" , "undelivered"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <button class="orderpage-action-btn" onclick="initiateRefund(this)">
+          Cancel Order
+        </button>
+        <% } else if (["delivered"].includes(orderData.orderData[0].deliveryStatus) || (orderData.orderData[0].deliveryStatus==="completed" && orderData.orderData[0].shiprocketCourier.courierId !=="-1" )) { %>
+        <button
+          class="orderpage-action-btn"
+          onclick="initiateRefund(this, 'return')"
+        >
+          Return Order
+        </button>
+        <% } else if (["rto", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <button
+          class="orderpage-action-btn"
+          onclick="initiateRefund(this, 'reship')"
+        >
+          Reship Order
+        </button>
+        <% } %>
+      </div>
+      <div class="subtitle">
+        Placed on: <%= new
+        Date(orderData.orderData[0].createdAt).toLocaleString() %>
+      </div>
+      <div class="columns">
+        <div class="column">
+          <div class="box">
+            <h2>Items</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>S.No</th>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% designData.forEach((design, i)=> { %>
+                <tr>
+                  <td><%= i+1 %></td>
+                  <td><%= design.designName %></td>
+                  <td><%= design.designSKU %></td>
+                  <td>₹<%= design.price %></td>
+                  <td><%= orderData.orderData[0].items[i].quantity %></td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% if (orderData.orderData[0].shipRocketCourier?.courierAWB) { %>
+          <div class="box">
+            You can track your courier live by clicking the link below:
+            <a
+              href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier?.courierAWB %>"
+              target="_blank"
+            >
+              <%= orderData.orderData[0].shipRocketCourier.courierAWB %>
+            </a>
+          </div>
+          <% } %>
+        </div>
+
+        <div class="column">
+          <div class="box">
+            <h3>Order Information</h3>
+            <div class="order-info">
+              <p>Your customer Order ID</p>
+              <p><%= orderData.orderData[0].customerOrderId %></p>
+            </div>
+            <div class="order-info">
+              <p>Retail Price</p>
+              <p>₹<%= orderData.orderData[0].retailPrice %></p>
+            </div>
+            <div class="order-info">
+              <p>Payment mode</p>
+              <p>
+                <%= orderData.orderData[0].cashOnDelivery? 'COD' : 'Prepaid' %>
+              </p>
+            </div>
+            <div class="order-info">
+              <p>Courier</p>
+              <p>
+                <%= orderData.orderData[0].shipRocketCourier.courierId==-1?
+                "Self Pickup" :
+                orderData.orderData[0].shipRocketCourier.courierName %>
+              </p>
+            </div>
+            <% if (orderData.orderData[0].shipRocketCourier.courierId !=-1) { %>
+            <div class="order-info">
+              <p>Delivered By</p>
+              <p>
+                <%= orderData.orderData[0].shipRocketCourier.estimatedDelivery
+                %>
+              </p>
+            </div>
+            <% } %> <% if (orderData.orderData[0].shipRocketCourier.courierAWB)
+            { %>
+            <div class="order-info">
+              <p>Tracking Number</p>
+              <p>
+                <a
+                  href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier.courierAWB %>"
+                  target="_blank"
+                >
+                  <%= orderData.orderData[0].shipRocketCourier.courierAWB %>
+                </a>
+              </p>
+            </div>
+            <% } %>
+          </div>
+
+          <div class="box">
+            <h3>Customer Information</h3>
+            <div class="order-info">
+              <p>Name</p>
+              <p>
+                <%= orderData.orderData[0].shippingAddress.firstName + " " +
+                orderData.orderData[0].shippingAddress.lastName %>
+              </p>
+            </div>
+            <div class="order-info">
+              <p>Phone</p>
+              <p><%= orderData.orderData[0].shippingAddress.mobile %></p>
+            </div>
+            <div class="order-info">
+              <p>Address</p>
+              <p>
+                <%= orderData.orderData[0].shippingAddress.streetLandmark + ","
+                %><br />
+                <%= orderData.orderData[0].shippingAddress.city + "," %><br />
+                <%= orderData.orderData[0].shippingAddress.state + ", " %><br />
+                <%= orderData.orderData[0].shippingAddress.pincode %>
+              </p>
+            </div>
+          </div>
+
+          <div class="box">
+            <h2>Cost breakup</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% var totalProductPrice=[] %> <% var totalProductDesignArea=[]
+                %> <% var totalProductDesignCharges=[] %> <% var
+                totalNeckLabel=[] %> <% designData.forEach(design=> { %> <%
+                totalProductPrice.push(design.product.price) %> <%
+                totalProductDesignArea.push((design.designDimensions.width *
+                design.designDimensions.width).toFixed(2)) %> <%
+                totalProductDesignCharges.push((design.price -
+                design.product.price - (design.neckLabel? 10: 0)).toFixed(2)) %>
+                <% if (design.neckLabel) { %> <% totalNeckLabel.push(10) %> <% }
+                else { %> <% totalNeckLabel.push(0) %> <% } %> <% }) %>
+                <tr>
+                  <td>Product Price</td>
+                  <td>₹<%= totalProductPrice.join(" + ₹") %></td>
+                </tr>
+                <tr>
+                  <td>Design Area</td>
+                  <td><%= totalProductDesignArea.join(" + ") %> (in²)</td>
+                </tr>
+                <tr>
+                  <td>Design Print Charges</td>
+                  <td>₹<%= totalProductDesignCharges.join(" + ₹") %></td>
+                </tr>
+                <tr>
+                  <td>Neck Label</td>
+                  <td>₹<%= totalNeckLabel.join(" + ₹") %></td>
+                </tr>
+                <tr>
+                  <td>Total Product price (print + label)</td>
+                  <% var totalPP=[]; %> <% designData.forEach(design=> { %> <%
+                  totalPP.push(design.price) %> <% }) %>
+                  <td>₹<%= totalPP.join(" + ₹") %></td>
+                </tr>
+                <tr>
+                  <td>Quantity</td>
+                  <% var totalQty=[]; %> <%
+                  orderData.orderData[0].items.forEach(design=> { %> <%
+                  totalQty.push(design.quantity) %> <% }) %>
+                  <td><%= totalQty.join(" + ") %></td>
+                </tr>
+                <tr>
+                  <td>Delivery Charge</td>
+                  <td>₹<%= orderData.orderData[0].deliveryCharges %></td>
+                </tr>
+                <% if (orderData.orderData[0].cashOnDelivery) { %>
+                <tr>
+                  <td>COD Charges</td>
+                  <td>₹50</td>
+                </tr>
                 <% } %>
-            </div>
-
-            <div class="column">
-                <div class="box">
-                    <h3>Order Information</h3>
-                    <div class="order-info">
-                        <p>Your customer Order ID</p>
-                        <p><%= orderData.orderData[0].customerOrderId %></p>
-                    </div>
-                    <div class="order-info">
-                        <p>Retail Price</p>
-                        <p>₹<%= orderData.orderData[0].retailPrice %></p>
-                    </div>
-                    <div class="order-info">
-                        <p>Payment mode</p>
-                        <p><%= orderData.orderData[0].cashOnDelivery? 'COD': 'Prepaid' %></p>
-                    </div>
-                    <div class="order-info">
-                        <p>Courier</p>
-                        <p><%= orderData.orderData[0].shipRocketCourier.courierId == -1? "Self Pickup": orderData.orderData[0].shipRocketCourier.courierName %></p>
-                    </div>
-                    <% if (orderData.orderData[0].shipRocketCourier.courierId != -1) { %>
-                    <div class="order-info">
-                        <p>Delivered By</p>
-                        <p><%= orderData.orderData[0].shipRocketCourier.estimatedDelivery %></p>
-                    </div>
-                    <% } %>
-                    <% if (orderData.orderData[0].shipRocketCourier.courierAWB) { %>
-                    <div class="order-info">
-                        <p>Tracking Number</p>
-                        <p><a href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier.courierAWB %>" target="_blank"><%= orderData.orderData[0].shipRocketCourier.courierAWB %></a></p>
-                    </div>
-                    <% } %>
-                    
-                </div>
-
-                <div class="box">
-                    <h3>Customer Information</h3>
-                    <div class="order-info">
-                        <p>Name</p>
-                        <p><%= orderData.orderData[0].billingAddress.firstName + " " + orderData.orderData[0].billingAddress.lastName %></p>
-                    </div>
-                    <div class="order-info">
-                        <p>Phone</p>
-                        <p><%= orderData.orderData[0].billingAddress.mobile %></p>
-                    </div>
-                    <div class="order-info">
-                        <p>Address</p>
-                        <p><%= orderData.orderData[0].billingAddress.streetLandmark + ","  %><br />
-                            <%= orderData.orderData[0].billingAddress.city + ","  %><br />
-                            <%= orderData.orderData[0].billingAddress.state + ", "  %><br />
-                            <%= orderData.orderData[0].billingAddress.pincode %>
-                        </p>
-                    </div>
-                </div>
-
-                <div class="box">
-                    <h2>Cost breakup</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% var totalProductPrice = [] %>
-                            <% var totalProductDesignArea = [] %>
-                            <% var totalProductDesignCharges = [] %>
-                            <% var totalNeckLabel = [] %>
-                            <% designData.forEach(design => { %>
-                                <% totalProductPrice.push(design.product.price) %>
-                                <% totalProductDesignArea.push((design.designDimensions.width * design.designDimensions.width).toFixed(2)) %>
-                                <% totalProductDesignCharges.push((design.price - design.product.price - (design.neckLabel? 10: 0)).toFixed(2)) %>
-                                <% if (design.neckLabel) { %>
-                                    <% totalNeckLabel.push(10) %>
-                                <% } else { %>
-                                    <% totalNeckLabel.push(0) %>
-                                <% } %>
-                            <% }) %>
-                            <tr>
-                                <td>Product Price</td>
-                                <td>₹<%= totalProductPrice.join(" + ₹") %>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Design Area</td>
-                                <td>
-                                    <%= totalProductDesignArea.join(" + ") %> (in²)
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Design Print Charges</td>
-                                <td>₹<%= totalProductDesignCharges.join(" + ₹") %>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Neck Label</td>
-                                <td>₹<%= totalNeckLabel.join(" + ₹") %></td>
-                            </tr>
-                            <tr>
-                                <td>Total Product price (print + label)</td>
-                                <% var totalPP = []; %>
-                                <% designData.forEach(design=> { %>
-                                    <% totalPP.push(design.price) %>
-                                <% }) %>
-                                <td>₹<%= totalPP.join(" + ₹") %></td>
-                            </tr>
-                            <tr>
-                                <td>Quantity</td>
-                                <% var totalQty = []; %>
-                                <% orderData.orderData[0].items.forEach(design=> { %>
-                                    <% totalQty.push(design.quantity) %>
-                                <% }) %>
-                                <td><%= totalQty.join(" + ") %></td>
-                            </tr>
-                            <tr>
-                                <td>Delivery Charge</td>
-                                <td>₹<%= orderData.orderData[0].deliveryCharges %></td>
-                            </tr>
-                            <% if (orderData.orderData[0].cashOnDelivery) { %>
-                                <tr>
-                                    <td>COD Charges</td>
-                                    <td>₹50</td>
-                                </tr>
-                            <% } %>
-                            <tr>
-                                <td>Tax (CGST 2.5% + SGST 2.5%)</td>
-                                <td>₹<%= (orderData.orderData[0].taxes).toFixed(2) %></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Total</strong></td>
-                                <td>₹<%= orderData.orderData[0].amountPaid.toFixed(2) %></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                <tr>
+                  <td>Tax (CGST 2.5% + SGST 2.5%)</td>
+                  <td>₹<%= (orderData.orderData[0].taxes).toFixed(2) %></td>
+                </tr>
+                <tr>
+                  <td><strong>Total</strong></td>
+                  <td>₹<%= orderData.orderData[0].amountPaid.toFixed(2) %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        </div>
-        <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-        <script>
-            AOS.init();
-            var notyf = new Notyf();
-            var orderHistoryData = [];
-            var designData = {};
+      </div>
+    </div>
+    <script src=" https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+      AOS.init();
+      var notyf = new Notyf();
+      var orderHistoryData = [];
+      var designData = {};
 
-            const initiateRefund = async (el, type = 'cancel') => {
-                el.classList.add('disable-button');
-                if (type === "reship") return location.href += '/reship';
-                let cancelOrderConfirmation = type == "return" ?
-                    confirm("If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?")
-                    :
-                    confirm("Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?")
-                    
-                if (!cancelOrderConfirmation) return el.classList.remove('disable-button');
-                try {
-                    const initiateRefundRequest = await fetch("/initiaterefund", {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }, 
-                        body: JSON.stringify({
-                            orderId: "<%= orderData.orderData[0].printwearOrderId %>"
-                        }),
-                        method: 'POST'
-                    });
-                    const initiateRefundResponse = await initiateRefundRequest.json();
-                    console.log(initiateRefundResponse);
-                    if (!initiateRefundRequest.ok) {
-                        setTimeout(() => location.reload(), 3000);
-                        return notyf.error(initiateRefundResponse.message);
-                        // return type == "return"? notyf.success("Return order is now being processed! You will be refunded within 2-3 days") :notyf.success("Order cancelled successfully! You will be refunded within 2-3 working days.");
-                    }
-                    return notyf.success(initiateRefundResponse.message);
-                } catch (error) {
-                    console.log(error);
-                    return notyf.error("Error in initiating refund!");
-                } finally {
-                    el.classList.remove('disable-button');
-                }
-            } 
+      const initiateRefund = async (el, type = "cancel") => {
+        el.classList.add("disable-button");
+        if (type === "reship") return (location.href += "/reship");
+        let cancelOrderConfirmation =
+          type == "return"
+            ? confirm(
+                "If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?"
+              )
+            : confirm(
+                "Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?"
+              );
 
-        </script>
-     <% } %>
-</body>
+        if (!cancelOrderConfirmation)
+          return el.classList.remove("disable-button");
+        try {
+          const initiateRefundRequest = await fetch("/initiaterefund", {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              orderId: "<%= orderData.orderData[0].printwearOrderId %>",
+            }),
+            method: "POST",
+          });
+          const initiateRefundResponse = await initiateRefundRequest.json();
+          console.log(initiateRefundResponse);
+          if (!initiateRefundRequest.ok) {
+            setTimeout(() => location.reload(), 3000);
+            return notyf.error(initiateRefundResponse.message);
+            // return type == "return"? notyf.success("Return order is now being processed! You will be refunded within 2-3 days") :notyf.success("Order cancelled successfully! You will be refunded within 2-3 working days.");
+          }
+          return notyf.success(initiateRefundResponse.message);
+        } catch (error) {
+          console.log(error);
+          return notyf.error("Error in initiating refund!");
+        } finally {
+          el.classList.remove("disable-button");
+        }
+      };
+    </script>
+    <% } %>
+  </body>
 </html>

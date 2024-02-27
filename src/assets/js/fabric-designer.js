@@ -443,12 +443,12 @@ const addImageToCanvas = async (el, imageURL) => {
     .forEach((element) => element.classList.remove("active-selection"));
   el.classList.add("active-selection");
 
-  const blobReq = await fetch(imageURL);
-  const blobRes = await blobReq.blob();
-  console.log("🚀 ~ addImageToCanvas ~ blobRes:", blobRes)
-  designImg = blobRes;
+  // const blobReq = await fetch(imageURL);
+  // const blobRes = await blobReq.blob();
+  // console.log("🚀 ~ addImageToCanvas ~ blobRes:", blobRes)
+  // designImg = blobRes;
   if (imageURL && fabricCanvas) {
-    const imageURL = URL.createObjectURL(designImg);
+    // const imageURL = URL.createObjectURL(designImg);
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
       designImage.minScaleLimit = 0.05;
