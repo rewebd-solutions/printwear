@@ -28,9 +28,9 @@
   <main class="product-lib">
     <div class="heading-row">
       <div style="display: flex; flex-direction: column;">
-        <h2>Design Library</h2>
-        <p>Start creating your designs and save them for reordering quickly.<br>
-          You can also push them to your online store once you connect your store with Printwear</p>
+        <h2>Your Product Library</h2>
+        <p>View your designs and check out pricing<br>
+          You can also push them to your online store once you connect your store with Printwear or place an order with them.</p>
       </div>
       <input type="search" placeholder="Search for your designs..." oninput="searchDesigns('designName', event.target.value)" id="name-search" />
     </div>
@@ -265,9 +265,12 @@
               <img src="${design.designImage.front != '' ? design.designImage.front : design.designImage.back}">
             </div>
             <div class="name-price">
-              <h3>${design.designName}</h3>
+              <div style="display:flex; gap: 2px; justify-content: space-between; align-items: center">
+                <h3>${design.designName}</h3>
+                <p class='name-sku'>${design.designSKU}</p>
+              </div>
               <p style="opacity: 0.8; font-size: 0.6rem">${design.product.style}</p>
-            </div>
+              </div>
             <div class="details">
               <div class="view-btn">
                 <button onclick="openModal('${design.designSKU}')">View</button>

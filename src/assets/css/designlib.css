@@ -152,7 +152,7 @@ p {
 }
 
 .name-price h3 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   margin-top: 0.3rem;
   text-align: left;
@@ -374,4 +374,13 @@ input::placeholder {
   outline: 1px solid #F05A30;
   background-color: #F05A30;
   color: white;
+}
+
+.name-sku {
+  font-size: 0.6rem;
+  background: #dedede;
+  width: fit-content;
+  padding: 1px 5px;
+  border-radius: 6px;
+  height: fit-content;
 }

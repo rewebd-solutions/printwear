@@ -108,7 +108,7 @@
                             ${calculateCardStock(currentProduct) === 0? `<p style="color:red; font-size: 14px">Out of stock!</p>`: `<p style="font-size: 14px">Stock: ${calculateCardStock(currentProduct)}</p>`}
                         </div>
                         <div class="view-btn">
-                            <button class="toggle-modal" data-productid="${slugifyNames(style)}">Design</button>
+                            <a class="toggle-modal" href="/designgenerator?style=${style.split(" ").join("+")}">Design</button>
                         </div>
                     </div>
                 </div>

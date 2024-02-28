@@ -273,11 +273,12 @@ body {
   font-weight: 600;
 }
 
-.view-btn button {
+.view-btn a {
   background-color: #F05A30;
   width: 100px;
-  padding: 5px;
+  padding: 5px 10px;
   border: none;
+  font-size: 0.8rem;
   cursor: pointer;
   border-radius: 5px;
   color: #fff;
