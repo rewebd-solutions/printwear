@@ -14,7 +14,7 @@ env_variables:
   WOOCOMMERCE_CONSUMER_KEY: ck_06c81dc6957bc2f3ccc4f80307d25bb86ef14886
   WOOCOMMERCE_CONSUMER_SECRET: cs_ed977c60844bff730673dd2d322b592ca329c80f
   CASHFREE_BASE_URL: https://sandbox.cashfree.com/pg
-  WEBHOOK_URL: https://demo.printwear.in/
+  WEBHOOK_URL: https://printwear-414416.el.r.appspot.com/
   SHIPROCKET_URL: https://apiv2.shiprocket.in/v1/external
   SHIPROCKET_EMAIL: printwearshiprocket@gmail.com
   SHIPROCKET_SECRET: shiprocketpassword
