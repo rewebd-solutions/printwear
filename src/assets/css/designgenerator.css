@@ -330,6 +330,28 @@ input[type="range"]:active {
   transition: all ease-in-out 200ms;
 }
 
+input[type="number"] {
+  width: 4rem;
+  outline: none;
+  border: none;
+  border-bottom: 1px solid silver;
+  background: #eee;
+  border-radius: 5px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .design-name {
   display: flex;
   flex-direction: column;
@@ -375,11 +397,14 @@ i.left {
 
 .user-design-images,
 .user-label-images {
-  display: flex;
+  display: grid;
   gap: 0.5rem;
   overflow-x: scroll;
   padding: 0.4rem;
-  height: 250px;
+  height: 300px;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  grid-gap: 15px;
+  grid-row-gap: 30px;
 }
 
 .user-label-images {
@@ -396,13 +421,15 @@ i.left {
   cursor: pointer;
   width: 175px;
   height: 200px;
+  display: grid;
+  place-items: center;
 }
 
 .user-design-image img,
 .user-label-image img {
   width: 150px;
-  height: 100%;
-  object-fit: contain;
+  height: 165px;
+  object-fit: scale-down;
 }
 
 .user-design-image p,

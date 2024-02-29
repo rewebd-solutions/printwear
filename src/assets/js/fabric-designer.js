@@ -24,6 +24,11 @@ var isSetPixelRatioCalled = false;
 
 var variantPrice = 0;
 
+
+// storing back design printing price to show in criteria table
+var backPrintingPrice = 0;
+var frontPrintingPrice = 0;
+
 /* var for letting top.ejs know there is this var */
 var isReadyForRendering = true;
 
@@ -221,16 +226,17 @@ const calculateTotalHeight = () => {
   let totalHeight = objects
     .map((obj) => obj.getScaledHeight() * Product.pixelToInchRatio)
     .reduce((prev, curr) => prev + curr, 0);
-  //console.log(totalHeight);
   return totalHeight;
 };
+
 const calculateTotalWidth = () => {
   if (!fabricCanvas) return;
   const object = fabricCanvas.getObjects()[0];
-  let totalWidth = object.getScaledWidth() * Product.pixelToInchRatio;
+  let totalWidth = object? object.getScaledWidth() * Product.pixelToInchRatio: 0;
   //console.log(totalWidth);
   return totalWidth;
 };
+
 const calculateTotalArea = () => {
   if (!fabricCanvas) return;
   const objects = fabricCanvas.getObjects();
@@ -248,6 +254,11 @@ const calculateTotalArea = () => {
 
 /* Design Image Stats */
 const table = document.querySelector("#price-stats");
+const priceTable = table.children[1];
+
+// input field for the height and width
+const designHeightInput = document.querySelector("#design-height")
+const designWidthInput = document.querySelector("#design-width")
 
 const capitalizeFirst = (string) => {
   return string[0].toUpperCase() + string.slice(1);
@@ -255,60 +266,72 @@ const capitalizeFirst = (string) => {
 
 /* Change Direction Name in Stats */
 const changeStatName = () => {
-  const priceTable = table.children[1];
   table.style.display = "table";
 
   /* Updating Design Direction Name */
   const curDirection = capitalizeFirst(designDirection);
-  priceTable.children[0].children[0].innerHTML =
-    curDirection + " Design Height";
+  priceTable.children[0].children[0].innerHTML = curDirection + " Design Height";
   priceTable.children[1].children[0].innerHTML = curDirection + " Design Width";
   priceTable.children[2].children[0].innerHTML = curDirection + " Design Area";
+  priceTable.children[7].children[0].innerHTML = (curDirection === "Front"? "Back": "Front") + " Design price";
 };
 
 const updateStats = () => {
-  const priceTable = table.children[1];
-  table.style.display = "table";
 
   changeStatName();
 
   if (!designImageHeight || !designImageWidth || !designImg) {
-    priceTable.children[0].children[1].innerHTML = "0 in";
-    priceTable.children[1].children[1].innerHTML = "0 in";
+    console.log("exiting in guard clause inside updateStats");
+    // priceTable.children[0].children[1].innerHTML = "0 in";
+    // priceTable.children[1].children[1].innerHTML = "0 in";
+    designHeightInput.value = 0;
+    designWidthInput.value = 0;
+    // priceTable.children[0].children[1].children[1] = " in";
+    // priceTable.children[1].children[1].children[1] = " in";
     priceTable.children[2].children[1].innerHTML = "0 in²";
     priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
     priceTable.children[4].children[1].innerHTML = "₹0";
     priceTable.children[5].children[1].innerHTML = "₹" + variantPrice;
     return;
   }
-
+  
   let imageHeightInInches = calculateTotalHeight().toFixed(2);
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
-
+  console.log("🚀 ~ updateStats ~ imageDimensions:", imageHeightInInches, imageWidthInInches, imageAreaInInches)
+  
   let printingPrice =
-    imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0
-      ? 70.0
-      : imageAreaInInches * 2 < 70.0
-        ? 70.0
-        : imageAreaInInches * 2;
-
-  priceTable.children[0].children[1].innerHTML = imageHeightInInches + " in";
-  priceTable.children[1].children[1].innerHTML = imageWidthInInches + " in";
+  (imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0) && (imageHeightInInches > 0 && imageWidthInInches > 0)
+  ? 70.0
+  : (imageAreaInInches * 2 < 70.0) && (imageAreaInInches * 2 > 0.5)
+  ? 70.0
+  : imageAreaInInches * 2;
+    
+  designHeightInput.value = imageHeightInInches;
+  designWidthInput.value = imageWidthInInches;
   priceTable.children[2].children[1].innerHTML = imageAreaInInches + " in²";
   priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
   priceTable.children[4].children[1].innerHTML = "₹" + printingPrice.toFixed(2);
-  priceTable.children[5].children[1].innerHTML =
-    "₹" + (printingPrice + variantPrice).toFixed(2);
-  priceTable.children[6].children[0].innerHTML = isNeckLabelSelected
-    ? "Neck Label(selected)"
-    : "Neck Label(not selected)";
-  priceTable.children[6].children[1].innerHTML = isNeckLabelSelected
-    ? "₹10"
-    : "₹0";
-  priceTable.children[7].children[1].innerHTML = isNeckLabelSelected
-    ? "₹" + (printingPrice + variantPrice + 10).toFixed(2)
-    : "₹" + (printingPrice + variantPrice).toFixed(2);
+  priceTable.children[5].children[1].innerHTML = "₹" + (printingPrice + variantPrice).toFixed(2);
+  priceTable.children[6].children[0].innerHTML = isNeckLabelSelected? "Neck Label(selected)" : "Neck Label(not selected)";
+  priceTable.children[6].children[1].innerHTML = isNeckLabelSelected? "₹10" : "₹0";
+
+  if (designDirection === "front") {
+    frontPrintingPrice = printingPrice;
+    priceTable.children[7].children[1].innerHTML = "₹" + backPrintingPrice;
+    priceTable.children[8].children[1].innerHTML = isNeckLabelSelected?
+      "₹" + (printingPrice + backPrintingPrice + variantPrice + 10).toFixed(2)
+      :
+      "₹" + (printingPrice + backPrintingPrice + variantPrice).toFixed(2);
+  } else {
+    backPrintingPrice = printingPrice;
+    priceTable.children[7].children[1].innerHTML = "₹" + frontPrintingPrice;
+    priceTable.children[8].children[1].innerHTML = isNeckLabelSelected?
+      "₹" + (printingPrice + frontPrintingPrice + variantPrice + 10).toFixed(2)
+      : 
+      "₹" + (printingPrice + frontPrintingPrice + variantPrice).toFixed(2);
+  }
+
 };
 
 const changeSize = (e, size, id) => {
@@ -414,7 +437,7 @@ const addFabricCanvasToTemplateDiv = () => {
   // });
 
   fabricCanvas.on("object:scaling", function (event) {
-    var designImg = event.target;
+    designImg = event.target;
 
     /* Updating sizes during scaling */
     designImageHeight = designImg.getScaledHeight();
@@ -427,7 +450,13 @@ const addFabricCanvasToTemplateDiv = () => {
 const loadState = () => {
   if (!fabricCanvas) return;
   if (canvasState[designDirection] === null) fabricCanvas.clear();
-  else fabricCanvas.loadFromJSON(canvasState[designDirection]);
+  else fabricCanvas.loadFromJSON(canvasState[designDirection], updateStats);
+  // else fabricCanvas.loadFromJSON(canvasState[designDirection], fabricCanvas.renderAll.bind(fabricCanvas), function (o, obj) {
+  //   console.log(o, obj);
+  //   updateStats();
+  // });
+  updateStats();
+  console.log("updateStatsCalled");
 };
 
 /* Add Image to Canvas */
@@ -445,7 +474,7 @@ const addImageToCanvas = async (el, imageURL) => {
 
   // const blobReq = await fetch(imageURL);
   // const blobRes = await blobReq.blob();
-  // console.log("🚀 ~ addImageToCanvas ~ blobRes:", blobRes)
+  // // console.log("🚀 ~ addImageToCanvas ~ blobRes:", blobRes)
   // designImg = blobRes;
   if (imageURL && fabricCanvas) {
     // const imageURL = URL.createObjectURL(designImg);
@@ -456,6 +485,8 @@ const addImageToCanvas = async (el, imageURL) => {
       /* Updating Sizes */
       designImageHeight = designImage.getScaledHeight();
       designImageWidth = designImage.getScaledWidth();
+
+      designImg = designImage;
 
       /* Locking Scaling and Rotating */
       designImage.lockScalingFlip = true;
@@ -510,8 +541,9 @@ const changeSide = (e, side) => {
         ? "images/warning.png"
         : selectedMockup.colorImage.back;
 
+  console.log("direction: " + designDirection);
   loadState();
-  changeStatName();
+  // changeStatName();
 };
 
 /* Download Image */

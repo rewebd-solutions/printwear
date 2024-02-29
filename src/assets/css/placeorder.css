@@ -280,3 +280,26 @@ input[type='search'] {
     opacity: 0.6;
     pointer-events: none;
 }
+
+.create-order-button-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 3rem;
+    border: 4px dashed silver;
+    border-radius: 1rem;
+    gap: 5px;
+}
+
+.create-order-button-container button {
+    background-color: #F05A30;
+    color: white;
+    font-size: 1rem;
+    padding: 0.5rem 0.8rem;
+}
+
+.create-order-button-container p {
+    font-size: 0.8rem;
+}

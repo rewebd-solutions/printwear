@@ -130,11 +130,15 @@
 						<tbody>
 							<tr>
 								<td>Design Height</td>
-								<td class="height-design"></td>
+								<td class="height-design" style="display: flex;">
+									<input type="number" min="0" name="height" id="design-height"> in
+								</td>
 							</tr>
 							<tr>
 								<td>Design Width</td>
-								<td class="width-design"></td>
+								<td class="width-design" style="display: flex;">
+									<input type="number" min="0" name="width" id="design-width"> in
+								</td>
 							</tr>
 							<tr>
 								<td>Design Area</td>
@@ -157,6 +161,10 @@
 								<td>₹0</td>
 							</tr>
 							<tr>
+								<td>Back Design price</td>
+								<td>₹0</td>
+							</tr>
+							<tr>
 								<td>Grand Total:</td>
 								<td class="total-price"></td>
 							</tr>
@@ -167,7 +175,7 @@
 
 			<!-- Upload design image input -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-6"></i> <h4>Choose your design</h4></div>
+				<div class="right-box-steps"><i class="fa fa-circle-4"></i> <h4>Choose your design</h4></div>
 				<div class="user-design-images">
 					
 				</div>
@@ -183,7 +191,7 @@
 			
 			<!-- Upload label input -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-6"></i> <h4>Choose your label</h4></div>
+				<div class="right-box-steps"><i class="fa fa-circle-5"></i> <h4>Choose your label</h4></div>
 				<div>
 					<input type="checkbox" id="label-check" onchange="includeLabel(event.target.checked)" />
 					<label for="label-check">Include label</label>

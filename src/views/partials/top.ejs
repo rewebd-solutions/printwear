@@ -86,6 +86,9 @@
   .modal-controls {
     display: flex;
     justify-content: flex-end;
+    position: sticky;
+    top: 1px;
+    z-index: 10;
   }
 
   .modal-close-button {
@@ -96,6 +99,7 @@
     cursor: pointer;
     aspect-ratio: 1;
     border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   }
 
   #user-image-form {
