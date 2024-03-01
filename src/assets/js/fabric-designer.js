@@ -581,7 +581,7 @@ const downloadDesign = () => {
     console.log(fabricCanvas.getObjects());
     domtoimage.toBlob(node, config).then(function (blob) {
       // Restore original transformation
-
+      console.log(`yeppa aavdhaa ${blob}`);
       window.saveAs(
         blob,
         userName +
@@ -593,6 +593,31 @@ const downloadDesign = () => {
         designDirection +
         ".png"
       );
+      console.log('front image saved?');
+      // change design direction and convert image
+
+      designDirection == "front"? designDirection = "back": designDirection = "front";
+
+      loadState();
+      console.log('sate changed');
+
+      setTimeout(() => {
+        domtoimage.toBlob(node, config).then(function (blob) {
+          window.saveAs(
+            blob,
+            userName +
+            "_" +
+            designName.value +
+            "_" +
+            new Date().toLocaleTimeString() +
+            "-" +
+            designDirection +
+            ".png"
+        )});
+      }, 200);
+
+      designDirection == "front"? designDirection = "back": designDirection = "front";
+      
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed silver")
       );
@@ -706,6 +731,7 @@ const saveDesign = async () => {
           { type: "image/png" }
         )
       );
+      // add back image to same designImage
       formData.append(
         "designHeight",
         parseFloat(calculateTotalHeight().toFixed(2))
@@ -914,5 +940,3 @@ document.addEventListener(
   },
   false
 );
-
-slider.addEventListener("input", scaleObject);
