@@ -579,6 +579,10 @@ const downloadDesign = () => {
   // Use a short delay to ensure the browser has updated the DOM with the transform
   setTimeout(() => {
     console.log(fabricCanvas.getObjects());
+    
+    /* tried html2canvas, which yeets a canvas again.. no use */
+    // html2canvas(node, { userCORS: true, allowTaint: true, scale: 1.0 }).then(x => console.log(x)).catch(x => console.log(x))
+
     domtoimage.toBlob(node, config).then(function (blob) {
       // Restore original transformation
       console.log(`yeppa aavdhaa ${blob}`);
@@ -596,27 +600,28 @@ const downloadDesign = () => {
       console.log('front image saved?');
       // change design direction and convert image
 
-      designDirection == "front"? designDirection = "back": designDirection = "front";
+      /* rest of code to change direction of canvas and then download again */
+      // designDirection == "front"? designDirection = "back": designDirection = "front";
 
-      loadState();
-      console.log('sate changed');
+      // loadState();
+      // console.log('sate changed');
 
-      setTimeout(() => {
-        domtoimage.toBlob(node, config).then(function (blob) {
-          window.saveAs(
-            blob,
-            userName +
-            "_" +
-            designName.value +
-            "_" +
-            new Date().toLocaleTimeString() +
-            "-" +
-            designDirection +
-            ".png"
-        )});
-      }, 200);
+      // setTimeout(() => {
+      //   domtoimage.toBlob(node, config).then(function (blob) {
+      //     window.saveAs(
+      //       blob,
+      //       userName +
+      //       "_" +
+      //       designName.value +
+      //       "_" +
+      //       new Date().toLocaleTimeString() +
+      //       "-" +
+      //       designDirection +
+      //       ".png"
+      //   )});
+      // }, 200);
 
-      designDirection == "front"? designDirection = "back": designDirection = "front";
+      // designDirection == "front"? designDirection = "back": designDirection = "front";
       
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed silver")

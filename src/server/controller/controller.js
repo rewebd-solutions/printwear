@@ -538,6 +538,19 @@ function clearIdempotencyKeys() {
 
 
 // endpoints for querying shopify stores
+exports.getstoredetails = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const shopifyStoreDetails = await StoreModel.findOne({ userid: userId });
+    if (!shopifyStoreDetails) return res.status(404).json({ message: `Store data not found for ${req.userName}` });
+
+    res.json({ shopify: shopifyStoreDetails.shopifyStore, woo: shopifyStoreDetails.wooCommerceStore });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error in fetching details!" });
+  }
+}
+
 exports.getshopifystock = async (req, res) => {
   try {
     const userId = req.userId;
@@ -621,17 +634,21 @@ exports.getshopifyorders = async (req, res) => {
   }
 }
 
+
+
 // endpoints for connecting stores
+const SHOPIFY_ACCESS_SCOPES = ["read_orders","read_products","write_products","write_product_listings","read_product_listings","read_all_orders"];
 exports.connectShopify = async (req, res) => {
   const reqBody = req.body;
   // console.log(req.userId);
   const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
   const SHOPIFY_SHOP_URL = reqBody.store_url
   const SHOPIFY_SHOP_NAME = reqBody.store_name
-  // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
+  // console.log(SHOPIFY_ACCESS_TOKEN, SHOPIFY_SHOP_URL)
 
-  const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
-
+  // const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
+  const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
+  
   try {
     const fetchReq = await fetch(shopifyEndpoint, {
       headers: {
@@ -639,10 +656,13 @@ exports.connectShopify = async (req, res) => {
       }
     })
     const fetchData = await fetchReq.json();
-    // console.log(fetchData);
-
-    if (!fetchReq.ok) return res.status(400).json({ error: "Couldn't find store" });
-
+    // console.log("🚀 ~ exports.connectShopify= ~ fetchData:", fetchData)
+    if (fetchReq.status != 200) return res.status(fetchReq.status).json({ error: fetchData.errors });
+    // if (fetchReq.status.toString().startsWith('5')) return res.status(fetchReq.status).json({ error: "Shopify Server Error" });
+    
+    const isAccessSatified = (fetchData.access_scopes.every(scope => SHOPIFY_ACCESS_SCOPES.includes(scope.handle)))
+    if (!isAccessSatified) return res.status(400).json({ error: "Provided credentials doesn't have access scopes" })
+    
     const store = await StoreModel.findOneAndUpdate(
       { userid: req.userId },
       {
@@ -658,12 +678,12 @@ exports.connectShopify = async (req, res) => {
       { new: true, upsert: true }
     )
 
-    res.status(200).render('connectstore', { status: "Added Shopify Store" }); // idhu redirect pannidu
-    return;
+    res.status(200).json({ message: "Added Shopify store successfully!" }) // idhu redirect pannidu
+    // return;
 
   } catch (error) {
     console.log("Error in Shopify connect " + error)
-    res.status(400).json({ error })
+    res.status(500).json({ message: 'Unable to connect Shopify store' })
     return;
   }
 }

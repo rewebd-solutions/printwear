@@ -34,7 +34,7 @@
 
 input {
     padding: 0.4rem;
-    font-size: 1rem;
+    font-size: 0.8rem;
     border: none;
     border-radius: 5px;
     background-color: #edeef1;
@@ -47,10 +47,11 @@ input::placeholder {
 form button {
     border: none;
     background: #F05A30;
-    padding: 1rem 0.6rem;
+    padding: 0.7rem 0.6rem;
     color: white;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
 }
 
 .input-wrapper {
@@ -74,4 +75,9 @@ form button {
     border: none;
     background-color: #edeef1;
     border-radius: 10px;
+    padding: 0.7rem
+}
+
+.store img {
+    width: 250px;
 }

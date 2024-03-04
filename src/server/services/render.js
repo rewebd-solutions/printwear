@@ -64,3 +64,7 @@ exports.success = (req, res) => {
     const { type } = req.query;
     res.render('payment-success', { type });
 }
+
+exports.mystores = (req, res) => {
+    res.render("storeorder");
+}

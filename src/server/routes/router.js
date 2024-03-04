@@ -43,6 +43,7 @@ route.get("/order/:id", authServices.authorizeToken, controller.orderpage);
 route.get("/placeorder/billing", authServices.authorizeToken, controller.billing);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
+route.get("/mystores", authServices.authorizeToken, services.mystores);
 route.get("/contact", authServices.authorizeToken, services.contact);
 route.get("/designgenerator", authServices.authorizeToken, services.designgenerator);
 route.get("/designlib", authServices.authorizeToken, services.designlib);
@@ -54,9 +55,7 @@ route.post("/recharge", authServices.authorizeToken, controller.rechargewallet);
 route.get("/payment-success", services.success);
 route.get("/balance", authServices.authorizeToken, controller.walletballance);
 
-// route.post("/addtocart", authServices.authorizeToken, controller.addtocart);
-// route.get("/getcart", authServices.authorizeToken, controller.getcart);
-// route.post("/deletecartitem", authServices.authorizeToken, controller.deletecartitem);
+route.get('/getstoredetails', authServices.authorizeToken, controller.getstoredetails)
 
 route.post("/createorder", authServices.authorizeToken, controller.createorder);
 route.post("/deleteorderitem", authServices.authorizeToken, controller.deleteorderitem);

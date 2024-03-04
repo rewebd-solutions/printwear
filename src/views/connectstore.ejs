@@ -103,7 +103,70 @@
             woocommerceForm.style.display = "block"; 
             shopifyForm.style.display = "none";
         });
-       
+
+        shopifyForm.children[0].addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const shopifyData = new FormData(e.target);
+                
+                const shopifyRequest = await fetch("/connect-shopify", { 
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        access_token: shopifyData.get('access_token'),
+                        store_url: shopifyData.get('store_url'),
+                        store_name: shopifyData.get('store_name'),
+                    })
+                });
+                const shopifyResponse = await shopifyRequest.json();
+                console.log("🚀 ~ fetchStoreDetails ~ shopifyResponse:", shopifyResponse)
+
+                if (!shopifyRequest.ok) return notyf.error({ message: shopifyResponse.message });
+
+                // change shopify form data
+                notyf.success({ message: shopifyResponse.message });
+
+            } catch (error) {
+                console.log(error);
+                notyf.error(error);
+            }
+        });
+
+        const fetchStoreDetails = async () => {
+            try {
+                const storeDetailsRequest = await fetch("/getstoredetails");
+                const storeDetailsResponse = await storeDetailsRequest.json();
+                console.log("🚀 ~ fetchStoreDetails ~ storeDetailsResponse:", storeDetailsResponse)
+
+                if (!storeDetailsRequest.ok) return notyf.error({ message: storeDetailsResponse.message });
+
+                // change shopify form data
+                if (storeDetailsResponse.shopify) {
+                    shopifyForm.children[0].children[0].children[1].value = storeDetailsResponse.shopify.shopName;
+                    shopifyForm.children[0].children[1].children[1].value = storeDetailsResponse.shopify.shopifyStoreURL;
+                    shopifyForm.children[0].children[2].children[1].value = storeDetailsResponse.shopify.shopifyAccessToken;
+                    shopifyForm.querySelector("button").innerText = 'Edit and Save';
+                }
+                
+                // change woocommerce store data
+                if (storeDetailsResponse.woo) {
+                    woocommerceForm.children[0].children[0].children[1].value = storeDetailsResponse.woo.shopName;
+                    woocommerceForm.children[0].children[1].children[1].value = storeDetailsResponse.woo.url;
+                    woocommerceForm.children[0].children[2].children[1].value = storeDetailsResponse.woo.consumerKey;
+                    woocommerceForm.children[0].children[3].children[1].value = storeDetailsResponse.woo.consumerSecret;
+                    woocommerceForm.querySelector("button").innerText = 'Edit and Save';
+                }
+
+            } catch (error) {
+                console.log(error);
+                notyf.error(error);
+            }
+        }
+        
+        fetchStoreDetails();
+        
     </script>
 </body>
 
