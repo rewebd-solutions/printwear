@@ -33,8 +33,6 @@ route.post("/deletedesign", authServices.authorizeToken, controller.deletedesign
 route.post("/createdesign", authServices.authorizeToken, upload.array('designImage', 2), controller.createdesign);
 route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 
-// route.get('/admin', services.adminpage); // it only has a form thats incomplete
-
 route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
 route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
 route.get("/manageorder", authServices.authorizeToken, services.manageorder);
@@ -55,18 +53,16 @@ route.post("/recharge", authServices.authorizeToken, controller.rechargewallet);
 route.get("/payment-success", services.success);
 route.get("/balance", authServices.authorizeToken, controller.walletballance);
 
-route.get('/getstoredetails', authServices.authorizeToken, controller.getstoredetails)
-
 route.post("/createorder", authServices.authorizeToken, controller.createorder);
 route.post("/deleteorderitem", authServices.authorizeToken, controller.deleteorderitem);
 route.get("/getorders", authServices.authorizeToken, controller.getorders);
 route.post("/updateorder", authServices.authorizeToken, controller.updateorder);
 
+route.get('/getstoredetails', authServices.authorizeToken, controller.getstoredetails)
 
 route.get("/getorderhistory", authServices.authorizeToken, controller.getorderhistory);
-
 // route.get("/getshopifystock", authServices.authorizeToken, controller.getshopifystock);
-// route.get("/getshopifyorders", authServices.authorizeToken, controller.getshopifyorders);
+route.get("/getshopifyorders",  controller.getshopifyorders);
 
 route.post("/connect-shopify", authServices.authorizeToken, controller.connectShopify);
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);

@@ -604,7 +604,8 @@ exports.getshopifystock = async (req, res) => {
 
 exports.getshopifyorders = async (req, res) => {
   try {
-    const userId = req.userId;
+    // const userId = req.userId;
+    const userId = "653e3284308b660442fd55a6";
 
     const shopifyStoreDetails = await StoreModel.findOne({ userid: userId });
     const shopifyStoreData = shopifyStoreDetails.shopifyStore;
