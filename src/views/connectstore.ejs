@@ -133,6 +133,37 @@
                 notyf.error(error);
             }
         });
+        
+        woocommerceForm.children[0].addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const wooData = new FormData(e.target);
+                
+                const wooRequest = await fetch("/connect-woocommerce", { 
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        consumer_secret: wooData.get('consumer_secret'),
+                        consumer_key: wooData.get('consumer_key'),
+                        store_url: wooData.get('store_url'),
+                        store_name: wooData.get('store_name'),
+                    })
+                });
+                const wooResponse = await wooRequest.json();
+                console.log("🚀 ~ fetchStoreDetails ~ wooResponse:", wooResponse)
+
+                if (!wooRequest.ok) return notyf.error({ message: wooResponse.message });
+
+                // change shopify form data
+                notyf.success({ message: wooResponse.message });
+
+            } catch (error) {
+                console.log(error);
+                notyf.error(error);
+            }
+        });
 
         const fetchStoreDetails = async () => {
             try {

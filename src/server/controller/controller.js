@@ -604,11 +604,11 @@ exports.getshopifystock = async (req, res) => {
 
 exports.getshopifyorders = async (req, res) => {
   try {
-    // const userId = req.userId;
-    const userId = "653e3284308b660442fd55a6";
+    const userId = req.userId;
+    // const userId = "64f175edd683cd124e440f23";
 
-    const shopifyStoreDetails = await StoreModel.findOne({ userid: userId });
-    const shopifyStoreData = shopifyStoreDetails.shopifyStore;
+    const storeDetails = await StoreModel.findOne({ userid: userId });
+    const shopifyStoreData = storeDetails.shopifyStore;
 
     const SHOPIFY_ACCESS_TOKEN = shopifyStoreData.shopifyAccessToken;
     const SHOPIFY_SHOP_URL = shopifyStoreData.shopifyStoreURL;
@@ -623,7 +623,7 @@ exports.getshopifyorders = async (req, res) => {
         }
       })
       const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
-      res.json(shopifyStoreOrderResponse);
+      res.json({ shopify: shopifyStoreOrderResponse.orders });
     } catch (error) {
       console.log(error);
       res.status(500).json({ error });
@@ -635,6 +635,41 @@ exports.getshopifyorders = async (req, res) => {
   }
 }
 
+exports.getwooorders = async (req, res) => {
+  try {
+    const userId = req.userId;
+    // const userId = "64f175edd683cd124e440f23";
+
+    const storeDetails = await StoreModel.findOne({ userid: userId });
+    const wooCommerceStoreData = storeDetails.wooCommerceStore;
+    
+    if (!wooCommerceStoreData) return res.status(404).json({ message: 'No WooCommerce store found!' })
+
+    const WOOCOMMERCE_SHOP_URL = wooCommerceStoreData.url;
+    const WOOCOMMERCE_CONSUMER_KEY = wooCommerceStoreData.consumerKey;
+    const WOOCOMMERCE_CONSUMER_SECRET = wooCommerceStoreData.consumerSecret;
+
+    try {
+      const encodedAuth = btoa(`${WOOCOMMERCE_CONSUMER_KEY}:${WOOCOMMERCE_CONSUMER_SECRET}`);
+      const endpoint = `https://${WOOCOMMERCE_SHOP_URL}/wp-json/wc/v3/orders`;
+      const wooOrderRequest = await fetch(endpoint, {
+        headers: {
+          'Authorization': 'Basic ' + encodedAuth
+        },
+      });
+      const wooOrderResponse = await wooOrderRequest.json();
+
+      res.json({ woo: wooOrderResponse });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error });
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+}
 
 
 // endpoints for connecting stores
@@ -691,24 +726,24 @@ exports.connectShopify = async (req, res) => {
 
 exports.connectWooCommerce = async (req, res) => {
   const reqBody = req.body;
-  // console.log(reqBody);
+  console.log(reqBody);
   const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
   const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
   const WOOCOMMERCE_SHOP_URL = reqBody.store_url
   const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
 
   try {
-    //do the thing to create woo obj
-    const api = new WooCommerceRestApi({
-      url: "https://" + WOOCOMMERCE_SHOP_URL + "/",
-      consumerKey: WOOCOMMERCE_CONSUMER_KEY,
-      consumerSecret: WOOCOMMERCE_CONSUMER_SECRET,
-      version: "wc/v3"
+    const encodedAuth = btoa(`${WOOCOMMERCE_CONSUMER_KEY}:${WOOCOMMERCE_CONSUMER_SECRET}`);
+    const endpoint = `https://${WOOCOMMERCE_SHOP_URL}/wp-json/wc/v3/orders`;
+    const wooOrderRequest = await fetch(endpoint, {
+      headers: {
+        'Authorization': 'Basic ' + encodedAuth
+      },
     });
-    const orders = await api.get("orders", {
-      status: 'cancelled',
-      per_page: '2',
-    });
+
+    const wooOrderReponse = await wooOrderRequest.text();
+      
+    if (!wooOrderRequest.ok) return res.status(403).json({ message: 'Unable to connect to WooCommerce Store!' });
 
     const store = await StoreModel.findOneAndUpdate(
       { userid: req.userId },
@@ -728,12 +763,12 @@ exports.connectWooCommerce = async (req, res) => {
     )
     // await store.save();
 
-    res.status(200).render('connectstore', { status: "Added WooCommerce Store" });
+    res.status(200).json({ message: "Added WooCommerce store successfully!" })
     return;
 
   } catch (error) {
     console.log("Error in woocommerce connect " + error)
-    res.status(400).json({
+    res.status(500).json({
       message: error
     })
     return;

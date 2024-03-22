@@ -62,7 +62,8 @@ route.get('/getstoredetails', authServices.authorizeToken, controller.getstorede
 
 route.get("/getorderhistory", authServices.authorizeToken, controller.getorderhistory);
 // route.get("/getshopifystock", authServices.authorizeToken, controller.getshopifystock);
-route.get("/getshopifyorders",  controller.getshopifyorders);
+route.get("/getshopifyorders", authServices.authorizeToken, controller.getshopifyorders);
+route.get("/getwooorders", authServices.authorizeToken, controller.getwooorders);
 
 route.post("/connect-shopify", authServices.authorizeToken, controller.connectShopify);
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
