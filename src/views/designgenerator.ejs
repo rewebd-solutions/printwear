@@ -176,7 +176,10 @@
 
 			<!-- Upload design image input -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-4"></i> <h4>Choose your design</h4></div>
+				<div class="right-box-steps">
+					<i class="fa fa-circle-4"></i> <h4>Choose your design</h4>
+					<input type="search" name="design-search" id="design-search" class="design-name-input" placeholder="Search for your designs..."/>
+				</div>
 				<div class="user-design-images">
 					
 				</div>
@@ -219,7 +222,7 @@
 			</div>
 			<!-- Save Image -->
 			<div class="action-buttons">
-				<button onclick="downloadDesign()"><i class="fa-regular fa-download"></i> Download Design</button>
+				<button onclick="downloadDesign()" class="download-button"><i class="fa-regular fa-download"></i> Download Design</button>
 				<button onclick="saveDesign()" class="save-button"><i class="fa-regular fa-page"></i> Save Design</button>
 			</div>
 		</div>

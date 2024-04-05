@@ -944,3 +944,12 @@ document.addEventListener(
   },
   false
 );
+
+document.querySelector("#design-search").addEventListener("input", (e) => {
+  const searchKey = e.target.value.trim();
+  if (searchKey == '') return populateUserDesigns();
+  const searchDesigns = userDesignResponse.images.filter(design => design.name.toLowerCase().includes(searchKey.toLowerCase()));
+  console.log(searchDesigns);
+  if (searchDesigns.length == 0) return userDesignsWrapper.innerHTML = "Invalid Search";
+  populateUserDesigns({ images: searchDesigns });
+})

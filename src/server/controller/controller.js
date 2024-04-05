@@ -1116,6 +1116,8 @@ exports.createdesign = async (req, res) => {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
     // console.log(fileBuffer);
+
+    // return res.json({ message: "OK" });
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData)
 
@@ -1167,7 +1169,7 @@ exports.createdesign = async (req, res) => {
     res.status(200).json({ message: "Design successful!" });
   } catch (error) {
     console.log(error);
-    res.status(500);
+    res.status(500).json({ error: "Server error in creating new design" });
   }
 }
 
@@ -3472,7 +3474,7 @@ exports.createshiporder = async (req, res) => {
   if (statusType === 'PAYMENT_FAILED_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
     const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
-    if (!orderData) return res.send("OK");
+    if (!orderData) return;
 
     console.log(`PAYMENT FAILED! for ${userid} on ${new Date().toLocaleString()}`);
     orderData.paymentStatus = "failed";
@@ -3513,15 +3515,12 @@ exports.createshiporder = async (req, res) => {
         shipRocketCourier: 1
       }
     });
-
-    return res.send("OK");
     // return await orderData.save();
   }
 
   if (statusType === 'REFUND_STATUS_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
     console.log(`REFUND DETAILS for ${userid} on ${new Date().toLocaleString()}`);
-    return res.send("OK");
   }
 
 }
