@@ -9,6 +9,8 @@ let fabricCanvas = null;
 /* Design Side */
 let designDirection = "front";
 
+let hasBeenRedirected = new URLSearchParams(location.search).get("from") === "orders";
+
 /* Storing Canvas State */
 let canvasState = {
   front: null,
@@ -952,4 +954,6 @@ document.querySelector("#design-search").addEventListener("input", (e) => {
   console.log(searchDesigns);
   if (searchDesigns.length == 0) return userDesignsWrapper.innerHTML = "Invalid Search";
   populateUserDesigns({ images: searchDesigns });
-})
+});
+
+if (hasBeenRedirected) alert("Has been redirected!");

@@ -80,7 +80,7 @@ exports.register = async (req, res) => {
 
     res.render("login", { status: "Account created. Log In" });
   } catch (error) {
-    console.log(err);
+    console.log(error);
     res.render("login", { status: "Error saving data, try again" })
   }
 }

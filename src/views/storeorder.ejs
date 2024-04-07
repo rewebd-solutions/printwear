@@ -39,6 +39,7 @@
                         <th>Amount paid</th>
                         <th>Order placed on</th>
                         <th>Delivery Status</th>
+                        <th>Action</th>
                     </thead>
                     <tbody>
                     </tbody>
@@ -57,6 +58,7 @@
                         <th>Amount paid</th>
                         <th>Order placed on</th>
                         <th>Delivery Status</th>
+                        <th>Action</th>
                     </thead>
                     <tbody>
                     </tbody>
@@ -84,6 +86,7 @@
                         <td>₹${order.current_total_price}</td>
                         <td>${order.created_at? new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : null}</td>
                         <td>${order.fulfillment_status ?? 'Unfulfilled'}</td>
+                        <td><a href="/mystores/shopify/${order.name}" class="proceed-btn">Next ▶</a></td>
                     </tr>
                 `).join('\n')
             }
@@ -99,6 +102,7 @@
                         <td>₹${order.total}</td>
                         <td>${order.date_created? new Date(order.date_created).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : null}</td>
                         <td>${order.status ?? 'unknown'}</td>
+                        <td><a href="/mystores/woo/${order.id}" class="proceed-btn">Next ▶</a></td>
                     </tr>
                 `).join('\n')
             }

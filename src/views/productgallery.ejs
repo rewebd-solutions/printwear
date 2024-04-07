@@ -47,6 +47,8 @@
         AOS.init();
         var notyf = new Notyf();
 
+        const hasBeenRedirected = new URLSearchParams(location.search).get("from") === "orders";
+
         const cardsContainer = document.querySelector(".cards");
 
         const getProducts = async () => {
@@ -108,7 +110,7 @@
                             ${calculateCardStock(currentProduct) === 0? `<p style="color:red; font-size: 14px">Out of stock!</p>`: `<p style="font-size: 14px">Stock: ${calculateCardStock(currentProduct)}</p>`}
                         </div>
                         <div class="view-btn">
-                            <a class="toggle-modal" href="/designgenerator?style=${style.split(" ").join("+")}">Design</button>
+                            <a class="toggle-modal" href="/designgenerator?style=${style.split(" ").join("+")}${hasBeenRedirected ? '&from=orders': ''}">Design</button>
                         </div>
                     </div>
                 </div>
