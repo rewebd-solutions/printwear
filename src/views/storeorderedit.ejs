@@ -21,9 +21,14 @@
     </div>
     <% if (error) { %>
         <h2><%= error %></h2>
-    <% } else { %>
+    <% } else if (shopifyData) { %>
         <div class="container">
-            <h2>Markup to get it</h2>
+            <h2>Order Details for <%= shopifyData.name %></h2>
+            <p>Order by <%= ((shopifyData.customer?.first_name ?? '') + ' ' + (shopifyData.customer?.last_name ?? 'N/A')) %></p>
+        </div>
+    <% } else { %>        
+        <div class="container">
+            <h2><%- wooData.id %></h2>
         </div>
     <% } %>
 

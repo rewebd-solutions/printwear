@@ -86,7 +86,7 @@
                         <td>₹${order.current_total_price}</td>
                         <td>${order.created_at? new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : null}</td>
                         <td>${order.fulfillment_status ?? 'Unfulfilled'}</td>
-                        <td><a href="/mystores/shopify/${order.name.substring(1)}" class="proceed-btn">Next ▶</a></td>
+                        <td><a href="/mystores/shopify/${order.id}" class="proceed-btn">Next ▶</a></td>
                     </tr>
                 `).join('\n')
             }

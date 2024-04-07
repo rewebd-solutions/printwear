@@ -725,6 +725,7 @@ exports.connectShopify = async (req, res) => {
 // render individual shoporder page
 exports.shopifystoreorderedit = async (req, res) => {
   try {
+    const shopOrderId = req.params.id;
     const storeData = await StoreModel.findOne({ userid: req.userId });
     if (!storeData)
       return res.render("storeorderedit", {
@@ -734,8 +735,19 @@ exports.shopifystoreorderedit = async (req, res) => {
     const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
     const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
 
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
-    res.render('storeorderedit', { error: false, data: {} });
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${shopOrderId}.json`;
+
+    const shopifyOrderRequest = await fetch(shopifyEndpoint, {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      }
+    })
+    const shopifyOrderResponse = await shopifyOrderRequest.json();
+    console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
+
+    if (shopifyOrderResponse.errors) return res.render('storeorderedit', { error: shopifyOrderResponse.errors });
+
+    res.render('storeorderedit', { error: false, shopifyData: shopifyOrderResponse.order });
 
   } catch (error) {
     console.log("🚀 ~ exports.storeorderedit= ~ error:", error)

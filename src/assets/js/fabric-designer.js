@@ -659,7 +659,7 @@ const saveDesign = async () => {
   }
 
   const SKU = document.getElementById("sku-name");
-  
+
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
@@ -813,16 +813,19 @@ const saveDesign = async () => {
           location.href = "/placeorder";
         }, 3000);
       }
+      disableButton(false);
+      canvasContainer.forEach(
+        (item) => (item.style.border = "2px dashed silver")
+      );
     });
   } catch (error) {
     console.log(error);
     notyf.error(error);
-  } finally {
     disableButton(false);
     canvasContainer.forEach(
       (item) => (item.style.border = "2px dashed silver")
     );
-  }
+  } 
   return isSaveSuccessful;
 };
 

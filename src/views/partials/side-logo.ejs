@@ -114,6 +114,9 @@
   </div>
 </div>
 <script>
-  const routeName = location.pathname;
-  document.querySelector(`a[href='${routeName}']`).classList.add("sidebar-active")
+  const routeName = location.pathname.split("/")[1];
+  if (["mystores", "order"].includes(routeName)) {
+     document.querySelector(`a[href='/manageorder']`).classList.add("sidebar-active")
+  }
+  document.querySelector(`a[href='/${routeName}']`).classList.add("sidebar-active")
 </script>
