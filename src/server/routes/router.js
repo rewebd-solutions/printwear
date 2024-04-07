@@ -41,7 +41,6 @@ route.get("/order/:id", authServices.authorizeToken, controller.orderpage);
 route.get("/placeorder/billing", authServices.authorizeToken, controller.billing);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);
-route.get("/mystores", authServices.authorizeToken, services.mystores);
 route.get("/contact", authServices.authorizeToken, services.contact);
 route.get("/designgenerator", authServices.authorizeToken, services.designgenerator);
 route.get("/designlib", authServices.authorizeToken, services.designlib);
@@ -59,6 +58,10 @@ route.get("/getorders", authServices.authorizeToken, controller.getorders);
 route.post("/updateorder", authServices.authorizeToken, controller.updateorder);
 
 route.get('/getstoredetails', authServices.authorizeToken, controller.getstoredetails)
+
+route.get("/mystores", authServices.authorizeToken, services.mystores);
+route.get('/mystores/shopify/:id', authServices.authorizeToken, controller.shopifystoreorderedit);
+route.get('/mystores/woo/:id', authServices.authorizeToken, controller.woostoreorderedit);
 
 route.get("/getorderhistory", authServices.authorizeToken, controller.getorderhistory);
 // route.get("/getshopifystock", authServices.authorizeToken, controller.getshopifystock);

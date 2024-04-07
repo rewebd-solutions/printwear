@@ -9,8 +9,6 @@ let fabricCanvas = null;
 /* Design Side */
 let designDirection = "front";
 
-let hasBeenRedirected = new URLSearchParams(location.search).get("from") === "orders";
-
 /* Storing Canvas State */
 let canvasState = {
   front: null,
@@ -25,7 +23,6 @@ var globalProductID = null;
 var isSetPixelRatioCalled = false;
 
 var variantPrice = 0;
-
 
 // storing back design printing price to show in criteria table
 var backPrintingPrice = 0;
@@ -198,13 +195,16 @@ const renderColors = () => {
   parent.innerHTML = "";
   Product.colors.map((color) => {
     const innerHTML = `
-    <div class="color-options${color.colorImage.front || color.colorImage.back ? "" : " color-disabled"
-      }" ${color.colorImage.front || color.colorImage.back
+    <div class="color-options${
+      color.colorImage.front || color.colorImage.back ? "" : " color-disabled"
+    }" ${
+      color.colorImage.front || color.colorImage.back
         ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"`
         : 'title="Image not available"'
-      }>
+    }>
       <span class="color-circle" style="background: ${color.hex}; border: 
-      ${color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
+      ${
+        color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
       }" id="${color.colorName}-${color._id}"></span>
       <p>${color.colorName}</p>
     </div>
@@ -234,7 +234,9 @@ const calculateTotalHeight = () => {
 const calculateTotalWidth = () => {
   if (!fabricCanvas) return;
   const object = fabricCanvas.getObjects()[0];
-  let totalWidth = object? object.getScaledWidth() * Product.pixelToInchRatio: 0;
+  let totalWidth = object
+    ? object.getScaledWidth() * Product.pixelToInchRatio
+    : 0;
   //console.log(totalWidth);
   return totalWidth;
 };
@@ -259,8 +261,8 @@ const table = document.querySelector("#price-stats");
 const priceTable = table.children[1];
 
 // input field for the height and width
-const designHeightInput = document.querySelector("#design-height")
-const designWidthInput = document.querySelector("#design-width")
+const designHeightInput = document.querySelector("#design-height");
+const designWidthInput = document.querySelector("#design-width");
 
 const capitalizeFirst = (string) => {
   return string[0].toUpperCase() + string.slice(1);
@@ -272,14 +274,15 @@ const changeStatName = () => {
 
   /* Updating Design Direction Name */
   const curDirection = capitalizeFirst(designDirection);
-  priceTable.children[0].children[0].innerHTML = curDirection + " Design Height";
+  priceTable.children[0].children[0].innerHTML =
+    curDirection + " Design Height";
   priceTable.children[1].children[0].innerHTML = curDirection + " Design Width";
   priceTable.children[2].children[0].innerHTML = curDirection + " Design Area";
-  priceTable.children[7].children[0].innerHTML = (curDirection === "Front"? "Back": "Front") + " Design price";
+  priceTable.children[7].children[0].innerHTML =
+    (curDirection === "Front" ? "Back" : "Front") + " Design price";
 };
 
 const updateStats = () => {
-
   changeStatName();
 
   if (!designImageHeight || !designImageWidth || !designImg) {
@@ -296,44 +299,55 @@ const updateStats = () => {
     priceTable.children[5].children[1].innerHTML = "₹" + variantPrice;
     return;
   }
-  
+
   let imageHeightInInches = calculateTotalHeight().toFixed(2);
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
-  console.log("🚀 ~ updateStats ~ imageDimensions:", imageHeightInInches, imageWidthInInches, imageAreaInInches)
-  
+  console.log(
+    "🚀 ~ updateStats ~ imageDimensions:",
+    imageHeightInInches,
+    imageWidthInInches,
+    imageAreaInInches
+  );
+
   let printingPrice =
-  (imageHeightInInches <= 8.0 && imageWidthInInches <= 8.0) && (imageHeightInInches > 0 && imageWidthInInches > 0)
-  ? 70.0
-  : (imageAreaInInches * 2 < 70.0) && (imageAreaInInches * 2 > 0.5)
-  ? 70.0
-  : imageAreaInInches * 2;
-    
+    imageHeightInInches <= 8.0 &&
+    imageWidthInInches <= 8.0 &&
+    imageHeightInInches > 0 &&
+    imageWidthInInches > 0
+      ? 70.0
+      : imageAreaInInches * 2 < 70.0 && imageAreaInInches * 2 > 0.5
+      ? 70.0
+      : imageAreaInInches * 2;
+
   designHeightInput.value = imageHeightInInches;
   designWidthInput.value = imageWidthInInches;
   priceTable.children[2].children[1].innerHTML = imageAreaInInches + " in²";
   priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
   priceTable.children[4].children[1].innerHTML = "₹" + printingPrice.toFixed(2);
-  priceTable.children[5].children[1].innerHTML = "₹" + (printingPrice + variantPrice).toFixed(2);
-  priceTable.children[6].children[0].innerHTML = isNeckLabelSelected? "Neck Label(selected)" : "Neck Label(not selected)";
-  priceTable.children[6].children[1].innerHTML = isNeckLabelSelected? "₹10" : "₹0";
+  priceTable.children[5].children[1].innerHTML =
+    "₹" + (printingPrice + variantPrice).toFixed(2);
+  priceTable.children[6].children[0].innerHTML = isNeckLabelSelected
+    ? "Neck Label(selected)"
+    : "Neck Label(not selected)";
+  priceTable.children[6].children[1].innerHTML = isNeckLabelSelected
+    ? "₹10"
+    : "₹0";
 
   if (designDirection === "front") {
     frontPrintingPrice = printingPrice;
     priceTable.children[7].children[1].innerHTML = "₹" + backPrintingPrice;
-    priceTable.children[8].children[1].innerHTML = isNeckLabelSelected?
-      "₹" + (printingPrice + backPrintingPrice + variantPrice + 10).toFixed(2)
-      :
-      "₹" + (printingPrice + backPrintingPrice + variantPrice).toFixed(2);
+    priceTable.children[8].children[1].innerHTML = isNeckLabelSelected
+      ? "₹" + (printingPrice + backPrintingPrice + variantPrice + 10).toFixed(2)
+      : "₹" + (printingPrice + backPrintingPrice + variantPrice).toFixed(2);
   } else {
     backPrintingPrice = printingPrice;
     priceTable.children[7].children[1].innerHTML = "₹" + frontPrintingPrice;
-    priceTable.children[8].children[1].innerHTML = isNeckLabelSelected?
-      "₹" + (printingPrice + frontPrintingPrice + variantPrice + 10).toFixed(2)
-      : 
-      "₹" + (printingPrice + frontPrintingPrice + variantPrice).toFixed(2);
+    priceTable.children[8].children[1].innerHTML = isNeckLabelSelected
+      ? "₹" +
+        (printingPrice + frontPrintingPrice + variantPrice + 10).toFixed(2)
+      : "₹" + (printingPrice + frontPrintingPrice + variantPrice).toFixed(2);
   }
-
 };
 
 const changeSize = (e, size, id) => {
@@ -366,9 +380,10 @@ const displaySizes = () => {
   let sizeDOMString = current.sizes
     .map((item) => {
       return `
-        <div class="size-options" ${item.stock
-          ? `onclick="changeSize(event,'${item.size}', '${item.id}')"`
-          : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`
+        <div class="size-options" ${
+          item.stock
+            ? `onclick="changeSize(event,'${item.size}', '${item.id}')"`
+            : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`
         }>
         ${item.size}
         </div>
@@ -580,7 +595,7 @@ const downloadDesign = () => {
   // Use a short delay to ensure the browser has updated the DOM with the transform
   setTimeout(() => {
     console.log(fabricCanvas.getObjects());
-    
+
     /* tried html2canvas, which yeets a canvas again.. no use */
     // html2canvas(node, { userCORS: true, allowTaint: true, scale: 1.0 }).then(x => console.log(x)).catch(x => console.log(x))
 
@@ -590,15 +605,15 @@ const downloadDesign = () => {
       window.saveAs(
         blob,
         userName +
-        "_" +
-        designName.value +
-        "_" +
-        new Date().toLocaleTimeString() +
-        "-" +
-        designDirection +
-        ".png"
+          "_" +
+          designName.value +
+          "_" +
+          new Date().toLocaleTimeString() +
+          "-" +
+          designDirection +
+          ".png"
       );
-      console.log('front image saved?');
+      console.log("front image saved?");
       // change design direction and convert image
 
       /* rest of code to change direction of canvas and then download again */
@@ -623,7 +638,7 @@ const downloadDesign = () => {
       // }, 200);
 
       // designDirection == "front"? designDirection = "back": designDirection = "front";
-      
+
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed silver")
       );
@@ -635,6 +650,7 @@ const downloadDesign = () => {
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
   if (!globalProductID) return;
+  let isSaveSuccessful = false;
 
   const designName = document.getElementById("design-name");
   let isDesignNameValid = designName.reportValidity();
@@ -643,23 +659,18 @@ const saveDesign = async () => {
   }
 
   const SKU = document.getElementById("sku-name");
-
-  // asked by client to disable SKU mandation
-  // if (!SKU.reportValidity()) {
-  //   return notyf.error("Give your design a SKU Code");
-  // }
-
-  disableButton(true);
-
+  
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
 
   /* Remove Border for Final Image Rendering */
-  const canvasContainer = document.querySelectorAll(".canvas-container > *");
-  canvasContainer.forEach((item) => (item.style.border = "none"));
-
+  
   try {
+    disableButton(true);
+    const canvasContainer = document.querySelectorAll(".canvas-container > *");
+    canvasContainer.forEach((item) => (item.style.border = "none"));
+
     const node = document.getElementById("product-design");
 
     const config = {
@@ -758,22 +769,61 @@ const saveDesign = async () => {
       });
 
       const saveDesignResponse = await saveDesignRequest.json();
+      console.log(saveDesignResponse);
 
       if (!saveDesignRequest.ok) {
         throw new Error("Save failed!");
       }
-      console.log(saveDesignResponse);
+      isSaveSuccessful = true;
+
       document.querySelector(".save-button").innerHTML = "Saved!";
-      return notyf.success("Design saved successfully!");
+      notyf.success("Design saved successfully!");
+
+      const searchParams = new URLSearchParams(location.search);
+      let hasBeenRedirected = searchParams.get("from") === "orders";
+      const orderId = hasBeenRedirected ? searchParams.get("id") : null;
+
+      if (hasBeenRedirected) {
+        const saveDesignButton = document.querySelector(".save-button");
+
+        saveDesignButton.innerHTML = "Adding to order...";
+
+        const latestDesign = saveDesignResponse.designs.at(-1);
+
+        const addToOrderReq = await fetch("/createorder", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            designId: latestDesign._id,
+            productId: latestDesign.productId,
+            price: latestDesign.price,
+          }),
+        });
+        const addToOrderRes = await addToOrderReq.json();
+        console.log(addToOrderRes);
+
+        if (!addToOrderReq.ok) {
+          throw new Error("Couldn't add design to order");
+        }
+
+        notyf.success("Added to orders, redirecting to order page");
+        setTimeout(() => {
+          location.href = "/placeorder";
+        }, 3000);
+      }
     });
   } catch (error) {
     console.log(error);
+    notyf.error(error);
+  } finally {
     disableButton(false);
     canvasContainer.forEach(
       (item) => (item.style.border = "2px dashed silver")
     );
-    return notyf.error("Design failed to save!");
   }
+  return isSaveSuccessful;
 };
 
 /* Set Design Position */
@@ -949,11 +999,12 @@ document.addEventListener(
 
 document.querySelector("#design-search").addEventListener("input", (e) => {
   const searchKey = e.target.value.trim();
-  if (searchKey == '') return populateUserDesigns();
-  const searchDesigns = userDesignResponse.images.filter(design => design.name.toLowerCase().includes(searchKey.toLowerCase()));
+  if (searchKey == "") return populateUserDesigns();
+  const searchDesigns = userDesignResponse.images.filter((design) =>
+    design.name.toLowerCase().includes(searchKey.toLowerCase())
+  );
   console.log(searchDesigns);
-  if (searchDesigns.length == 0) return userDesignsWrapper.innerHTML = "Invalid Search";
+  if (searchDesigns.length == 0)
+    return (userDesignsWrapper.innerHTML = "Invalid Search");
   populateUserDesigns({ images: searchDesigns });
 });
-
-if (hasBeenRedirected) alert("Has been redirected!");

@@ -682,7 +682,6 @@ exports.connectShopify = async (req, res) => {
   const SHOPIFY_SHOP_NAME = reqBody.store_name
   // console.log(SHOPIFY_ACCESS_TOKEN, SHOPIFY_SHOP_URL)
 
-  // const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
   const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
   
   try {
@@ -721,6 +720,26 @@ exports.connectShopify = async (req, res) => {
     console.log("Error in Shopify connect " + error)
     res.status(500).json({ message: 'Unable to connect Shopify store' })
     return;
+  }
+}
+// render individual shoporder page
+exports.shopifystoreorderedit = async (req, res) => {
+  try {
+    const storeData = await StoreModel.findOne({ userid: req.userId });
+    if (!storeData)
+      return res.render("storeorderedit", {
+        error: "Could not find store credentials",
+      });
+
+    const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
+    const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
+
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json?status=open&fields=created_at,id,name,total-price,contact-email`
+    res.render('storeorderedit', { error: false, data: {} });
+
+  } catch (error) {
+    console.log("🚀 ~ exports.storeorderedit= ~ error:", error)
+    return res.render('storeorderedit', { error: "Server error in fetching store details!" });
   }
 }
 
@@ -774,7 +793,26 @@ exports.connectWooCommerce = async (req, res) => {
     return;
   }
 }
+// render woocomms store order edit page
+exports.woostoreorderedit = async (req, res) => {
+  try {
+    const storeData = await StoreModel.findOne({ userid: req.userId });
+    if (!storeData)
+      return res.render("storeorderedit", {
+        error: "Could not find store credentials",
+      });
 
+    const WOOCOMMERCE_SHOP_URL = storeData.wooCommerceStore.url;
+    const WOOCOMMERCE_CONSUMER_KEY = storeData.wooCommerceStore.consumerKey;
+    const WOOCOMMERCE_CONSUMER_SECRET = storeData.wooCommerceStore.consumerSecret;
+    res.render('storeorderedit', { error: false })
+  } catch (error) {
+    console.log("🚀 ~ exports.storeorderedit= ~ error:", error);
+    return res.render("storeorderedit", {
+      error: "Server error in fetching store details!",
+    });
+  }
+};
 
 // zoho inventory hitting
 exports.getZohoProductsFromInventory = async (req, res) => {
@@ -1114,7 +1152,7 @@ exports.getZohoProductGroups = async (req, res) => {
 exports.createdesign = async (req, res) => {
   try {
     // console.log(req.file);
-    const fileBuffer = req.file.buffer;
+    const fileBuffer = req.files[0].buffer;
     // console.log(fileBuffer);
 
     // return res.json({ message: "OK" });
@@ -1166,7 +1204,7 @@ exports.createdesign = async (req, res) => {
     )
 
     console.log(req.userName + " saved design");
-    res.status(200).json({ message: "Design successful!" });
+    res.status(200).json(designSave);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Server error in creating new design" });

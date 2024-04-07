@@ -19,9 +19,13 @@
     <div class="banner">
         <%- include('partials/side-logo.ejs') %> <%- include('partials/top.ejs') %>
     </div>
-    <div class="container">
-
-    </div>
+    <% if (error) { %>
+        <h2><%= error %></h2>
+    <% } else { %>
+        <div class="container">
+            <h2>Markup to get it</h2>
+        </div>
+    <% } %>
 
 </body>
 </html>
