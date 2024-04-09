@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
-    <title>Shipping</title>
+    <title>Pay for <%= data.shopType %> order - <%= data.orderName %></title>
 </head>
 
 <body>
@@ -29,11 +29,29 @@
             <p>
                 <%= error %>
             </p>
-        <% } else { %>
+            <% } else { %>
                 <h2>Confirm Billing Address and pay</h2>
-                <p>Your are paying for <%= data.shopType %> Order <%= data.id %>, <a href="/mystores/<%= data.shopSlug %>/<%= data.id %>">click
-                            here</a> to overview order and edit details</p>
+                <p>Your are paying for <%= data.shopType %> Order: <%= data.orderName %>, <a
+                                href="/mystores/<%= data.shopSlug %>/<%= data.id %>">click
+                                here</a> to overview order and edit details</p>
+                <p style="font-size: 0.8rem; color: rgb(255, 73, 73)">Order cannot be edited once placed. Please ensure
+                    correct details and check every field.</p>
                 <div class="create-order-container">
+                    <div class="retail-order-form">
+                        <!-- <h3>Billing Address:</h3> -->
+                        <div class="form-group">
+                            <div>
+                                <label for="customerOrderId">Your order ID:</label>
+                                <input type="text" id="customerOrderId" placeholder="Order ID must be 10 characters long"
+                                    title="Order ID must be 10 characters long!" name="customerOrderId" required>
+                            </div>
+                    
+                            <div>
+                                <label for="retailPrice">Retail Price:</label>
+                                <input type="text" id="retailPrice" name="retailPrice" required>
+                            </div>
+                        </div>
+                    </div>
                     <div class="billing-address-form">
                         <div class="form-group">
                             <div>
@@ -147,8 +165,7 @@
                                 </h4>(CGST (2.5%) + SGST (2.5%))
                             </div>
                             <hr />
-                            <h4 id="total-charges">₹<%= (data.total + (data.total *
-                                    0.05)).toFixed(2) %>
+                            <h4 id="total-charges">₹<%= (data.total + (data.total * 0.05)).toFixed(2) %>
                             </h4>
                         </div>
                     </div>
@@ -159,7 +176,7 @@
     <script>
         AOS.init();
         var notyf = new Notyf();
-        var ttlp = "<%= data.current_subtotal_price %>";
+        var ttlp = "<%= data.total %>";
         var disabled = false;
         var orderIdVerified = false;
         var retailVerified = false;
@@ -262,7 +279,7 @@
             }
 
             console.log(checkoutData);
-
+            /*
             try {
                 openModal();
                 const createPaymentLinkRequest = await fetch("/placeorder", {
@@ -294,6 +311,7 @@
                 e.target.innerHTML = oldBtnInner;
                 notyf.error("Something went wrong!");
             }
+            */
         }
 
         selfPickup.oninput = (e) => {

@@ -105,13 +105,16 @@
     const addToShopify = async (button, designSKU) => {
       disableButton(button, "Adding...", "Added to Shopify", true);
       try {
+        const priceInput = document.querySelector(".shop-price");
+        if (/^\d+$/.test(priceInput.value) && (parseInt(priceInput.value) <= 0)) return notyf.error("Invalid Price");
         const addToshopifyRequest = await fetch("/createshopifyproduct", {
           headers: {
             "Content-Type": "application/json"
           },
           method: "POST",
           body: JSON.stringify({
-            designSKU
+            designSKU,
+            price: parseInt(priceInput.value)
           }),
         });
         const addToshopifyResponse = await addToshopifyRequest.json();
@@ -132,19 +135,24 @@
       } catch (error) {
         console.log(error);
         notyf.error("Something went wrong!");
+      } finally {
+        disableButton(button, "Adding...", "Add to Shopify", false);
       }
     }
 
     const addToWooCommerce = async (button, designSKU) => {
       disableButton(button, "Adding...", "Added to WooCommerce", true);
       try {
+        const priceInput = document.querySelector(".shop-price");
+        if (/^\d+$/.test(priceInput.value) && (parseInt(priceInput.value) <= 0)) return notyf.error("Invalid Price");
         const addToWoocommerceRequest = await fetch("/createwoocommerceorder", {
           headers: {
             "Content-Type": "application/json"
           },
           method: "POST",
           body: JSON.stringify({
-            designSKU
+            designSKU,
+            price: parseInt(priceInput.value)
           }),
         });
         const addToWoocommerceResponse = await addToWoocommerceRequest.json();
@@ -166,6 +174,8 @@
       } catch (error) {
         console.log(error);
         notyf.error("Something went wrong!");
+      } finally {
+        disableButton(button, "Adding...", "Add to WooCommerce", false);
       }
     }
 
@@ -241,6 +251,10 @@
               <button class="delete-design" onclick="openDeleteConfirmation(this,'${designModalData.designName}', '${designModalData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
             </div>
             <p>Publish:</p>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <input type="number" inputmode="numeric" class="shop-price" placeholder="₹" />
+              <p style="font-size: 0.84rem">Enter retail price for your shop. <br /> You can change it later in your shop settings:</p>
+            </div>
             <div class="publish-buttons">
               <button id="add-shopify" onclick="addToShopify(this, '${designModalData.designSKU}')"><i class="fa-brands fa-shopify"></i> Add to Shopify</button>
               <button id="add-woocommerce" onclick="addToWooCommerce(this, '${designModalData.designSKU}')"><img src="images/WooCommerce_logo.svg" width="30" alt=""> Add to WooCommerce</button>

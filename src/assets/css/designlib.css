@@ -344,7 +344,7 @@ button#add-woocommerce {
   background-color: white;
 }
 
-#name-search {
+#name-search, .shop-price {
   padding: 0.2rem 0.5rem;
   font-size: 1rem;
   border-radius: 5px;
@@ -352,6 +352,10 @@ button#add-woocommerce {
   background: buttonface;
   outline: 1px solid silver;
   height: 2.25rem;
+}
+
+.shop-price { 
+  width: 4rem;
 }
 
 input::placeholder {
