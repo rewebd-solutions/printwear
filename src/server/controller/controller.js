@@ -743,12 +743,16 @@ exports.shopifystoreorderedit = async (req, res) => {
       }
     })
     const shopifyOrderResponse = await shopifyOrderRequest.json();
-    console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
+    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
 
     if (shopifyOrderResponse.errors) return res.render('storeorderedit', { error: shopifyOrderResponse.errors });
-
-    res.render('storeorderedit', { error: false, shopifyData: shopifyOrderResponse.order });
-
+    
+    const SKUs = shopifyOrderResponse.order.line_items.map(item => item.sku);
+    console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
+    
+    const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.filter(design => SKUs.includes(design.designSKU))
+    console.log("🚀 ~ exports.shopifystoreorderedit= ~ designData:", designData)
+    res.render('storeorderedit', { error: false, shopifyData: { order: shopifyOrderResponse.order, designs: designData } });
   } catch (error) {
     console.log("🚀 ~ exports.storeorderedit= ~ error:", error)
     return res.render('storeorderedit', { error: "Server error in fetching store details!" });
@@ -1594,6 +1598,105 @@ exports.updateorder = async (req, res) => {
     res.status(500).json({ message: '500 Internal Server Error' });
   }
 }
+
+
+// endpoint for creating order from shopify & woo
+exports.createordershopify = async (req, res) => {
+  const { shopifyId, items } = req.body;
+  console.log("🚀 ~ exports.createordershopify= ~ items:", items)
+  try {
+    let totalAmount = items.reduce((total, item) => total + item.price, 0).toFixed(2)
+    const orderData = await OrderModel.findOneAndUpdate(
+      { userId: req.userId, shopifyId: shopifyId }, 
+      { $set: { 
+        items: items, 
+        totalAmount,
+        taxes: (totalAmount * 0.05).toFixed(2)
+      }, $setOnInsert: { printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false }) } },
+      { new: true, upsert: true }
+    );
+    console.log("🚀 ~ exports.createordershopify= ~ orderData:", orderData)
+    return res.json({ message: "Created order successfully!" });
+  } catch (error) {
+    console.log("🚀 ~ exports.createordershopify= ~ error:", error)
+    res.status(500).json({ error: 'Server error in transferring Shopify order' })
+  }
+}
+
+exports.createorderwoo = async (req, res) => {
+  const { wooId, items } = req.body;
+  try {
+    const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId, wooCommerceId: wooId }, { $set: { items: items } }, { new: true, upsert: true });
+    return res.json({ message: "Created order successfully!" });
+  } catch (error) {
+    console.log("🚀 ~ exports.createorderwoo= ~ error:", error)
+    res.status(500).json({ error: 'Server error in transferring WooCommerce order' })
+  }
+}
+// render pay page for order via shopify
+exports.payshoporder = async (req, res) => {
+  try {
+    const shopType = req.path.split("/")[2];
+    console.log("🚀 ~ exports.payshoporder= ~ shopType:", shopType)
+
+    if (!(["shopify", "woo"].includes(shopType))) return res.render('storeorderpay', { error: "Invalid URL!" });
+
+    const orderId = req.params.id;
+    
+    if (shopType == "shopify") {
+
+      const orderData = await OrderModel.findOne({ userId: req.userId, shopifyId: orderId });
+      if (!orderData) return res.render('storeorderpay', { error: "Could not find such order!" });
+      if (orderData.paymentStatus == "success") return res.render('storeorderpay', { error: "This order has already been paid for!" });
+  
+      const storeData = await StoreModel.findOne({ userid: req.userId });
+      if (!storeData) return res.render('storeorderpay', { error: "Could not find store credentials!" });
+  
+      const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
+      const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
+  
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${orderId}.json`;
+  
+      const shopifyOrderRequest = await fetch(shopifyEndpoint, {
+        headers: {
+          "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+        },
+      });
+      const { order: shopifyOrderResponse } = await shopifyOrderRequest.json();
+      // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
+  
+      if (shopifyOrderResponse.errors)
+        return res.render("storeorderedit", {
+          error: shopifyOrderResponse.errors,
+        });
+      
+      const payOrderPageData = {
+        id: orderId,
+        firstName: shopifyOrderResponse.billing_address.first_name ?? '',
+        lastName: shopifyOrderResponse.billing_address.last_name ?? '',
+        email: shopifyOrderResponse.billing_address.email ?? '',
+        streetLandmark: shopifyOrderResponse.billing_address.address1 ?? shopifyOrderResponse.billing_address.address1 ?? '',
+        city: shopifyOrderResponse.billing_address.city ?? '',
+        phone: shopifyOrderResponse.billing_address.phone ?? '',
+        state: shopifyOrderResponse.billing_address.province ?? '',
+        country: shopifyOrderResponse.billing_address.country ?? '',
+        pincode: shopifyOrderResponse.billing_address.zip ?? '',
+        total: orderData.totalAmount,
+        itemCount: orderData.items.length ?? 0,
+        shopType: "Shopify",
+        shopSlug: "shopify"
+      }
+  
+      return res.render('storeorderpay', { error: false, data: payOrderPageData });
+    } else {
+      return res.render('storeorderpay', { error: false, data: payOrderPageData });
+    }
+  } catch (error) {
+    console.log("🚀 ~ exports.payshoporder= ~ error:", error)
+    res.render('storeorderpay', { error: "Server error in creating payment page for your order!" });
+  }
+}
+
 
 // RENDER pages:
 // render billing page

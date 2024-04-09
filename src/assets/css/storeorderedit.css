@@ -22,3 +22,74 @@
     padding-top: 6rem;
     padding-left: 300px;
 }
+
+.create-order-container {
+    width: 95%;
+    padding: 2rem 3rem;
+    border-radius: 8px;
+    background-color: #f7f7f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 200px;
+    margin-top: 4rem;
+}
+
+.orders-list {
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 0.4rem;
+}
+
+.orders-list li {
+    display: flex;
+    width: 100%;
+    gap: 1.2rem;
+    padding: 0.3rem;
+    align-items: center;
+    justify-content: center;
+    outline: 1px solid silver;
+    border-radius: 5px;
+}
+
+.order-item-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    margin-right: 3rem;
+}
+
+.delete-button {
+    width: 2rem;
+    padding: 0.2 0.3rem;
+    background-color: red;
+    color: white;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    aspect-ratio: 1/1;
+}
+
+.confirm-shop-order {
+    background-color: #F05A30;
+    color: white;
+    font-size: 1rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    border: none;
+    outline: 1px solid #ef4b1d;
+    cursor: pointer;
+}
+
+.disable-button {
+    opacity: 0.6;
+    pointer-events: none;
+}

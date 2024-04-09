@@ -59,9 +59,14 @@ route.post("/updateorder", authServices.authorizeToken, controller.updateorder);
 
 route.get('/getstoredetails', authServices.authorizeToken, controller.getstoredetails)
 
+route.post("/createordershopify", authServices.authorizeToken, controller.createordershopify);
+route.post("/createorderwoo", authServices.authorizeToken, controller.createorderwoo);
+
 route.get("/mystores", authServices.authorizeToken, services.mystores);
 route.get('/mystores/shopify/:id', authServices.authorizeToken, controller.shopifystoreorderedit);
+route.get('/mystores/shopify/:id/pay', authServices.authorizeToken, controller.payshoporder);
 route.get('/mystores/woo/:id', authServices.authorizeToken, controller.woostoreorderedit);
+route.get('/mystores/woo/:id/pay', authServices.authorizeToken, controller.payshoporder);
 
 route.get("/getorderhistory", authServices.authorizeToken, controller.getorderhistory);
 // route.get("/getshopifystock", authServices.authorizeToken, controller.getshopifystock);

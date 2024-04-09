@@ -103,7 +103,9 @@ var OrderSchema = new mongoose.Schema({
     taxes: {
         type: Number,
         default: 0
-    }
+    },
+    shopifyId: String,
+    wooCommerceId: String
 });
 
 const orderModel = mongoose.model("Order", OrderSchema);
