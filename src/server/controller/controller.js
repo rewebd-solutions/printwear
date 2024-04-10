@@ -616,22 +616,19 @@ exports.getshopifyorders = async (req, res) => {
 
     const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json`;
 
-    try {
-      const shopifyStoreOrderRequest = await fetch(shopifyEndpoint, {
-        headers: {
-          'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
-        }
-      })
-      const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
-      res.json({ shopify: shopifyStoreOrderResponse.orders });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ error });
-    }
-
+    const shopifyStoreOrderRequest = await fetch(shopifyEndpoint, {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      }
+    })
+    const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
+    console.log("🚀 ~ exports.getshopifyorders= ~ shopifyStoreOrderResponse:", shopifyStoreOrderResponse)
+    
+    res.json({ shopify: shopifyStoreOrderResponse.orders });
+    
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in fetching Shopify order data" });
   }
 }
 
@@ -672,163 +669,6 @@ exports.getwooorders = async (req, res) => {
 }
 
 
-// endpoints for connecting stores
-const SHOPIFY_ACCESS_SCOPES = ["read_orders","read_products","write_products","write_product_listings","read_product_listings","read_all_orders"];
-exports.connectShopify = async (req, res) => {
-  const reqBody = req.body;
-  // console.log(req.userId);
-  const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
-  const SHOPIFY_SHOP_URL = reqBody.store_url
-  const SHOPIFY_SHOP_NAME = reqBody.store_name
-  // console.log(SHOPIFY_ACCESS_TOKEN, SHOPIFY_SHOP_URL)
-
-  const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
-  
-  try {
-    const fetchReq = await fetch(shopifyEndpoint, {
-      headers: {
-        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
-      }
-    })
-    const fetchData = await fetchReq.json();
-    // console.log("🚀 ~ exports.connectShopify= ~ fetchData:", fetchData)
-    if (fetchReq.status != 200) return res.status(fetchReq.status).json({ error: fetchData.errors });
-    // if (fetchReq.status.toString().startsWith('5')) return res.status(fetchReq.status).json({ error: "Shopify Server Error" });
-    
-    const isAccessSatified = (fetchData.access_scopes.every(scope => SHOPIFY_ACCESS_SCOPES.includes(scope.handle)))
-    if (!isAccessSatified) return res.status(400).json({ error: "Provided credentials doesn't have access scopes" })
-    
-    const store = await StoreModel.findOneAndUpdate(
-      { userid: req.userId },
-      {
-        $set: {
-          userid: req.userId,
-          shopifyStore: {
-            shopName: SHOPIFY_SHOP_NAME,
-            shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
-            shopifyStoreURL: SHOPIFY_SHOP_URL
-          }
-        }
-      },
-      { new: true, upsert: true }
-    )
-
-    res.status(200).json({ message: "Added Shopify store successfully!" }) // idhu redirect pannidu
-    // return;
-
-  } catch (error) {
-    console.log("Error in Shopify connect " + error)
-    res.status(500).json({ message: 'Unable to connect Shopify store' })
-    return;
-  }
-}
-// render individual shoporder page
-exports.shopifystoreorderedit = async (req, res) => {
-  try {
-    const shopOrderId = req.params.id;
-    const storeData = await StoreModel.findOne({ userid: req.userId });
-    if (!storeData)
-      return res.render("storeorderedit", {
-        error: "Could not find store credentials",
-      });
-
-    const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
-    const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
-
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${shopOrderId}.json`;
-
-    const shopifyOrderRequest = await fetch(shopifyEndpoint, {
-      headers: {
-        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
-      }
-    })
-    const shopifyOrderResponse = await shopifyOrderRequest.json();
-    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
-
-    if (shopifyOrderResponse.errors) return res.render('storeorderedit', { error: shopifyOrderResponse.errors });
-    
-    const SKUs = shopifyOrderResponse.order.line_items.map(item => item.sku);
-    console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
-    
-    const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.filter(design => SKUs.includes(design.designSKU))
-    console.log("🚀 ~ exports.shopifystoreorderedit= ~ designData:", designData)
-    res.render('storeorderedit', { error: false, shopifyData: { order: shopifyOrderResponse.order, designs: designData } });
-  } catch (error) {
-    console.log("🚀 ~ exports.storeorderedit= ~ error:", error)
-    return res.render('storeorderedit', { error: "Server error in fetching store details!" });
-  }
-}
-
-exports.connectWooCommerce = async (req, res) => {
-  const reqBody = req.body;
-  console.log(reqBody);
-  const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
-  const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
-  const WOOCOMMERCE_SHOP_URL = reqBody.store_url
-  const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
-
-  try {
-    const encodedAuth = btoa(`${WOOCOMMERCE_CONSUMER_KEY}:${WOOCOMMERCE_CONSUMER_SECRET}`);
-    const endpoint = `https://${WOOCOMMERCE_SHOP_URL}/wp-json/wc/v3/orders`;
-    const wooOrderRequest = await fetch(endpoint, {
-      headers: {
-        'Authorization': 'Basic ' + encodedAuth
-      },
-    });
-
-    const wooOrderReponse = await wooOrderRequest.text();
-      
-    if (!wooOrderRequest.ok) return res.status(403).json({ message: 'Unable to connect to WooCommerce Store!' });
-
-    const store = await StoreModel.findOneAndUpdate(
-      { userid: req.userId },
-      {
-        $set: {
-          // _id: 
-          userid: req.userId,
-          wooCommerceStore: {
-            shopName: WOOCOMMERCE_SHOP_NAME,
-            url: WOOCOMMERCE_SHOP_URL,
-            consumerKey: WOOCOMMERCE_CONSUMER_KEY,
-            consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
-          }
-        }
-      },
-      { new: true, upsert: true }
-    )
-    // await store.save();
-
-    res.status(200).json({ message: "Added WooCommerce store successfully!" })
-    return;
-
-  } catch (error) {
-    console.log("Error in woocommerce connect " + error)
-    res.status(500).json({
-      message: error
-    })
-    return;
-  }
-}
-// render woocomms store order edit page
-exports.woostoreorderedit = async (req, res) => {
-  try {
-    const storeData = await StoreModel.findOne({ userid: req.userId });
-    if (!storeData)
-      return res.render("storeorderedit", {
-        error: "Could not find store credentials",
-      });
-
-    const WOOCOMMERCE_SHOP_URL = storeData.wooCommerceStore.url;
-    const WOOCOMMERCE_CONSUMER_KEY = storeData.wooCommerceStore.consumerKey;
-    const WOOCOMMERCE_CONSUMER_SECRET = storeData.wooCommerceStore.consumerSecret;
-    res.render('storeorderedit', { error: false })
-  } catch (error) {
-    console.log("🚀 ~ exports.storeorderedit= ~ error:", error);
-    return res.render("storeorderedit", {
-      error: "Server error in fetching store details!",
-    });
-  }
-};
 
 // zoho inventory hitting
 exports.getZohoProductsFromInventory = async (req, res) => {
@@ -1250,7 +1090,7 @@ exports.getdesigns = async (req, res) => {
 }
 
 
-// create shopify order
+// create shopify product
 exports.createshopifyproduct = async (req, res) => {
   const shopifyStoreData = await StoreModel.findOne({ userid: req.userId });
   if (!shopifyStoreData) return res.status(400).json({ error: 'Shopify store not connected' });
@@ -1320,7 +1160,7 @@ exports.createshopifyproduct = async (req, res) => {
   }
 
 }
-
+//create woo commerce product
 exports.createwoocommerceorder = async (req, res) => {
   const storeData = await StoreModel.findOne({ userid: req.userId });
   // console.log(storeData.wooCommerceStore);
@@ -1407,7 +1247,7 @@ exports.createwoocommerceorder = async (req, res) => {
 };
 
 
-// temp for creating zoho products
+// temp for creating zoho products, disable in prod
 exports.createZohoProducts = async (req, res) => {
   const dataToPut = require("../../.test_assets/zohoproductdata")['zohoData']
   const zohoProductsData = Object.keys(dataToPut).map(dataItem => ({ style: dataItem, ...dataToPut[dataItem] }))
@@ -1600,6 +1440,165 @@ exports.updateorder = async (req, res) => {
 }
 
 
+// endpoints for connecting stores
+const SHOPIFY_ACCESS_SCOPES = ["read_orders","read_products","write_products","write_product_listings","read_product_listings","read_all_orders"];
+exports.connectShopify = async (req, res) => {
+  const reqBody = req.body;
+  // console.log(req.userId);
+  const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
+  const SHOPIFY_SHOP_URL = reqBody.store_url
+  const SHOPIFY_SHOP_NAME = reqBody.store_name
+  // console.log(SHOPIFY_ACCESS_TOKEN, SHOPIFY_SHOP_URL)
+
+  const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
+  
+  try {
+    const fetchReq = await fetch(shopifyEndpoint, {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      }
+    })
+    const fetchData = await fetchReq.json();
+    // console.log("🚀 ~ exports.connectShopify= ~ fetchData:", fetchData)
+    if (fetchReq.status != 200) return res.status(fetchReq.status).json({ error: fetchData.errors });
+    // if (fetchReq.status.toString().startsWith('5')) return res.status(fetchReq.status).json({ error: "Shopify Server Error" });
+    
+    const isAccessSatified = (fetchData.access_scopes.every(scope => SHOPIFY_ACCESS_SCOPES.includes(scope.handle)))
+    if (!isAccessSatified) return res.status(400).json({ error: "Provided credentials doesn't have access scopes" })
+    
+    const store = await StoreModel.findOneAndUpdate(
+      { userid: req.userId },
+      {
+        $set: {
+          userid: req.userId,
+          shopifyStore: {
+            shopName: SHOPIFY_SHOP_NAME,
+            shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
+            shopifyStoreURL: SHOPIFY_SHOP_URL
+          }
+        }
+      },
+      { new: true, upsert: true }
+    )
+
+    res.status(200).json({ message: "Added Shopify store successfully!" }) // idhu redirect pannidu
+    // return;
+
+  } catch (error) {
+    console.log("Error in Shopify connect " + error)
+    res.status(500).json({ message: 'Unable to connect Shopify store' })
+    return;
+  }
+}
+// render individual shoporder page
+exports.shopifystoreorderedit = async (req, res) => {
+  try {
+    const shopOrderId = req.params.id;
+    const storeData = await StoreModel.findOne({ userid: req.userId });
+    if (!storeData)
+      return res.render("storeorderedit", {
+        error: "Could not find store credentials",
+      });
+
+    const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
+    const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
+
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${shopOrderId}.json`;
+
+    const shopifyOrderRequest = await fetch(shopifyEndpoint, {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
+      }
+    })
+    const shopifyOrderResponse = await shopifyOrderRequest.json();
+    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
+
+    if (shopifyOrderResponse.errors) return res.render('storeorderedit', { error: shopifyOrderResponse.errors });
+    
+    const SKUs = shopifyOrderResponse.order.line_items.map(item => item.sku);
+    console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
+    
+    const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.filter(design => SKUs.includes(design.designSKU))
+    console.log("🚀 ~ exports.shopifystoreorderedit= ~ designData:", designData)
+    res.render('storeorderedit', { error: false, shopifyData: { order: shopifyOrderResponse.order, designs: designData } });
+  } catch (error) {
+    console.log("🚀 ~ exports.storeorderedit= ~ error:", error)
+    return res.render('storeorderedit', { error: "Server error in fetching store details!" });
+  }
+}
+
+exports.connectWooCommerce = async (req, res) => {
+  const reqBody = req.body;
+  console.log(reqBody);
+  const WOOCOMMERCE_CONSUMER_KEY = reqBody.consumer_key;
+  const WOOCOMMERCE_CONSUMER_SECRET = reqBody.consumer_secret;
+  const WOOCOMMERCE_SHOP_URL = reqBody.store_url
+  const WOOCOMMERCE_SHOP_NAME = reqBody.store_name
+
+  try {
+    const encodedAuth = btoa(`${WOOCOMMERCE_CONSUMER_KEY}:${WOOCOMMERCE_CONSUMER_SECRET}`);
+    const endpoint = `https://${WOOCOMMERCE_SHOP_URL}/wp-json/wc/v3/orders`;
+    const wooOrderRequest = await fetch(endpoint, {
+      headers: {
+        'Authorization': 'Basic ' + encodedAuth
+      },
+    });
+
+    const wooOrderReponse = await wooOrderRequest.text();
+      
+    if (!wooOrderRequest.ok) return res.status(403).json({ message: 'Unable to connect to WooCommerce Store!' });
+
+    const store = await StoreModel.findOneAndUpdate(
+      { userid: req.userId },
+      {
+        $set: {
+          // _id: 
+          userid: req.userId,
+          wooCommerceStore: {
+            shopName: WOOCOMMERCE_SHOP_NAME,
+            url: WOOCOMMERCE_SHOP_URL,
+            consumerKey: WOOCOMMERCE_CONSUMER_KEY,
+            consumerSecret: WOOCOMMERCE_CONSUMER_SECRET
+          }
+        }
+      },
+      { new: true, upsert: true }
+    )
+    // await store.save();
+
+    res.status(200).json({ message: "Added WooCommerce store successfully!" })
+    return;
+
+  } catch (error) {
+    console.log("Error in woocommerce connect " + error)
+    res.status(500).json({
+      message: error
+    })
+    return;
+  }
+}
+
+// render woocomms store order edit page
+exports.woostoreorderedit = async (req, res) => {
+  try {
+    const storeData = await StoreModel.findOne({ userid: req.userId });
+    if (!storeData)
+      return res.render("storeorderedit", {
+        error: "Could not find store credentials",
+      });
+
+    const WOOCOMMERCE_SHOP_URL = storeData.wooCommerceStore.url;
+    const WOOCOMMERCE_CONSUMER_KEY = storeData.wooCommerceStore.consumerKey;
+    const WOOCOMMERCE_CONSUMER_SECRET = storeData.wooCommerceStore.consumerSecret;
+    res.render('storeorderedit', { error: false })
+  } catch (error) {
+    console.log("🚀 ~ exports.storeorderedit= ~ error:", error);
+    return res.render("storeorderedit", {
+      error: "Server error in fetching store details!",
+    });
+  }
+};
+
 // endpoint for creating order from shopify & woo
 exports.createordershopify = async (req, res) => {
   const { shopifyId, items } = req.body;
@@ -1637,7 +1636,7 @@ exports.createorderwoo = async (req, res) => {
 exports.payshoporder = async (req, res) => {
   try {
     const shopType = req.path.split("/")[2];
-    console.log("🚀 ~ exports.payshoporder= ~ shopType:", shopType)
+    // console.log("🚀 ~ exports.payshoporder= ~ shopType:", shopType)
 
     if (!(["shopify", "woo"].includes(shopType))) return res.render('storeorderpay', { error: "Invalid URL!" });
 
@@ -1649,266 +1648,22 @@ exports.payshoporder = async (req, res) => {
       if (!orderData) return res.render('storeorderpay', { error: "Could not find such order!" });
       if (orderData.paymentStatus == "success") return res.render('storeorderpay', { error: "This order has already been paid for!" });
   
-      // const storeData = await StoreModel.findOne({ userid: req.userId });
-      // if (!storeData) return res.render('storeorderpay', { error: "Could not find store credentials!" });
+      const storeData = await StoreModel.findOne({ userid: req.userId });
+      if (!storeData) return res.render('storeorderpay', { error: "Could not find store credentials!" });
   
-      // const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
-      // const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
+      const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
+      const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
   
-      // const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${orderId}.json`;
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${orderId}.json`;
   
-      // const shopifyOrderRequest = await fetch(shopifyEndpoint, {
-      //   headers: {
-      //     "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
-      //   },
-      // });
-      // const { order: shopifyOrderResponse } = await shopifyOrderRequest.json();
+      const shopifyOrderRequest = await fetch(shopifyEndpoint, {
+        headers: {
+          "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+        },
+      });
+      const { order: shopifyOrderResponse } = await shopifyOrderRequest.json();
       // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
-      const shopifyOrderResponse = {
-        id: 5826546008343,
-        admin_graphql_api_id: "gid://shopify/Order/5826546008343",
-        app_id: 1354745,
-        browser_ip: "49.47.217.239",
-        buyer_accepts_marketing: false,
-        cancel_reason: null,
-        cancelled_at: null,
-        cart_token: null,
-        checkout_id: 37996384485655,
-        checkout_token: "6e901d35349b7aead8953dd9a745fb7f",
-        client_details: {
-          accept_language: null,
-          browser_height: null,
-          browser_ip: "49.47.217.239",
-          browser_width: null,
-          session_hash: null,
-          user_agent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-        },
-        closed_at: null,
-        company: null,
-        confirmation_number: "5GDXZUALV",
-        confirmed: true,
-        contact_email: "sreesachin11226@gmail.com",
-        created_at: "2024-04-07T10:06:31-04:00",
-        currency: "INR",
-        current_subtotal_price: "230.00",
-        current_subtotal_price_set: {
-          shop_money: { amount: "230.00", currency_code: "INR" },
-          presentment_money: { amount: "230.00", currency_code: "INR" },
-        },
-        current_total_additional_fees_set: null,
-        current_total_discounts: "0.00",
-        current_total_discounts_set: {
-          shop_money: { amount: "0.00", currency_code: "INR" },
-          presentment_money: { amount: "0.00", currency_code: "INR" },
-        },
-        current_total_duties_set: null,
-        current_total_price: "271.40",
-        current_total_price_set: {
-          shop_money: { amount: "271.40", currency_code: "INR" },
-          presentment_money: { amount: "271.40", currency_code: "INR" },
-        },
-        current_total_tax: "41.40",
-        current_total_tax_set: {
-          shop_money: { amount: "41.40", currency_code: "INR" },
-          presentment_money: { amount: "41.40", currency_code: "INR" },
-        },
-        customer_locale: "en-IN",
-        device_id: null,
-        discount_codes: [],
-        email: "sreesachin11226@gmail.com",
-        estimated_taxes: false,
-        financial_status: "paid",
-        fulfillment_status: null,
-        landing_site: null,
-        landing_site_ref: null,
-        location_id: null,
-        merchant_of_record_app_id: null,
-        name: "#1012",
-        note: null,
-        note_attributes: [],
-        number: 12,
-        order_number: 1012,
-        order_status_url:
-          "https://quickstart-c285ab12.myshopify.com/80742875415/orders/7f922802e49b80d1521353eef3d89c92/authenticate?key=969300f6e502f7189ba47c686f8f359c&none=UQFSAFBFV11QQVU",
-        original_total_additional_fees_set: null,
-        original_total_duties_set: null,
-        payment_gateway_names: ["bogus"],
-        phone: null,
-        po_number: null,
-        presentment_currency: "INR",
-        processed_at: "2024-04-07T10:06:31-04:00",
-        reference: "92597e43ab34959293287d2dc977fe1f",
-        referring_site: null,
-        source_identifier: "92597e43ab34959293287d2dc977fe1f",
-        source_name: "shopify_draft_order",
-        source_url: null,
-        subtotal_price: "230.00",
-        subtotal_price_set: {
-          shop_money: { amount: "230.00", currency_code: "INR" },
-          presentment_money: { amount: "230.00", currency_code: "INR" },
-        },
-        tags: "",
-        tax_exempt: false,
-        tax_lines: [
-          {
-            price: "41.40",
-            rate: 0.18,
-            title: "IGST",
-            price_set: [Object],
-            channel_liable: false,
-          },
-        ],
-        taxes_included: false,
-        test: true,
-        token: "7f922802e49b80d1521353eef3d89c92",
-        total_discounts: "0.00",
-        total_discounts_set: {
-          shop_money: { amount: "0.00", currency_code: "INR" },
-          presentment_money: { amount: "0.00", currency_code: "INR" },
-        },
-        total_line_items_price: "230.00",
-        total_line_items_price_set: {
-          shop_money: { amount: "230.00", currency_code: "INR" },
-          presentment_money: { amount: "230.00", currency_code: "INR" },
-        },
-        total_outstanding: "0.00",
-        total_price: "271.40",
-        total_price_set: {
-          shop_money: { amount: "271.40", currency_code: "INR" },
-          presentment_money: { amount: "271.40", currency_code: "INR" },
-        },
-        total_shipping_price_set: {
-          shop_money: { amount: "0.00", currency_code: "INR" },
-          presentment_money: { amount: "0.00", currency_code: "INR" },
-        },
-        total_tax: "41.40",
-        total_tax_set: {
-          shop_money: { amount: "41.40", currency_code: "INR" },
-          presentment_money: { amount: "41.40", currency_code: "INR" },
-        },
-        total_tip_received: "0.00",
-        total_weight: 0,
-        updated_at: "2024-04-07T10:06:32-04:00",
-        user_id: 102320931095,
-        billing_address: {
-          first_name: "Sree",
-          address1: "No.8, 10th Street, Vinobaji Nagar, Hasthinapuram",
-          phone: null,
-          city: "Chennai",
-          zip: "600064",
-          province: "Tamil Nadu",
-          country: "India",
-          last_name: "Sachin",
-          address2: null,
-          company: null,
-          latitude: null,
-          longitude: null,
-          name: "Sree Sachin",
-          country_code: "IN",
-          province_code: "TN",
-        },
-        customer: {
-          id: 7330190786839,
-          email: "sreesachin11226@gmail.com",
-          created_at: "2023-09-17T04:38:37-04:00",
-          updated_at: "2024-04-07T10:06:32-04:00",
-          first_name: "Sree",
-          last_name: "Sachin",
-          state: "disabled",
-          note: null,
-          verified_email: true,
-          multipass_identifier: null,
-          tax_exempt: false,
-          phone: null,
-          email_marketing_consent: {
-            state: "not_subscribed",
-            opt_in_level: "single_opt_in",
-            consent_updated_at: null,
-          },
-          sms_marketing_consent: null,
-          tags: "",
-          currency: "INR",
-          accepts_marketing: false,
-          accepts_marketing_updated_at: null,
-          marketing_opt_in_level: "single_opt_in",
-          tax_exemptions: [],
-          admin_graphql_api_id: "gid://shopify/Customer/7330190786839",
-          default_address: {
-            id: 9546673094935,
-            customer_id: 7330190786839,
-            first_name: "Sree",
-            last_name: "Sachin",
-            company: null,
-            address1: "No.8, 10th Street, Vinobaji Nagar, Hasthinapuram",
-            address2: null,
-            city: "Chennai",
-            province: "Tamil Nadu",
-            country: "India",
-            zip: "600064",
-            phone: null,
-            name: "Sree Sachin",
-            province_code: "TN",
-            country_code: "IN",
-            country_name: "India",
-            default: true,
-          },
-        },
-        discount_applications: [],
-        fulfillments: [],
-        line_items: [
-          {
-            id: 14889173811479,
-            admin_graphql_api_id: "gid://shopify/LineItem/14889173811479",
-            attributed_staffs: [],
-            fulfillable_quantity: 1,
-            fulfillment_service: "manual",
-            fulfillment_status: null,
-            gift_card: false,
-            grams: 0,
-            name: "Women's Designer T-Shirt - M / Red",
-            price: "230.00",
-            price_set: [Object],
-            product_exists: true,
-            product_id: 9179112800535,
-            properties: [],
-            quantity: 1,
-            requires_shipping: true,
-            sku: "PWRNRDM-005W-O4PLL",
-            taxable: true,
-            title: "Women's Designer T-Shirt",
-            total_discount: "0.00",
-            total_discount_set: [Object],
-            variant_id: 48371531743511,
-            variant_inventory_management: null,
-            variant_title: "M / Red",
-            vendor: "Printwear",
-            tax_lines: [Array],
-            duties: [],
-            discount_allocations: [],
-          },
-        ],
-        payment_terms: null,
-        refunds: [],
-        shipping_address: {
-          first_name: "Sree",
-          address1: "No.8, 10th Street, Vinobaji Nagar, Hasthinapuram",
-          phone: null,
-          city: "Chennai",
-          zip: "600064",
-          province: "Tamil Nadu",
-          country: "India",
-          last_name: "Sachin",
-          address2: null,
-          company: null,
-          latitude: 12.9384759,
-          longitude: 80.15239559999999,
-          name: "Sree Sachin",
-          country_code: "IN",
-          province_code: "TN",
-        },
-        shipping_lines: [],
-      };
+      // const shopifyOrderResponse = /// --> SIMPLY FOR TESTING, if needed, copy from test_assets/shopifyorderreference.json
       if (shopifyOrderResponse.errors)
         return res.render("storeorderedit", {
           error: shopifyOrderResponse.errors,
@@ -1941,6 +1696,8 @@ exports.payshoporder = async (req, res) => {
     res.render('storeorderpay', { error: "Server error in creating payment page for your order!" });
   }
 }
+
+
 
 
 // RENDER pages:
@@ -2245,16 +2002,28 @@ exports.placeorder = async (req, res) => {
 
 
     /// STEP 1.5: ORDERDATA GAM
+    // for now billing address same as shipping, but later ask vendor to enter billing address data
+    // orderData.billingAddress = {
+    //   firstName: userData.billingAddress?.firstName,
+    //   lastName: userData.billingAddress?.lastName,
+    //   mobile: userData.billingAddress?.phone,
+    //   email: userData.billingAddress?.email,
+    //   streetLandmark: userData.billingAddress?.street + ' ' + userData.billingAddress?.landmark,
+    //   city: userData.billingAddress?.city,
+    //   pincode: userData.billingAddress?.pincode,
+    //   state: userData.billingAddress?.state,
+    //   country: userData.billingAddress?.country
+    // }
     orderData.billingAddress = {
-      firstName: userData.billingAddress?.firstName,
-      lastName: userData.billingAddress?.lastName,
-      mobile: userData.billingAddress?.phone,
-      email: userData.billingAddress?.email,
-      streetLandmark: userData.billingAddress?.street + ' ' + userData.billingAddress?.landmark,
-      city: userData.billingAddress?.city,
-      pincode: userData.billingAddress?.pincode,
-      state: userData.billingAddress?.state,
-      country: userData.billingAddress?.country
+      firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country,
     }
     orderData.shippingAddress = {
       firstName,
@@ -2270,17 +2039,17 @@ exports.placeorder = async (req, res) => {
     // CashfreeOrderId: paymentLinkResponse.cf_order_id,
     // paymentLinkId: paymentLinkResponse.payment_session_id,
     // paymentLink: paymentLinkResponse.payments.url,
-    orderData.retailPrice = retailPrice,
-      orderData.deliveryCharges = shippingCharge,
-      orderData.customerOrderId = customerOrderId,
-      orderData.shipRocketCourier = {
-        courierId: courierId ?? -1,
-        courierName: courierData?.courier_name ?? 'SELF PICKUP',
-        estimatedDelivery: courierData?.etd ?? 'N/A'
-      },
-      orderData.cashOnDelivery = cashOnDelivery,
-      orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2);
-    orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2);
+    orderData.retailPrice = retailPrice
+    orderData.deliveryCharges = shippingCharge
+    orderData.customerOrderId = customerOrderId
+    orderData.shipRocketCourier = {
+      courierId: courierId ?? -1,
+      courierName: courierData?.courier_name ?? 'SELF PICKUP',
+      estimatedDelivery: courierData?.etd ?? 'N/A'
+    },
+    orderData.cashOnDelivery = cashOnDelivery
+    orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2)
+    orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2)
 
     await orderData.save();
     console.log("🚀 ~ orderData:", orderData)
@@ -2314,7 +2083,7 @@ exports.placeorder = async (req, res) => {
         "billing_country": orderData.billingAddress.country,
         "billing_email": orderData.billingAddress.email,
         "billing_phone": orderData.billingAddress.mobile,
-        "shipping_is_billing": false,
+        "shipping_is_billing": true, // --> later change to False
         "shipping_customer_name": orderData.shippingAddress.firstName,
         "shipping_last_name": orderData.shippingAddress.lastName,
         "shipping_address": orderData.shippingAddress.streetLandmark,
@@ -2405,6 +2174,8 @@ exports.placeorder = async (req, res) => {
         shipRocketCourier: 1,
         cashOnDelivery: 1,
         taxes: 1,
+        shopifyId: 1,
+        wooCommerceId: 1,
       }
     });
 
@@ -3871,54 +3642,49 @@ exports.createshiporder = async (req, res) => {
 
   if (statusType === 'PAYMENT_FAILED_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
-    const orderData = await OrderModel.findOne({ userId: userid, printwearOrderId: req.body.data.order.order_id });
-    if (!orderData) return;
+    res.send("OK");
+    try {
+      if (cf_order_id.split("_")[0] == "RECHARGE") {
+        const UserWallet = await WalletModel.findOne({ userId: userid });
+        if (!UserWallet)
+          return console.log(`Couldn't find wallet for ${userid}`);
 
-    console.log(`PAYMENT FAILED! for ${userid} on ${new Date().toLocaleString()}`);
-    orderData.paymentStatus = "failed";
+        const currentTransactionIndex = UserWallet.transactions.findIndex(
+          (transaction) => transaction.walletOrderId == cf_order_id
+        );
+        console.log(currentTransactionIndex);
+        if (currentTransactionIndex == -1)
+          return console.log(
+            `Couldn't find transaction with ID: ${cf_order_id}`
+          );
 
-    await OrderHistoryModel.findOneAndUpdate({ userId: userid }, {
-      $set: {
-        userId: userid
-      },
-      $push: {
-        orderData: orderData
+        // check if that wallet already has been updated because 2nd duplicate webhook take time and pass the idempotency check
+        if (
+          UserWallet.transactions[currentTransactionIndex].transactionStatus ===
+          "failed"
+        )
+          return console.log(
+            `[DUPLICATE] Received webhook for ${cf_order_id} and updated already.`
+          );
+
+        UserWallet.transactions[currentTransactionIndex].amount =
+          req.body.data.payment.payment_amount;
+        UserWallet.transactions[currentTransactionIndex].transactionStatus =
+          "failed";
+        // UserWallet.balance += req.body.data.payment.payment_amount;
+
+        await UserWallet.save();
+        return;
       }
-    }, { upsert: true, new: true });
-
-    // await orderData.save();
-    // console.dir(orderHistory._doc, { depth: 5 });
-
-    await orderData.updateOne({
-      $unset: {
-        items: 1,
-        billingAddress: 1,
-        shippingAddress: 1,
-        totalAmount: 1,
-        amountPaid: 1,
-        paymentStatus: 1,
-        deliveryStatus: 1,
-        deliveryCharges: 1,
-        paymentLink: 1,
-        paymentLinkId: 1,
-        CashfreeOrderId: 1,
-        printwearOrderId: 1,
-        shipRocketOrderId: 1,
-        shipmentId: 1,
-        createdAt: 1,
-        deliveredOn: 1,
-        processed: 1,
-        retailPrice: 1,
-        customerOrderId: 1,
-        shipRocketCourier: 1
-      }
-    });
-    // return await orderData.save();
+    } catch (error) {
+      
+    }
   }
 
   if (statusType === 'REFUND_STATUS_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
     console.log(`REFUND DETAILS for ${userid} on ${new Date().toLocaleString()}`);
+    res.send("OK");
   }
 
 }

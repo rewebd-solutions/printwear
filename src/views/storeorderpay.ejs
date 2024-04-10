@@ -157,11 +157,11 @@
                             <h3>Bill total: </h3>
                         </div>
                         <div class="right-bill">
-                            <h4>₹.<%= data.total %>
+                            <h4>₹ <%= data.total %>
                             </h4>
-                            <h4 id="shipping-charges">₹0.00 (Shipping charges) </h4>
+                            <h4 id="shipping-charges">₹ 0.00 (Shipping charges) </h4>
                             <div style="display: flex; gap: 0.5rem">
-                                <h4 id="taxes">₹<%= (data.total).toFixed(2) %>
+                                <h4 id="taxes">₹<%= (data.total * 0.05).toFixed(2) %>
                                 </h4>(CGST (2.5%) + SGST (2.5%))
                             </div>
                             <hr />
@@ -279,7 +279,7 @@
             }
 
             console.log(checkoutData);
-            /*
+            /* */
             try {
                 openModal();
                 const createPaymentLinkRequest = await fetch("/placeorder", {
@@ -310,8 +310,10 @@
                 disabled = false;
                 e.target.innerHTML = oldBtnInner;
                 notyf.error("Something went wrong!");
+            } finally {
+                    openModal(false);
             }
-            */
+            /* */
         }
 
         selfPickup.oninput = (e) => {
@@ -422,10 +424,10 @@
             document.getElementById("taxes").innerHTML = `₹${((parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0)) * 0.05).toFixed(2)}`;
         }
 
-        let oldPincode = pincode.value;
+        let oldPincode = pincode.value.length > 0? '': pincode.value;
         const getAvailableCouriers = async (e) => {
             // check for spamming check available couriers
-            if (oldPincode == pincode.value) return;
+            if (oldPincode == pincode.value) return pincode.focus();
             oldPincode = pincode.value;
 
             if (!(pincode.value.length == 6)) return notyf.error("Pincode does not have 6 digits");
@@ -502,7 +504,11 @@
 
         courierGetBtn.onclick = getAvailableCouriers;
 
-        const openModal = () => {
+        const openModal = (state = true) => {
+            if (state == false) {
+                document.querySelector(".product-modal-wrapper").remove()
+                return;
+            };
             const designModalDOMString = `
             <div class="product-modal-wrapper">
                 <div class="product-modal" data-aos="fade-up">             
