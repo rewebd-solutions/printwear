@@ -145,7 +145,7 @@
                             <option value="Punjab">Punjab</option>
                             <option value="Rajasthan">Rajasthan</option>
                             <option value="Sikkim">Sikkim</option>
-                            <option value="Tamil Nadu" default>Tamil Nadu</option>
+                            <option value="Tamil Nadu" selected>Tamil Nadu</option>
                             <option value="Telangana">Telangana</option>
                             <option value="Tripura">Tripura</option>
                             <option value="Uttarakhand">Uttarakhand</option>
@@ -332,6 +332,8 @@
                 disabled = false;
                 e.target.innerHTML = oldBtnInner;
                 notyf.error("Something went wrong!");
+            } finally {
+                openModal(false);
             }
         }
 
@@ -523,17 +525,21 @@
         
         courierGetBtn.onclick = getAvailableCouriers;
 
-        const openModal = () => {
-        const designModalDOMString = `
-        <div class="product-modal-wrapper">
-            <div class="product-modal" data-aos="fade-up">             
-                <span class="loader"></span>
-                <h2 style="margin-top: 3rem;">Please wait while your order is being created</h2>
-                <h4 style="color: #F05A30">Do not close this page or refresh the page!</h4>
+        const openModal = (state = true) => {
+            if (state == false) {
+                document.querySelector(".product-modal-wrapper").remove()
+                return;
+            };
+            const designModalDOMString = `
+            <div class="product-modal-wrapper">
+                <div class="product-modal" data-aos="fade-up">             
+                    <span class="loader"></span>
+                    <h2 style="margin-top: 3rem;">Please wait while your order is being created</h2>
+                    <h4 style="color: #F05A30">Do not close this page or refresh the page!</h4>
+                </div>
             </div>
-        </div>
-        `;
-        document.querySelector(".order-wrapper").insertAdjacentHTML("beforeend", designModalDOMString);
+            `;
+            document.querySelector(".order-wrapper").insertAdjacentHTML("beforeend", designModalDOMString);
     }
         
     </script>

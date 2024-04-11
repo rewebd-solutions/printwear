@@ -325,7 +325,7 @@
                     <tr>
                         <td>${i + 1}</td>
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
-                        <td>${orderHistory.customerOrderId}</a></td>
+                        <td>${orderHistory.customerOrderId} ${orderHistory.wooCommerceId ? '<img src="images/WooCommerce_logo.svg" width="30" alt="" />': ''}${orderHistory.shopifyId ? '<i class="fa-brands fa-shopify"></i>': ''}</td>
                         <td>${orderHistory.shippingAddress.firstName + ' ' + orderHistory.shippingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid}</td>
                         <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>` : `unavailable`}</td>

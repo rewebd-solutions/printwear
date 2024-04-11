@@ -1461,7 +1461,7 @@ exports.connectShopify = async (req, res) => {
 
   const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
   
-  console.log("🚀 ~ exports.connectShopify= ~ shopifyEndpoint:", shopifyEndpoint)
+  // console.log("🚀 ~ exports.connectShopify= ~ shopifyEndpoint:", shopifyEndpoint)
   try {
     const fetchReq = await fetch(shopifyEndpoint, {
       headers: {
@@ -2124,7 +2124,7 @@ exports.placeorder = async (req, res) => {
         "giftwrap_charges": 0,
         "transaction_charges": 0,
         "total_discount": 0,
-        "sub_total": orderData.retailPrice,
+        "sub_total": orderData.totalAmount, // i changed from Retail price to totalAmount.. idk how that works
         "length": 28,
         "breadth": 20,
         "height": 0.5,
@@ -2238,7 +2238,7 @@ exports.placeorder = async (req, res) => {
       const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
       console.log(zohoCustomerCreateResponse); // remove
       if (zohoCustomerCreateResponse.code == 0) {
-        console.log(`zohoCustomer for ${userid} created!`)
+        console.log(`zohoCustomer for ${req.userId} created!`)
         userData.isZohoCustomer = true;
         userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
         userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
@@ -2338,14 +2338,14 @@ exports.placeorder = async (req, res) => {
       "taxes": [
         {
           "tax_name": "CGST",
-          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+          "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.025
         },
         {
           "tax_name": "SGST",
-          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+          "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.025
         },
       ],
-      "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05,
+      "tax_total": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.05,
       payment_made: orderDetails.orderData[0].amountPaid
     }
     console.log("Zoho invoice data: ", invoiceData)
@@ -2378,55 +2378,7 @@ exports.placeorder = async (req, res) => {
     // STEP 5: SEND ORDER DATA TO WOOCOMMS
     // part where i send the line item data to santo woocomms
     // should create order in woocomms
-    // const productData = orderData.items.map(item => {
-    //   let currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-    //   let neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
-    //   return {
-    //     name: currentItemDesignData.designName,
-    //     slug: slugify(currentItemDesignData.designName),
-    //     type: "simple",
-    //     status: "publish",
-    //     regular_price: currentItemDesignData.price + '',
-    //     sale_price: currentItemDesignData.price + '',
-    //     sku: currentItemDesignData.designSKU,
-    //     description: currentItemDesignData.description || 'User generated design. Neck label:' + neckLabelURl,
-    //     short_description: currentItemDesignData.product.name,
-    //     dimensions: {
-    //       length: currentItemDesignData.product.dimensions.length + '',
-    //       width: currentItemDesignData.product.dimensions.chest + '',
-    //     },
-    //     images: [
-    //       {
-    //         src: currentItemDesignData.designImage.front == "false" ? currentItemDesignData.designImage.back : currentItemDesignData.designImage.front,
-    //         name: currentItemDesignData.designName + " image",
-    //       },
-    //     ],
-    //     attributes: [
-    //       {
-    //         id: 6,
-    //         name: "Color",
-    //         position: 0,
-    //         visible: true,
-    //         variation: true,
-    //         options: [
-    //           currentItemDesignData.product.color
-    //         ],
-    //       },
-    //       {
-    //         id: 1,
-    //         name: "Size",
-    //         position: 0,
-    //         visible: true,
-    //         variation: true,
-    //         options: [
-    //           currentItemDesignData.product.size
-    //         ],
-    //       },
-    //     ],
-    //   }
-    // });
-    // console.log("WooCommerce product data:")
-    // console.log(productData);
+    // deleted a huge comment, if needed take from old commit
 
     const wooCommerceOrderData = {
       // parent_id: orderDetails.orderData[0].customerOrderId + "23",
@@ -2468,11 +2420,11 @@ exports.placeorder = async (req, res) => {
       "meta_data": [
         {
           "key": "billing_landmark",
-          "value": "3rd street"
+          "value": orderDetails.orderData[0].billingAddress.streetLandmark
         },
         {
           "key": "shipping_landmark",
-          "value": ""
+          "value": orderDetails.orderData[0].shippingAddress.streetLandmark
         },
         {
           "key": "shipping_email",
@@ -2500,7 +2452,7 @@ exports.placeorder = async (req, res) => {
         },
         {
           "key": "invoice",
-          "value": 'https://zohosecurepay.in/books/sasaprintwearprivatelimited/secure?CInvoiceID=2-cc3b23ff12ea08daf036e9cae11447cdec9738de673bc0dd86e9d8558a438137e8e4d51898f8675a06be3901efa80a18a6042fe3c694f633f4e1e99955d63c355ff36ce7c9675220'
+          "value": zohoInvoiceCreateResponse.invoice.invoice_url
         },
         {
           "key": "is_pickup_option",
@@ -2523,8 +2475,8 @@ exports.placeorder = async (req, res) => {
           variation_id: 0,
           name: currentItemDesignData.product.name,
           price: currentItemDesignData.product.price + '',
-          subtotal: currentItemDesignData.price + '',
-          total: currentItemDesignData.price + '',
+          subtotal: (currentItemDesignData.price * item.quantity).toFixed(2),
+          total: (currentItemDesignData.price * item.quantity).toFixed(2),
           quantity: item.quantity,
           sku: currentItemDesignData.designSKU,
           meta_data: [
