@@ -646,15 +646,22 @@ exports.getwooorders = async (req, res) => {
     const userId = req.userId;
     // const userId = "64f175edd683cd124e440f23";
 
-    const storeDetails = await StoreModel.findOne({ userid: userId });
+    const [storeDetails, designDetails] = await Promise.all([
+      StoreModel.findOne({ userid: userId }),
+      NewDesignModel.findOne({ userId: userId }),
+    ]);
+    
+    const allSKUs = designDetails.designs.map((design) => design.designSKU);
+    // console.log("🚀 ~ exports.getwooorders= ~ allSKUs:", allSKUs)
+
     const wooCommerceStoreData = storeDetails.wooCommerceStore;
     
     if (!wooCommerceStoreData) return res.status(404).json({ message: 'No WooCommerce store found!' })
-
+    
     const WOOCOMMERCE_SHOP_URL = wooCommerceStoreData.url;
     const WOOCOMMERCE_CONSUMER_KEY = wooCommerceStoreData.consumerKey;
     const WOOCOMMERCE_CONSUMER_SECRET = wooCommerceStoreData.consumerSecret;
-
+    
     try {
       const encodedAuth = btoa(`${WOOCOMMERCE_CONSUMER_KEY}:${WOOCOMMERCE_CONSUMER_SECRET}`);
       const endpoint = `https://${WOOCOMMERCE_SHOP_URL}/wp-json/wc/v3/orders`;
@@ -664,11 +671,18 @@ exports.getwooorders = async (req, res) => {
         },
       });
       const wooOrderResponse = await wooOrderRequest.json();
+      // console.log("🚀 ~ exports.getwooorders= ~ wooOrderResponse:", wooOrderResponse)
+      
+      const dataToSend = wooOrderResponse.filter(
+        (order) =>
+          order.line_items.filter((item) => allSKUs.includes(item.sku)).length > 0
+      );
+      // console.log("🚀 ~ exports.getwooorders= ~ dataToSend:", dataToSend)
 
-      res.json({ woo: wooOrderResponse });
+      res.json({ woo: dataToSend });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ error });
+      res.status(500).json({ error: "Server error in fetching WooCommerce Orders!" });
     }
 
   } catch (error) {
@@ -1504,7 +1518,10 @@ exports.connectShopify = async (req, res) => {
 exports.shopifystoreorderedit = async (req, res) => {
   try {
     const shopOrderId = req.params.id;
-    const storeData = await StoreModel.findOne({ userid: req.userId });
+    const [storeData, designsData] = await Promise.all([
+      StoreModel.findOne({ userid: req.userId }),
+      NewDesignModel.findOne({ userId: req.userId }),
+    ]);
     if (!storeData)
       return res.render("storeorderedit", {
         error: "Could not find store credentials",
@@ -1528,7 +1545,7 @@ exports.shopifystoreorderedit = async (req, res) => {
     const SKUs = shopifyOrderResponse.order.line_items.map(item => item.sku);
     // console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
     
-    const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.filter(design => SKUs.includes(design.designSKU))
+    const designData = designsData.designs.filter(design => SKUs.includes(design.designSKU))
     // console.log("🚀 ~ exports.shopifystoreorderedit= ~ designData:", designData)
     res.render('storeorderedit', { error: false, shopifyData: { order: shopifyOrderResponse.order, designs: designData } });
   } catch (error) {
@@ -1556,7 +1573,7 @@ exports.connectWooCommerce = async (req, res) => {
 
     const wooOrderReponse = await wooOrderRequest.text();
       
-    if (!wooOrderRequest.ok) return res.status(403).json({ message: 'Unable to connect to WooCommerce Store!' });
+    if (!wooOrderRequest.ok) return res.status(403).json({ error: 'Unable to connect to WooCommerce Store!' });
 
     const store = await StoreModel.findOneAndUpdate(
       { userid: req.userId },
@@ -1582,7 +1599,7 @@ exports.connectWooCommerce = async (req, res) => {
   } catch (error) {
     console.log("Error in woocommerce connect " + error)
     res.status(500).json({
-      message: error
+      error: "Server error in connecting WooCommerce Store!"
     })
     return;
   }
@@ -1591,7 +1608,8 @@ exports.connectWooCommerce = async (req, res) => {
 // render woocomms store order edit page
 exports.woostoreorderedit = async (req, res) => {
   try {
-    const storeData = await StoreModel.findOne({ userid: req.userId });
+    const shopOrderId = req.params.id;
+    const [storeData, designsData] = await Promise.all([StoreModel.findOne({ userid: req.userId }), NewDesignModel.findOne({ userId: req.userId })]);
     if (!storeData)
       return res.render("storeorderedit", {
         error: "Could not find store credentials",
@@ -1600,7 +1618,24 @@ exports.woostoreorderedit = async (req, res) => {
     const WOOCOMMERCE_SHOP_URL = storeData.wooCommerceStore.url;
     const WOOCOMMERCE_CONSUMER_KEY = storeData.wooCommerceStore.consumerKey;
     const WOOCOMMERCE_CONSUMER_SECRET = storeData.wooCommerceStore.consumerSecret;
-    res.render('storeorderedit', { error: false })
+
+    const encodedAuth = btoa(`${WOOCOMMERCE_CONSUMER_KEY}:${WOOCOMMERCE_CONSUMER_SECRET}`);
+    const endpoint = `https://${WOOCOMMERCE_SHOP_URL}/wp-json/wc/v3/orders/${shopOrderId}`;
+    const wooCommerceOrderReq = await fetch(endpoint, {
+      headers: {
+        'Authorization': 'Basic ' + encodedAuth
+      },
+    });
+    const wooCommerceOrderRes = await wooCommerceOrderReq.json();
+    // console.log("🚀 ~ exports.woostoreorderedit= ~ wooCommerceOrderRes:", wooCommerceOrderRes)
+
+    if (!wooCommerceOrderReq.ok) return res.render('storeorderedit', { error: "There was an error trying to fetch WooCommerce order data" })
+    const SKUs = wooCommerceOrderRes.line_items.map(item => item.sku);
+    // console.log("🚀 ~ exports.woostoreorderedit= ~ SKUs:", SKUs)
+    
+    const designData = designsData.designs.filter(design => SKUs.includes(design.designSKU))
+    // console.log("🚀 ~ exports.woostoreorderedit= ~ designData:", designData)
+    res.render('storeorderedit', { error: false, shopifyData: null, wooData: { order: wooCommerceOrderRes, designs: designData } })
   } catch (error) {
     console.log("🚀 ~ exports.storeorderedit= ~ error:", error);
     return res.render("storeorderedit", {
@@ -1636,8 +1671,21 @@ exports.createordershopify = async (req, res) => {
 
 exports.createorderwoo = async (req, res) => {
   const { wooId, items } = req.body;
+  console.log("🚀 ~ exports.createorderwoo= ~ items:", items)
   try {
-    const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId, wooCommerceId: wooId }, { $set: { items: items } }, { new: true, upsert: true });
+    let totalAmount = items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)
+    const orderData = await OrderModel.findOneAndUpdate(
+      { userId: req.userId }, 
+      { $set: { 
+        items: items,
+        wooCommerceId: wooId,
+        totalAmount,
+        taxes: (totalAmount * 0.05).toFixed(2),
+        printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
+      }},
+      { new: true, upsert: true }
+    );
+    console.log("🚀 ~ exports.createorderwoo= ~ orderData:", orderData)
     return res.json({ message: "Created order successfully!" });
   } catch (error) {
     console.log("🚀 ~ exports.createorderwoo= ~ error:", error)
@@ -1702,6 +1750,65 @@ exports.payshoporder = async (req, res) => {
   
       return res.render('storeorderpay', { error: false, data: payOrderPageData });
     } else {
+      const [orderData, storeData] = await Promise.all([
+        OrderModel.findOne({ userId: req.userId, wooCommerceId: orderId }),
+        StoreModel.findOne({ userid: req.userId })
+      ]);
+      console.log("🚀 ~ exports.payshoporder= ~ orderData:", orderData)
+      if (!orderData)
+        return res.render("storeorderpay", {
+          error: "Could not find such order!",
+        });
+      if (orderData.paymentStatus == "success")
+        return res.render("storeorderpay", {
+          error: "This order has already been paid for!",
+        });
+
+      if (!storeData)
+        return res.render("storeorderpay", {
+          error: "Could not find store credentials!",
+        });
+      const WOOCOMMERCE_SHOP_URL = storeData.wooCommerceStore.url;
+      const WOOCOMMERCE_CONSUMER_KEY = storeData.wooCommerceStore.consumerKey;
+      const WOOCOMMERCE_CONSUMER_SECRET = storeData.wooCommerceStore.consumerSecret;
+
+      const encodedAuth = btoa(
+        `${WOOCOMMERCE_CONSUMER_KEY}:${WOOCOMMERCE_CONSUMER_SECRET}`
+      );
+      const endpoint = `https://${WOOCOMMERCE_SHOP_URL}/wp-json/wc/v3/orders/${orderId}`;
+      const wooCommerceOrderReq = await fetch(endpoint, {
+        headers: {
+          Authorization: "Basic " + encodedAuth,
+        },
+      });
+      const wooCommerceOrderRes = await wooCommerceOrderReq.json();
+      // console.log("🚀 ~ exports.woostoreorderedit= ~ wooCommerceOrderRes:", wooCommerceOrderRes)
+
+      if (!wooCommerceOrderReq.ok)
+        return res.render("storeorderpay", {
+          error: "There was an error trying to fetch WooCommerce order data",
+        });
+
+      const payOrderPageData = {
+        id: orderId,
+        orderName: wooCommerceOrderRes.id,
+        firstName: wooCommerceOrderRes.shipping?.first_name ?? wooCommerceOrderRes.billing?.first_name ?? '',
+        lastName: wooCommerceOrderRes.shipping?.last_name ?? wooCommerceOrderRes.billing?.last_name ?? '',
+        email: wooCommerceOrderRes.shipping?.email ?? wooCommerceOrderRes.billing?.email ?? '',
+        streetLandmark: wooCommerceOrderRes.shipping?.address1 ?? wooCommerceOrderRes.billing?.address1 ?? wooCommerceOrderRes.shipping?.address2 ?? wooCommerceOrderRes.billing?.address2,
+        city: wooCommerceOrderRes.shipping?.city ?? wooCommerceOrderRes.billing?.city ?? '',
+        phone: wooCommerceOrderRes.shipping?.phone ?? wooCommerceOrderRes.billing?.phone ?? '',
+        state: wooCommerceOrderRes.shipping?.state ?? wooCommerceOrderRes.billing?.state ?? '',
+        country: wooCommerceOrderRes.shipping?.country ?? wooCommerceOrderRes.billing?.country ?? '',
+        pincode: wooCommerceOrderRes.shipping?.postcode ?? wooCommerceOrderRes.billing?.postcode ?? '',
+        total: orderData.totalAmount,
+        retail: wooCommerceOrderRes.total,
+        itemCount: orderData.items.length ?? 0,
+        shopType: "WooCommerce",
+        shopSlug: "woo"
+      }
+      // console.log("🚀 ~ exports.payshoporder= ~ payOrderPageData:", payOrderPageData)
+      
       return res.render('storeorderpay', { error: false, data: payOrderPageData });
     }
   } catch (error) {

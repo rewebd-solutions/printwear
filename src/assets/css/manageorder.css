@@ -160,6 +160,20 @@ table a:visited {
     gap: 3rem;
     align-items: center;
     margin: 1.5rem 0rem;
+    margin-bottom: -0.5rem;
+}
+
+hr {
+    height: 1px;
+    width: 35%;
+    border: none;
+    background-color: #F05A30;
+    margin-bottom: 1rem;
+}
+
+.tab-widget {
+    display: flex;
+    flex-direction: column;
 }
 
 .store-selectors a {
@@ -176,7 +190,7 @@ table a:visited {
 }
 
 .active-store {
-    border-bottom: 1px solid #F05A30;
+    /* border-bottom: 1px solid #F05A30; */
     color: #F05A30
 }
 

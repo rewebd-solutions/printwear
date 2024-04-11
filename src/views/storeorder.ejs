@@ -21,11 +21,14 @@
     </div>
     <div class="container">
         <div class="mngord-head">
-            <div class="store-selectors">
-                <a href="/manageorder">
-                    <h2>Printwear Orders</h2>
-                </a>
+            <div class="tab-widget">
+                <div class="store-selectors">
+                    <a href="/manageorder">
+                        <h2>Printwear Orders</h2>
+                    </a>
                     <h2 class="active-store">Store Orders</h2>
+                </div>
+                <hr />
             </div>
             <button class="filter-button filter-button-active" onclick="changeWidget(event, 'shopify')">Shopify</button>
             <button class="filter-button" onclick="changeWidget(event,'woo')">WooCommerce</button>
@@ -49,6 +52,7 @@
                     <tbody>
                     </tbody>
                 </table>
+                <span class="loader" id="shpfy-loader"></span>
             </div>
             <div class="woo-order">
                 <div class="search-options">
@@ -68,6 +72,7 @@
                     <tbody>
                     </tbody>
                 </table>
+                <span class="loader" id="wc-loader"></span>
             </div>
         </div>
         <script>
@@ -78,10 +83,16 @@
             const wooTable = document.querySelector(".woo-order table > tbody");
             const wooTableContainer = document.querySelector(".woo-order");
 
+            const shopifyLoader = document.getElementById("shpfy-loader")
+            const wcLoader = document.getElementById("wc-loader")
+
             let isWooDataFetched = false;
 
             const populateShopifyTable = (data = fetchOrderResponse.shopify) => {
-                if (!data || data.length == 0) return shopifyTable.innerHTML = 'No data found!';
+                shopifyLoader.classList.add("removed")
+                if (!data || data.length == 0) { 
+                    return shopifyTable.innerHTML = 'No data found!'
+                };
                 console.log(data)
                 shopifyTable.innerHTML = data.map((order, i) => `
                     <tr>
@@ -97,7 +108,10 @@
             }
             
             const populateWooTable = (data = fetchOrderResponse.woo) => {
-                if (!data || data.length == 0) return wooTable.innerHTML = 'No data found!';
+                wcLoader.classList.add("removed")
+                if (!data || data.length == 0) {
+                    return wooTable.innerHTML = 'No data found!'
+                };
                 console.log(data)
                 wooTable.innerHTML = data.woo.map((order, i) => `
                     <tr>
@@ -128,7 +142,7 @@
                 
                 console.log("🚀 ~ fetchOrders ~ fetchOrderResponse:", fetchOrderResponse.woo)
 
-                if (!fetchOrderRequest.ok) return notyf.error({ message: fetchOrderResponse.message });
+                if (!fetchOrderRequest.ok) return notyf.error({ message: fetchOrderResponse.woo.error });
 
                 populateWooTable();
             }

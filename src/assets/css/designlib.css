@@ -171,6 +171,8 @@ p {
 .disabled {
   background-color: #ff7653;
   cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .stock-avail {
