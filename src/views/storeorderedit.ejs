@@ -31,37 +31,72 @@
                     ?? 'N/A' )) %>
             </p>
             <div class="create-order-container">
-                <ul class="orders-list">
-                    <% shopifyData.order.line_items.forEach(item => { %>
-                        <% const design = shopifyData.designs.find(design => design.designSKU == item.sku); %>
-                        <li>
-                            <img width="100" height="100"
-                                src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
-                            <div>
-                                <h4>
-                                    <%= design.designName %>
-                                </h4>
-                                <h6>
-                                    <%= design.product.name %>
-                                </h6>
-                            </div>
-                            <h5>
-                                <%= item.quantity %> pcs
-                            </h5>
-                            <h5>₹<%= item.price %>
-                            </h5>
-                            <div class="order-item-controls">
-                                <button class="delete-button">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </div>
-                        </li>
-                    <% }) %>
-                </ul>
-                <button class="confirm-shop-order">
-                    Proceed ▶
-                </button>
-                <p>Click on proceed will create an order in Printwear. Please proceed to pay in the next page.</p>
+                <% if (shopifyData.order.fulfillment_status) { %>
+                    <ul class="orders-list disable-button">
+                        <% shopifyData.order.line_items.forEach(item=> { %>
+                            <% const design=shopifyData.designs.find(design=> design.designSKU == item.sku); %>
+                                <li>
+                                    <img width="100" height="100"
+                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
+                                    <div>
+                                        <h4>
+                                            <%= design.designName %>
+                                        </h4>
+                                        <h6>
+                                            <%= design.product.name %>
+                                        </h6>
+                                    </div>
+                                    <h5>
+                                        <%= item.quantity %> pcs
+                                    </h5>
+                                    <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
+                                    </h5>
+                                    <div class="order-item-controls">
+                                        <button class="delete-button">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                                <% }) %>
+                    </ul>
+                    <button class="confirm-shop-order disable-button">
+                        Proceed ▶
+                    </button>
+                    <p>This order has already been fulfilled, you cannot proceed to pay for it</p>
+                <% } else { %>
+                    <ul class="orders-list">
+                        <% shopifyData.order.line_items.forEach(item=> { %>
+                            <% const design=shopifyData.designs.find(design=> design.designSKU == item.sku); %>
+                                <li>
+                                    <img width="100" height="100"
+                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
+                                    <div>
+                                        <h4>
+                                            <%= design.designName %>
+                                        </h4>
+                                        <h6>
+                                            <%= design.product.name %>
+                                        </h6>
+                                    </div>
+                                    <h5>
+                                        <%= item.quantity %> pcs
+                                    </h5>
+                                    <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
+                                    </h5>
+                                    <div class="order-item-controls">
+                                        <button class="delete-button">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                                <% }) %>
+                    </ul>
+                    <button class="confirm-shop-order">
+                        Proceed ▶
+                    </button>
+                    <p>Click on proceed will create an order in Printwear. Please proceed to pay in the next page.</p>
+                <% } %>
+                    
             </div>
         </div>
         <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -74,7 +109,8 @@
                 return {
                     productId: design.productId,
                     designId: design._id,
-                    price: design.price
+                    price: design.price,
+                    quantity: item.quantity,
                 }
             })
 

@@ -607,7 +607,13 @@ exports.getshopifyorders = async (req, res) => {
     const userId = req.userId;
     // const userId = "64f175edd683cd124e440f23";
 
-    const storeDetails = await StoreModel.findOne({ userid: userId });
+    const [storeDetails, designDetails] = await Promise.all([
+        StoreModel.findOne({ userid: userId }),
+        NewDesignModel.findOne({ userId: userId })
+    ]);
+
+    const allSKUs = designDetails.designs.map(design => design.designSKU);
+
     const shopifyStoreData = storeDetails.shopifyStore;
 
     const SHOPIFY_ACCESS_TOKEN = shopifyStoreData.shopifyAccessToken;
@@ -622,9 +628,12 @@ exports.getshopifyorders = async (req, res) => {
       }
     })
     const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
-    console.log("🚀 ~ exports.getshopifyorders= ~ shopifyStoreOrderResponse:", shopifyStoreOrderResponse)
-    
-    res.json({ shopify: shopifyStoreOrderResponse.orders });
+    // console.log("🚀 ~ exports.getshopifyorders= ~ shopifyStoreOrderResponse:", shopifyStoreOrderResponse)
+    const dataToSend = shopifyStoreOrderResponse.orders.filter(order => 
+      order.line_items.filter(item => allSKUs.includes(item.sku)).length > 0
+    )
+    // console.log("🚀 ~ exports.getshopifyorders= ~ dataToSend:", dataToSend)
+    res.json({ shopify: dataToSend });
     
   } catch (error) {
     console.log(error);
@@ -1516,10 +1525,10 @@ exports.shopifystoreorderedit = async (req, res) => {
     if (shopifyOrderResponse.errors) return res.render('storeorderedit', { error: shopifyOrderResponse.errors });
     
     const SKUs = shopifyOrderResponse.order.line_items.map(item => item.sku);
-    console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
+    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
     
     const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.filter(design => SKUs.includes(design.designSKU))
-    console.log("🚀 ~ exports.shopifystoreorderedit= ~ designData:", designData)
+    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ designData:", designData)
     res.render('storeorderedit', { error: false, shopifyData: { order: shopifyOrderResponse.order, designs: designData } });
   } catch (error) {
     console.log("🚀 ~ exports.storeorderedit= ~ error:", error)
@@ -1604,14 +1613,16 @@ exports.createordershopify = async (req, res) => {
   const { shopifyId, items } = req.body;
   console.log("🚀 ~ exports.createordershopify= ~ items:", items)
   try {
-    let totalAmount = items.reduce((total, item) => total + item.price, 0).toFixed(2)
+    let totalAmount = items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)
     const orderData = await OrderModel.findOneAndUpdate(
-      { userId: req.userId, shopifyId: shopifyId }, 
+      { userId: req.userId }, 
       { $set: { 
-        items: items, 
+        items: items,
+        shopifyId: shopifyId,
         totalAmount,
-        taxes: (totalAmount * 0.05).toFixed(2)
-      }, $setOnInsert: { printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false }) } },
+        taxes: (totalAmount * 0.05).toFixed(2),
+        printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
+      }},
       { new: true, upsert: true }
     );
     console.log("🚀 ~ exports.createordershopify= ~ orderData:", orderData)
@@ -1672,16 +1683,17 @@ exports.payshoporder = async (req, res) => {
       const payOrderPageData = {
         id: orderId,
         orderName: shopifyOrderResponse.name,
-        firstName: shopifyOrderResponse.billing_address.first_name ?? '',
-        lastName: shopifyOrderResponse.billing_address.last_name ?? '',
-        email: shopifyOrderResponse.billing_address.email ?? '',
-        streetLandmark: shopifyOrderResponse.billing_address.address1 ?? shopifyOrderResponse.billing_address.address1 ?? '',
-        city: shopifyOrderResponse.billing_address.city ?? '',
-        phone: shopifyOrderResponse.billing_address.phone ?? '',
-        state: shopifyOrderResponse.billing_address.province ?? '',
-        country: shopifyOrderResponse.billing_address.country ?? '',
-        pincode: shopifyOrderResponse.billing_address.zip ?? '',
+        firstName: shopifyOrderResponse.shipping_address.first_name ?? shopifyOrderResponse.billing_address.first_name,
+        lastName: shopifyOrderResponse.shipping_address.last_name ?? shopifyOrderResponse.billing_address.last_name,
+        email: shopifyOrderResponse.shipping_address.email ?? shopifyOrderResponse.billing_address.email ?? shopifyOrderResponse.customer.email,
+        streetLandmark: shopifyOrderResponse.shipping_address.address1 ?? shopifyOrderResponse.billing_address.address1opifyOrderResponse.shipping_address.address1 ?? shopifyOrderResponse.billing_address.address1,
+        city: shopifyOrderResponse.shipping_address.city ?? shopifyOrderResponse.billing_address.city,
+        phone: shopifyOrderResponse.shipping_address.phone ?? shopifyOrderResponse.billing_address.phone,
+        state: shopifyOrderResponse.shipping_address.province ?? shopifyOrderResponse.billing_address.province,
+        country: shopifyOrderResponse.shipping_address.country ?? shopifyOrderResponse.billing_address.country,
+        pincode: shopifyOrderResponse.shipping_address.zip ?? shopifyOrderResponse.billing_address.zip,
         total: orderData.totalAmount,
+        retail: shopifyOrderResponse.total_line_items_price,
         itemCount: orderData.items.length ?? 0,
         shopType: "Shopify",
         shopSlug: "shopify"

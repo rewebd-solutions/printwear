@@ -43,12 +43,12 @@
                             <div>
                                 <label for="customerOrderId">Your order ID:</label>
                                 <input type="text" id="customerOrderId" placeholder="Order ID must be 10 characters long"
-                                    title="Order ID must be 10 characters long!" name="customerOrderId" required>
+                                    title="Order ID must be 10 characters long!" value="<%= data.orderName %>" name="customerOrderId" required>
                             </div>
                     
                             <div>
                                 <label for="retailPrice">Retail Price:</label>
-                                <input type="text" id="retailPrice" name="retailPrice" required>
+                                <input type="text" id="retailPrice" name="retailPrice" value="<%= data.retail %>" required>
                             </div>
                         </div>
                     </div>
@@ -414,7 +414,7 @@
 
         orderIdInput.oninput = async (e) => {
             let string = e.target.value;
-            e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase();
+            e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_#]/g, '').toUpperCase();
         }
 
         const modifyBillSummary = (charges) => {
