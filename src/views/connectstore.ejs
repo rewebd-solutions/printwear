@@ -106,9 +106,10 @@
 
         shopifyForm.children[0].addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = shopifyForm.children[0].children[shopifyForm.children[0].children.length - 1];
             try {
                 const shopifyData = new FormData(e.target);
-                
+                btn.classList.add("disable-button")
                 const shopifyRequest = await fetch("/connect-shopify", { 
                     method: "POST",
                     headers: {
@@ -123,7 +124,7 @@
                 const shopifyResponse = await shopifyRequest.json();
                 console.log("🚀 ~ fetchStoreDetails ~ shopifyResponse:", shopifyResponse)
 
-                if (!shopifyRequest.ok) return notyf.error({ message: shopifyResponse.message });
+                if (!shopifyRequest.ok) return notyf.error({ message: shopifyResponse.error });
 
                 // change shopify form data
                 notyf.success({ message: shopifyResponse.message });
@@ -131,14 +132,17 @@
             } catch (error) {
                 console.log(error);
                 notyf.error(error);
+            } finally {
+                btn.classList.remove("disable-button")
             }
         });
         
         woocommerceForm.children[0].addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = woocommerceForm.children[0].children[woocommerceForm.children[0].children.length - 1];
             try {
                 const wooData = new FormData(e.target);
-                
+                btn.classList.add("disable-button")
                 const wooRequest = await fetch("/connect-woocommerce", { 
                     method: "POST",
                     headers: {
@@ -162,6 +166,8 @@
             } catch (error) {
                 console.log(error);
                 notyf.error(error);
+            } finally {
+                btn.classList.remove("disable-button")
             }
         });
 

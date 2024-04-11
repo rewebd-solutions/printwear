@@ -1461,6 +1461,7 @@ exports.connectShopify = async (req, res) => {
 
   const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
   
+  console.log("🚀 ~ exports.connectShopify= ~ shopifyEndpoint:", shopifyEndpoint)
   try {
     const fetchReq = await fetch(shopifyEndpoint, {
       headers: {
@@ -1471,8 +1472,8 @@ exports.connectShopify = async (req, res) => {
     // console.log("🚀 ~ exports.connectShopify= ~ fetchData:", fetchData)
     if (fetchReq.status != 200) return res.status(fetchReq.status).json({ error: fetchData.errors });
     // if (fetchReq.status.toString().startsWith('5')) return res.status(fetchReq.status).json({ error: "Shopify Server Error" });
-    
-    const isAccessSatified = (fetchData.access_scopes.every(scope => SHOPIFY_ACCESS_SCOPES.includes(scope.handle)))
+    const customerShopifyStoreAccessScopes = fetchData.access_scopes.map(scope => scope.handle);
+    const isAccessSatified = (SHOPIFY_ACCESS_SCOPES.every(scope => customerShopifyStoreAccessScopes.includes(scope)))
     if (!isAccessSatified) return res.status(400).json({ error: "Provided credentials doesn't have access scopes" })
     
     const store = await StoreModel.findOneAndUpdate(
@@ -1495,7 +1496,7 @@ exports.connectShopify = async (req, res) => {
 
   } catch (error) {
     console.log("Error in Shopify connect " + error)
-    res.status(500).json({ message: 'Unable to connect Shopify store' })
+    res.status(500).json({ error: 'Unable to connect Shopify store' })
     return;
   }
 }

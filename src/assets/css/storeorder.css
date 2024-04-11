@@ -23,6 +23,31 @@
     padding-left: 300px;
 }
 
+.store-selectors {
+    display: flex;
+    gap: 3rem;
+    align-items: center;
+    margin: 1.5rem 0rem;
+}
+
+.store-selectors a {
+    text-decoration: none !important;
+}
+
+.store-selectors a:visited {
+    text-decoration: none !important;
+    color: black !important;
+}
+
+.store-selectors a:hover {
+    color: #f16a44 !important;
+}
+
+.active-store {
+    border-bottom: 1px solid #F05A30;
+    color: #F05A30
+}
+
 .shopify-order, .woo-order {
     padding: 1rem 1rem 1rem 0;
     display: flex;

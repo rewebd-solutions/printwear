@@ -81,3 +81,8 @@ form button {
 .store img {
     width: 250px;
 }
+
+.disable-button {
+    opacity: 0.6;
+    pointer-events: none;
+}

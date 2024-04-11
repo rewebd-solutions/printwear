@@ -21,7 +21,12 @@
     </div>
     <div class="container">
         <div class="mngord-head">
-            <h2><a href="/manageorder">Manage Order <i class="fa fa-external-link"></i></a>&nbsp;&nbsp;|&nbsp;&nbsp; Store Orders</h2>
+            <div class="store-selectors">
+                <a href="/manageorder">
+                    <h2>Printwear Orders</h2>
+                </a>
+                    <h2 class="active-store">Store Orders</h2>
+            </div>
             <button class="filter-button filter-button-active" onclick="changeWidget(event, 'shopify')">Shopify</button>
             <button class="filter-button" onclick="changeWidget(event,'woo')">WooCommerce</button>
         </div>
