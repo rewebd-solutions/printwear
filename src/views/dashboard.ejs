@@ -19,7 +19,10 @@
 
     <main class="dashboard-wrapper">
 
-        <div class="progressbar">
+        <% if (error) { %>
+          <h1><%- error %></h1>
+        <% } else { %>
+             <div class="progressbar">
             <h1>DASHBOARD<h2>
         </div>
 
@@ -301,6 +304,8 @@
 
         initializeChart();
     </script>
+        <% } %>
+       
 </body>
 
 </html>

@@ -212,6 +212,8 @@ exports.dashboard = async (req, res) => {
       StoreModel.findOne({ userid: req.userId })
     ]);
 
+    if (!userData) return res.render('dashboard', { error: "Could not find user! Please leave" })
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 64);
     
@@ -239,6 +241,7 @@ exports.dashboard = async (req, res) => {
         orders: orders,
       });
     }
+    console.log("🚀 ~ exports.dashboard= ~ graphData:", graphData);
 
     const userDataToSend = {
       name: userData.name,
@@ -248,8 +251,8 @@ exports.dashboard = async (req, res) => {
     }
 
     const stores = {
-      shopify: storeData.shopifyStore.shopifyStoreURL ? true : false,
-      woo: storeData.shopifyStore.shopifyStoreURL ? true : false,
+      shopify: storeData?.shopifyStore?.shopifyStoreURL ? true : false,
+      woo: storeData?.shopifyStore?.shopifyStoreURL ? true : false,
     };
 
     const totalExpense = orderHistory.orderData.reduce((total, curr) => total + curr.totalAmount, 0);
@@ -2201,29 +2204,29 @@ exports.placeorder = async (req, res) => {
 
 
     /// STEP 1.5: ORDERDATA GAM
-    // for now billing address same as shipping, but later ask vendor to enter billing address data
-    // orderData.billingAddress = {
-    //   firstName: userData.billingAddress?.firstName,
-    //   lastName: userData.billingAddress?.lastName,
-    //   mobile: userData.billingAddress?.phone,
-    //   email: userData.billingAddress?.email,
-    //   streetLandmark: userData.billingAddress?.street + ' ' + userData.billingAddress?.landmark,
-    //   city: userData.billingAddress?.city,
-    //   pincode: userData.billingAddress?.pincode,
-    //   state: userData.billingAddress?.state,
-    //   country: userData.billingAddress?.country
-    // }
+    // for now billing address same as shipping, but later ask vendor to enter billing address data --- done
     orderData.billingAddress = {
-      firstName,
-      lastName,
-      mobile,
-      email,
-      streetLandmark,
-      city,
-      pincode,
-      state,
-      country,
+      firstName: userData.billingAddress?.firstName,
+      lastName: userData.billingAddress?.lastName,
+      mobile: userData.billingAddress?.phone,
+      email: userData.billingAddress?.email,
+      streetLandmark: userData.billingAddress?.street + ' ' + userData.billingAddress?.landmark,
+      city: userData.billingAddress?.city,
+      pincode: userData.billingAddress?.pincode,
+      state: userData.billingAddress?.state,
+      country: userData.billingAddress?.country
     }
+    // orderData.billingAddress = {
+    //   firstName,
+    //   lastName,
+    //   mobile,
+    //   email,
+    //   streetLandmark,
+    //   city,
+    //   pincode,
+    //   state,
+    //   country,
+    // }
     orderData.shippingAddress = {
       firstName,
       lastName,
