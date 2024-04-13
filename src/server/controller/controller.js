@@ -164,7 +164,7 @@ exports.updateinfo = async (req, res) => {
     } else if (type == "address") {
       const { firstName, lastName, email, address, city, state, pincode, phone } = req.body;
       const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { billingAddress: { firstName: firstName, lastName: lastName, email: email, streetLandmark: address, city: city, state: state, pincode: pincode, phone: phone  } } }, { new: true });
-      console.log("🚀 ~ exports.updateinfo= ~ userInfo:", userInfo)
+      // console.log("🚀 ~ exports.updateinfo= ~ userInfo:", userInfo)
       if (!userInfo) return res.status(404).json({ message: 'User not found!' });
     } else {
       return res.status(403).json({ message: "Invalid update type!" });
@@ -200,6 +200,68 @@ exports.profilepage = async (req, res) => {
     storeData: storeData
   }
   res.render("profile", { data: data });
+}
+
+
+// Dashbord page rendering
+exports.dashboard = async (req, res) => {
+  try {
+    const [orderHistory, userData, storeData] = await Promise.all([
+      OrderHistoryModel.findOne({ userId: req.userId }),
+      UserModel.findOne({ _id: req.userId }),
+      StoreModel.findOne({ userid: req.userId })
+    ]);
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 64);
+    
+    const graphData = [];
+
+    for (let i = 0; i < 65; i++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(currentDate.getDate() + i);
+
+      const dayIndex = currentDate.getDay();
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const day = dayNames[dayIndex];
+      var orders = 0;
+      if (orderHistory) {
+        orders = orderHistory.orderData.filter(order => 
+          (order.createdAt.getDate() == currentDate.getDate()) 
+          && (order.createdAt.getMonth() == currentDate.getMonth())
+        ).length;
+  
+      }
+      
+      graphData.push({
+        date: currentDate.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }),
+        day: day,
+        orders: orders,
+      });
+    }
+
+    const userDataToSend = {
+      name: userData.name,
+      orderCount: orderHistory.orderData.length,
+      address: userData.billingAddress?.phone ? true: false,
+      brand: userData.brandName ? true: false
+    }
+
+    const stores = {
+      shopify: storeData.shopifyStore.shopifyStoreURL ? true : false,
+      woo: storeData.shopifyStore.shopifyStoreURL ? true : false,
+    };
+
+    const totalExpense = orderHistory.orderData.reduce((total, curr) => total + curr.totalAmount, 0);
+    console.log("🚀 ~ exports.dashboard= ~ totalExpense:", totalExpense)
+    const totalRetail = orderHistory.orderData.reduce((total, curr) => total + (curr.retailPrice ?? 0), 0);
+    console.log("🚀 ~ exports.dashboard= ~ totalRetail :", totalRetail )
+
+    res.render('dashboard', { error: false, data: { graph: graphData, user: userDataToSend, store: stores, stats: { orders: orderHistory.orderData.length, revenue: totalRetail - totalExpense } }});
+  } catch (error) {
+    console.log("🚀 ~ exports.dashboard= ~ error:", error)
+    res.render('dashboard', { error: 'Server error in creating this page' })
+  }
 }
 
 

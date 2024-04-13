@@ -33,7 +33,7 @@ route.post("/deletedesign", authServices.authorizeToken, controller.deletedesign
 route.post("/createdesign", authServices.authorizeToken, upload.array('designImage', 2), controller.createdesign);
 route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 
-route.get("/dashboard", authServices.authorizeToken, services.dashboardpage);
+route.get("/dashboard", authServices.authorizeToken, controller.dashboard);
 route.get("/productgallery", authServices.authorizeToken, services.productgallery); // user oda uploaded images kaatum
 route.get("/manageorder", authServices.authorizeToken, services.manageorder);
 route.get("/placeorder", authServices.authorizeToken, services.placeorder);

@@ -9,10 +9,6 @@ exports.loginpage = (req, res) => {
     res.render("login", { status: '' });
 }
 
-exports.dashboardpage = (req, res) => {
-    res.render("dashboard");
-}
-
 exports.adminpage = (req, res) => {
     res.render("admin");
 }

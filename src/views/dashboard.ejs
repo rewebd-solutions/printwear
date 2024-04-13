@@ -6,8 +6,9 @@
     <link href="/css/dashboard.css" type="text/css" rel="stylesheet" />
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
-	<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 </head>
 
 <body>
@@ -24,60 +25,78 @@
 
         <div class="large" data-aos="fade-up">
             <div>
-                <h2>Hello, USER!</h2>
-                <p>let's get you up and running with printwear</p>
+                <h2>Hello, <%- data?.user?.name || 'USER' %></h2>
+                <p>Let's get you up and running with printwear</p>
             </div>
             <div>
                 <h3 style="text-decoration:line-through; color:red;">
-                    <i class="fa-solid fa-square-check"></i>Create a free account
+                    <i class="fa-solid fa-square-check"></i> Create a free account
                 </h3>
                 <p>Yay! You've successfully completed the first step</p>
-                <hr />
             </div>
-
+        
             <div>
-
-                <h3 style="color:red;">Place your first order</h3>
-
-                <p>Let's get you started on your first order</p>
-
-                <div class="landing-links">
-                    <div class="chemical">
-                        <a href="/productgallery">Order now&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                <% if (data.user.orderCount> 0) { %>
+                    <h3 style="text-decoration:line-through; color:red;"><i class="fa-solid fa-square-check"></i> Place your first order</h3>
+                    <p>Cool! We are receiving orders from you</p>
+                    <% } else { %>
+                        <h3 style="color:red;">Place your first order</h3>
+                        <div class="landing-links">
+                            <p>Let's get you started on your first order</p>
+                            <div class="chemical">
+                                <a href="/productgallery">Order now&nbsp;<i
+                                        class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                            </div>
+                        </div>
+                    <% } %>
+            </div>
+        
+        
+            <div>
+                <% if (data.store.shopify && data.store.woo) { %>
+                    <h3 style="text-decoration:line-through; color:red;"><i class="fa-solid fa-square-check"></i> Connect your store
+                    </h3>
+                    <p>Awesome! We have connected to your store</p>
+                <% } else if (data.store.shopify) { %>
+                    <h3 style="color:red;">Connect your store</h3>
+                    <div class="landing-links">
+                        <p>Connect your Shopify store</p>
+                        <div class="chemical">
+                            <a href="/connectstore">Connect&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></a>
+                        </div>
                     </div>
-                    <!-- <div class="mue"><a style=" color:red; " href="">
-                            Order now
-                            </a>
-                    </div> -->
-                </div>
-                <hr />
-            </div>
-
-
-            <div>
-
-                <h3 style="color:red;">Connect your store</h3>
-
-                <p>Connect your shopify or WooCommerce store</p>
-                <div class="landing-links">
-                    <div class="chemical">
-                        <a href="/connectstore">Connect&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></a>
+                <% } else if (data.store.woo) { %>
+                    <h3 style="color:red;">Connect your store</h3>
+                    <div class="landing-links">
+                        <p>Connect your WooCommerce store</p>
+                        <div class="chemical">
+                            <a href="/connectstore">Connect&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></a>
+                        </div>
                     </div>
-                    <!-- <div class="mue"><a style="color:red;" href=""></div> -->
-                </div>
-                <hr />
+                <% } else { %>
+                        <h3 style="color:red;">Connect your store</h3>
+                        <div class="landing-links">
+                            <p>Connect your Shopify and WooCommerce store</p>
+                            <div class="chemical">
+                                <a href="/connectstore">Connect&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></a>
+                            </div>
+                        </div>
+                <% } %>
             </div>
-
+        
             <div>
-
-                <h3 style="color:red;">Visit your profile</h3>
-                <p>View your brand information
-                <div class="landing-links">
-                    <div class="chemical"><a href="/profile">
-                        Visit&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
-                    <hr />
-                    <!-- <p class="fly">Did you wish to see this guide anymore?<a style="color:red;" href="#">skip</a> -->
-                </div>
+                <% if (data.user.address && data.user.brand) { %>
+                    <h3 style="text-decoration:line-through; color:red;"><i class="fa-solid fa-square-check"></i> Visit your profile </h3>
+                    <p>You are set to go!</p>
+                <% } else { %>
+                    <h3 style="color:red;">Visit your profile</h3>
+                    <div class="landing-links">
+                        <p>Visit your profile <%- !data.user.address? ', add your address data': '' %> <%- !data.user.brand? ' & change brand name': '' %></p>
+                        <div class="chemical">
+                            <a href="/profile">Visit&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a></a>
+                        </div>
+                    </div>
+                <% }  %>
             </div>
         </div>
 
@@ -86,8 +105,12 @@
                 <p>Here's what happening</p>
             </div>
             <div id="chop2">
-                <div class="blas"><i class="fa-regular fa-calendar"></i></div>
-                <p style="margin-left: -50px;">last 7 days</p>
+                <label class="my-1 mr-2" for="timeRange"><i class="fa-regular fa-calendar"></i></label>
+                <select class="custom-select my-1 mr-sm-2" id="timeRange" onchange="updateChart()">
+                    <option value="7">Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="60">Last 60 days</option>
+                </select>
             </div>
         </div>
 
@@ -95,33 +118,25 @@
             <div class="status-left">
                 <div id="column1">
                     <p>Orders</p>
-                    <h2 style="padding:10px 0px 10px 0px; width:200px; margin:0;"><i class="fa fa-inr"
-                            aria-hidden="true"></i>0
+                    <h2><%- data.stats.orders %>
                     </h2>
                     <p
-                        style="position:relative; width:33px;  bottom:40px; left:70px; color:red; background-color:#fff2f2;">
+                        style="position:absolute;  top: 1.2rem; right: 1rem; padding: 0.2rem; color:red; background-color:#fff2f2;">
                         +0%
                     </p>
                 </div>
                 <div id="column2">
                     <p>Revenue</p>
-                    <h2 style="padding:10px 0px 10px 0px;;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
+                    <h2>₹ <%- data.stats.revenue.toFixed(2) %></h2>
                     <p
-                        style="position:relative; width:33px; bottom:40px; left:70px; color:red; background-color:#fff2f2;">
-                        +0%
-                    </p>
-                </div>
-                <div id="column3">
-                    <p>Expense</p>
-                    <h2 style="padding:10px 0px 10px 0px;;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
-                    <p
-                        style="position:relative; width:33px; bottom:40px; left:70px; color:red; background-color:#fff2f2;">
+                        style="position:absolute; top: 1.2rem; right: 1rem; padding: 0.2rem; color:red; background-color:#fff2f2;">
                         +0%
                     </p>
                 </div>
             </div>
             <div class="status-right">
-                <div class="biggie" data-aos="fade-up">
+                <canvas id="orderChart" width="800" height="500"></canvas>
+                <!-- <div class="biggie" data-aos="fade-up">
                     <div class="neji">
                         <p>Order Units Over time</p><br>
                         <span>
@@ -194,38 +209,97 @@
                             style="float:left; width:2.5px;font-size: 14px; height:10px; position:relative; left:20px; top:-4px; margin-right:100px;">
                             Fri(28/04)</div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
 
-        <div class="cod-wrapper">
-            <div class="final" data-aos="fade-up">
-                <h3>COD Status</h3>
-            </div>
-            <div class="putin1" data-aos="fade-up">
-                <div class="putin">
-                    <p>Delivering Pending&#128712;</p>
-                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
-                </div>
-                <div class="putin">
-                    <p>Delivered&nbsp;&#128712;</p>
-                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
-                </div>
-                <div class="putin">
-                    <p>Remittance Available&nbsp;&#128712;</p>
-                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
-                </div>
-                <div class="putin">
-                    <p>Last Remittance&nbsp;&#128712;</p>
-                    <h2 style="padding:10px;"><i class="fa fa-inr" aria-hidden="true"></i>0</h2>
-                </div>
-            </div>
-        </div>
     </main>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         AOS.init();
         var notyf = new Notyf();
+        const generateSampleData = () => {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 64);
+            const data = [];
+
+            for (let i = 0; i < 65; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(currentDate.getDate() + i);
+
+                const dayIndex = currentDate.getDay();
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const day = dayNames[dayIndex];
+
+                const orders = Math.floor(Math.random() * 10) + 1;
+
+                data.push({
+                    date: currentDate.toISOString().split('T')[0],
+                    day: day,
+                    orders: orders
+                });
+            }
+
+            return data;
+        };
+
+        const graph = <%- JSON.stringify(data.graph) %>
+        console.log(graph);
+
+
+        let chart;
+
+        function initializeChart() {
+
+            const ctx = document.getElementById('orderChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: graph.map(item => item.date), // Use dates as labels
+                    datasets: [{
+                        label: 'Orders',
+                        data: graph.map(item => item.orders), // Use orders data
+                        borderColor: 'red',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            min: 0,
+                        }
+                    }
+                }
+            });
+
+            updateChart();
+        }
+
+        function getLastNDaysData(n) {
+            const today = new Date();
+            const cutoffDate = new Date();
+            cutoffDate.setDate(today.getDate() - n);
+
+            return graph.filter(item => new Date(item.date) >= cutoffDate);
+        }
+
+        function updateChart() {
+            const selectedRange = parseInt(document.getElementById('timeRange').value);
+
+            const filteredData = getLastNDaysData(selectedRange);
+
+            const labels = filteredData.map(item => item.date);
+            const ordersData = filteredData.map(item => item.orders);
+
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = ordersData;
+            chart.update();
+        }
+
+        initializeChart();
     </script>
 </body>
 
