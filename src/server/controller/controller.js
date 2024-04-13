@@ -156,9 +156,19 @@ exports.changepassword = async (req, res) => {
 
 exports.updateinfo = async (req, res) => {
   try {
-    const { firstName, lastName, brandName } = req.body;
-    const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { firstName: firstName, lastName: lastName, brandName: brandName } }, { new: true });
-    if (!userInfo) return res.status(404).json({ message: 'User not found!' });
+    const { type } = req.body;
+    if (type == "general") {
+      const { firstName, lastName, brandName } = req.body;
+      const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { firstName: firstName, lastName: lastName, brandName: brandName } }, { new: true });
+      if (!userInfo) return res.status(404).json({ message: 'User not found!' });
+    } else if (type == "address") {
+      const { firstName, lastName, email, address, city, state, pincode, phone } = req.body;
+      const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { billingAddress: { firstName: firstName, lastName: lastName, email: email, streetLandmark: address, city: city, state: state, pincode: pincode, phone: phone  } } }, { new: true });
+      console.log("🚀 ~ exports.updateinfo= ~ userInfo:", userInfo)
+      if (!userInfo) return res.status(404).json({ message: 'User not found!' });
+    } else {
+      return res.status(403).json({ message: "Invalid update type!" });
+    }
     res.status(200).json({ message: 'User info updated successfully!' });
   } catch (error) {
     console.log(error);
@@ -2090,12 +2100,19 @@ exports.placeorder = async (req, res) => {
       cashOnDelivery
     } = req.body;
     // validate data
-    const orderData = await OrderModel.findOne({ userId: req.userId });
-    const userData = await UserModel.findById(req.userId);
+    const [ orderData, userData ] = Promise.all([
+      OrderModel.findOne({ userId: req.userId }),
+      UserModel.findById(req.userId)]
+    )
 
     if (!orderData) {
-      res.status(404).json({ message: "No such order found!" });
+      res.status(404).json({ error: "No such order found!" });
       return console.log(`No such order data found for ${req.userId}`);
+    }
+
+    if (!(userData.billingAddress?.firstName) || (userData.billingAddress?.firstName == "")) {
+      res.status(403).json({ message: "Please fill billing address in PROFILE page", reason: "profile" });
+      return console.log(userData.name + " has no billing address" + userData.billingAddress);
     }
 
     /// STEP 1: WALLET GAME

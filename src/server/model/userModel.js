@@ -37,13 +37,10 @@ var UserSchema = new mongoose.Schema({
       lastName: {
         type: String
       },
-      street: {
+      streetLandmark: {
         type: String
       },
       city: {
-        type: String
-      },
-      landmark: {
         type: String
       },
       state: {
@@ -52,31 +49,8 @@ var UserSchema = new mongoose.Schema({
       pincode: {
         type: Number,
       },
-      phone: String
-    },
-    shippingAddress: {
-      firstName: {
-        type: String
-      },
-      lastName: {
-        type: String
-      },
-      street: {
-        type: String
-      },
-      city: {
-        type: String
-      },
-      landmark: {
-        type: String
-      },
-      state: {
-        type: String
-      },
-      pincode: {
-        type: Number
-      },
-      phone: String
+      phone: String,
+      email: String
     },
     profileImage: {
       type: String

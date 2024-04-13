@@ -317,9 +317,11 @@
                     disabled = false;
                     e.target.classList.remove("disabled");
                     e.target.innerHTML = oldBtnInner;
-                    return notyf.error({
+                    notyf.error({
                         message: createPaymentLinkResponse.message,
                     });
+                    if (createPaymentLinkRequest.status == 403 && createPaymentLinkResponse.reason == "profile") return location.href = '/profile&return=true';
+                    return;
                 }
                 notyf.success("Order created successfuly!");
                 setTimeout(() => {
