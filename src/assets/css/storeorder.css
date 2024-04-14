@@ -153,12 +153,13 @@ table a:visited {
   color: white;
 }
 
+
 .status-badge {
     display: inline;
     padding: 0.2rem 0.3rem;
     font-size: 0.8rem;
     border-radius: 6px;
-    width: min-content;
+    width: fit-content;
 }
 
 .processing, .rtd, .pickup-scheduled, .out-for-pickup, .delivered, .completed, .rto, .shipped, .rts {
@@ -170,6 +171,12 @@ table a:visited {
     background-color: #e5e5e5;
     color: #777;
 }
+
+.on-hold {
+    background-color: #f8dda7;
+    color: #b17a0c;
+}
+
 .undelivered, .shipment-cancel, .cancelled {
     background-color: hsl(0, 100%, 97%);
     color: hsl(0, 100%, 57%)

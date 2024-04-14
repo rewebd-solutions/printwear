@@ -162,8 +162,8 @@ exports.updateinfo = async (req, res) => {
       const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { firstName: firstName, lastName: lastName, brandName: brandName } }, { new: true });
       if (!userInfo) return res.status(404).json({ message: 'User not found!' });
     } else if (type == "address") {
-      const { firstName, lastName, email, address, city, state, pincode, phone } = req.body;
-      const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { billingAddress: { firstName: firstName, lastName: lastName, email: email, streetLandmark: address, city: city, state: state, pincode: pincode, phone: phone  } } }, { new: true });
+      const { firstName, lastName, email, address, city, state, pincode, phone, country } = req.body;
+      const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { billingAddress: { firstName: firstName, lastName: lastName, email: email, streetLandmark: address, city: city, state: state, country: country || 'India', pincode: pincode, phone: phone  } } }, { new: true });
       // console.log("🚀 ~ exports.updateinfo= ~ userInfo:", userInfo)
       if (!userInfo) return res.status(404).json({ message: 'User not found!' });
     } else {
@@ -682,9 +682,10 @@ exports.getshopifyorders = async (req, res) => {
     const userId = req.userId;
     // const userId = "64f175edd683cd124e440f23";
 
-    const [storeDetails, designDetails] = await Promise.all([
+    const [storeDetails, designDetails, orderHistoryData] = await Promise.all([
         StoreModel.findOne({ userid: userId }),
-        NewDesignModel.findOne({ userId: userId })
+        NewDesignModel.findOne({ userId: userId }),
+        OrderHistoryModel.findOne({ userId: userId })
     ]);
 
     const allSKUs = designDetails.designs.map(design => design.designSKU);
@@ -707,7 +708,17 @@ exports.getshopifyorders = async (req, res) => {
     const dataToSend = shopifyStoreOrderResponse.orders.filter(order => 
       order.line_items.filter(item => allSKUs.includes(item.sku)).length > 0
     )
-    // console.log("🚀 ~ exports.getshopifyorders= ~ dataToSend:", dataToSend)
+    // console.log("🚀 ~ exports.getshopifyorders= ~ dataToSend:", dataToSend
+    const orderIDsFromHistory = orderHistoryData.orderData.map(order => ({ shopifyId: order.shopifyId, printwearOrderId: order.printwearOrderId,deliveryStatus: order.deliveryStatus }));
+    dataToSend.forEach((order, i) => {
+        const isPlaced = orderIDsFromHistory.find(id => id.shopifyId == order.id);
+        if (isPlaced) {
+          dataToSend[i].isOrderPlaced = true
+          dataToSend[i].printwearOrderId = isPlaced.printwearOrderId;
+          dataToSend[i].printwearStatus = isPlaced.deliveryStatus
+        }
+    })
+    // console.log(dataToSend);
     res.json({ shopify: dataToSend });
     
   } catch (error) {
@@ -721,9 +732,10 @@ exports.getwooorders = async (req, res) => {
     const userId = req.userId;
     // const userId = "64f175edd683cd124e440f23";
 
-    const [storeDetails, designDetails] = await Promise.all([
+    const [storeDetails, designDetails, orderHistoryData] = await Promise.all([
       StoreModel.findOne({ userid: userId }),
       NewDesignModel.findOne({ userId: userId }),
+      OrderHistoryModel.findOne({ userId: userId })
     ]);
     
     const allSKUs = designDetails.designs.map((design) => design.designSKU);
@@ -753,7 +765,15 @@ exports.getwooorders = async (req, res) => {
           order.line_items.filter((item) => allSKUs.includes(item.sku)).length > 0
       );
       // console.log("🚀 ~ exports.getwooorders= ~ dataToSend:", dataToSend)
-
+      const orderIDsFromHistory = orderHistoryData.orderData.map(order => ({ wooCommerceId: order.wooCommerceId, printwearOrderId: order.printwearOrderId, deliveryStatus: order.deliveryStatus }));
+      dataToSend.forEach((order, i) => {
+          const isPlaced = orderIDsFromHistory.find(id => id.wooCommerceId == order.id);
+          if (isPlaced) {
+            dataToSend[i].isOrderPlaced = true
+            dataToSend[i].printwearOrderId = isPlaced.printwearOrderId;
+            dataToSend[i].printwearStatus = isPlaced.deliveryStatus
+          }
+      })
       res.json({ woo: dataToSend });
     } catch (error) {
       console.log(error);
@@ -1494,7 +1514,12 @@ exports.deleteorderitem = async (req, res) => {
 
     orderData.items = orderData.items.filter(item => item.designId + "" != req.body.designId);
     orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0);
-    await orderData.save();
+
+    if (orderData.items.length == 0) {
+      orderData.deleteOne();
+    } else {
+      await orderData.save();
+    }
 
     res.json(orderData);
   } catch (error) {
@@ -1593,14 +1618,24 @@ exports.connectShopify = async (req, res) => {
 exports.shopifystoreorderedit = async (req, res) => {
   try {
     const shopOrderId = req.params.id;
-    const [storeData, designsData] = await Promise.all([
+    const [storeData, designsData, orderHistory] = await Promise.all([
       StoreModel.findOne({ userid: req.userId }),
       NewDesignModel.findOne({ userId: req.userId }),
+      OrderHistoryModel.findOne({
+        userId: req.userId,
+        orderData: { $elemMatch: { shopifyId: shopOrderId } },
+      }),
     ]);
     if (!storeData)
       return res.render("storeorderedit", {
         error: "Could not find store credentials",
       });
+      
+    if (orderHistory) {
+      return res.render("storeorderedit", {
+        error: "Order has already been placed!",
+      });  
+    }
 
     const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
     const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
@@ -1746,7 +1781,7 @@ exports.createordershopify = async (req, res) => {
 
 exports.createorderwoo = async (req, res) => {
   const { wooId, items } = req.body;
-  console.log("🚀 ~ exports.createorderwoo= ~ items:", items)
+  // console.log("🚀 ~ exports.createorderwoo= ~ items:", items)
   try {
     let totalAmount = items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)
     const orderData = await OrderModel.findOneAndUpdate(
@@ -1760,7 +1795,7 @@ exports.createorderwoo = async (req, res) => {
       }},
       { new: true, upsert: true }
     );
-    console.log("🚀 ~ exports.createorderwoo= ~ orderData:", orderData)
+    // console.log("🚀 ~ exports.createorderwoo= ~ orderData:", orderData)
     return res.json({ message: "Created order successfully!" });
   } catch (error) {
     console.log("🚀 ~ exports.createorderwoo= ~ error:", error)
@@ -1829,7 +1864,7 @@ exports.payshoporder = async (req, res) => {
         OrderModel.findOne({ userId: req.userId, wooCommerceId: orderId }),
         StoreModel.findOne({ userid: req.userId })
       ]);
-      console.log("🚀 ~ exports.payshoporder= ~ orderData:", orderData)
+      // console.log("🚀 ~ exports.payshoporder= ~ orderData:", orderData)
       if (!orderData)
         return res.render("storeorderpay", {
           error: "Could not find such order!",
@@ -1870,7 +1905,9 @@ exports.payshoporder = async (req, res) => {
         firstName: wooCommerceOrderRes.shipping?.first_name ?? wooCommerceOrderRes.billing?.first_name ?? '',
         lastName: wooCommerceOrderRes.shipping?.last_name ?? wooCommerceOrderRes.billing?.last_name ?? '',
         email: wooCommerceOrderRes.shipping?.email ?? wooCommerceOrderRes.billing?.email ?? '',
-        streetLandmark: wooCommerceOrderRes.shipping?.address1 ?? wooCommerceOrderRes.billing?.address1 ?? wooCommerceOrderRes.shipping?.address2 ?? wooCommerceOrderRes.billing?.address2,
+        streetLandmark: wooCommerceOrderRes.shipping?.address_1 ? 
+          (wooCommerceOrderRes.shipping?.address_1 + ' ' + wooCommerceOrderRes.shipping?.address_2) 
+          : wooCommerceOrderRes.billing?.address_1 ? (wooCommerceOrderRes.billing?.address_1 + ' ' + wooCommerceOrderRes.billing?.address_2): '',
         city: wooCommerceOrderRes.shipping?.city ?? wooCommerceOrderRes.billing?.city ?? '',
         phone: wooCommerceOrderRes.shipping?.phone ?? wooCommerceOrderRes.billing?.phone ?? '',
         state: wooCommerceOrderRes.shipping?.state ?? wooCommerceOrderRes.billing?.state ?? '',
@@ -2165,20 +2202,22 @@ exports.placeorder = async (req, res) => {
       cashOnDelivery
     } = req.body;
     // validate data
-    const [ orderData, userData ] = Promise.all([
+    const [ orderData, userData, designData, labelData ] = await Promise.all([
       OrderModel.findOne({ userId: req.userId }),
-      UserModel.findById(req.userId)]
-    )
+      UserModel.findById(req.userId),
+      NewDesignModel.findOne({ userId: req.userId }),
+      LabelModel.findOne({ userId: req.userId })
+    ])
 
     if (!orderData) {
       res.status(404).json({ error: "No such order found!" });
       return console.log(`No such order data found for ${req.userId}`);
     }
 
-    if (!(userData.billingAddress?.firstName) || (userData.billingAddress?.firstName == "")) {
-      res.status(403).json({ message: "Please fill billing address in PROFILE page", reason: "profile" });
-      return console.log(userData.name + " has no billing address" + userData.billingAddress);
-    }
+    Object.keys(userData.billingAddress).forEach(field => {
+      if ((userData.billingAddress[field] == "") || (!userData.billingAddress[field]))  
+      return res.status(403).json({ message: "Please fill billing address in PROFILE page", reason: "profile" });
+    })
 
     /// STEP 1: WALLET GAME
     const walletData = await WalletModel.findOne({ userId: req.userId });
@@ -2258,8 +2297,6 @@ exports.placeorder = async (req, res) => {
 
 
     /// STEP 2: CREATE SHIPROCKET ORDER
-    const designData = await NewDesignModel.findOne({ userId: req.userId });
-    const labelData = await LabelModel.findOne({ userId: req.userId });
     if (courierId) { // check if order is not self pickup, courierId null means, self pickup = no need for shiprocket. 
       orderData.paymentStatus = "success";
       orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
@@ -2282,7 +2319,7 @@ exports.placeorder = async (req, res) => {
         "billing_city": orderData.billingAddress.city,
         "billing_pincode": orderData.billingAddress.pincode,
         "billing_state": orderData.billingAddress.state,
-        "billing_country": orderData.billingAddress.country,
+        "billing_country": orderData.billingAddress.country || 'India',
         "billing_email": orderData.billingAddress.email,
         "billing_phone": orderData.billingAddress.mobile,
         "shipping_is_billing": true, // --> later change to False
@@ -2847,10 +2884,11 @@ exports.calculateshippingcharges = async (req, res) => {
     // if (pincodeRequest.status == 500 || pincodeRequest.status == 503) console.log("Pincode service down!");
     // if (!pincodeResponse[0].Status == "Success") return res.status(500).json({ message: "Pincode could not be verified" });
 
-    const pincodeRequest = await fetch("https://api.opencagedata.com/geocode/v1/json?key=518b0ac375bb4bb8bb17019ae3e63818&q=" + pincode);
-    const pincodeResponse = await pincodeRequest.json();
-    // if (pincodeRequest.status == 500 || pincodeRequest.status == 503) console.log("Pincode service down!");
-    if (!pincodeResponse.total_results > 0 || pincodeResponse.results.findIndex(result => result.components.country == "India") == -1) return res.status(500).json({ message: "Pincode could not be verified" });
+    /* Do I even need to verify pincode? doesnt shiprocket do it for me? */
+    // const pincodeRequest = await fetch("https://api.opencagedata.com/geocode/v1/json?key=518b0ac375bb4bb8bb17019ae3e63818&q=" + pincode);
+    // const pincodeResponse = await pincodeRequest.json();
+    // // if (pincodeRequest.status == 500 || pincodeRequest.status == 503) console.log("Pincode service down!");
+    // if (!pincodeResponse.total_results > 0 || pincodeResponse.results.findIndex(result => result.components.country == "India") == -1) return res.status(500).json({ message: "Pincode could not be verified" });
 
     // get couriers
     const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=${cod ? 1 : 0}`, {

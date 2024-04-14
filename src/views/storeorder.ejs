@@ -101,8 +101,8 @@
                         <td>${(order.customer && (order.customer.first_name + ' ' + order.customer.last_name)) || (order.billing_address?.name || 'No data')}</td>
                         <td>₹${order.current_total_price}</td>
                         <td>${order.created_at? new Date(order.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : null}</td>
-                        <td>${order.fulfillment_status ?? 'Unfulfilled'}</td>
-                        <td><a href="/mystores/shopify/${order.id}" class="proceed-btn">Next ▶</a></td>
+                        <td>${order.isOrderPlaced ? `<h3 class="status-badge ${order.printwearStatus}">${order.printwearStatus}</h3>`: order.fulfillment_status ?? 'Unfulfilled'}</td>
+                        <td><a href=${order.isOrderPlaced ? `/order/${order.printwearOrderId}`: `/mystores/shopify/${order.id}`} class="proceed-btn">${order.isOrderPlaced ? `Details ▶` : `Next ▶`}</a></td>
                     </tr>
                 `).join('\n')
             }
@@ -120,8 +120,8 @@
                         <td>${((order.billing.first_name + ' ' + order.billing.last_name) || 'No data')}</td>
                         <td>₹${order.total}</td>
                         <td>${order.date_created? new Date(order.date_created).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : null}</td>
-                        <td>${order.status ?? 'unknown'}</td>
-                        <td><a href="/mystores/woo/${order.id}" class="proceed-btn">Next ▶</a></td>
+                        <td>${order.isOrderPlaced? `<h3 class="status-badge ${order.printwearStatus}">${order.printwearStatus}</h3>` : order.status ?? 'unknown'}</td>
+                        <td><a href=${order.isOrderPlaced ? `/order/${order.printwearOrderId}` : `/mystores/woo/${order.id}`} class="proceed-btn">${order.isOrderPlaced ? `Details ▶` : `Next ▶`}</a></td>
                     </tr>
                 `).join('\n')
             }

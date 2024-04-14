@@ -151,7 +151,9 @@
                 </thead>
                 <tbody id="order-data">
                     `;
-            document.querySelector("#order-data").innerHTML += data.map((order, i) => `
+            document.querySelector("#order-data").innerHTML += data.map((order, i) => {
+                const currItem = orderDataResponse.orderData.items.find(o => o.designId == order._id);
+                return `
                     <tr>
                         <th>${i+1}</th>
                         <th class="order-details">
@@ -191,10 +193,11 @@
                             </div>
                         </th>
                         <th>
-                            ₹${((order.totalPrice * order.quantity) * 1.05 || (order.price * order.quantity) * 1.05).toFixed(2)}
+                            ₹${((order.price * currItem.quantity) * 1.05).toFixed(2)}
                         </th>
                     </tr>
-            `).join('');
+            `
+            }).join('');
             createOrderContainer.innerHTML += `
             </tbody></table>
             <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹ ${(orderDataResponse.orderData.items.reduce((total, curr) => total + curr.price * curr.quantity, 0) * 1.05).toFixed(2)}</h4> </div>

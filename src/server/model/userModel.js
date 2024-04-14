@@ -50,7 +50,8 @@ var UserSchema = new mongoose.Schema({
         type: Number,
       },
       phone: String,
-      email: String
+      email: String,
+      country: String
     },
     profileImage: {
       type: String

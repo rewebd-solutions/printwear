@@ -73,7 +73,7 @@
                     <td>${transaction.walletOrderId ?? '—'}</td>
                     <td>${transaction.transactionType === "recharge"? "Recharge": "Payment"}</td>
                     <td>₹ ${transaction.amount.toFixed(2)}</td>
-                    <td>${transaction.transactionType === "recharge"? `Recharge for ₹ ${transaction.amount.toFixed(2)}`: transaction.transactionNote}</td>
+                    <td>${transaction.transactionType === "recharge"? `Recharge for ₹ ${transaction.amount.toFixed(2)}`: `${transaction.transactionNote.split(" ").splice(0, 3).join(" ")} <a href='/order/${transaction.transactionNote.split(" ").at(-1)}'>${transaction.transactionNote.split(" ").at(-1)}</a>`}</td>
                     <td>${transaction.transactionType === "recharge"? `<i class="fa fa-ban"></i>`: `<a href='${transaction.invoiceURL}'><i class="fa fa-download"></i></a>` }</td>
                 </tr>
             `).join('\n');

@@ -259,9 +259,7 @@
                     if (createOrderRes.message) {
                         notyf.success("Your order was successful!");
                         notyf.success("You will be redirected in a few moments!");
-                        setTimeout(() => {
-                            location.href = `/mystores/woo/<%= wooData.order.id %>/pay`
-                        }, 3000);
+                        location.href = `/mystores/woo/<%= wooData.order.id %>/pay`
                     }
                     if (createOrderRes.error) {
                         notyf.error(createOrderRes.error);

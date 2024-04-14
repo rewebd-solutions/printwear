@@ -380,11 +380,7 @@ const displaySizes = () => {
   let sizeDOMString = current.sizes
     .map((item) => {
       return `
-        <div class="size-options" ${
-          item.stock
-            ? `onclick="changeSize(event,'${item.size}', '${item.id}')"`
-            : `style="opacity: 0.4; cursor:not-allowed;" title="Out of stock"`
-        }>
+        <div class="size-options" onclick="changeSize(event,'${item.size}', '${item.id}')">
         ${item.size}
         </div>
       `;
@@ -649,7 +645,7 @@ const downloadDesign = () => {
 /* Save to Cloud */
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
-  if (!globalProductID) return;
+  if (!globalProductID) return notyf.error("Select a size before continuing!");
   let isSaveSuccessful = false;
 
   const designName = document.getElementById("design-name");

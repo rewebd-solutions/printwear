@@ -151,7 +151,14 @@ p {
     padding: 0.2rem 0.3rem;
     font-size: 0.8rem;
     border-radius: 6px;
-    width: min-content;
+    width: max-content;
+    height: fit-content;
+}
+
+.title-status-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .disable-button {

@@ -33,7 +33,7 @@
       <!-- "rts" | "on-hold" | "processing" | "rtd" | "shipment-cancel" | "pickup-scheduled" |
                 "out-for-pickup" | "rto" | "cancelled" | "undelivered" | "shipped" | "delivered" | "completed" -->
       <div class="title">
-        <div>
+        <div class="title-status-container">
           Order ID: <%= orderData.orderData[0].printwearOrderId %>
           <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>">
             STATUS: <%= orderData.orderData[0].deliveryStatus=="return_init" ?
@@ -44,7 +44,7 @@
             "refund initiated" : orderData.orderData[0].paymentStatus %>
           </h3>
         </div>
-        <!-- remove this shit in prod -->
+        <% /* %>
         <% if (orderData.orderData[0].deliveryStatus=="cancelled" && (orderData.orderData[0].paymentStatus=="refund_init" || orderData.orderData[0].paymentStatus=="refunded" )) { %>
         <button
           class="orderpage-action-btn"
@@ -60,9 +60,10 @@
         <button class="orderpage-action-btn" onclick="initiateRefund(this)">
           (unused) Return order
         </button>
-        <% } %>
+        <% } %> 
+        <%*/ %>
         <!-- use this shit in prod -->
-        <% if (["pending", "received" , "invoiced" , "undelivered"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <% if (["pending", "received" , "invoiced" , "undelivered", "on-hold"].includes(orderData.orderData[0].deliveryStatus)) { %>
         <button class="orderpage-action-btn" onclick="initiateRefund(this)">
           Cancel Order
         </button>
