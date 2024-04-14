@@ -54,9 +54,9 @@
                                     <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
                                     </h5>
                                     <div class="order-item-controls">
-                                        <button class="delete-button">
+                                        <!-- <button class="delete-button">
                                             <i class="fa fa-trash"></i>
-                                        </button>
+                                        </button> -->
                                     </div>
                                 </li>
                                 <% }) %>
@@ -86,9 +86,9 @@
                                     <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
                                     </h5>
                                     <div class="order-item-controls">
-                                        <button class="delete-button">
+                                        <!-- <button class="delete-button">
                                             <i class="fa fa-trash"></i>
-                                        </button>
+                                        </button> -->
                                     </div>
                                 </li>
                                 <% }) %>
@@ -96,7 +96,8 @@
                     <button class="confirm-shop-order">
                         Proceed ▶
                     </button>
-                    <p>Click on proceed will create an order in Printwear. Please proceed to pay in the next page.</p>
+                    <p><span style="color: red;">NOTE:</span> If you wish to edit this order, you can do so in your shopify admin page and refresh it here.</p>
+                    <p>Click on proceed will create an order in Printwear. Please proceed to pay.</p>
                 <% } %>
                     
             </div>
@@ -183,9 +184,9 @@
                                                     parseFloat(design.price)*parseInt(item.quantity) %>
                                     </h5>
                                     <div class="order-item-controls">
-                                        <button class="delete-button">
+                                        <!-- <button class="delete-button">
                                             <i class="fa fa-trash"></i>
-                                        </button>
+                                        </button> -->
                                     </div>
                                 </li>
                                 <% }) %>
@@ -213,9 +214,9 @@
                                     <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
                                     </h5>
                                     <div class="order-item-controls">
-                                        <button class="delete-button">
+                                        <!-- <button class="delete-button">
                                             <i class="fa fa-trash"></i>
-                                        </button>
+                                        </button> -->
                                     </div>
                                 </li>
                         <% }) %>
@@ -223,6 +224,8 @@
                         <button class="confirm-shop-order">
                             Proceed ▶
                         </button>
+                        <p><span style="color: red;">NOTE:</span> If you wish to edit this order, you can do so in your shopify admin page and
+                            refresh it here.</p>
                         <p>Click on proceed will create an order in Printwear. Please proceed to pay in the next page.</p>
                 <% } %>
         

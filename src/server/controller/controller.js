@@ -1625,6 +1625,10 @@ exports.shopifystoreorderedit = async (req, res) => {
         userId: req.userId,
         orderData: { $elemMatch: { shopifyId: shopOrderId } },
       }),
+      // OrderModel.findOne({ 
+      //   userId: req.userId,
+      //   shopifyId: shopOrderId
+      // })
     ]);
     if (!storeData)
       return res.render("storeorderedit", {
@@ -1637,11 +1641,13 @@ exports.shopifystoreorderedit = async (req, res) => {
       });  
     }
 
+    // let shopifyOrderResponse = {};
+
     const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
     const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
-
+    
     const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${shopOrderId}.json`;
-
+    
     const shopifyOrderRequest = await fetch(shopifyEndpoint, {
       headers: {
         'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN
@@ -1649,8 +1655,20 @@ exports.shopifystoreorderedit = async (req, res) => {
     })
     const shopifyOrderResponse = await shopifyOrderRequest.json();
     // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
-
+    
     if (shopifyOrderResponse.errors) return res.render('storeorderedit', { error: shopifyOrderResponse.errors });
+    
+    // if (orderData) {
+    //   shopifyOrderResponse.order.line_items = orderData.items.map(item => {
+    //     const currentDesign = designsData.designs.find(design => design._id + '' == item.designId + '');
+    //     // const currentShopifyItem = shopifyOrderResponse.order.line_items.find(item => item.sku == currentDesign.designSKU);
+    //     return {
+    //       sku: currentDesign.designSKU,
+    //       quantity: item.quantity,
+    //     }
+    //   })
+    // }
+
     
     const SKUs = shopifyOrderResponse.order.line_items.map(item => item.sku);
     // console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
