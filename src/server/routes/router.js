@@ -16,6 +16,8 @@ route.post('/login', controller.login);
 route.get('/login', authServices.authorizeLogin, services.loginpage);
 route.get("/logout", controller.logout);
 route.post("/changepassword", authServices.authorizeToken, controller.changepassword);
+route.post("/resetpassword", controller.resetpassword);
+route.get("/resetpassword", authServices.authorizeLogin, services.resetpassword);
 route.post("/updateinfo", authServices.authorizeToken, controller.updateinfo);
 
 route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), controller.uploadimage);

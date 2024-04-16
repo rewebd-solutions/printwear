@@ -119,4 +119,9 @@
      document.querySelector(`a[href='/manageorder']`).classList.add("sidebar-active")
   }
   document.querySelector(`a[href='/${routeName}']`).classList.add("sidebar-active")
+
+  const logoutConfirmation = (e) => {
+    e.preventDefault();
+    if (confirm("Confirm logout?")) location.href = '/logout'
+  }
 </script>

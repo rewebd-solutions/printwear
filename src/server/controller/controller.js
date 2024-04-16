@@ -65,7 +65,7 @@ exports.register = async (req, res) => {
   let num = req.body.number;
 
   const existingUser = await UserModel.findOne({ name: req.body.name });
-  if (existingUser) return res.render("login", { status: "User already exists" })
+  if (existingUser) return res.render("login", { error: "User already exists" })
 
   try {
     const user = await UserModel.create({
@@ -78,10 +78,10 @@ exports.register = async (req, res) => {
       profileImage: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'
     });
 
-    res.render("login", { status: "Account created. Log In" });
+    res.render("login", { error: "Account created. Log In" });
   } catch (error) {
     console.log(error);
-    res.render("login", { status: "Error saving data, try again" })
+    res.render("login", { error: "Error saving data, try again" })
   }
 }
 
@@ -91,15 +91,19 @@ exports.login = async (req, res) => {
     const check = await UserModel.findOne({ email: req.body.email })
 
     if (check === null) {
-      return res.render("login", { status: "User does not exist" });
+      return res.render("login", { error: "User does not exist" });
     }
 
     // toggle a boolean if pwd match or not
-    let doPwdsMatch = check.password === crypto.createHash(algorithm).update(req.body.password).digest("hex");
-    if (check.password === "RESET") doPwdsMatch = true; // TESTING ONLY!: if pwd is reset for woo, jsut let them in by toggling bool to true
+    const pwdToCheckAgainst = crypto.createHash(algorithm).update(req.body.password).digest("hex");
+    let doPwdsMatch = check.password === pwdToCheckAgainst
+    
+    if (check.password === "RESET") {
+      return res.redirect("/resetpassword");
+    };
 
     if (!doPwdsMatch) {
-      return res.render("login", { status: "Invalid details" });
+      return res.render("login", { error: "Invalid email or password" });
     }
 
     const wallet = await WalletModel.findOne({ userId: check._id });
@@ -126,7 +130,7 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: true
     });
-
+    
     return res.redirect("/dashboard");
   } catch (error) {
     console.log(error);
@@ -151,6 +155,21 @@ exports.changepassword = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.json({ error });
+  }
+}
+
+exports.resetpassword = async (req, res) => {
+  try {
+    const { email, pwd, newPwd } = req.body;
+    // console.log("🚀 ~ exports.resetpassword= ~ email, pwd, newPwd:", email, pwd, newPwd)
+    if (pwd !== newPwd) return res.render('resetpassword', { error: 'Passwords don\'t match' });
+    const passwordHash = crypto.createHash(algorithm).update(pwd).digest("hex");
+    const userData = await UserModel.findOneAndUpdate({ email: email }, { $set: { password: passwordHash } }, { new: true })
+    if (!userData) return res.render('resetpassword', { error: 'Cannot find user with the provided email' })
+    res.redirect('login');
+  } catch (error) {
+    console.log("🚀 ~ exports.resetpassword= ~ error:", error)
+    res.status(500).json({ error: "Server error in setting password!" });
   }
 }
 
@@ -241,7 +260,7 @@ exports.dashboard = async (req, res) => {
         orders: orders,
       });
     }
-    console.log("🚀 ~ exports.dashboard= ~ graphData:", graphData);
+    // console.log("🚀 ~ exports.dashboard= ~ graphData:", graphData);
 
     const userDataToSend = {
       name: userData.name,
@@ -256,9 +275,8 @@ exports.dashboard = async (req, res) => {
     };
 
     const totalExpense = orderHistory.orderData.reduce((total, curr) => total + curr.totalAmount, 0);
-    console.log("🚀 ~ exports.dashboard= ~ totalExpense:", totalExpense)
     const totalRetail = orderHistory.orderData.reduce((total, curr) => total + (curr.retailPrice ?? 0), 0);
-    console.log("🚀 ~ exports.dashboard= ~ totalRetail :", totalRetail )
+    console.log("🚀 ~ exports.dashboard= ~ totalExpense:", totalExpense, totalRetail)
 
     res.render('dashboard', { error: false, data: { graph: graphData, user: userDataToSend, store: stores, stats: { orders: orderHistory.orderData.length, revenue: totalRetail - totalExpense } }});
   } catch (error) {

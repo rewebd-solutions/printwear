@@ -6,7 +6,11 @@ exports.homeRoutes = (req, res) => {
 
 exports.loginpage = (req, res) => {
     // if (req.id) return res.redirect("/dashboard");
-    res.render("login", { status: '' });
+    res.render("login", { error: false });
+}
+
+exports.resetpassword = (req, res) => {
+    res.render("resetpassword", { error: false });
 }
 
 exports.adminpage = (req, res) => {
