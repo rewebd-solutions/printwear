@@ -32,7 +32,7 @@
         <p>View your designs and check out pricing<br>
           You can also push them to your online store once you connect your store with Printwear or place an order with them.</p>
       </div>
-      <input type="search" placeholder="Search for your designs..." oninput="searchDesigns('designName', event.target.value)" id="name-search" />
+      <input type="search" placeholder="Search by name or SKU..." oninput="searchDesigns('designName', event.target.value)" id="name-search" />
     </div>
     <div class="filter-container">
       <h3>Filter by category</h3>
@@ -60,7 +60,7 @@
 
     const searchDesigns = (dataKey, searchKey) => {
       if (searchKey === '') return createDesignCards();
-      const designsData = designsResponseData.designs.filter(design => design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim()));
+      const designsData = designsResponseData.designs.filter(design => (design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim()) || design["designSKU"].toLowerCase().trim().includes(searchKey.toLowerCase().trim())));
       if (designsData.length < 1) return designsContainer.innerHTML = 'Invalid search key';
       // console.log(designsData);
       createDesignCards({designs: designsData})
@@ -251,8 +251,8 @@
               <button class="delete-design" onclick="openDeleteConfirmation(this,'${designModalData.designName}', '${designModalData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
             </div>
             <p>Publish:</p>
-            <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <input type="number" inputmode="numeric" class="shop-price" value='${designModalData.price}' placeholder="₹" />
+            <div style="display: flex; gap: 0.4rem; align-items: center;">₹ 
+              <input type="number" inputmode="numeric" class="shop-price" value='${designModalData.price * 1.05}' placeholder="₹" />
               <p style="font-size: 0.84rem">Enter retail price for your shop. <br /> You can change it later in your shop settings:</p>
             </div>
             <div class="publish-buttons">

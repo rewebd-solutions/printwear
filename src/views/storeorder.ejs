@@ -131,7 +131,7 @@
                 fetchOrderResponse = await fetchOrderRequest.json();
                 console.log("🚀 ~ fetchOrders ~ fetchOrderResponse:", fetchOrderResponse)
 
-                if (!fetchOrderRequest.ok) notyf.error({ message: fetchOrderResponse.message });
+                if (!fetchOrderRequest.ok) notyf.error({ message: fetchOrderResponse.error });
 
                 populateShopifyTable();
             }

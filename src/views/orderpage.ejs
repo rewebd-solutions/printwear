@@ -107,7 +107,7 @@
                   <td><%= i+1 %></td>
                   <td><%= design.designName %></td>
                   <td><%= design.designSKU %></td>
-                  <td>₹<%= design.price %></td>
+                  <td>₹<%= design.price.toFixed(2) %></td>
                   <td><%= orderData.orderData[0].items[i].quantity %></td>
                 </tr>
                 <% }); %>
@@ -240,7 +240,7 @@
                 <tr>
                   <td>Total Product price (print + label)</td>
                   <% var totalPP=[]; %> <% designData.forEach(design=> { %> <%
-                  totalPP.push(design.price) %> <% }) %>
+                  totalPP.push(design.price.toFixed(2)) %> <% }) %>
                   <td>₹<%= totalPP.join(" + ₹") %></td>
                 </tr>
                 <tr>

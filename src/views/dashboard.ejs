@@ -138,7 +138,7 @@
                 </div>
             </div>
             <div class="status-right">
-                <canvas id="orderChart" width="800" height="500"></canvas>
+                <canvas id="orderChart" width="1300" height="500"></canvas>
                 </div>
         </div>
 
@@ -165,17 +165,17 @@
                     datasets: [{
                         label: 'Orders',
                         data: graph.map(item => item.orders), // Use orders data
-                        borderColor: 'red',
-                        borderWidth: 1
+                        // borderColor: 'red',
+                        // borderWidth: 1
                     }]
                 },
                 options: {
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            min: 0,
+                            stacked: true
                         }
-                    }
+                    },
+                    cubicInterpolationMode: "default"
                 }
             });
 

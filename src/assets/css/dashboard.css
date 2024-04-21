@@ -65,6 +65,11 @@ html {
   gap: 1rem;
 }
 
+.status-right {
+  width: 1000px;
+  height: 50vh;
+}
+
 .large p {
   font-size: 15px;
 }

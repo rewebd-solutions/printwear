@@ -194,20 +194,22 @@ const renderColors = () => {
   const parent = document.querySelector(".color-list");
   parent.innerHTML = "";
   Product.colors.map((color) => {
-    const innerHTML = `
-    <div class="color-options${
-      color.colorImage.front || color.colorImage.back ? "" : " color-disabled"
-    }" ${
-      color.colorImage.front || color.colorImage.back
-        ? `onclick="changeMockup(event, '${color.colorName}', ${color._id})"`
-        : 'title="Image not available"'
-    }>
+    const innerHTML = `${
+      (color.colorImage.front || color.colorImage.back)
+        ? `
+    <div class="color-options" onclick="changeMockup(event, '${
+      color.colorName
+    }', ${color._id})">
       <span class="color-circle" style="background: ${color.hex}; border: 
       ${
         color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
       }" id="${color.colorName}-${color._id}"></span>
       <p>${color.colorName}</p>
     </div>
+    `
+        : ``
+    }
+    
     `;
     parent.innerHTML += innerHTML;
   });
