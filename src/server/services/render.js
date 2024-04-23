@@ -6,7 +6,7 @@ exports.homeRoutes = (req, res) => {
 
 exports.loginpage = (req, res) => {
     // if (req.id) return res.redirect("/dashboard");
-    res.render("login", { error: false });
+    res.render("login", { data: {error: false} });
 }
 
 exports.resetpassword = (req, res) => {

@@ -14,7 +14,7 @@ route.get('/', services.homeRoutes)
 route.post('/register', controller.register);
 route.post('/login', controller.login);
 route.get('/login', authServices.authorizeLogin, services.loginpage);
-route.get("/logout", controller.logout);
+route.get("/logout", authServices.decryptToken, controller.logout);
 route.post("/changepassword", authServices.authorizeToken, controller.changepassword);
 route.post("/resetpassword", controller.resetpassword);
 route.get("/resetpassword", authServices.authorizeLogin, services.resetpassword);

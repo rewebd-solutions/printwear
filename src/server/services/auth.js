@@ -32,3 +32,13 @@ exports.authorizeLogin = (req, res, next) => {
     if (token) return res.redirect("/dashboard");
     return next();
 }
+
+exports.decryptToken = (req, res, next) => {
+  try {
+    const data = jwt.verify(req.cookies.actk, "thatsasecret");
+    req.name = data.name;
+    return next();
+  } catch (error) {
+    return next();
+  }
+}

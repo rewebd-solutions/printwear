@@ -30,8 +30,8 @@
                     <input type="password" name="password" title="Password should have atleast 8 characters" class="input-field" id="pwd-field" placeholder="Enter Password" />
                     <i class="fa fa-eye-slash" style="position: absolute; right: 1rem; top: 50%; transform: translateX(50%) translateY(-50%);" onclick="togglePwdVisibility(event)"></i>
                 </div>
+                <span><a href="/resetpassword">Forgot Password?</a></span>
                 <button class="submit-btnx">Log In</button>
-                <!-- <span class="frgt"><a href="/forget">Forgot Password?</a></span> -->
             </form>
             <form id="register" class="input-group" action="/register" method="post">
                 <input type="text" name="name" class="input-field" placeholder="User Name" required>
@@ -44,17 +44,22 @@
             </form>
         </div>
     </div>
+    <% if (data.error) { %>
+        <script>
+            var notyf = new Notyf();
+            notyf.error({ message: "<%= data.error %>", duration: 20000 });
+            console.log(data.error);
+        </script>
+    <% } else { %>
+        <script>
+            status != '' && notyf.success(status);
+        </script>
+    <% }  %>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();
 
         var notyf = new Notyf();
-        <% if (error) { %>
-            console.log(error);
-            notyf.error(error);
-        <% } else { %>
-            status != '' && notyf.success(status);
-        <% }  %>
         var x = document.getElementById("login");
         var y = document.getElementById("register");
         var z = document.getElementById("btn");

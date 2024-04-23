@@ -526,7 +526,7 @@ exports.login = async (req, res) => {
     const check = await UserModel.findOne({ email: req.body.email })
 
     if (check === null) {
-      return res.render("login", { error: "User does not exist" });
+      return res.render("login", { data: {error: "User does not exist. If you are an existing customer, please contact +91 9345496725"} });
     }
 
     if (check.password === "RESET") {
@@ -539,7 +539,7 @@ exports.login = async (req, res) => {
     
 
     if (!doPwdsMatch) {
-      return res.render("login", { error: "Invalid email or password" });
+      return res.render("login", { data: {error: "Invalid email or password. If you are an existing customer, please contact +91 9345496725"} });
     }
 
     const wallet = await WalletModel.findOne({ userId: check._id });
@@ -566,7 +566,7 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: true
     });
-    
+    console.log(`User ${check.name} logged in @${new Date().toLocaleString(undefined, { timeZone: 'Asia/Kolkata' })}`);
     return res.redirect("/dashboard");
   } catch (error) {
     console.log(error);
@@ -576,6 +576,11 @@ exports.login = async (req, res) => {
 }
 
 exports.logout = async (req, res) => {
+  console.log(
+    `User ${req.name} logged out @${new Date().toLocaleString(undefined, {
+      timeZone: "Asia/Kolkata",
+    })}`
+  );
   return res.clearCookie("actk").redirect("/login");
 }
 
@@ -667,7 +672,7 @@ exports.dashboard = async (req, res) => {
       StoreModel.findOne({ userid: req.userId })
     ]);
 
-    if (!userData) return res.render('dashboard', { error: "Could not find user! Please leave" })
+    if (!userData) return res.render('dashboard', { error: "Could not find user! Please contact +91 93454 96725" })
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 64);
