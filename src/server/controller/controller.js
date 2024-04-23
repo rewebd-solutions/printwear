@@ -6,7 +6,7 @@ const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
-const WOO_SANTO_URL = 'https://printwear.in/admin';
+const WOO_SANTO_URL = 'https://admin.printwear.in/admin';
 const OLD_PUBLIC_URL = "https://printwear.in/";
 
 const imageFileSize = require("url-file-size");
