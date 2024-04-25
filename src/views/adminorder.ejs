@@ -2,118 +2,324 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/manageorder.css">
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.4/css/select.dataTables.min.css" />
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/select/1.3.4/js/dataTables.select.min.js"></script>
-    <title>Admin - Printwear</title>
-    <style>
-        #order-details {
-        background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        margin-bottom: 20px;
-        max-width: 1000px;
-        width: 100%;
-      }
-
-      #order-details h2 {
-        margin-top: 0;
-        font-size: 24px;
-        font-weight: bold;
-        color: #333333;
-        margin-bottom: 20px;
-      }
-
-      #order-details h3 {
-        margin-top: 0;
-        font-size: 18px;
-        font-weight: bold;
-        color: #333333;
-        margin-bottom: 10px;
-      }
-
-      #order-details p {
-        margin: 5px 0;
-        color: #666666;
-      }
-
-      #order-items {
-        background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        max-width: 1000px;
-        width: 100%;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th,
-      td {
-        padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-      }
-
-      th {
-        background-color: #f2f2f2;
-        font-weight: bold;
-      }
-    </style>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/adminorder.css">
+  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.4/css/select.dataTables.min.css" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/select/1.3.4/js/dataTables.select.min.js"></script>
+  <title>Admin Order details - Printwear</title>
 </head>
 
 <body>
-    <div class="banner">
-        <%- include('partials/admin-side.ejs') %>
-            <%- include('partials/admin-nav.ejs') %>
-    </div>
-    <div class="manageorder">
-        <div class="container">
-            <!-- First div containing order ID and addresses -->
-            <div id="order-details">
-                <!-- Heading for the order ID -->
-                <h2 id="order-id-heading"></h2>
-                <!-- Billing address and shipping address will be populated here -->
-                <div id="billing-address"></div>
-                <div id="shipping-address"></div>
-                <!-- Email and mobile will be populated here -->
-                <div id="contact-details"></div>
-            </div>
-        
-            <!-- Second div containing order items -->
-            <div id="order-items">
-                <!-- Table headings for order items -->
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item Id</th>
-                            <th>Cost</th>
-                            <th>Quantity</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="order-items-body">
-                        <!-- Order items will be populated here -->
-                    </tbody>
-                </table>
-            </div>
+  <div class="banner">
+    <%- include('partials/admin-side.ejs') %>
+      <%- include('partials/admin-nav.ejs') %>
+  </div>
+  <div class="manageorder">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1100px;">
+        <h2 id="order-id-heading">Order ID: </h2>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          Change status to: 
+          <select id="order-status-filter" class="table-filter">
+            <option value="all" disabled selected>Status</option>
+            <option value="none">None</option>
+            <option value="received">Received</option>
+            <option value="rts">Return to Sender</option>
+            <option value="on-hold">On Hold</option>
+            <option value="processing">Processing</option>
+            <option value="rtd">Ready to Dispatch</option>
+            <option value="shipment-cancel">Shipment Cancelled</option>
+            <option value="pickup-scheduled">Pickup Scheduled</option>
+            <option value="out-for-pickup">Out for Pickup</option>
+            <option value="rto">Return to Origin</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="undelivered">Undelivered</option>
+            <option value="invoiced">Invoiced</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+          </select>
+          <button onclick="changeStatus(this)" class="filter-button filter-button-active">Apply</button>
         </div>
+      </div>
+
+      <div id="order-details">
+
+      </div>
+
+      <!-- Second div containing order items -->
+      <div id="order-items">
+        <!-- Table headings for order items -->
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Details</th>
+              <th>Cost</th>
+              <th>Quantity</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="order-items-body">
+
+          </tbody>
+        </table>
+
+      </div>
+
+      <div id="delivery-details">
+
+      </div>
+
+      <div id="deliv-details">
+        <table>
+          <thead>
+            <tr>
+              <th>Criteria</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
+
+  <script>
+    var notyf = new Notyf();
+    const orderId = location.pathname.split("/")[3];
+    var orderData = {};
+
+    const changeStatus = async (el) => {
+      try {
+        el.classList.add("disabled");
+        const currentStatus = document.querySelector("#order-status-filter").value;
+        if (currentStatus == "all" || currentStatus == "none") return notyf.error("Invalid status selection")
+        const changeStatusRequest = await fetch("/admin/recentorders/update", {
+          method: "POST",
+          headers: {
+            'Content-Type': "application/json"
+          },
+          body: JSON.stringify({ 
+            ids: [orderId],
+            status: currentStatus
+          })
+        });
+        const changeStatusResponse = await changeStatusRequest.json();
+        console.log("🚀 ~ changeStatus ~ changeStatusResponse:", changeStatusResponse)
+        if (changeStatusRequest.status != 200) {
+          return notyf.error(changeStatusResponse.error);
+        }
+        notyf.success(changeStatusResponse.message);
+        
+      } catch (error) {
+        console.log("🚀 ~ changeStatus ~ error:", error)
+        notyf.error(error);
+      } finally {
+        el.classList.remove("disabled");
+      }
+    }
+
+    const fetchOrderData = async () => {
+      try {
+        const adminOrdersRequest = await fetch(`/admin/recentorders/${orderId}`);
+        const adminOrdersResponse = await adminOrdersRequest.json();
+        console.log("🚀 ~ fetchOrderData ~ adminOrdersResponse:", adminOrdersResponse)
+        if (adminOrdersRequest.status == 200) {
+          orderData = adminOrdersResponse
+          return populateData();
+        }
+        notyf.error(adminOrdersResponse.error);
+      } catch (error) {
+        console.log("🚀 ~ fetchOrderData ~ error:", error)
+        notyf.error(error)
+      }
+    }
+
+    function formatDate(date) {
+      return new Date(date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    }
+    const populateData = () => {
+      const orderDetailsContainer = document.querySelector("#order-details")
+      const orderDesignsContainer = document.querySelector("#order-items-body")
+      const deliveryDetailsContainer = document.querySelector("#delivery-details")
+      const totalDetailsContainer = document.querySelector("#deliv-details")
+      document.querySelector("#order-id-heading").innerHTML = `Order ID: ${orderData.orderData.printwearOrderId} <h4 class="status-badge ${orderData.orderData.deliveryStatus}">${orderData.orderData.deliveryStatus}</h4>`;
+      document.querySelector("#order-status-filter").value = orderData.orderData.deliveryStatus;
+
+      orderDetailsContainer.innerHTML = `
+          <div id="billing-address">
+              <h3>Billing Address:</h3>
+              <p>Name: ${orderData.orderData.billingAddress?.firstName + ' ' + orderData.orderData.billingAddress?.lastName}</p>
+              <p>Email: ${orderData.orderData.billingAddress?.email}</p>
+              <p>Phone: ${orderData.orderData.billingAddress?.mobile}</p><br>
+            </div>
+            <div id="shipping-address">
+              <h3>Shipping Address:</h3>
+              <p>${[
+          orderData.orderData.shippingAddress?.streetLandmark,
+          orderData.orderData.shippingAddress?.city,
+          orderData.orderData.shippingAddress?.pincode,
+          orderData.orderData.shippingAddress?.state,
+        ].join(", ")}
+              </p><br />
+            </div>
+
+            <div id="contact-details">
+              <h3>Contact Details:</h3>
+              <p>Email: ${orderData.orderData.billingAddress?.email}</p>
+              <p>Mobile: ${orderData.orderData.billingAddress?.mobile}</p>
+            </div>
+
+            <div id="contact-details">
+              <h3>Order Details:</h3>
+              <p>Customer Reference Number: ${orderData.orderData.customerOrderId}</p>
+              <p>Self-Pickup: ${orderData.orderData.shipRocketCourier.courierId == "-1" ? "Yes" : "No"}</p>
+              <p>Retail Price: ₹ ${orderData.orderData.retailPrice}</p>
+              <p>Cash On Delivery: ${orderData.orderData.cashOnDelivery ? "Yes" : "No"}</p>
+              <p>Paid on: ${formatDate(orderData.orderData.createdAt)} via Wallet Payment (Transaction ID: ${orderData.orderData.walletOrderId})</p>
+            </div>
+        `;
+
+      orderDesignsContainer.innerHTML = orderData.orderData.items.map(order => {
+        const currentDesign = orderData.designsData.find(design => design._id == order.designId)
+        if (!currentDesign) return ''
+        if (currentDesign.designImage?.front.includes("printwear.in") && !currentDesign.designImage?.front.includes("admin.printwear.in")) {
+          currentDesign.designImage.front = currentDesign.designImage.front.replace("printwea.inr", "admin.printwear.in");
+          currentDesign.designImage.back = currentDesign.designImage.back.replace("printwear.in", "admin.printwear.in");
+        }
+        currentDesign.designItems = currentDesign.designItems.map(item => {
+          if (item?.URL?.includes("printwear.in") && !item?.URL?.includes("admin.printwear.in")) {
+            return {
+              ...item,
+              URL: item.URL.replace("printwear.in", "admin.printwear.in")
+            }
+          }
+        })
+        return `
+            <tr>
+              <td>
+                <div>
+                  <img style="width: 200px; object-fit: contain; align-self: center" src="${currentDesign?.designImage?.front}" />
+                </div>
+                ${currentDesign?.designImage?.back != "false" ? `<img style="width: 200px; object-fit: contain;" src="${currentDesign?.designImage?.back}" />` : ''}
+                <h5>${currentDesign?.designName}</h5>
+                <p>SKU: ${currentDesign?.designSKU}</p>
+              </td>
+              <td>
+                <div style="display: flex; height: max-height; flex-direction: column; gap: 1rem">
+                  <span>Base product: <p style="font-size: 14px">${currentDesign?.product.name} (${currentDesign?.product.SKU}) </p><span>
+                  <a href="${currentDesign?.product?.baseImage?.front}" target="_blank"><i class="fa fa-camera"></i></a>
+                  <br />
+                  <br />
+                  <span>
+                    Design Image: 
+                    <a href="${currentDesign?.designItems[0]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[0]?.itemName} (Front) </a>
+                    ${currentDesign?.designItems[1] ? 
+                      `<a href="${currentDesign?.designItems[1]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[1]?.itemName} (Back) </a>`: ''
+                    }
+                  </span>
+                  <br />
+                  <br />
+                  <span>Base price: <p style="font-size: 14px">₹ ${currentDesign?.product.price} </p></span>
+                  <br />
+                  <span>Design Dimensions: <p style="font-size: 13px">${currentDesign?.designDimensions?.width} x ${currentDesign?.designDimensions?.height} </p></span>
+                  <br />
+                  <span>Design Offset: <p style="font-size: 13px">${currentDesign?.designDimensions?.top}in from top, ${currentDesign?.designDimensions?.left}in from left </p></span>
+                  <br />
+                  <span>Design Cost: <p style="font-size: 13px">₹ ${(currentDesign?.price - currentDesign?.product.price).toFixed(2)} </p></span>
+                </div>
+              </td>
+              <td style="min-width: 6rem">₹ ${currentDesign?.price?.toFixed(2)}</td>
+              <td style="min-width: 3rem">${order.quantity}</td>
+              <td style="min-width: 6rem">₹ ${((currentDesign?.price * order.quantity)).toFixed(2)}</td>
+            </tr>
+        `}).join('\n');
+
+      deliveryDetailsContainer.innerHTML = `
+            <h4>
+              ${orderData.orderData.shipRocketCourier.courierId != "-1" ?
+          `
+                  <i class="fa fa-truck"></i>
+                  Standard Shipping
+                `:
+          `
+                  <i class="fa fa-person"></i>
+                  Self-Pickup
+                `
+        }
+            </h4>
+            <h4>
+              ${orderData.orderData.shipRocketCourier.courierId == "-1" ?
+          `
+                  Pickup date unknown
+                `:
+          `
+                  by ${orderData.orderData.shipRocketCourier.courierName}
+                  <br />
+                  estimated delivery by ${orderData.orderData.shipRocketCourier.estimatedDelivery}
+                `
+        }
+            </h4>
+            <h4>Charges: ₹ ${orderData.orderData.shipRocketCourier.courierId == "-1" ?
+          `
+                  0
+                `:
+          `
+                  ${orderData.orderData.deliveryCharges}
+                `
+        }</h4>
+          `
+
+      totalDetailsContainer.innerHTML = `
+              <table>
+              <thead>
+                <tr>
+                  <th>Criteria</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Order Total</td>
+                  <td>₹ ${orderData.orderData.totalAmount}</td>
+                </tr>
+                <tr>
+                  <td>Delivery Charges</td>
+                  <td>₹ ${orderData.orderData.deliveryCharges}</td>
+                </tr>
+                <tr>
+                  <td>COD Charges</td>
+                  <td>₹ ${orderData.orderData.cashOnDelivery ? 50 : 0}</td>
+                </tr>
+                <tr>
+                  <td>Taxes</td>
+                  <td>₹ ${orderData.orderData.taxes}</td>
+                </tr>
+                <tr>
+                  <td><strong>Grand Total</strong></td>
+                  <td><strong>₹ ${(orderData.orderData.totalAmount + orderData.orderData.deliveryCharges + (orderData.orderData.cashOnDelivery ? 50 : 0) + orderData.orderData.taxes).toFixed(2)}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+        `
+    }
+    
+    fetchOrderData();
+  </script>
 </body>
+
 </html>

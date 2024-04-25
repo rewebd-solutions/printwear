@@ -4437,34 +4437,40 @@ exports.updateadminorder = async (req, res) => {
   try {
     const IDsToUpdate = req.body.ids;
     const statusToUpdate = req.body.status;
+    console.log(IDsToUpdate, statusToUpdate);
     const validStatusEnum = [
-        "received",
-        "rts",
-        "on-hold",
-        "processing",
-        "rtd",
-        "rto",
-        "invoiced",
-        "shipped",
-        "delivered",
-        "completed",
-        "pending",
-    ]
+      "received",
+      "rts",
+      "on-hold",
+      "processing",
+      "rtd",
+      "shipment-cancel",
+      "pickup-scheduled",
+      "out-for-pickup",
+      "rto",
+      "cancelled",
+      "undelivered",
+      "invoiced",
+      "shipped",
+      "delivered",
+      "completed",
+      "pending",
+    ];
     if (!validStatusEnum.includes(statusToUpdate)) return res.status(400).json({ error: "Invalid status string" });
     if (IDsToUpdate.length < 1) return res.status(400).json({ error: "Empty IDs string" });
     const updatedOrderHistories = await OrderHistoryModel.updateMany(
       {
-        "orderData.price": { $in: IDsToUpdate },
+        "orderData.printwearOrderId": { $in: IDsToUpdate },
       },
       {
         $set: {
-          "orderData.$.deliveryStatus": statusToUpdate,
+          "orderData.$.deliveryStatus": statusToUpdate.trim(),
         },
       },
       {
         arrayFilters: [
           {
-            "$.price": { $in: IDsToUpdate },
+            "$.printwearOrderId": { $in: IDsToUpdate },
           },
         ],
       }

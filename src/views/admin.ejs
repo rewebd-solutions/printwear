@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.4/css/select.dataTables.min.css" />
+    <!-- <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.4/css/select.dataTables.min.css" /> -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -22,6 +22,20 @@
             width: 20px;
             height: 20px;
         }
+        .paginate_button.previous::after {
+        content: "‹";
+      }
+      .paginate_button.next::after {
+        content: "›"; 
+      }
+      .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+      }
+      .paginate_button.current,
+      .paginate_button.disabled {
+        display: none; 
+      }
         .dataTables_filter input {
             margin-bottom: 1rem; /* Adjust as needed */
         }
@@ -67,7 +81,9 @@
         .filter-options>* {
             margin-bottom: 1rem;
         }
-
+        .selected {
+            background-color: aliceblue !important;
+        }
         .filter-options select {
             padding: 0.5rem 1rem;
             border: 1px solid #ccc;
@@ -120,8 +136,10 @@
                     <th>Total</th>
                     <th>Status</th>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                </tbody>
             </table>
+            <span class="loader"></span>
         </div>
     </div>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
@@ -144,26 +162,51 @@
         ];
         
         let orderData = [];
-
-        const fetchOrderData = async () => {
-            try {
-            } catch (error) {
-                console.log("🚀 ~ fetchOrderData ~ error:", error)
-                notyf.error(error);
-            }
-        }
         
         $(document).ready(async function () {
             
             // fetchOrderData();
             const adminOrdersRequest = await fetch("/admin/recentorders");
             const adminOrdersResponse = await adminOrdersRequest.json();
-            console.log("🚀 ~ fetchOrderData ~ adminOrdersResponse:", adminOrdersResponse)
-
+            
+            if (adminOrdersRequest.status != 200) {
+                return notyf.error(adminOrdersResponse.error);
+            }
+            document.querySelector(".loader").remove();
             orderData = adminOrdersResponse;
 
             function formatDate(date) {
                 return new Date(date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+            }
+
+            const changeStatus = async (el) => {
+                try {
+                    el.classList.add("disabled");
+                    const currentStatus = document.querySelector("#order-status-filter").value;
+                    if (currentStatus == "all" || currentStatus == "none") return notyf.error("Invalid status selection")
+                    const changeStatusRequest = await fetch("/admin/recentorders/update", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': "application/json"
+                        },
+                        body: JSON.stringify({
+                            ids: toupdate,
+                            status: currentStatus
+                        })
+                    });
+                    const changeStatusResponse = await changeStatusRequest.json();
+                    console.log("🚀 ~ changeStatus ~ changeStatusResponse:", changeStatusResponse)
+                    if (changeStatusRequest.status != 200) {
+                        return notyf.error(changeStatusResponse.error);
+                    }
+                    notyf.success(changeStatusResponse.message);
+
+                } catch (error) {
+                    console.log("🚀 ~ changeStatus ~ error:", error)
+                    notyf.error(error);
+                } finally {
+                    el.classList.remove("disabled");
+                }
             }
 
             orderData.forEach(function (order) {
@@ -198,6 +241,12 @@
                 ordering: false,
                 paging: true,
                 searching: true,
+                language: {
+                    paginate: {
+                        next: "›",
+                        previous: "‹",
+                    },
+                },
             });
 
             $("#select-all").on("click", function () {
@@ -228,7 +277,8 @@
             }
 
             $("#order-table").on("change", 'input[type="checkbox"]', function () {
-                var orderId = $(this).closest("tr").find(".order-id button").text();
+                var orderId = $(this).closest("tr").find(".order-id a").text();
+                console.log("🚀 ~ orderId:", orderId)
                 var isChecked = $(this).prop("checked");
                 updateToUpdateArray(orderId, isChecked);
             });
@@ -237,29 +287,33 @@
             $("#select-all").on("click", function () {
                 console.log("sel");
                 var currentPageRows = table.rows({ page: "current" }).nodes();
-                $('input[type="checkbox"]', currentPageRows).prop(
-                    "checked",
-                    this.checked
-                );
+                var $checkboxes = $('input[type="checkbox"]', currentPageRows);
+
+                $checkboxes.prop("checked", this.checked);
+
                 if (this.checked) {
-                    table.rows({ page: "current" }).select();
-
-                    toupdate = [];
-
                     $('input[type="checkbox"]:checked', currentPageRows).each(
                         function () {
                             var orderId = $(this)
                                 .closest("tr")
-                                .find(".order-id button")
+                                .find(".order-id .clickable a")
                                 .text();
-
                             toupdate.push(orderId);
                         }
                     );
+                    toupdate = [...new Set(toupdate)];
                 } else {
-                    table.rows({ page: "current" }).deselect();
-
-                    toupdate = [];
+                    var uncheckedOrderIds = [];
+                    $checkboxes.filter(":not(:checked)").each(function () {
+                        var orderId = $(this)
+                            .closest("tr")
+                            .find(".order-id .clickable a")
+                            .text();
+                        uncheckedOrderIds.push(orderId);
+                    });
+                    toupdate = toupdate.filter(
+                        (orderId) => !uncheckedOrderIds.includes(orderId)
+                    );
                 }
                 console.log(toupdate);
             });
@@ -272,6 +326,7 @@
 
             $(".filter-options button").click(function () {
                 console.log("apply button clicked by sachin");
+                changeStatus(this)
             });
         });
         

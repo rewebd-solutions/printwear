@@ -109,10 +109,10 @@ route.get("/zohogrptest", controller.addwomens); // remove asap after adding wom
 
 
 // new admin page controllers
-route.get("/admin/orders", services.adminpage);
-route.get("/admin/orders/:id", services.adminorder);
-route.get("/admin/dashboard", services.admindash);
-route.get("/admin/users", services.adminusers);
+route.get("/admin/orders", authServices.authorizeAdmin, services.adminpage);
+route.get("/admin/orders/:id", authServices.authorizeAdmin, services.adminorder);
+route.get("/admin/dashboard", authServices.authorizeAdmin, services.admindash);
+route.get("/admin/users", authServices.authorizeAdmin, services.adminusers);
 route.get("/admin/recentorders", authServices.authorizeAdmin, controller.getadminorders);
 route.get("/admin/recentorders/:id", authServices.authorizeAdmin, controller.getadminorder);
 route.post("/admin/recentorders/update", authServices.authorizeAdmin, controller.updateadminorder);

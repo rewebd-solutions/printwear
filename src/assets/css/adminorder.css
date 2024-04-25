@@ -1,0 +1,202 @@
+@font-face {
+  font-family: myFont;
+  src: url("BaseNeueTrial-SemiBoldOblique.ttf");
+}
+
+html {
+  font-size: 16px !important;
+}
+
+* {
+  font-family: myFont;
+  margin: 0;
+  padding: 0;
+  letter-spacing: 0.05rem;
+  box-sizing: border-box;
+}
+
+.headings {
+  background-color: gray;
+  padding: 15px;
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+  width: 95vw;
+  border-top-right-radius: 12px;
+  border-top-left-radius: 12px;
+  justify-content: space-around;
+  box-shadow: 0px 2px 20px gray;
+}
+
+.manageorder {
+  display: flex;
+  flex-direction: column;
+  padding-top: 6rem;
+  padding-left: 280px;
+}
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #fff;
+  border-bottom-color: #ff3d00;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.processing,
+.rtd,
+.pickup-scheduled,
+.out-for-pickup,
+.delivered,
+.completed,
+.rto,
+.shipped,
+.rts {
+  background-color: hsl(108, 48%, 94%);
+  color: hsl(136, 100%, 28%);
+}
+
+.received,
+.invoiced {
+  background-color: #e5e5e5;
+  color: #777;
+}
+
+.on-hold {
+  background-color: #f8dda7;
+  color: #b17a0c;
+}
+
+.undelivered,
+.shipment-cancel,
+.cancelled,
+.refunded {
+  background-color: hsl(0, 100%, 97%);
+  color: hsl(0, 100%, 57%);
+}
+
+#order-details, #delivery-details, #deliv-details {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 1.5rem;
+  margin-bottom: 20px;
+  max-width: 1100px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+#deliv-details {
+    padding-left: 500px;
+}
+
+#order-details h2 {
+  margin-top: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 20px;
+}
+
+#order-details h3 {
+  margin-top: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 10px;
+}
+
+#order-details p {
+  margin: 5px 0;
+  color: #666666;
+}
+
+#shipping-address {
+    max-width: 400px;
+    text-wrap: balance
+}
+
+#order-items {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  max-width: 1100px;
+  width: 100%;
+}
+
+table {
+    width: 100%;
+    
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  align-content: flex-start;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+td:first-child {
+    min-width: 350px;
+}
+
+.delivery-details {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.filter-button {
+  padding: 0.3rem 0.7rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.filter-button-active {
+  outline: 1px solid #F05A30;
+  background-color: #F05A30;
+  color: white;
+}
+
+#order-status-filter {
+    padding: 0.3rem 0.5rem;
+    border-radius: 8px;
+}
+
+.status-badge {
+    display: inline;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    width: min-content;
+}
+
+.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
