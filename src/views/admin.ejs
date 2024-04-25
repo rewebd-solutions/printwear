@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/manageorder.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.4/css/select.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.3.4/js/dataTables.select.min.js"></script>
+    <title>Admin - Printwear</title>
+    <style>
+        .order-table input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        .dataTables_filter input {
+            margin-bottom: 1rem; /* Adjust as needed */
+        }
+        .order-table {
+            margin-right: 50px;
+            margin-bottom: 3rem; /* Adjust as needed */
+            /* Adjust this value as needed */
+        }
+
+        #order-table {
+            margin-top: 1.2rem;
+        }
+
+        .order-id {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .dataTables_wrapper .dataTables_scrollHeadInner {
+            overflow: hidden;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0.1rem 0.7rem;
+            border-radius: 6px;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button .current {
+            background-color: #F05A30;
+            color: white
+        }
+
+        .dataTables_wrapper .dataTables_scrollHeadInner table {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-options>* {
+            margin-bottom: 1rem;
+        }
+
+        .filter-options select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/admin-side.ejs') %>
+            <%- include('partials/admin-nav.ejs') %>
+    </div>
+    <div class="manageorder">
+        <div class="order-table">
+            <div class="filter-options">
+                <select id="order-status-filter" class="table-filter">
+                    <option value="all" disabled selected>Status</option>
+                    <option value="none">None</option>
+                    <option value="received">Received</option>
+                    <option value="rts">Return to Sender</option>
+                    <option value="on-hold">On Hold</option>
+                    <option value="processing">Processing</option>
+                    <option value="rtd">Ready to Dispatch</option>
+                    <option value="shipment-cancel">Shipment Cancelled</option>
+                    <option value="pickup-scheduled">Pickup Scheduled</option>
+                    <option value="out-for-pickup">Out for Pickup</option>
+                    <option value="rto">Return to Origin</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="undelivered">Undelivered</option>
+                    <option value="invoiced">Invoiced</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                </select>
+                <button class="filter-button filter-button-active">
+                    Apply
+                </button>
+            </div>
+
+            <table id="order-table" class="data-table">
+                <thead>
+                    <th><input type="checkbox" id="select-all" /></th>
+                    <th>Order ID</th>
+                    <th>Order By</th>
+                    <th>Deliver To</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        var notyf = new Notyf();
+        var orderHistoryData = [];
+        const deliveryStatuses = [
+            "received",
+            "rts",
+            "on-hold",
+            "processing",
+            "rtd",
+            "rto",
+            "invoiced",
+            "shipped",
+            "delivered",
+            "completed",
+            "pending",
+        ];
+        
+        let orderData = [];
+
+        const fetchOrderData = async () => {
+            try {
+            } catch (error) {
+                console.log("🚀 ~ fetchOrderData ~ error:", error)
+                notyf.error(error);
+            }
+        }
+        
+        $(document).ready(async function () {
+            
+            // fetchOrderData();
+            const adminOrdersRequest = await fetch("/admin/recentorders");
+            const adminOrdersResponse = await adminOrdersRequest.json();
+            console.log("🚀 ~ fetchOrderData ~ adminOrdersResponse:", adminOrdersResponse)
+
+            orderData = adminOrdersResponse;
+
+            function formatDate(date) {
+                return new Date(date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+            }
+
+            orderData.forEach(function (order) {
+                $("#order-table tbody").append(`
+                    <tr>
+                        <td><input type="checkbox"/></td> <!-- Checkbox -->
+                        <td class="order-id clickable"><a href="/admin/orders/${order.printwearOrderId}">${order.printwearOrderId}</a></td>
+                        <td>${order.billingAddress?.firstName + ' ' + order.billingAddress?.lastName}</td>
+                        <td style="max-width: 300px">${order.shippingAddress?.firstName + ' ' + order.shippingAddress?.lastName + '(' + order.shippingAddress?.mobile + ')'}
+                            <br />
+                            <p style="font-size:13px; max-width: 300px;">
+                                ${[
+                                    order.shippingAddress?.streetLandmark,
+                                    order.shippingAddress?.city,
+                                    order.shippingAddress?.pincode,
+                                    order.shippingAddress?.state,
+                                ].join(", ")}
+                            </p>
+                        </td>
+                        <td>${formatDate(order.createdAt)}</td>
+                        <td>₹ ${order.totalAmount}</td>
+                        <td><h4 class="status-badge ${order.deliveryStatus}">${order.deliveryStatus}</h4></td>
+                    </tr>
+                    `);
+            });
+
+            var table = $("#order-table").DataTable({
+                select: {
+                    style: "multi",
+                    selector: "td:first-child",
+                },
+                ordering: false,
+                paging: true,
+                searching: true,
+            });
+
+            $("#select-all").on("click", function () {
+                var currentPageRows = table.rows({ page: "current" }).nodes();
+                $('input[type="checkbox"]', currentPageRows).prop(
+                    "checked",
+                    this.checked
+                );
+                if (this.checked) {
+                    table.rows({ page: "current" }).select();
+                } else {
+                    table.rows({ page: "current" }).deselect();
+                }
+            });
+
+            var toupdate = [];
+
+            function updateToUpdateArray(orderId, isChecked) {
+                if (isChecked && orderId != "") {
+                    toupdate.push(orderId.trim());
+                } else {
+                    var index = toupdate.indexOf(orderId);
+                    if (index !== -1) {
+                        toupdate.splice(index, 1);
+                    }
+                }
+                console.log(toupdate);
+            }
+
+            $("#order-table").on("change", 'input[type="checkbox"]', function () {
+                var orderId = $(this).closest("tr").find(".order-id button").text();
+                var isChecked = $(this).prop("checked");
+                updateToUpdateArray(orderId, isChecked);
+            });
+
+            var selectedValue;
+            $("#select-all").on("click", function () {
+                console.log("sel");
+                var currentPageRows = table.rows({ page: "current" }).nodes();
+                $('input[type="checkbox"]', currentPageRows).prop(
+                    "checked",
+                    this.checked
+                );
+                if (this.checked) {
+                    table.rows({ page: "current" }).select();
+
+                    toupdate = [];
+
+                    $('input[type="checkbox"]:checked', currentPageRows).each(
+                        function () {
+                            var orderId = $(this)
+                                .closest("tr")
+                                .find(".order-id button")
+                                .text();
+
+                            toupdate.push(orderId);
+                        }
+                    );
+                } else {
+                    table.rows({ page: "current" }).deselect();
+
+                    toupdate = [];
+                }
+                console.log(toupdate);
+            });
+
+            $("#order-status-filter").change(function () {
+                selectedValue = $(this).val();
+
+                console.log(selectedValue);
+            });
+
+            $(".filter-options button").click(function () {
+                console.log("apply button clicked by sachin");
+            });
+        });
+        
+    </script>
+</body>
+
+</html>

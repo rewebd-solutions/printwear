@@ -321,7 +321,7 @@ hr {
     color: #b17a0c;
 }
 
-.undelivered, .shipment-cancel, .cancelled {
+.undelivered, .shipment-cancel, .cancelled, .refunded {
     background-color: hsl(0, 100%, 97%);
     color: hsl(0, 100%, 57%)
 }

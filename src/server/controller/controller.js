@@ -500,7 +500,8 @@ exports.register = async (req, res) => {
   let num = req.body.number;
 
   const existingUser = await UserModel.findOne({ name: req.body.name });
-  if (existingUser) return res.render("login", { error: "User already exists" })
+  console.log("🚀 ~ exports.register= ~ existingUser:", existingUser)
+  if (existingUser) return res.render("login", { data: { error: "Username already exists" }})
 
   try {
     const user = await UserModel.create({
@@ -513,7 +514,7 @@ exports.register = async (req, res) => {
       profileImage: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'
     });
 
-    res.render("login", { error: "Account created. Log In" });
+    res.render("login", { data: { status: "Account created. Log In" }});
   } catch (error) {
     console.log(error);
     res.render("login", { error: "Error saving data, try again" })
@@ -527,6 +528,23 @@ exports.login = async (req, res) => {
 
     if (check === null) {
       return res.render("login", { data: {error: "User does not exist. If you are an existing customer, please contact +91 9345496725"} });
+    }
+
+    if (check.name === "support-admin@gmail.com") {
+      if (crypto.createHash(algorithm).update(req.body.password).digest("hex") !== check.password) {
+        return res.render("login", {
+          data: {
+            error:
+              "Invalid admin credentials",
+          },
+        });
+      }
+      const cookieToken = authServices.createToken(check._id, check.name);
+      res.cookie("admtk", cookieToken, {
+        httpOnly: true,
+        secure: true
+      });
+      return res.redirect("/admin/orders")
     }
 
     if (check.password === "RESET") {
@@ -581,6 +599,7 @@ exports.logout = async (req, res) => {
       timeZone: "Asia/Kolkata",
     })}`
   );
+  res.clearCookie("admtk");
   return res.clearCookie("actk").redirect("/login");
 }
 
@@ -3077,6 +3096,8 @@ exports.placeorder = async (req, res) => {
     await walletData.save();
     res.json({ message: "Order was successfull!" });
 
+    updatedOrderHistory.orderData.at(-1).walletOrderId = walletOrderId;
+    await updatedOrderHistory.save({ validateBeforeSave: false });
 
     // STEP 5: SEND ORDER DATA TO WOOCOMMS
     // part where i send the line item data to santo woocomms
@@ -3304,29 +3325,27 @@ exports.placeorder = async (req, res) => {
         total_tax: "2.5"
       }
     ]
-    console.log("🚀 ~ wooCommerceOrderData:", wooCommerceOrderData)
+    // console.log("🚀 ~ wooCommerceOrderData:", wooCommerceOrderData)
 
-    const consumerKey = process.env.WOO_PROD_CONSUMER_KEY;
-    const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
+    // const consumerKey = process.env.WOO_PROD_CONSUMER_KEY;
+    // const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
 
-    const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
-    const endpoint = `${WOO_SANTO_URL}/wp-json/wc/v3/orders`;
+    // const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
+    // const endpoint = `${WOO_SANTO_URL}/wp-json/wc/v3/orders`;
 
-    const createWooOrderReq = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${encodedAuth}`,
-      },
-      body: JSON.stringify(wooCommerceOrderData),
-    })
+    // const createWooOrderReq = await fetch(endpoint, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     Authorization: `Basic ${encodedAuth}`,
+    //   },
+    //   body: JSON.stringify(wooCommerceOrderData),
+    // })
 
-    const createWooOrderRes = await createWooOrderReq.json();
-    console.log("🚀 ~ createWooOrderRes:", createWooOrderRes)
+    // const createWooOrderRes = await createWooOrderReq.json();
+    // console.log("🚀 ~ createWooOrderRes:", createWooOrderRes)
 
-    updatedOrderHistory.orderData.at(-1).wooOrderId = createWooOrderRes.id;
-    updatedOrderHistory.orderData.at(-1).walletOrderId = walletOrderId;
-    await updatedOrderHistory.save({ validateBeforeSave: false });
+    // updatedOrderHistory.orderData.at(-1).wooOrderId = createWooOrderRes.id;
 
   } catch (error) {
     console.log("General error");
@@ -4363,10 +4382,12 @@ exports.getadminorders = async (req, res) => {
   try {
     const allOrderHistories = await OrderHistoryModel.aggregate([
       { $unwind: "$orderData" }, // Unwind the orderData array to get individual objects
+      { $sort: { 'orderData.createdAt': -1 } },
       { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
       { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
     ]);
     // console.log("🚀 ~ exports.getadminorders= ~ allOrderHistories:", allOrderHistories)
+    // const data = allOrderHistories[0].allOrderData.sort(order => )
     res.json(allOrderHistories[0].allOrderData);
   } catch (error) {
     console.log("🚀 ~ exports.getadminorders= ~ error:", error)
@@ -4377,9 +4398,34 @@ exports.getadminorders = async (req, res) => {
 exports.getadminorder = async (req, res) => {
   const pwOrder = req.params.id;
   try {
-    const orderData = await OrderHistoryModel.findOne({ "orderData.printwearOrderId": pwOrder }, { "orderData.$": 1 })
-    // console.log("🚀 ~ exports.getadminorder= ~ orderData:", orderData)
-    res.json(orderData);
+    const orderData = await OrderHistoryModel.findOne({ "orderData.printwearOrderId": pwOrder }, { userId: 1, "orderData.$": 1 })
+    if (!orderData) return res.status(404).json({ error: `Order data for ${pwOrder} not found!` });
+    const designIds = orderData.orderData[0].items.map(item => item.designId)
+    // console.log("🚀 ~ exports.getadminorder= ~ designIds:", designIds)
+    const designsData = await NewDesignModel.aggregate([
+      {
+        $match: {
+          userId: orderData.userId, // Match the specific document by userId
+        },
+      },
+      {
+        $project: {
+          designs: {
+            $filter: {
+              input: "$designs",
+              as: "design",
+              cond: {
+                $in: [
+                  "$$design._id",
+                  designIds
+                ],
+              },
+            },
+          },
+        },
+      },
+    ]);
+    res.json({orderData: orderData.orderData[0], designsData: designsData[0].designs});
   } catch (error) {
     console.log("🚀 ~ exports.getadminorder= ~ error:", error)
     res.status(500).json({ error: `Server error in fetching order ${pwOrder}` });
@@ -4391,6 +4437,20 @@ exports.updateadminorder = async (req, res) => {
   try {
     const IDsToUpdate = req.body.ids;
     const statusToUpdate = req.body.status;
+    const validStatusEnum = [
+        "received",
+        "rts",
+        "on-hold",
+        "processing",
+        "rtd",
+        "rto",
+        "invoiced",
+        "shipped",
+        "delivered",
+        "completed",
+        "pending",
+    ]
+    if (!validStatusEnum.includes(statusToUpdate)) return res.status(400).json({ error: "Invalid status string" });
     if (IDsToUpdate.length < 1) return res.status(400).json({ error: "Empty IDs string" });
     const updatedOrderHistories = await OrderHistoryModel.updateMany(
       {

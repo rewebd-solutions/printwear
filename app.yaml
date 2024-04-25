@@ -21,7 +21,7 @@ env_variables:
   SHIPROCKET_CHANNEL_ID: 4248923
   WOO_PROD_CONSUMER_KEY: ck_4ab51ad3c66aaf7fa38825986a89a3c6c2f3f9fd
   WOO_PROD_CONSUMER_SECRET: cs_2391d313efd71dad9be55d8a80872ad99f7cc1fa
-
+  JWT_SECRET: thatsasecret
 handlers:
   - url: /.*
     script: auto

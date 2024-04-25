@@ -17,6 +17,18 @@ exports.adminpage = (req, res) => {
     res.render("admin");
 }
 
+exports.admindash = (req, res) => {
+    res.render("admindashboard");
+}
+
+exports.adminorder = (req, res) => {
+    res.render("adminorder");
+}
+
+exports.adminusers = (req, res) => {
+    res.render("adminusers");
+}
+
 exports.forgetRoutes = (req, res) => {
     res.render('forgetpassword', { success: "" });
 }

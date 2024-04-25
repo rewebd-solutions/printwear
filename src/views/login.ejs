@@ -49,10 +49,11 @@
             var notyf = new Notyf();
             notyf.error({ message: "<%= data.error %>", duration: 20000 });
             console.log(data.error);
-        </script>
+            </script>
     <% } else { %>
         <script>
-            status != '' && notyf.success(status);
+            var notyf = new Notyf();
+            notyf.success("<%= data.status %>");
         </script>
     <% }  %>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
