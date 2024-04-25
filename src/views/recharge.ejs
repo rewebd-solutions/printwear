@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="/css/recharge.css">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <title>Recharge wallet for <%= data.userName %>
     </title>
 </head>
@@ -37,6 +39,8 @@
             </div>
         </div>
         <script>
+            var notyf = new Notyf();
+
             const rechargeInput = document.querySelector(".input-wrapper input");
             rechargeInput.oninput = (e) => {
                 let instrin = e.target.value;
@@ -67,9 +71,11 @@
                         mode: "production" //or production
                     });
                     cashfree.checkout({ paymentSessionId: rechargeResponse.paymentLink }).then(check => console.log(check)).catch(err => alert(error));
+                    notyf.success("Redirecting to payment page")
                 } catch (error) {
                     console.log(error);
-                    handleCancel();
+                    notyf.error("Redirecting to payment page")
+                    // handleCancel();
                 }
             });
         </script>
