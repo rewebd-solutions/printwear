@@ -19,7 +19,7 @@ const mongoose = require("mongoose");
 var ProductModel = require('../model/productModel');
 var StoreModel = require('../model/storeModel');
 var UserModel = require("../model/userModel");
-// var CartModel = require("../model/cartModel");
+var CartModel = require("../model/cartModel");
 var ImageModel = require("../model/imageModel")
 var ColorModel = require("../model/colorModel");
 var DesignModel = require("../model/designModel");
@@ -1202,7 +1202,6 @@ exports.getwooorders = async (req, res) => {
     // console.log("🚀 ~ exports.getwooorders= ~ allSKUs:", allSKUs)
 
     const wooCommerceStoreData = storeDetails.wooCommerceStore;
-    
     if (!wooCommerceStoreData) return res.status(404).json({ message: 'No WooCommerce store found!' })
     
     const WOOCOMMERCE_SHOP_URL = wooCommerceStoreData.url;
@@ -4359,17 +4358,61 @@ exports.createshiporder = async (req, res) => {
 
 }
 
-// webhook for woocommerce to hit when order is updated
-exports.woowebhook = async (req, res) => {
+
+exports.getadminorders = async (req, res) => {
   try {
-    console.log("🚀 ~ exports.woowebhook= ~ req:", req.body)
-    res.send("OK");
-    const wooCommerceOrderId = req.body.number;
-    if (!wooCommerceOrderId) console.log("WooCommerce webhook failed. No order number.");
-    const OrderHistoryData = await OrderHistoryModel.findOneAndUpdate({ "orderData": { $elemMatch: { wooOrderId: wooCommerceOrderId } } }, { $set: { "orderData.$.deliveryStatus": req.body.status } }, { new: true });
-    console.log("🚀 ~ updated order history after webhook", OrderHistoryData)
+    const allOrderHistories = await OrderHistoryModel.aggregate([
+      { $unwind: "$orderData" }, // Unwind the orderData array to get individual objects
+      { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
+      { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
+    ]);
+    // console.log("🚀 ~ exports.getadminorders= ~ allOrderHistories:", allOrderHistories)
+    res.json(allOrderHistories[0].allOrderData);
+  } catch (error) {
+    console.log("🚀 ~ exports.getadminorders= ~ error:", error)
+    res.status(500).json({ error: "Server error in fetching order details!" });
+  }
+}
+
+exports.getadminorder = async (req, res) => {
+  const pwOrder = req.params.id;
+  try {
+    const orderData = await OrderHistoryModel.findOne({ "orderData.printwearOrderId": pwOrder }, { "orderData.$": 1 })
+    // console.log("🚀 ~ exports.getadminorder= ~ orderData:", orderData)
+    res.json(orderData);
+  } catch (error) {
+    console.log("🚀 ~ exports.getadminorder= ~ error:", error)
+    res.status(500).json({ error: `Server error in fetching order ${pwOrder}` });
+  }
+}
+
+// webhook for woocommerce to hit when order is updated
+exports.updateadminorder = async (req, res) => {
+  try {
+    const IDsToUpdate = req.body.ids;
+    const statusToUpdate = req.body.status;
+    if (IDsToUpdate.length < 1) return res.status(400).json({ error: "Empty IDs string" });
+    const updatedOrderHistories = await OrderHistoryModel.updateMany(
+      {
+        "orderData.price": { $in: IDsToUpdate },
+      },
+      {
+        $set: {
+          "orderData.$.deliveryStatus": statusToUpdate,
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "$.price": { $in: IDsToUpdate },
+          },
+        ],
+      }
+    );
+    console.log("🚀 ~ updated order history: ", updatedOrderHistories.modifiedCount)
+    return res.json({ message: "Bulk action was successful!" });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: "error" });
+    res.status(500).send({ error: "Server error in bulk updates!" });
   }
 }

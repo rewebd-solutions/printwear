@@ -107,6 +107,10 @@ route.get("/invoice", authServices.authorizeToken, controller.getinvoices);
 // route.get("/dummytest", controller.createdummyorder); // remove asap after testing woocommerce order
 route.get("/zohogrptest", controller.addwomens); // remove asap after adding womens rn data
 
-route.post("/woowebhook", controller.woowebhook);
+
+// new admin page controllers
+route.get("/admin/orders", controller.getadminorders);
+route.get("/admin/orders/:id", controller.getadminorder);
+route.post("/admin/orders/update", controller.updateadminorder);
 
 module.exports = route
