@@ -4464,16 +4464,17 @@ exports.updateadminorder = async (req, res) => {
       },
       {
         $set: {
-          "orderData.$.deliveryStatus": statusToUpdate.trim(),
+          "orderData.$[e].deliveryStatus": statusToUpdate.trim(),
         },
       },
       {
         arrayFilters: [
           {
-            "$.printwearOrderId": { $in: IDsToUpdate },
+            "e.printwearOrderId": { $in: IDsToUpdate },
           },
         ],
-      }
+        multi: true
+      },
     );
     console.log("🚀 ~ updated order history: ", updatedOrderHistories.modifiedCount)
     return res.json({ message: "Bulk action was successful!" });
