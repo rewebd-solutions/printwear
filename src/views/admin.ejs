@@ -200,7 +200,8 @@
                         return notyf.error(changeStatusResponse.error);
                     }
                     notyf.success(changeStatusResponse.message);
-
+                    // for now reload, adhukapro nee filter panni update panniko
+                    location.reload();
                 } catch (error) {
                     console.log("🚀 ~ changeStatus ~ error:", error)
                     notyf.error(error);
@@ -247,6 +248,7 @@
                         previous: "‹",
                     },
                 },
+                dom: '<"top"pfl<"clear">>rt<"bottom"ip<"clear">>'
             });
 
             $("#select-all").on("click", function () {
