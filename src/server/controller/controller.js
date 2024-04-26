@@ -4425,7 +4425,8 @@ exports.getadminorder = async (req, res) => {
         },
       },
     ]);
-    res.json({orderData: orderData.orderData[0], designsData: designsData[0].designs});
+    // console.log("🚀 ~ exports.getadminorder= ~ designsData:", designsData)
+    res.json({orderData: orderData.orderData[0], designsData: JSON.stringify(designsData) });
   } catch (error) {
     console.log("🚀 ~ exports.getadminorder= ~ error:", error)
     res.status(500).json({ error: `Server error in fetching order ${pwOrder}` });

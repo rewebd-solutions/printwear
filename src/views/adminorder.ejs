@@ -195,7 +195,8 @@
         `;
 
       orderDesignsContainer.innerHTML = orderData.orderData.items.map(order => {
-        const currentDesign = orderData.designsData.find(design => design._id == order.designId)
+        const currentDesign = JSON.parse(orderData.designsData)[0].designs.find(design => design._id == order.designId)
+        // console.log("🚀 ~ populateData ~ currentDesign:", currentDesign)
         if (!currentDesign) return ''
         if (currentDesign.designImage?.front.includes("printwear.in") && !currentDesign.designImage?.front.includes("admin.printwear.in")) {
           currentDesign.designImage.front = currentDesign.designImage.front.replace("printwear.in", "admin.printwear.in");
@@ -213,9 +214,9 @@
             <tr>
               <td>
                 <div>
-                  <img style="width: 200px; object-fit: contain; align-self: center" src="${currentDesign?.designImage?.front}" />
+                  <img style="width: 200px; object-fit: contain; align-self: center; cursor: pointer" onclick="window.open(\'${currentDesign?.designImage?.front}\', '_blank')" src="${currentDesign?.designImage?.front}" />
                 </div>
-                ${currentDesign?.designImage?.back != "false" ? `<img style="width: 200px; object-fit: contain;" src="${currentDesign?.designImage?.back}" />` : ''}
+                ${currentDesign?.designImage?.back != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.back}\', '_blank')" src="${currentDesign?.designImage?.back}" />` : ''}
                 <h5>${currentDesign?.designName}</h5>
                 <p>SKU: ${currentDesign?.designSKU}</p>
               </td>
@@ -236,11 +237,27 @@
                   <br />
                   <span>Base price: <p style="font-size: 14px">₹ ${currentDesign?.product.price} </p></span>
                   <br />
-                  <span>Design Dimensions: <p style="font-size: 13px">${currentDesign?.designDimensions?.width} x ${currentDesign?.designDimensions?.height} </p></span>
+                  <span>Design Dimensions: <p style="font-size: 13px">Front: ${currentDesign?.designDimensions?.width}in x ${currentDesign?.designDimensions?.height}in</p>
+                    <p style="font-size: 13px">Back: ${currentDesign?.backDesignDimensions?.width}in x ${currentDesign?.backDesignDimensions?.height}in </p>
+                    </span>
                   <br />
-                  <span>Design Offset: <p style="font-size: 13px">${(currentDesign?.designDimensions?.top > 40? currentDesign?.designDimensions?.top/2.54: currentDesign?.designDimensions?.top).toFixed(2)}in from top, ${(currentDesign?.designDimensions?.left > 40 ? currentDesign?.designDimensions?.top/2.54: currentDesign?.designDimensions?.top).toFixed(2)}in from left </p></span>
+                  <span>Design Offset: 
+                  <p style="font-size: 13px">\
+                    <strong>Front:</strong> ${(currentDesign?.designDimensions?.top > 40? currentDesign?.designDimensions?.top/25.4: currentDesign?.designDimensions?.top).toFixed(2)}in from top, 
+                    ${(currentDesign?.designDimensions?.left > 40 ? currentDesign?.designDimensions?.top/25.4: currentDesign?.designDimensions?.top).toFixed(2)}in from left
+                  </p>
+                  ${
+                    (currentDesign?.backDesignDimensions && currentDesign?.backDesignDimensions.width > 0) ? 
+                    `
+                      <p style="font-size: 13px">\
+                        <strong>Back:</strong> ${(currentDesign?.backDesignDimensions?.top > 40 ? currentDesign?.backDesignDimensions?.top / 25.4 : currentDesign?.backDesignDimensions?.top).toFixed(2)}in from top, 
+                      ${(currentDesign?.backDesignDimensions?.left > 40 ? currentDesign?.backDesignDimensions?.top / 25.4 : currentDesign?.backDesignDimensions?.top).toFixed(2)}in from left
+                      </p>
+                    `: ''
+                  }
+                  </span>
                   <br />
-                  <span>Design Cost: <p style="font-size: 13px">₹ ${(currentDesign?.price - currentDesign?.product.price).toFixed(2)} </p></span>
+                  <span>Design Cost: <p style="font-size: 13px"><strong>₹ ${(currentDesign?.price - currentDesign?.product.price).toFixed(2)} </strong></p></span>
                 </div>
               </td>
               <td style="min-width: 6rem">₹ ${currentDesign?.price?.toFixed(2)}</td>
@@ -250,7 +267,7 @@
         `}).join('\n');
 
       deliveryDetailsContainer.innerHTML = `
-            <h4>
+            <p>
               ${orderData.orderData.shipRocketCourier.courierId != "-1" ?
           `
                   <i class="fa fa-truck"></i>
@@ -261,8 +278,8 @@
                   Self-Pickup
                 `
         }
-            </h4>
-            <h4>
+            </p>
+            <p>
               ${orderData.orderData.shipRocketCourier.courierId == "-1" ?
           `
                   Pickup date unknown
@@ -273,15 +290,15 @@
                   estimated delivery by ${orderData.orderData.shipRocketCourier.estimatedDelivery}
                 `
         }
-            </h4>
-            <h4>Charges: ₹ ${orderData.orderData.shipRocketCourier.courierId == "-1" ?
+            </p>
+            <p>Charges: ₹ ${orderData.orderData.shipRocketCourier.courierId == "-1" ?
           `
                   0
                 `:
           `
                   ${orderData.orderData.deliveryCharges}
                 `
-        }</h4>
+        }</p>
           `
 
       totalDetailsContainer.innerHTML = `
