@@ -4,6 +4,30 @@ exports.homeRoutes = (req, res) => {
     //res.sendFile(__dirname+'/mockup.html');
 }
 
+exports.contactus = (req, res) => {
+    res.render("contactus");
+}
+
+exports.privacypolicy = (req, res) => {
+    res.render("privacypolicy");
+}
+
+exports.aboutus = (req, res) => {
+    res.render("aboutus");
+}
+
+exports.termsandconditions = (req, res) => {
+    res.render("termsandconditions");
+}
+
+exports.faql = (req, res) => {
+    res.render("faql");
+}
+
+exports.shipandrefund = (req, res) => {
+    res.render("shipandrefund");
+}
+
 exports.loginpage = (req, res) => {
     // if (req.id) return res.redirect("/dashboard");
     res.render("login", { data: {error: false} });

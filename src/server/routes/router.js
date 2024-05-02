@@ -8,6 +8,12 @@ const authServices = require("../services/auth");
 const upload = multer({ storage: multer.memoryStorage() });
 
 route.get('/', services.homeRoutes)
+route.get('/contact-us', services.contactus)
+route.get('/about-us', services.aboutus)
+route.get('/privacypolicy', services.privacypolicy)
+route.get("/termsandconditions", services.termsandconditions);
+route.get("/faql", services.faql);
+route.get("/shipandrefund", services.shipandrefund);
 
 // route.get("/testing", controller.testing);
 

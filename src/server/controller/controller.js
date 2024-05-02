@@ -3092,8 +3092,9 @@ exports.placeorder = async (req, res) => {
       console.log(`Couldn't create invoice for ${orderData.printwearOrderId}`);
     }
     let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${walletOrderId}`)
-    walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice.invoice_url;
+    walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice?.invoice_url;
     await walletData.save();
+    
     res.json({ message: "Order was successfull!" });
 
     updatedOrderHistory.orderData.at(-1).walletOrderId = walletOrderId;
