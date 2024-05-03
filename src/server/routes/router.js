@@ -16,6 +16,7 @@ route.get("/faql", services.faql);
 route.get("/shipandrefund", services.shipandrefund);
 
 // route.get("/testing", controller.testing);
+// route.post("/missingship", controller.missingshiprocket);
 
 route.post('/register', controller.register);
 route.post('/login', controller.login);

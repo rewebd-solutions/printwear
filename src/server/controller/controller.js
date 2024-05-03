@@ -2837,16 +2837,16 @@ exports.placeorder = async (req, res) => {
             "units": item.quantity,
             "selling_price": currentItemDesignData.price,
             "discount": "",
-            "tax": "",
+            "tax": `${currentItemDesignData.price * 0.025}`,
             "hsn": 441122
           }
         }),
         "payment_method": orderData.cashOnDelivery ? "COD" : "Prepaid",
-        "shipping_charges": orderData.deliveryCharges,
+        "shipping_charges": orderData.deliveryCharges + (orderData.cashOnDelivery? 50: 0) + orderData.taxes,
         "giftwrap_charges": 0,
         "transaction_charges": 0,
         "total_discount": 0,
-        "sub_total": orderData.totalAmount, // i changed from Retail price to totalAmount.. idk how that works
+        "sub_total": orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0), // i changed from Retail price to totalAmount.. idk how that works
         "length": 28,
         "breadth": 20,
         "height": 0.5,
@@ -3326,27 +3326,7 @@ exports.placeorder = async (req, res) => {
         total_tax: "2.5"
       }
     ]
-    // console.log("🚀 ~ wooCommerceOrderData:", wooCommerceOrderData)
-
-    // const consumerKey = process.env.WOO_PROD_CONSUMER_KEY;
-    // const consumerSecret = process.env.WOO_PROD_CONSUMER_SECRET;
-
-    // const encodedAuth = btoa(`${consumerKey}:${consumerSecret}`);
-    // const endpoint = `${WOO_SANTO_URL}/wp-json/wc/v3/orders`;
-
-    // const createWooOrderReq = await fetch(endpoint, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: `Basic ${encodedAuth}`,
-    //   },
-    //   body: JSON.stringify(wooCommerceOrderData),
-    // })
-
-    // const createWooOrderRes = await createWooOrderReq.json();
-    // console.log("🚀 ~ createWooOrderRes:", createWooOrderRes)
-
-    // updatedOrderHistory.orderData.at(-1).wooOrderId = createWooOrderRes.id;
+    // deleted big ass comment, check old git commits for the deleted comment hre
 
   } catch (error) {
     console.log("General error");
@@ -3356,6 +3336,98 @@ exports.placeorder = async (req, res) => {
   }
 }
 
+
+// exports.missingshiprocket = async (req, res) => {
+//   try {
+//     const { orderData, designsData } = req.body;
+//     const shiprocketToken = await generateShiprocketToken();
+
+//     const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
+//     const SHIPROCKET_ACC_TKN = shiprocketToken.token;
+
+//     const shiprocketOrderData = {
+//       order_id: orderData.printwearOrderId,
+//       order_date: formatDate(new Date(orderData.createdAt)),
+//       pickup_location: "Primary",
+//       channel_id: process.env.SHIPROCKET_CHANNEL_ID,
+//       comment:
+//         "Order for " +
+//         orderData.shippingAddress.firstName +
+//         " " +
+//         orderData.shippingAddress.lastName ?? "",
+//       // billing_customer_name: orderData.billingAddress.firstName,
+//       // billing_last_name: orderData.billingAddress.lastName,
+//       // billing_address: orderData.billingAddress.streetLandmark ?? "",
+//       // billing_address_2: "",
+//       // billing_city: orderData.billingAddress.city ?? "",
+//       // billing_pincode: orderData.billingAddress.pincode ?? "",
+//       // billing_state: orderData.billingAddress.state ?? "",
+//       // billing_country: orderData.billingAddress.country || "India",
+//       // billing_email: orderData.billingAddress.email,
+//       // billing_phone: orderData.billingAddress.mobile,
+//       shipping_is_billing: true, // --> later change to False
+//       billing_customer_name: orderData.shippingAddress.firstName,
+//       billing_last_name: orderData.shippingAddress.lastName,
+//       billing_address: orderData.shippingAddress.streetLandmark,
+//       billing_address_2: "",
+//       billing_city: orderData.shippingAddress.city,
+//       billing_pincode: orderData.shippingAddress.pincode,
+//       billing_state: orderData.shippingAddress.state,
+//       billing_country: orderData.shippingAddress.country,
+//       billing_email: orderData.shippingAddress.email,
+//       billing_phone: orderData.shippingAddress.mobile,
+//       order_items: orderData.items.map((item) => {
+//         let currentItemDesignData = designsData.designs.find(
+//           (design) => design._id + "" == item.designId + ""
+//         );
+//         return {
+//           name: currentItemDesignData.designName,
+//           sku: currentItemDesignData.designSKU,
+//           units: item.quantity,
+//           selling_price: currentItemDesignData.price,
+//           discount: "",
+//           tax: "",
+//           hsn: 441122,
+//         };
+//       }),
+//       payment_method: orderData.cashOnDelivery ? "COD" : "Prepaid",
+//       shipping_charges: orderData.deliveryCharges + (orderData.cashOnDelivery? 50: 0),
+//       giftwrap_charges: 0,
+//       transaction_charges: 0,
+//       total_discount: 0,
+//       sub_total: orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0), // i changed from Retail price to totalAmount.. idk how that works
+//       length: 28,
+//       breadth: 20,
+//       height: 0.5,
+//       weight: (
+//         0.25 * orderData.items.reduce((total, item) => total + item.quantity, 0)
+//       ).toFixed(2),
+//     };
+
+//     console.log("Shiprocket data:");
+//     console.dir(shiprocketOrderData, { depth: 5 });
+
+//     const createShiprocketOrderRequest = await fetch(
+//       SHIPROCKET_BASE_URL + "/orders/create/adhoc",
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: "Bearer " + SHIPROCKET_ACC_TKN,
+//         },
+//         method: "POST",
+//         body: JSON.stringify(shiprocketOrderData),
+//       }
+//     );
+//     const createShiprocketOrderResponse =
+//       await createShiprocketOrderRequest.json();
+//     console.log("Shiprocket order response:");
+//     console.log(createShiprocketOrderResponse);
+//     res.json(createShiprocketOrderResponse);
+//   } catch (error) {
+//     console.log("🚀 ~ exports.missingshiprocket= ~ error:", error)
+//     res.send("NO")
+//   }
+// }
 
 // endpoint for wallet balance
 exports.walletballance = async (req, res) => {
