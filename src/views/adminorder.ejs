@@ -169,6 +169,9 @@
             </div>
             <div id="shipping-address">
               <h3>Shipping Address:</h3>
+              <p>Name: ${orderData.orderData.shippingAddress?.firstName + ' ' + orderData.orderData.shippingAddress?.lastName}</p>
+              <p>Email: ${orderData.orderData.shippingAddress?.email}</p>
+              <p>Phone: ${orderData.orderData.shippingAddress?.mobile}</p>
               <p>${[
           orderData.orderData.shippingAddress?.streetLandmark,
           orderData.orderData.shippingAddress?.city,
@@ -312,7 +315,7 @@
               <tbody>
                 <tr>
                   <td>Order Total</td>
-                  <td>₹ ${orderData.orderData.totalAmount}</td>
+                  <td>₹ ${orderData.orderData.totalAmount - orderData.orderData.deliveryCharges}</td>
                 </tr>
                 <tr>
                   <td>Delivery Charges</td>
@@ -328,7 +331,7 @@
                 </tr>
                 <tr>
                   <td><strong>Grand Total</strong></td>
-                  <td><strong>₹ ${(orderData.orderData.totalAmount + orderData.orderData.deliveryCharges + (orderData.orderData.cashOnDelivery ? 50 : 0) + orderData.orderData.taxes).toFixed(2)}</strong></td>
+                  <td><strong>₹ ${(orderData.orderData.amountPaid).toFixed(2)}</strong></td>
                 </tr>
               </tbody>
             </table>

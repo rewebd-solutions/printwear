@@ -168,6 +168,7 @@
             // fetchOrderData();
             const adminOrdersRequest = await fetch("/admin/recentorders");
             const adminOrdersResponse = await adminOrdersRequest.json();
+            console.log("🚀 ~ adminOrdersResponse:", adminOrdersResponse)
             
             if (adminOrdersRequest.status != 200) {
                 return notyf.error(adminOrdersResponse.error);
@@ -176,7 +177,9 @@
             orderData = adminOrdersResponse;
 
             function formatDate(date) {
-                return new Date(date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const dat = new Date(date);
+                return `<i class="fa fa-calendar" style="color: red; font-size: 13px"></i> ${dat.getDate()} ${months[dat.getMonth()]}, ${dat.getFullYear()} <br /> <i class="fa fa-clock" style="color: red; font-size: 13px"></i> ${dat.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" })}`;
             }
 
             const changeStatus = async (el) => {
@@ -216,7 +219,7 @@
                         <td><input type="checkbox"/></td> <!-- Checkbox -->
                         <td class="order-id clickable"><a href="/admin/orders/${order.printwearOrderId}">${order.printwearOrderId}</a></td>
                         <td>${order.billingAddress?.firstName + ' ' + order.billingAddress?.lastName}</td>
-                        <td style="max-width: 300px">${order.shippingAddress?.firstName + ' ' + order.shippingAddress?.lastName + '(' + order.shippingAddress?.mobile + ')'}
+                        <td style="max-width: 300px">${order.shippingAddress?.firstName + ' ' + order.shippingAddress?.lastName + '<br /> <span style="font-size: 12px"><i class="fa fa-phone" style="font-size: 12px"></i> ' + order.shippingAddress?.mobile + '</span>'}
                             <br />
                             <p style="font-size:13px; max-width: 300px;">
                                 ${[
@@ -228,7 +231,7 @@
                             </p>
                         </td>
                         <td>${formatDate(order.createdAt)}</td>
-                        <td>₹ ${order.totalAmount}</td>
+                        <td>₹ ${order.amountPaid}</td>
                         <td><h4 class="status-badge ${order.deliveryStatus}">${order.deliveryStatus}</h4></td>
                     </tr>
                     `);
