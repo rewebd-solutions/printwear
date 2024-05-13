@@ -168,7 +168,7 @@
             // fetchOrderData();
             const adminOrdersRequest = await fetch("/admin/recentorders");
             const adminOrdersResponse = await adminOrdersRequest.json();
-            console.log("🚀 ~ adminOrdersResponse:", adminOrdersResponse)
+            // console.log("🚀 ~ adminOrdersResponse:", adminOrdersResponse)
             
             if (adminOrdersRequest.status != 200) {
                 return notyf.error(adminOrdersResponse.error);

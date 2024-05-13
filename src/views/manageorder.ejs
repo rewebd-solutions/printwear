@@ -322,7 +322,7 @@
                 "delivered",
                 "completed",
                 "pending",
-                'placed', 'processing', 'courier_assigned', 'dispatched' // this is for old deliveryStatus. Remove in prod
+                //'placed', 'processing', 'courier_assigned', 'dispatched' // this is for old deliveryStatus. Remove in prod
             ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
                 return `
                     <tr>
@@ -337,7 +337,7 @@
                     </tr>                    
                 `;
 
-            }).join('\n');
+            }).reverse().join('\n');
             returnedOrderTable.innerHTML = data.filter(orderHistory => [
                 "pickup-scheduled",
                 "out-for-pickup",
@@ -357,7 +357,7 @@
                     </tr>                    
                 `;
 
-            }).join('\n');
+            }).reverse().join('\n');
             cancelledOrderTable.innerHTML = data.filter(orderHistory => [
                 "shipment-cancel",
                 "cancelled",
@@ -375,7 +375,7 @@
                     </tr>                    
                 `;
 
-            }).join('\n');
+            }).reverse().join('\n');
         }
 
         const fetchOrderHistory = async () => {

@@ -211,6 +211,8 @@
               ...item,
               URL: item.URL.replace("printwear.in", "admin.printwear.in")
             }
+          } else {
+            return item
           }
         })
         return `
@@ -240,8 +242,8 @@
                   <br />
                   <span>Base price: <p style="font-size: 14px">₹ ${currentDesign?.product.price} </p></span>
                   <br />
-                  <span>Design Dimensions: <p style="font-size: 13px">Front: ${currentDesign?.designDimensions?.width}in x ${currentDesign?.designDimensions?.height}in</p>
-                    <p style="font-size: 13px">Back: ${currentDesign?.backDesignDimensions?.width}in x ${currentDesign?.backDesignDimensions?.height}in </p>
+                  <span>Design Dimensions: <p style="font-size: 13px">Front: ${currentDesign?.designDimensions?.width.toFixed(2)}in x ${currentDesign?.designDimensions?.height.toFixed(2)}in</p>
+                    ${currentDesign?.backDesignDimensions? '<p style="font-size: 13px">Back: ' + currentDesign?.backDesignDimensions.width.toFixed(2) + ` in x ${currentDesign?.backDesignDimensions?.height.toFixed(2)}in </p>`: ''} 
                     </span>
                   <br />
                   <span>Design Offset: 

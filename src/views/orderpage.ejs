@@ -44,26 +44,9 @@
             "refund initiated" : orderData.orderData[0].paymentStatus %>
           </h3>
         </div>
-        <% /* %>
-        <% if (orderData.orderData[0].deliveryStatus=="cancelled" && (orderData.orderData[0].paymentStatus=="refund_init" || orderData.orderData[0].paymentStatus=="refunded" )) { %>
-        <button
-          class="orderpage-action-btn"
-          onclick="initiateRefund(this, 'reship')"
-        >
-          (unused) Reship order
-        </button>
-        <% } else if (orderData.orderData[0].deliveryStatus !="delivered" ) { %>
-        <button class="orderpage-action-btn" onclick="initiateRefund(this)">
-          (unused) Cancel Order
-        </button>
-        <% } else { %>
-        <button class="orderpage-action-btn" onclick="initiateRefund(this)">
-          (unused) Return order
-        </button>
-        <% } %> 
-        <%*/ %>
+        
         <!-- use this shit in prod -->
-        <% if (["pending", "received" , "invoiced" , "undelivered", "on-hold"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <% if (["pending", "received" , "invoiced" , "on-hold"].includes(orderData.orderData[0].deliveryStatus)) { %>
         <button class="orderpage-action-btn" onclick="initiateRefund(this)">
           Cancel Order
         </button>
@@ -74,7 +57,7 @@
         >
           Return Order
         </button>
-        <% } else if (["rto", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <% } else if (["rto", "cancelled", "undelivered"].includes(orderData.orderData[0].deliveryStatus)) { %>
         <button
           class="orderpage-action-btn"
           onclick="initiateRefund(this, 'reship')"

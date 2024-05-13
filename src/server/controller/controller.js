@@ -724,7 +724,7 @@ exports.dashboard = async (req, res) => {
 
     const userDataToSend = {
       name: userData.name,
-      orderCount: orderHistory.orderData.length,
+      orderCount: orderHistory?.orderData?.length ?? 0,
       address: userData.billingAddress?.phone ? true: false,
       brand: userData.brandName ? true: false
     }
@@ -734,8 +734,8 @@ exports.dashboard = async (req, res) => {
       woo: storeData?.shopifyStore?.shopifyStoreURL ? true : false,
     };
 
-    const totalExpense = orderHistory.orderData.reduce((total, curr) => total + curr.totalAmount, 0);
-    const totalRetail = orderHistory.orderData.reduce((total, curr) => total + (curr.retailPrice ?? 0), 0);
+    const totalExpense = orderHistory?.orderData? orderHistory?.orderData.reduce((total, curr) => total + curr.totalAmount, 0): 0;
+    const totalRetail = orderHistory?.orderData? orderHistory?.orderData.reduce((total, curr) => total + (curr.retailPrice ?? 0), 0): 0;
     console.log("🚀 ~ exports.dashboard= ~ totalExpense:", totalExpense, totalRetail)
 
     res.render('dashboard', { error: false, data: { graph: graphData, user: userDataToSend, store: stores, stats: { orders: orderHistory.orderData.length, revenue: totalRetail - totalExpense } }});
@@ -2846,7 +2846,9 @@ exports.placeorder = async (req, res) => {
         "giftwrap_charges": 0,
         "transaction_charges": 0,
         "total_discount": 0,
-        "sub_total": orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0), // i changed from Retail price to totalAmount.. idk how that works
+        // "sub_total": orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0), // i changed from Retail price to totalAmount.. idk how that works
+        // turns out u need to use retailprice only
+        "sub_total": orderData.retailPrice, // i changed from Retail price to totalAmount.. idk how that works
         "length": 28,
         "breadth": 20,
         "height": 0.5,

@@ -276,7 +276,7 @@
         return `
           <div class="design-card" data-aos="fade-up">
             <div class="card-img">
-              <img src="${design.designImage.front != '' ? design.designImage.front : design.designImage.back}">
+              <img src="${(design.designImage.front != '' && design.designImage.front != 'false') ? design.designImage.front : design.designImage.back}">
             </div>
             <div class="name-price">
               <div style="display:flex; gap: 2px; justify-content: space-between; align-items: center">
@@ -330,7 +330,7 @@
           else if (femaleFilterPattern.test(design.product.name)) design.product['gender'] = "women";
           else design.product['gender'] = "unisex";
           return design
-        })
+        }).reverse()
         
         console.log(designsResponseData);
         
