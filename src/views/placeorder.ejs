@@ -84,7 +84,7 @@
             priceCell.textContent = '₹' + designObject.price
             
             const previewCell = document.createElement("td");
-            previewCell.innerHTML = `<img class="design-preview-image" src=${designObject.designImage.front?? designObject.designImage.back} />`
+            previewCell.innerHTML = `<img class="design-preview-image" src=${designObject.designImage.front != "false" ? designObject.designImage.front: designObject.designImage.back} />`
             
             const actionCell = document.createElement("td");
             actionCell.innerHTML = `<button onclick="addToOrder(event, '${designObject.designSKU}')">Add to order</button>`

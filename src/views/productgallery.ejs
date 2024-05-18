@@ -79,6 +79,7 @@
         }
 
         const calculateCardStock = (cardProduct) => {
+            /** 
             let sum = 0;
             for(let color in cardProduct.colors){
                 const sizes = cardProduct.colors[color]['sizes'];
@@ -87,6 +88,8 @@
                 }
             }
             return sum;
+            */
+           return "✅In Stock";
         }
 
         const slugifyNames = (string) => string.toLowerCase().replace(/[\/\s]/g, '-').slice(0, 200);
@@ -101,7 +104,7 @@
                 <div class="display-card" data-aos="fade-up" data-aos-anchor="top-bottom">
                     <div class="name-price">
                         <h3>${style}</h3>
-                        <h6>by ${currentProduct.brand ? currentProduct.brand: 'Brand'}</h6>
+                        <h6>by ${currentProduct.brand ? currentProduct.brand: 'PRINTWEAR'}</h6>
                     </div>
                     <div class="card-img">
                         <img src="${currentProduct.baseImage.front != ''? currentProduct.baseImage.front: 'images/warning.png'}" id="img" alt="${style}">
@@ -109,7 +112,7 @@
                     <div class="details">
                         <div class="stock-avail">
                             <p style="font-size: 14px">Starts: ₹${calculateCardPrice(currentProduct)}</p>
-                            ${calculateCardStock(currentProduct) === 0? `<p style="color:red; font-size: 14px">Out of stock!</p>`: `<p style="font-size: 14px">Stock: ${calculateCardStock(currentProduct)}</p>`}
+                            ${/*calculateCardStock(currentProduct) === 0? `<p style="color:red; font-size: 14px">Out of stock!</p>`: `<p style="font-size: 14px">Stock: ${calculateCardStock(currentProduct)}</p>*/`<p>In stock✅</p>`}
                         </div>
                         <div class="view-btn">
                             <a class="toggle-modal" href="/designgenerator?style=${style.split(" ").join("+")}${hasBeenRedirected ? `&from=orders${orderId? '&id=' + orderId : ''}`: ''}">Design</button>

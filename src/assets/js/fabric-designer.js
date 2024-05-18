@@ -288,7 +288,7 @@ const updateStats = () => {
   changeStatName();
 
   if (!designImageHeight || !designImageWidth || !designImg) {
-    console.log("exiting in guard clause inside updateStats");
+    // console.log("exiting in guard clause inside updateStats");
     // priceTable.children[0].children[1].innerHTML = "0 in";
     // priceTable.children[1].children[1].innerHTML = "0 in";
     designHeightInput.value = 0;
@@ -305,12 +305,12 @@ const updateStats = () => {
   let imageHeightInInches = calculateTotalHeight().toFixed(2);
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
-  console.log(
-    "🚀 ~ updateStats ~ imageDimensions:",
-    imageHeightInInches,
-    imageWidthInInches,
-    imageAreaInInches
-  );
+  // console.log(
+  //   "🚀 ~ updateStats ~ imageDimensions:",
+  //   imageHeightInInches,
+  //   imageWidthInInches,
+  //   imageAreaInInches
+  // );
 
   let printingPrice =
     imageHeightInInches <= 8.0 &&
@@ -716,7 +716,10 @@ const saveDesign = async () => {
       designName: designName.value,
       designSKU: SKU.value,
       price: parseFloat(calculateTotalArea().toFixed(2)), //sending only area because can't trust client with sending calculated price
-      designDimensions: {
+    };
+
+    if (designDirection == "front") {
+      designModelObject.designDimensions = {
         width: parseFloat(calculateTotalWidth().toFixed(3)),
         height: parseFloat(calculateTotalHeight().toFixed(3)),
         top: parseFloat(
@@ -729,9 +732,23 @@ const saveDesign = async () => {
             fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio
           ).toFixed(3)
         ),
-      },
-    };
-
+      }
+    } else {
+      designModelObject.backDesignDimensions = {
+        width: parseFloat(calculateTotalWidth().toFixed(3)),
+        height: parseFloat(calculateTotalHeight().toFixed(3)),
+        top: parseFloat(
+          (fabricCanvas.getObjects()[0].top * Product.pixelToInchRatio).toFixed(
+            3
+          )
+        ),
+        left: parseFloat(
+          (
+            fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio
+          ).toFixed(3)
+        ),
+      }
+    }
     console.log(submitProduct);
     console.log(designModelObject);
     // console.log(filesFromBlobs)
@@ -818,7 +835,7 @@ const saveDesign = async () => {
     });
   } catch (error) {
     console.log(error);
-    notyf.error(error);
+    notyf.error(error.error);
     disableButton(false);
     canvasContainer.forEach(
       (item) => (item.style.border = "2px dashed silver")

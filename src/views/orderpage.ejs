@@ -194,16 +194,23 @@
                 </tr>
               </thead>
               <tbody>
-                <% var totalProductPrice=[] %> <% var totalProductDesignArea=[]
-                %> <% var totalProductDesignCharges=[] %> <% var
-                totalNeckLabel=[] %> <% designData.forEach(design=> { %> <%
-                totalProductPrice.push(design.product.price) %> <%
-                totalProductDesignArea.push((design.designDimensions.width *
-                design.designDimensions.width).toFixed(2)) %> <%
-                totalProductDesignCharges.push((design.price -
-                design.product.price - (design.neckLabel? 10: 0)).toFixed(2)) %>
-                <% if (design.neckLabel) { %> <% totalNeckLabel.push(10) %> <% }
-                else { %> <% totalNeckLabel.push(0) %> <% } %> <% }) %>
+                <% var totalProductPrice=[]; var totalProductDesignArea=[]; var totalProductDesignCharges=[]; var totalNeckLabel=[];
+                  designData.forEach(design=> {
+                  totalProductPrice.push(design.product.price);
+                
+                  var designArea = design.designDimensions && design.designDimensions.width > 0
+                  ? (design.designDimensions.width * design.designDimensions.height)
+                  : (design.backDesignDimensions.width * design.backDesignDimensions.height);
+                  totalProductDesignArea.push(designArea.toFixed(2));
+                
+                  var designCharges = design.price - design.product.price - (design.neckLabel ? 10 : 0);
+                  totalProductDesignCharges.push(designCharges.toFixed(2));
+                
+                  totalNeckLabel.push(design.neckLabel ? 10 : 0);
+                  });
+                  %>
+
+                
                 <tr>
                   <td>Product Price</td>
                   <td>₹<%= totalProductPrice.join(" + ₹") %></td>

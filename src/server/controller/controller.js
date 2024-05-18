@@ -1,5 +1,16 @@
-const cashfreeAppID = process.env.CASH_APP_ID;
-const cashfreeSecretKey = process.env.CASH_SECRET_KEY;
+var cashfreeAppID = "";
+var cashfreeSecretKey = "";
+
+const paymentMode = process.env.CASH_MODE;
+
+if (paymentMode == "test") {
+  cashfreeAppID = process.env.CASH_APP_ID;
+  cashfreeSecretKey = process.env.CASH_SECRET_KEY;
+} else {
+  cashfreeAppID = process.env.CASH_TEST_APP_ID;
+  cashfreeSecretKey = process.env.CASH_TEST_SECRET_KEY;
+}
+
 const zohoRefreshToken = process.env.ZOHO_REFRESH_TOKEN;
 const zohoClientID = process.env.ZOHO_CLIENT_ID;
 const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
@@ -9,7 +20,8 @@ const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
 const WOO_SANTO_URL = 'https://admin.printwear.in/admin';
 const OLD_PUBLIC_URL = "https://printwear.in/";
 
-const imageFileSize = require("url-file-size");
+/** this library was used for old data migration for finding img file size, but i dont need it now, so commented it out */
+// const imageFileSize = require("url-file-size");
 const crypto = require("crypto")
 const algorithm = "sha256"
 const authServices = require("../services/auth");
@@ -19,7 +31,6 @@ const mongoose = require("mongoose");
 var ProductModel = require('../model/productModel');
 var StoreModel = require('../model/storeModel');
 var UserModel = require("../model/userModel");
-var CartModel = require("../model/cartModel");
 var ImageModel = require("../model/imageModel")
 var ColorModel = require("../model/colorModel");
 var DesignModel = require("../model/designModel");
@@ -28,7 +39,6 @@ var NewDesignModel = require("../model/newDesignModel");
 var OrderHistoryModel = require("../model/orderHistory");
 var LabelModel = require("../model/labelModel");
 
-const WooCommerceRestApi = require('@woocommerce/woocommerce-rest-api').default;
 const otpGen = require("otp-generator")
 const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");
@@ -1626,30 +1636,37 @@ exports.createdesign = async (req, res) => {
     const fileDownloadURL = await fileReference.getDownloadURL();
     //   recordOfFileNames[file.originalname] = fileDownloadURL;
     // }
-    const designImageHeight = req.body.productData.designDimensions.height;
-    const designImageWidth = req.body.productData.designDimensions.width;
+    const designImageHeight = req.body.direction === "front"? req.body.productData.designDimensions.height: req.body.productData.backDesignDimensions.height;
+    const designImageWidth = req.body.direction === "front"? req.body.productData.designDimensions.wdith: req.body.productData.backDesignDimensions.wdith;
+
+    const designsDataObject = {
+      productId: req.body.productData.productId,
+      product: { ...req.body.productData.product },
+      designSKU: uniqueSKU,
+      designName: req.body.productData.designName,
+      price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 2) < 70.00 ? 70.00 : (req.body.productData.price * 2))) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
+      designImage: {
+        front: req.body.direction === "front" && fileDownloadURL,
+        back: req.body.direction === "back" && fileDownloadURL,
+      },
+      designItems: [{
+        itemName: req.body.designImageName,
+        URL: req.body.designImageURL
+      }],
+      neckLabel: req.body.neckLabel == 'null' ? undefined : req.body.neckLabel
+    }
+
+    if (req.body.direction === "front") {
+      designsDataObject.designDimensions = { ...req.body.productData.designDimensions }
+    } else {
+      designsDataObject.backDesignDimensions = { ...req.body.productData.backDesignDimensions }
+    }
 
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
       {
         $push: {
-          designs: {
-            productId: req.body.productData.productId,
-            product: { ...req.body.productData.product },
-            designSKU: uniqueSKU,
-            designName: req.body.productData.designName,
-            price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 2) < 70.00 ? 70.00 : (req.body.productData.price * 2))) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
-            designDimensions: { ...req.body.productData.designDimensions },
-            designImage: {
-              front: req.body.direction === "front" && fileDownloadURL,
-              back: req.body.direction === "back" && fileDownloadURL,
-            },
-            designItems: [{
-              itemName: req.body.designImageName,
-              URL: req.body.designImageURL
-            }],
-            neckLabel: req.body.neckLabel == 'null' ? undefined : req.body.neckLabel
-          }
+          designs: designsDataObject
         }
       },
       { upsert: true, new: true }
@@ -2818,7 +2835,7 @@ exports.placeorder = async (req, res) => {
         "billing_country": orderData.billingAddress.country || 'India',
         "billing_email": orderData.billingAddress.email,
         "billing_phone": orderData.billingAddress.mobile,
-        "shipping_is_billing": true, // --> later change to False
+        "shipping_is_billing": false, // --> later change to False
         "shipping_customer_name": orderData.shippingAddress.firstName,
         "shipping_last_name": orderData.shippingAddress.lastName,
         "shipping_address": orderData.shippingAddress.streetLandmark,
@@ -2848,7 +2865,7 @@ exports.placeorder = async (req, res) => {
         "total_discount": 0,
         // "sub_total": orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0), // i changed from Retail price to totalAmount.. idk how that works
         // turns out u need to use retailprice only
-        "sub_total": orderData.retailPrice, // i changed from Retail price to totalAmount.. idk how that works
+        "sub_total": orderData.retailPrice - (orderData.deliveryCharges + (orderData.cashOnDelivery? 50: 0) + orderData.taxes), // i changed from Retail price to totalAmount.. idk how that works
         "length": 28,
         "breadth": 20,
         "height": 0.5,

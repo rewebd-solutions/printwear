@@ -173,11 +173,11 @@
               <p>Email: ${orderData.orderData.shippingAddress?.email}</p>
               <p>Phone: ${orderData.orderData.shippingAddress?.mobile}</p>
               <p>${[
-          orderData.orderData.shippingAddress?.streetLandmark,
-          orderData.orderData.shippingAddress?.city,
-          orderData.orderData.shippingAddress?.pincode,
-          orderData.orderData.shippingAddress?.state,
-        ].join(", ")}
+                  orderData.orderData.shippingAddress?.streetLandmark,
+                  orderData.orderData.shippingAddress?.city,
+                  orderData.orderData.shippingAddress?.pincode,
+                  orderData.orderData.shippingAddress?.state,
+                ].join(", ")}
               </p><br />
             </div>
 
@@ -219,9 +219,9 @@
             <tr>
               <td>
                 <div>
-                  <img style="width: 200px; object-fit: contain; align-self: center; cursor: pointer" onclick="window.open(\'${currentDesign?.designImage?.front}\', '_blank')" src="${currentDesign?.designImage?.front}" />
+                  ${currentDesign?.designImage?.front != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.front}\', '_blank')" src="${currentDesign?.designImage?.front}" />` : ''}
+                  ${currentDesign?.designImage?.back != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.back}\', '_blank')" src="${currentDesign?.designImage?.back}" />` : ''}
                 </div>
-                ${currentDesign?.designImage?.back != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.back}\', '_blank')" src="${currentDesign?.designImage?.back}" />` : ''}
                 <h5>${currentDesign?.designName}</h5>
                 <p>SKU: ${currentDesign?.designSKU}</p>
               </td>
@@ -242,15 +242,21 @@
                   <br />
                   <span>Base price: <p style="font-size: 14px">₹ ${currentDesign?.product.price} </p></span>
                   <br />
-                  <span>Design Dimensions: <p style="font-size: 13px">Front: ${currentDesign?.designDimensions?.width.toFixed(2)}in x ${currentDesign?.designDimensions?.height.toFixed(2)}in</p>
-                    ${currentDesign?.backDesignDimensions? '<p style="font-size: 13px">Back: ' + currentDesign?.backDesignDimensions.width.toFixed(2) + ` in x ${currentDesign?.backDesignDimensions?.height.toFixed(2)}in </p>`: ''} 
+                  <span>Design Dimensions: <p style="font-size: 13px">
+                    ${currentDesign?.designDimensions && currentDesign?.designDimensions.width>0 ? '<p style="font-size: 13px"><strong>Front:</strong> ' + currentDesign?.designDimensions.width.toFixed(2) + ` in x ${currentDesign?.designDimensions?.height.toFixed(2)}in </p>`: ''} 
+                    ${currentDesign?.backDesignDimensions? '<p style="font-size: 13px"><strong>Back:</strong> ' + currentDesign?.backDesignDimensions.width.toFixed(2) + ` in x ${currentDesign?.backDesignDimensions?.height.toFixed(2)}in </p>`: ''} 
                     </span>
                   <br />
                   <span>Design Offset: 
-                  <p style="font-size: 13px">\
-                    <strong>Front:</strong> ${(currentDesign?.designDimensions?.top > 40? currentDesign?.designDimensions?.top/25.4: currentDesign?.designDimensions?.top).toFixed(2)}in from top, 
-                    ${(currentDesign?.designDimensions?.left > 40 ? currentDesign?.designDimensions?.top/25.4: currentDesign?.designDimensions?.top).toFixed(2)}in from left
-                  </p>
+                  ${
+                    (currentDesign?.designDimensions && currentDesign?.designDimensions.width > 0) ? 
+                    `
+                      <p style="font-size: 13px">\
+                        <strong>Front:</strong> ${(currentDesign?.designDimensions?.top > 40 ? currentDesign?.designDimensions?.top / 25.4 : currentDesign?.designDimensions?.top).toFixed(2)}in from top, 
+                      ${(currentDesign?.designDimensions?.left > 40 ? currentDesign?.designDimensions?.top / 25.4 : currentDesign?.designDimensions?.top).toFixed(2)}in from left
+                      </p>
+                    `: ''
+                  }
                   ${
                     (currentDesign?.backDesignDimensions && currentDesign?.backDesignDimensions.width > 0) ? 
                     `

@@ -49,7 +49,7 @@
                             <% const data = orderData.items.find(order => order.designId + "" == design._id + "") %>
                             <% if (data) { %>
                                 <li>
-                                    <img width="100" height="100" src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
+                                    <img width="100" height="100" src="<%= design.designImage.front != "false" ? design.designImage.front: design.designImage.back  %>" alt="" />
                                     <div>
                                         <h4><%= design.designName %></h4>
                                         <h6><%= design.product.name %></h6>
