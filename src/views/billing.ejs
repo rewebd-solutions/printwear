@@ -316,7 +316,7 @@
                     notyf.error({
                         message: createPaymentLinkResponse.message,
                     });
-                    if (createPaymentLinkRequest.status == 403 && createPaymentLinkResponse.reason == "profile") return location.href = '/profile&return=true';
+                    if (createPaymentLinkRequest.status == 403 && createPaymentLinkResponse.reason == "profile") return location.href = '/profile?return=true';
                     return;
                 }
                 notyf.success("Order created successfuly!");
