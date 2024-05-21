@@ -1644,7 +1644,7 @@ exports.createdesign = async (req, res) => {
       product: { ...req.body.productData.product },
       designSKU: uniqueSKU,
       designName: req.body.productData.designName,
-      price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 2) < 70.00 ? 70.00 : (req.body.productData.price * 2))) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
+      price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
       designImage: {
         front: req.body.direction === "front" && fileDownloadURL,
         back: req.body.direction === "back" && fileDownloadURL,

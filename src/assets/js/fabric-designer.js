@@ -83,6 +83,19 @@ const fetchProductData = async () => {
     console.log(productData);
     productData.name = productStyle;
 
+    const sizeOrder = {
+      XS: 0,
+      S: 1,
+      M: 2,
+      L: 3,
+      XL: 4,
+      "2XL": 5,
+      "3XL": 6,
+      "4XL": 7,
+      "5XL": 8,
+      "6XL": 9,
+    };
+
     /* Modify Product Object */
     Product = {
       ...productData,
@@ -99,21 +112,23 @@ const fetchProductData = async () => {
             front: productData.colors[color].frontImage,
             back: productData.colors[color].backImage,
           },
-          sizes: Object.keys(productData.colors[color].sizes).map((size, i) => {
-            return {
-              id: productData.colors[color].sizes[size].id,
-              sizeSku: productData.colors[color].sizes[size].sku,
-              size: size,
-              stock: productData.colors[color].sizes[size].stock,
-              name: productData.colors[color].sizes[size].name,
-              price: productData.colors[color].sizes[size].price,
-              dimensions: productData.colors[color].sizes[size].dimensions,
-            };
-          }),
+          sizes: Object.keys(productData.colors[color].sizes)
+            .map((size, i) => {
+              return {
+                id: productData.colors[color].sizes[size].id,
+                sizeSku: productData.colors[color].sizes[size].sku,
+                size: size,
+                stock: productData.colors[color].sizes[size].stock,
+                name: productData.colors[color].sizes[size].name,
+                price: productData.colors[color].sizes[size].price,
+                dimensions: productData.colors[color].sizes[size].dimensions,
+              };
+            })
+            .sort((a, b) => sizeOrder[a.size] - sizeOrder[b.size]),
         };
       }),
     };
-
+    
     /* First Available Color = Current Color by default */
     currentColor = Product.colors.find((color) => color.frontImage != "")?._id; // declare currentColor here like global var
 
@@ -318,9 +333,9 @@ const updateStats = () => {
     imageHeightInInches > 0 &&
     imageWidthInInches > 0
       ? 70.0
-      : imageAreaInInches * 2 < 70.0 && imageAreaInInches * 2 > 0.5
+      : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
       ? 70.0
-      : imageAreaInInches * 2;
+      : imageAreaInInches * 1;
 
   designHeightInput.value = imageHeightInInches;
   designWidthInput.value = imageWidthInInches;
@@ -357,11 +372,15 @@ const changeSize = (e, size, id) => {
   const basePriceElement = document.querySelector(".base-price");
   sizeButtons.forEach((sizeBtn) => {
     sizeBtn.style.border = "2px solid #6a6969";
+    sizeBtn.style.background = "unset";
+    sizeBtn.style.color = "black";
     sizeBtn.style.transform = "scale(1.0)";
   });
   e.target.style.border = "2px solid red";
+  e.target.style.background = "red";
+  e.target.style.color = "white";
   e.target.style.transform = "scale(1.1)";
-  console.log(id, size);
+  // console.log(id, size);
   globalProductID = id; // check b4 downloading or saving if this is checked
 
   variantPrice = Product.colors
@@ -416,7 +435,7 @@ const addFabricCanvasToTemplateDiv = () => {
   /* Setting width and height according to ratio */
   canvasElement.width = Product.inchToPixelRatio * Product.canvas.front.width;
   canvasElement.height = Product.inchToPixelRatio * Product.canvas.front.height;
-  canvasElement.style.border = "2px dashed silver";
+  canvasElement.style.border = "2px dashed black";
   container.appendChild(canvasElement);
 
   /* Initialize fabric Canvas Instance */
@@ -638,7 +657,7 @@ const downloadDesign = () => {
       // designDirection == "front"? designDirection = "back": designDirection = "front";
 
       canvasContainer.forEach(
-        (item) => (item.style.border = "2px dashed silver")
+        (item) => (item.style.border = "2px dashed black")
       );
     });
   }, 100);
@@ -830,7 +849,7 @@ const saveDesign = async () => {
       }
       disableButton(false);
       canvasContainer.forEach(
-        (item) => (item.style.border = "2px dashed silver")
+        (item) => (item.style.border = "2px dashed black")
       );
     });
   } catch (error) {
@@ -838,7 +857,7 @@ const saveDesign = async () => {
     notyf.error(error.error);
     disableButton(false);
     canvasContainer.forEach(
-      (item) => (item.style.border = "2px dashed silver")
+      (item) => (item.style.border = "2px dashed black")
     );
   } 
   return isSaveSuccessful;
