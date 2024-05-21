@@ -748,9 +748,9 @@ exports.dashboard = async (req, res) => {
     const totalRetail = orderHistory?.orderData? orderHistory?.orderData.reduce((total, curr) => total + (curr.retailPrice ?? 0), 0): 0;
     console.log("🚀 ~ exports.dashboard= ~ totalExpense:", totalExpense, totalRetail)
 
-    res.render('dashboard', { error: false, data: { graph: graphData, user: userDataToSend, store: stores, stats: { orders: orderHistory.orderData.length, revenue: totalRetail - totalExpense } }});
+    res.render('dashboard', { error: false, data: { graph: graphData, user: userDataToSend, store: stores, stats: { orders: orderHistory?.orderData?.length ?? 0, revenue: totalRetail - totalExpense } }});
   } catch (error) {
-    console.log("🚀 ~ exports.dashboard= ~ error:", error)
+    console.log(`🚀 ~ exports.dashboard= ~ error ${userData.name}:`, error)
     res.render('dashboard', { error: 'Server error in creating this page' })
   }
 }
@@ -2727,10 +2727,16 @@ exports.placeorder = async (req, res) => {
       return console.log(`No such order data found for ${req.userId}`);
     }
 
-    Object.keys(userData.billingAddress).forEach(field => {
-      if ((userData.billingAddress[field] == "") || (!userData.billingAddress[field]))  
-      return res.status(403).json({ message: "Please fill billing address in PROFILE page", reason: "profile" });
-    })
+    for (const [field, value] of Object.entries(userData.billingAddress)) {
+      if (value === "" || !value) {
+        return res
+          .status(403)
+          .json({
+            message: "Please fill billing address in PROFILE page",
+            reason: "profile",
+          });
+      }
+    }
 
     /// STEP 1: WALLET GAME
     const walletData = await WalletModel.findOne({ userId: req.userId });
@@ -3485,7 +3491,7 @@ exports.calculateshippingcharges = async (req, res) => {
       }
     });
     const shippingChargeResponse = await shippingChargeRequest.json();
-    console.log(shippingChargeResponse)
+    console.log(`Shipping charges checked by ${req.userId} for pincode: `, pincode)
     if (shippingChargeResponse.status != 200 || !shippingChargeRequest.ok) return res.status(shippingChargeResponse.status_code || shippingChargeResponse.status).json({ message: shippingChargeResponse.message });
 
     // the following code should be put in getpaymentlink function

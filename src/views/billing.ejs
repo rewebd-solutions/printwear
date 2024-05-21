@@ -76,7 +76,7 @@
                     </div>
                 </div>
                 <div class="billing-address-form">
-                    <h3>Billing Address:</h3>
+                    <h3>Shipping Address:</h3>
                     <div class="form-group">
                         <div>
                             <label for="firstName">First name:</label>
@@ -272,6 +272,14 @@
                 }
             }
 
+            if (parseFloat(retailPriceInput.value) < parseFloat(document.querySelector("#total-charges").innerHTML.slice(1))) {
+                retailVerified = false;
+                disabled = false;
+                e.target.classList.remove("disabled");
+                e.target.innerHTML = oldBtnInner;
+                return notyf.error("Check retail price");
+            }
+
             const checkoutData = {
                 firstName: formsData[0].value,
                 lastName: formsData[1].value,
@@ -316,7 +324,9 @@
                     notyf.error({
                         message: createPaymentLinkResponse.message,
                     });
-                    if (createPaymentLinkRequest.status == 403 && createPaymentLinkResponse.reason == "profile") return location.href = '/profile?return=true';
+                    setTimeout(() => {
+                        if (createPaymentLinkRequest.status == 403 && createPaymentLinkResponse.reason == "profile") return location.href = '/profile?return=true';
+                    }, 3000);
                     return;
                 }
                 notyf.success("Order created successfuly!");
