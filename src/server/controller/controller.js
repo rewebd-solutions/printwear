@@ -2449,7 +2449,7 @@ exports.payshoporder = async (req, res) => {
 // render billing page
 exports.billing = async (req, res) => {
   try {
-    const orderData = await OrderModel.findOne({ userId: req.userId });
+    const [orderData, userData] = await Promise.all([await OrderModel.findOne({ userId: req.userId }), await UserModel.findById(req.userId)]);
     if (!orderData) return res.render("billing", { orderData: { items: [] } });
     const designsFromOrders = orderData.items.map(item => item.designId);
     // console.log(designsFromOrders);
@@ -2473,7 +2473,7 @@ exports.billing = async (req, res) => {
         },
       },
     ]);
-    res.render("billing", { orderData, designsData: designsData[0].designs });
+    res.render("billing", { orderData, designsData: designsData[0].designs, billing: userData.billingAddress });
   } catch (error) {
     console.log(error);
     res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
@@ -2712,7 +2712,8 @@ exports.placeorder = async (req, res) => {
       shippingCharge,
       courierId,
       courierData,
-      cashOnDelivery
+      cashOnDelivery,
+      billingAddress
     } = req.body;
     // validate data
     const [ orderData, userData, designData, labelData ] = await Promise.all([
@@ -2727,13 +2728,35 @@ exports.placeorder = async (req, res) => {
       return console.log(`No such order data found for ${req.userId}`);
     }
 
-    for (const [field, value] of Object.entries(userData.billingAddress)) {
+    const shippingAddressToCheck = { firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country
+    }
+
+    for (const [field, value] of Object.entries(shippingAddressToCheck)) {
       if (value === "" || !value) {
         return res
           .status(403)
           .json({
-            message: "Please fill billing address in PROFILE page",
-            reason: "profile",
+            message: "Please fill shipping address",
+            reason: "invalid",
+          });
+      }
+    }
+
+    for (const [field, value] of Object.entries(billingAddress)) {
+      if (value === "" || !value) {
+        return res
+          .status(403)
+          .json({
+            message: "Please fill billing address",
+            reason: "invalid",
           });
       }
     }
@@ -2764,15 +2787,15 @@ exports.placeorder = async (req, res) => {
     /// STEP 1.5: ORDERDATA GAM
     // for now billing address same as shipping, but later ask vendor to enter billing address data --- done
     orderData.billingAddress = {
-      firstName: userData.billingAddress?.firstName,
-      lastName: userData.billingAddress?.lastName,
-      mobile: userData.billingAddress?.phone,
-      email: userData.billingAddress?.email,
-      streetLandmark: userData.billingAddress?.street + ' ' + userData.billingAddress?.landmark,
-      city: userData.billingAddress?.city,
-      pincode: userData.billingAddress?.pincode,
-      state: userData.billingAddress?.state,
-      country: userData.billingAddress?.country
+      firstName: billingAddress?.firstName,
+      lastName: billingAddress?.lastName,
+      mobile: billingAddress?.mobile,
+      email: billingAddress?.email,
+      streetLandmark: billingAddress?.streetLandmark,
+      city: billingAddress?.city,
+      pincode: billingAddress?.pincode,
+      state: billingAddress?.state,
+      country: billingAddress?.country
     }
     // orderData.billingAddress = {
     //   firstName,
@@ -2831,16 +2854,16 @@ exports.placeorder = async (req, res) => {
         "pickup_location": "Primary",
         "channel_id": process.env.SHIPROCKET_CHANNEL_ID,
         "comment": "Order for " + orderData.shippingAddress.firstName + " " + orderData.shippingAddress.lastName,
-        "billing_customer_name": orderData.billingAddress.firstName,
-        "billing_last_name": orderData.billingAddress.lastName,
-        "billing_address": orderData.billingAddress.streetLandmark,
+        "billing_customer_name": billingAddress.firstName,
+        "billing_last_name": billingAddress.lastName,
+        "billing_address": billingAddress.streetLandmark,
         "billing_address_2": "",
-        "billing_city": orderData.billingAddress.city,
-        "billing_pincode": orderData.billingAddress.pincode,
-        "billing_state": orderData.billingAddress.state,
-        "billing_country": orderData.billingAddress.country || 'India',
-        "billing_email": orderData.billingAddress.email,
-        "billing_phone": orderData.billingAddress.mobile,
+        "billing_city": billingAddress.city,
+        "billing_pincode": billingAddress.pincode,
+        "billing_state": billingAddress.state,
+        "billing_country": billingAddress.country || 'India',
+        "billing_email": billingAddress.email,
+        "billing_phone": billingAddress.mobile,
         "shipping_is_billing": false, // --> later change to False
         "shipping_customer_name": orderData.shippingAddress.firstName,
         "shipping_last_name": orderData.shippingAddress.lastName,
@@ -2858,9 +2881,9 @@ exports.placeorder = async (req, res) => {
             "name": currentItemDesignData.designName,
             "sku": currentItemDesignData.designSKU,
             "units": item.quantity,
-            "selling_price": currentItemDesignData.price,
+            "selling_price": currentItemDesignData.price * 1.05,
             "discount": "",
-            "tax": `${currentItemDesignData.price * 0.025}`,
+            "tax": `${currentItemDesignData.price * 0.05}`,
             "hsn": 441122
           }
         }),
@@ -2960,7 +2983,7 @@ exports.placeorder = async (req, res) => {
           }
         ],
         "billing_address": {
-          "address": userData.billingAddress.landmark,
+          "address": userData.billingAddress.streetLandmark,
           "street2": "",
           "city": userData.billingAddress.city,
           "state": userData.billingAddress.state,
@@ -2983,7 +3006,7 @@ exports.placeorder = async (req, res) => {
         body: JSON.stringify(customerData)
       });
       const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
-      console.log(zohoCustomerCreateResponse); // remove
+      //console.log(zohoCustomerCreateResponse); // remove
       if (zohoCustomerCreateResponse.code == 0) {
         console.log(`zohoCustomer for ${req.userId} created!`)
         userData.isZohoCustomer = true;
@@ -3021,15 +3044,15 @@ exports.placeorder = async (req, res) => {
           return {
             "item_order": (i + 1),
             "item_id": currentDesignItem.product.id,
-            "rate": currentDesignItem.price * 1.00,
+            "rate": currentDesignItem.price * 1.05,
             "name": currentDesignItem.product.name,
             "description": currentDesignItem.designName,
             "quantity": (item.quantity).toFixed(2),
             "discount": "0%",
             "tax_id": "650580000000013321",
-            "tax_name": "SGST + CGST",
+            "tax_name": (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? "SGST + CGST": "GST",
             "tax_type": "tax",
-            "tax_percentage": 2.5,
+            "tax_percentage": (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? 2.5: 5,
             "project_id": "",
             "tags": [
 
@@ -3082,7 +3105,7 @@ exports.placeorder = async (req, res) => {
       },
       "tds_tax_id": "650580000000013032",
       "is_tds_amount_in_percent": true,
-      "taxes": [
+      "taxes": (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? [
         {
           "tax_name": "CGST",
           "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.025
@@ -3091,8 +3114,14 @@ exports.placeorder = async (req, res) => {
           "tax_name": "SGST",
           "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.025
         },
+      ]: 
+      [
+        {
+          "tax_name": "GST",
+          "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.05
+        },
       ],
-      "tax_total": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.05,
+      "tax_total": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges + orderDetails.orderData[0].cashOnDelivery? 50: 0) * 0.05,
       payment_made: orderDetails.orderData[0].amountPaid
     }
     console.log("Zoho invoice data: ", invoiceData)
@@ -3101,7 +3130,7 @@ exports.placeorder = async (req, res) => {
     zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
     zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
     zohoInvoiceFormData.append('is_quick_create', 'true');
-    console.log(zohoInvoiceFormData);
+    //console.log(zohoInvoiceFormData);
 
     const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
       // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
@@ -3130,6 +3159,7 @@ exports.placeorder = async (req, res) => {
     // should create order in woocomms
     // deleted a huge comment, if needed take from old commit
 
+    /* no longer need to send data to santo.. cuz cpanel died :( 
     const wooCommerceOrderData = {
       // parent_id: orderDetails.orderData[0].customerOrderId + "23",
       customer_note: `Order Reference number: ${orderDetails.orderData[0].customerOrderId}`,
@@ -3342,6 +3372,7 @@ exports.placeorder = async (req, res) => {
         }
       ],
     };
+
     if (orderDetails.orderData[0].cashOnDelivery) wooCommerceOrderData.fee_lines = [
       {
         name: "COD Charges",
@@ -3351,6 +3382,7 @@ exports.placeorder = async (req, res) => {
         total_tax: "2.5"
       }
     ]
+    */
     // deleted big ass comment, check old git commits for the deleted comment hre
 
   } catch (error) {

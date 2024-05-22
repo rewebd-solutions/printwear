@@ -1,4 +1,4 @@
-.billing-address-form, .retail-order-form {
+.billing-address-form, .retail-order-form, .shipping-address-form {
     display: flex;
     flex-direction: column;
     gap: 1rem;

@@ -88,7 +88,7 @@
                 <% designData.forEach((design, i)=> { %>
                 <tr>
                   <td><%= i+1 %></td>
-                  <td><%= design.designName %></td>
+                  <td><a href="<%= design.designImage.front != "false"? design.designImage.front: design.designImage.back %>" target="_blank"><%= design.designName %></a></td>
                   <td><%= design.designSKU %></td>
                   <td>₹<%= design.price.toFixed(2) %></td>
                   <td><%= orderData.orderData[0].items[i].quantity %></td>
@@ -229,8 +229,10 @@
                 </tr>
                 <tr>
                   <td>Total Product price (print + label)</td>
-                  <% var totalPP=[]; %> <% designData.forEach(design=> { %> <%
-                  totalPP.push(design.price.toFixed(2)) %> <% }) %>
+                  <% var totalPP=[]; %> 
+                  <% orderData.orderData[0].items.forEach(design=> { %> 
+                  <% totalPP.push(design.quantity * design.price) %>
+                  <% }) %>
                   <td>₹<%= totalPP.join(" + ₹") %></td>
                 </tr>
                 <tr>
@@ -251,7 +253,7 @@
                 </tr>
                 <% } %>
                 <tr>
-                  <td>Tax (CGST 2.5% + SGST 2.5%)</td>
+                  <td>Tax <%= orderData.orderData[0].billingAddress.state != "Tamil Nadu"? '(GST 5%)': '(CGST 2.5% + SGST 2.5%)' %></td>
                   <td>₹<%= (orderData.orderData[0].taxes).toFixed(2) %></td>
                 </tr>
                 <tr>

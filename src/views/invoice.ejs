@@ -66,7 +66,7 @@
         
         const populateInvoiceTable = (data = walletData) => {
             if (walletData.transactions.length === 0) return invoiceTableData.innerHTML = 'Search not found!';
-            invoiceTableData.innerHTML = data.transactions.map((transaction, i) => `
+            invoiceTableData.innerHTML = data.transactions.reverse().map((transaction, i) => `
                 <tr>
                     <td>${i+1}</td>
                     <td>${new Date(transaction.transactionDate).toLocaleString()}</td>

@@ -44,10 +44,12 @@
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
+    width: 100%;
 }
 
 .column {
     flex: 1;
+    width: 100%;
     padding: 10px;
     border-radius: 8px;
     background-color: #f5f5f5;
