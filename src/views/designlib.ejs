@@ -252,7 +252,7 @@
             </div>
             <p>Publish:</p>
             <div style="display: flex; gap: 0.4rem; align-items: center;">₹ 
-              <input type="number" inputmode="numeric" class="shop-price" value='${designModalData.price * 1.05}' placeholder="₹" />
+              <input type="number" inputmode="numeric" class="shop-price" value='${(designModalData.price * 1.05).toFixed(2)}' placeholder="₹" />
               <p style="font-size: 0.84rem">Enter retail price for your shop. <br /> You can change it later in your shop settings:</p>
             </div>
             <div class="publish-buttons">

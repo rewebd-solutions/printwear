@@ -15,6 +15,12 @@ let canvasState = {
   back: null,
 };
 
+/** storing design image ids and names so that i can switch em back when changing sides */
+var designImages = {
+  front: null,
+  back: null
+}
+
 /* Design Image Dimensions */
 let designImg, designImageWidth, designImageHeight;
 
@@ -33,6 +39,14 @@ var isReadyForRendering = true;
 
 var neckLabelId = null;
 var isNeckLabelSelected = false;
+
+var savedState = {
+  front: false,
+  back: false
+}
+
+// Design ID from backend before save has been triggered once
+var dbDesignId = null;
 
 /* Notfy - Notification Snackbar */
 var notyf = new Notyf();
@@ -155,7 +169,7 @@ const userDesignsWrapper = document.querySelector(".user-design-images");
 const userLabelsWrapper = document.querySelector(".user-label-images");
 
 /* Toggle Disable and Enable button */
-const disableButton = (state) => {
+const disableButton = (state, text = "Saving...") => {
   const saveButton = document.querySelector(".save-button");
   state
     ? saveButton.setAttribute("disabled", true)
@@ -164,9 +178,15 @@ const disableButton = (state) => {
     ? saveButton.classList.add("disabled")
     : saveButton.classList.remove("disabled");
   state
-    ? (saveButton.innerHTML = "Saving...")
+    ? (saveButton.innerHTML = text)
     : (saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`);
 };
+
+/** Disable function for switching sides when saving */
+const disableSideSwitch = (state) => {
+  const sideBtns = document.querySelectorAll(".sides-list button");
+  sideBtns.forEach(sideBtn => state ? sideBtn.classList.add("disabled") : sideBtn.classList.remove("disabled"))
+}
 
 /* Change Current Color and Current Image */
 const changeMockup = (e, color, id) => {
@@ -300,6 +320,7 @@ const changeStatName = () => {
 };
 
 const updateStats = () => {
+  console.log("update stats called");
   changeStatName();
 
   if (!designImageHeight || !designImageWidth || !designImg) {
@@ -494,12 +515,14 @@ const loadState = () => {
 };
 
 /* Add Image to Canvas */
-const addImageToCanvas = async (el, imageURL) => {
+const addImageToCanvas = async (el, imageURL, imageId) => {
   if (!globalProductID)
     return notyf.error("Select a shirt size before applying");
   if (!imageURL) return notyf.error("Invalid image, please try another");
 
   fabricCanvas.getObjects().map((obj) => fabricCanvas.remove(obj)); // remove all stuff before adding image
+
+  designImages[designDirection] = imageId;
 
   document
     .querySelectorAll(".user-design-image")
@@ -552,6 +575,7 @@ const addImageToCanvas = async (el, imageURL) => {
 /* Change Design Area Side */
 const changeSide = (e, side) => {
   /* Storing canvas state */
+  disableButton(savedState.side, "Saved")
   if (fabricCanvas) canvasState[designDirection] = fabricCanvas.toJSON();
 
   sideChangeButtons.forEach((sideBtn) =>
@@ -573,6 +597,14 @@ const changeSide = (e, side) => {
       selectedMockup.colorImage.back == ""
         ? "images/warning.png"
         : selectedMockup.colorImage.back;
+
+  document
+    .querySelectorAll(".user-design-image")
+    .forEach((element) => element.classList.remove("active-selection"));
+  
+    if (designImages[designDirection]) {
+      document.querySelector(`[data-id='${designImages[designDirection]}']`).classList.add("active-selection");
+  }
 
   console.log("direction: " + designDirection);
   loadState();
@@ -685,6 +717,7 @@ const saveDesign = async () => {
   
   try {
     disableButton(true);
+    disableSideSwitch(true);
     const canvasContainer = document.querySelectorAll(".canvas-container > *");
     canvasContainer.forEach((item) => (item.style.border = "none"));
 
@@ -783,19 +816,23 @@ const saveDesign = async () => {
         )
       );
       // add back image to same designImage
-      formData.append(
-        "designHeight",
-        parseFloat(calculateTotalHeight().toFixed(2))
-      );
-      formData.append(
-        "designWidth",
-        parseFloat(calculateTotalWidth().toFixed(2))
-      );
+      // formData.append(
+      //   "designHeight",
+      //   parseFloat(calculateTotalHeight().toFixed(2))
+      // );
+      // formData.append(
+      //   "designWidth",
+      //   parseFloat(calculateTotalWidth().toFixed(2))
+      // );
       formData.append("productData", JSON.stringify(designModelObject));
+      formData.append("neckLabel", neckLabelId);
       formData.append("direction", designDirection);
       formData.append("designImageURL", designImageURL);
       formData.append("designImageName", designImageName);
-      formData.append("neckLabel", neckLabelId);
+      formData.append("designId", dbDesignId);
+
+      // formData.forEach((v, k) => console.log(k, v))
+      // return;
 
       const saveDesignRequest = await fetch("/createdesign", {
         method: "POST",
@@ -813,6 +850,35 @@ const saveDesign = async () => {
       document.querySelector(".save-button").innerHTML = "Saved!";
       notyf.success("Design saved successfully!");
 
+      savedState[designDirection] = true;
+      disableSideSwitch(false);
+
+      if (!dbDesignId) {
+        dbDesignId = saveDesignResponse.designs.at(-1)._id;
+        scrollTo({ top: 0, left: 0, behavior: "smooth" });
+        document.querySelector(".App").insertAdjacentHTML(
+          "afterend",
+          `
+          <!-- modal for not asking users to pay and make orders -->
+          <div class="warning-moda-wrapper">
+            <div class="warning-modal">
+              <button onclick="document.querySelector('.warning-moda-wrapper').remove()"
+                style="margin-left: auto;padding: 0.4rem 0.8rem; cursor: pointer; border: none; outline: 1px solid silver; border-radius: 100%;"><i class="fa fa-xmark"></i></button>
+                Design for ${designDirection} was saved successfully!<br />
+                <img src="images/tuto.png" alt="Instruction to save back image">
+                <br />
+                To save ${
+                  designDirection == "front" ? "back" : "front"
+                } design, click <span id="front-side" class="side-btn active-btn">${
+                  designDirection == "front" ? "Back" : "Front"
+                }</span> as shown in the image and save it again
+            </div>
+          </div>
+        `
+        );
+      }
+
+      /** check if page has been navigated to, from orders la create new design */
       const searchParams = new URLSearchParams(location.search);
       let hasBeenRedirected = searchParams.get("from") === "orders";
       const orderId = hasBeenRedirected ? searchParams.get("id") : null;
@@ -847,15 +913,24 @@ const saveDesign = async () => {
           location.href = "/placeorder";
         }, 3000);
       }
+      // disableButton(false);
+      canvasContainer.forEach(
+        (item) => (item.style.border = "2px dashed black")
+      );
+    }).catch(error => {
+      console.log(error);
+      notyf.error(error.error);
       disableButton(false);
+      disableSideSwitch(false);
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed black")
       );
     });
   } catch (error) {
     console.log(error);
-    notyf.error(error.error);
+    notyf.error(error.error ?? error);
     disableButton(false);
+    disableSideSwitch(false);
     canvasContainer.forEach(
       (item) => (item.style.border = "2px dashed black")
     );
@@ -930,7 +1005,7 @@ const populateUserDesigns = (data = userDesignResponse) => {
     currentImage.src = imageItem.url;
 
     userDesignsWrapper.innerHTML += `
-    <div class="user-design-image" onclick="addImageToCanvas(this, this.children[0].src)">
+    <div class="user-design-image" onclick="addImageToCanvas(this, this.children[0].src, '${imageItem._id}')" data-id='${imageItem._id}'>
       <img src="${imageItem.url}" alt="" loading="lazy">
       <p>${imageItem.name}</p>
     </div>`;

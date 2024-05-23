@@ -41,6 +41,29 @@
   padding: 6rem 0 0 300px;
 }
 
+.warning-modal {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: white;
+  display: flex;
+  flex-direction: column;
+  top: 50%;
+  left: 50%;
+  padding: 2rem;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.warning-moda-wrapper {
+  background: rgba(0, 0, 0, 0.2);
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+}
+
 .App > * {
   margin: 0.4%;
   width: 50%;
@@ -225,7 +248,7 @@ input[type="text"]:focus {
   outline: 1px solid rgb(139, 139, 139);
 }
 
-.App button {
+.App button, .warning-modal span {
   width: 10rem;
   border: none;
   border-radius: 5px;
@@ -233,6 +256,11 @@ input[type="text"]:focus {
   color: #434343;
   cursor: pointer;
   transition: ease 200ms;
+}
+
+.warning-modal span {
+  width: fit-content;
+  display: inline-flex;
 }
 
 .App button:hover {

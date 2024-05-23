@@ -1631,13 +1631,64 @@ exports.createdesign = async (req, res) => {
     // no need to find reference as i can send the URL from client directly!!!
 
     // for(let file of fileBuffer) {
-    const fileReference = storageReference.child(`designs/${req.userId + "_" + req.body.productData.designName + "_" + uniqueSKU}.png`);
+    const fileReference = storageReference.child(`designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
     //   recordOfFileNames[file.originalname] = fileDownloadURL;
     // }
     const designImageHeight = req.body.direction === "front"? req.body.productData.designDimensions.height: req.body.productData.backDesignDimensions.height;
     const designImageWidth = req.body.direction === "front"? req.body.productData.designDimensions.wdith: req.body.productData.backDesignDimensions.wdith;
+    
+    if (req.body.designId != "null") {
+      const currentDirection = req.body.direction;
+      const printCharges = (designImageHeight <= 8.0 && designImageWidth <= 8.0
+                  ? 70.0
+                  : req.body.productData.price * 1 < 70.0
+                  ? 70.0
+                  : req.body.productData.price * 1)
+      const neckLabelCharges = (printCharges == (printCharges + (req.body.neckLabel == "null" ? 0 : 10))) ? 0: 10
+      const currentDesign = await NewDesignModel.findOneAndUpdate(
+        { userId: req.userId, "designs._id": req.body.designId },
+        {
+          $set: {
+            [`designs.$.designImage.${currentDirection}`]: fileDownloadURL,
+            [`designs.$.${
+              currentDirection == "front" ? "frontPrice" : "backPrice"
+            }`]: parseFloat(
+              (
+                printCharges + neckLabelCharges
+              ).toFixed(2)
+            ),
+            [`designs.$.${
+              currentDirection == "front"
+                ? "designDimensions"
+                : "backDesignDimensions"
+            }`]: {
+              ...req.body.productData[
+                currentDirection == "front"
+                  ? "designDimensions"
+                  : "backDesignDimensions"
+              ],
+            },
+          },
+          $push: {
+            "designs.$.designItems": {
+              itemName: req.body.designImageName,
+              URL: req.body.designImageURL,
+            },
+          },
+          $inc: {
+            "designs.$.price": parseFloat(
+              (
+                printCharges + neckLabelCharges
+              ).toFixed(2)
+            ),
+          },
+        },
+        { new: true }
+      );
+      return res.status(200).json(currentDesign);
+    }
 
     const designsDataObject = {
       productId: req.body.productData.productId,
@@ -1645,6 +1696,7 @@ exports.createdesign = async (req, res) => {
       designSKU: uniqueSKU,
       designName: req.body.productData.designName,
       price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
+      [req.body.direction == "front"? 'frontPrice': 'backPrice']: parseFloat(((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1)) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
       designImage: {
         front: req.body.direction === "front" && fileDownloadURL,
         back: req.body.direction === "back" && fileDownloadURL,
@@ -1655,13 +1707,14 @@ exports.createdesign = async (req, res) => {
       }],
       neckLabel: req.body.neckLabel == 'null' ? undefined : req.body.neckLabel
     }
-
+    
     if (req.body.direction === "front") {
       designsDataObject.designDimensions = { ...req.body.productData.designDimensions }
     } else {
       designsDataObject.backDesignDimensions = { ...req.body.productData.backDesignDimensions }
     }
-
+    
+    // console.log("🚀 ~ exports.createdesign= ~ designsDataObject:", designsDataObject)
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
       {
