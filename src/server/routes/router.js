@@ -119,7 +119,11 @@ route.get("/zohogrptest", controller.addwomens); // remove asap after adding wom
 route.get("/admin/orders", authServices.authorizeAdmin, services.adminpage);
 route.get("/admin/orders/:id", authServices.authorizeAdmin, services.adminorder);
 route.get("/admin/dashboard", authServices.authorizeAdmin, services.admindash);
-route.get("/admin/users", authServices.authorizeAdmin, services.adminusers);
+
+route.get("/admin/wallets", authServices.authorizeAdmin, controller.renderadminwallets);
+route.get("/admin/wallets/:id", authServices.authorizeAdmin, controller.renderadminwallet);
+route.post("/admin/wallets/:id/refund", authServices.authorizeAdmin, controller.adminrefund);
+
 route.get("/admin/recentorders", authServices.authorizeAdmin, controller.getadminorders);
 route.get("/admin/recentorders/:id", authServices.authorizeAdmin, controller.getadminorder);
 route.post("/admin/recentorders/update", authServices.authorizeAdmin, controller.updateadminorder);

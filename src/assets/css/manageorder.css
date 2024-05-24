@@ -286,6 +286,12 @@ hr {
     width: fit-content;
 }
 
+.refund-admin {
+    padding: 0.4rem 0.8rem;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
 .status-badge {
     display: inline;
     padding: 0.2rem 0.3rem;
@@ -298,6 +304,15 @@ hr {
 .processing, .placed, .unplaced, .processing, .dispatched, .delivered, .courier_assigned {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
+}
+
+.proceed-btn {
+    padding: 0.25rem 0.7rem;
+    border-radius: 6px;
+    background-color: hsl(108, 48%, 94%);
+    color: hsl(136, 100%, 28%);
+    text-decoration: none;
+    font-size: 0.8rem;
 }
 
 /* remove */

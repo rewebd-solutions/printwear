@@ -223,6 +223,7 @@ input[type='search'] {
 
 .order-image-container {
     display: flex;
+    flex-direction: column;
     gap: 0.9rem;
     width: 170px;
 }

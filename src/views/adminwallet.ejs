@@ -1,0 +1,230 @@
+!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/manageorder.css">
+    <link rel="stylesheet" href="/css/invoice.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Admin - Printwear</title>
+    <style>
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .grid-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .grid-item label {
+      margin-bottom: 5px;
+    }
+    .grid-item.submit {
+      grid-column: span 1;
+      text-align: center;
+    }
+    .grid-item.comments input {
+      width: 100%;
+    }
+    fieldset {
+    padding: 0.5rem;
+    border-radius: 5px;
+}
+
+fieldset label {
+    font-weight: 400;
+}
+.disabled {
+    background-color: #ff7653 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    opacity: 0.6;
+ }
+    </style>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/admin-side.ejs') %>
+            <%- include('partials/admin-nav.ejs') %>
+    </div>
+    <div class="manageorder">
+        <% if (error) { %>
+            <h1><%- error %></h1>
+    </div>
+    <% } else { %>
+        <h1>Wallets Details for <%= data.userDetails.name %></h1>
+
+        <div class="invoice-table">
+            <fieldset class="refund-form">
+                <legend>Issue refund</legend>
+
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <!-- <label for="transaction-type">Transaction Type</label> -->
+                        <select id="transaction-type" class="refund-input" name="transactionType">
+                            <option value="credit" style="font-size: 0.8rem;">Credit</option>
+                            <option value="debit" style="font-size: 0.8rem;">Debit</option>
+                        </select>
+                    </div>
+                    <div class="grid-item">
+                        <!-- <label for="order-id">Order ID</label> -->
+                        <input class="refund-input" type="text" id="order-id" name="orderId" placeholder="Order ID">
+                    </div>
+                    <div class="grid-item">
+                        <!-- <label for="transaction-id">Transaction ID</label> -->
+                        <input required class="refund-input" type="text" id="transaction-id" name="transactionId" placeholder="Transaction ID">
+                    </div>
+                    <div class="grid-item comments">
+                        <!-- <label for="comments">Comments</label> -->
+                        <input required class="refund-input" type="text" id="comments" name="comments" placeholder="Comments">
+                    </div>
+                    <div class="grid-item">
+                        <!-- <label for="amount">Amount</label> -->
+                        <input required class="refund-input" type="number" step="0.01" id="amount" name="amount" placeholder="Amount">
+                    </div>
+                    <div class="grid-item submit">
+                        <button class="refund-btn refund-admin" type="submit">Proceed</button>
+                    </div>
+                </div>
+            </fieldset>
+            <div id="printwear-invoice">
+                <div class="search-options">
+                    <label for="search-invoices">Search</label>
+                    <input id="search-invoices" type="search"
+                        placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
+                </div>
+                <h2>Total Wallet Balance: <span id="wallet-balance">₹<%= data.balance %></span></h2>
+                <table>
+                    <thead>
+                        <th>S. No.</th>
+                        <th>Date</th>
+                        <th>Transaction ID</th>
+                        <th>Type</th>
+                        <th>Amount paid</th>
+                        <th>Description</th>
+                        <th>Invoice link</th>
+                    </thead>
+                    <tbody id="invoice-table-data">
+        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+        <script>
+            AOS.init();
+            var notyf = new Notyf();
+
+            let walletData = <%- JSON.stringify(data) %>;
+            const invoiceTableData = document.querySelector("#invoice-table-data");
+            const refundFormFields = document.querySelectorAll(".grid-item input");
+            const refundBtn = document.querySelector(".refund-admin");
+            const transactionIdInput = document.querySelector("#transaction-id");
+
+            transactionIdInput.oninput = async (e) => {
+                let string = e.target.value;
+                e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase();
+            }
+
+            const searchWalletData = (searchKey) => {
+                searchKey = searchKey.toLowerCase().trim();
+                console.log("🚀 ~ searchWalletData ~ searchKey:", searchKey)
+                if (!searchKey) {
+                    return populateInvoiceTable();
+                }
+                let filteredData = walletData.transactions.filter(transaction => transaction.walletOrderId?.toLowerCase().includes(searchKey) || transaction.transactionNote?.toLowerCase().includes(searchKey) || transaction.transactionType?.includes(searchKey));
+                console.log("🚀 ~ filteredData ~ filteredData:", filteredData)
+                populateInvoiceTable({ transactions: filteredData });
+            }
+
+            const populateInvoiceTable = (data = walletData) => {
+                if (walletData.transactions.length === 0) return invoiceTableData.innerHTML = 'Search not found!';
+                invoiceTableData.innerHTML = data.transactions.reverse().map((transaction, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
+                        <td>${transaction.walletOrderId ?? '—'}</td>
+                        <td>${["credit", "debit"].includes(transaction.transactionType) ? transaction.transactionType : transaction.transactionType === "recharge" ? "Recharge" : "Payment"}</td>
+                        <td>₹ ${transaction.amount.toFixed(2)}</td>
+                        <td>${["credit", "debit"].includes(transaction.transactionType)? `${transaction.transactionNote}` : transaction.transactionType === "recharge" ? `Recharge for ₹ ${transaction.amount.toFixed(2)}` : `${transaction.transactionNote.split(" ").splice(0, 3).join(" ")} <a href='/admin/orders/${transaction.transactionNote.split(" ").at(-1)}'>${transaction.transactionNote.split(" ").at(-1)}</a>`}</td>
+                        <td>${["credit", "debit", "recharge"].includes(transaction.transactionType) ? `<i class="fa fa-ban"></i>` : `<a href='${transaction.invoiceURL}'><i class="fa fa-download"></i></a>`}</td>
+                    </tr>
+                `).join('\n');
+            }
+
+            const searchInput = document.querySelector('#search-invoices');
+            searchInput.oninput = (e) => searchWalletData(e.target.value);
+
+            populateInvoiceTable();
+
+            const disableButton = (state, text = 'Please wait...') => {
+                const refunBtn = document.querySelector(".refund-admin");
+                state ? refunBtn.setAttribute("disabled", true): refunBtn.removeAttribute("disabled");
+                state ? refunBtn.classList.add("disabled"): refunBtn.classList.remove("disabled");
+                state ? refunBtn.innerHTML = text: refunBtn.innerHTML = "Proceed";
+            }
+
+            const issueRefund = async (e) => {
+                disableButton(true);
+                const transType = document.querySelector("#transaction-type").value;
+                console.log("🚀 ~ issueRefund ~ transType:", transType)
+
+                if (!["credit", "debit"].includes(transType)) {
+                    disableButton(false);
+                    return notyf.error("Invalid Transaction Type");
+                }
+
+                for (const elem of refundFormFields) {
+                    if (!elem.reportValidity()) {
+                        disableButton(false);
+                        return notyf.error("Check "+ elem.id.replace("-", " "));
+                    }    
+                }
+
+                const refundData = {
+                    transactionType: transType,
+                    transactionId: refundFormFields[1].value,
+                    orderId: refundFormFields[0].value,
+                    comments: refundFormFields[2].value,
+                    amount: refundFormFields[3].value,
+                }
+                console.log("🚀 ~ issueRefund ~ refundData:", refundData)
+                
+                try {
+                    const refundRequest = await fetch(`/admin/wallets/<%= data._id %>/refund`, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(refundData),
+                        method: 'POST'
+                    });
+                    const refundResponse = await refundRequest.json();
+                    console.log(refundResponse)
+                    if (!refundRequest.ok) {
+                        disableButton(false);
+                        return notyf.error(refundResponse.error);
+                    }
+                    disableButton(false, "Refund successful!")
+                    document.querySelector('#wallet-balance').innerHTML = '₹' + refundResponse.balance
+                    notyf.success("Transaction was successful!");
+                    populateInvoiceTable(refundResponse)
+                } catch (error) {
+                    console.log("🚀 ~ issueRefund ~ error:", error)
+                    return notyf.error(error);
+                }
+            }
+
+            refundBtn.addEventListener("click", issueRefund);
+        </script>
+        <% } %>
+</body>
+
+</html>

@@ -1,0 +1,100 @@
+!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/manageorder.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <title>Admin - Printwear</title>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/admin-side.ejs') %>
+            <%- include('partials/admin-nav.ejs') %>
+    </div>
+    <div class="manageorder">
+    <% if (error) { %>
+        <h1><%- error %></h1>
+        </div>
+    <% } else { %>
+        <h1>Wallets and Refunds</h1>
+        <div id="printwear-order">
+            <div class="search-options">
+                <label for="search-orders">Search</label>
+                <input id="search-orders" type="search" placeholder="User name, wallet balance, etc." />
+            </div>
+            <table>
+                <thead>
+                    <th>S.No.</th>
+                    <th>User name</th>
+                    <th>Wallet Balance</th>
+                    <th>Action</th>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        </div>
+        <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+        <script>
+            const walletAndUserData = <%- JSON.stringify(data) %>;
+            AOS.init();
+            var notyf = new Notyf();
+            var orderHistoryData = [];
+            const deliveryStatuses = [
+                "received",
+                "rts",
+                "on-hold",
+                "processing",
+                "rtd",
+                "rto",
+                "invoiced",
+                "shipped",
+                "delivered",
+                "completed",
+                "pending",
+            ];
+            
+            const walletHistoryTable = document.querySelector("#printwear-order > table tbody");
+            const searchInput = document.querySelector("#search-orders");
+
+            const populateWalletHistoryTable = (data = walletAndUserData) => {
+                if (!data || data?.length < 1) {
+                    return walletHistoryTable.innerHTML = 'No results found!'
+                }
+                walletHistoryTable.innerHTML = data.map((walletData, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${walletData.userData.name} ${walletData.userData.firstName? '(' + walletData.userData.firstName + ' ' + (walletData.userData.lastName ?? '') + ')': ''}</td>
+                    <td>₹${walletData.balance}</td>
+                    <td>
+                        <a href="wallets/${walletData._id}" class="proceed-btn">Details ▶</a>
+                    </td>
+                    </tr> 
+                `).join('');
+            }
+
+            searchInput.oninput = (e) => {
+                let searchKey = e.target.value.toLowerCase().trim();
+                if (!searchKey || searchKey?.length == 0) return populateWalletHistoryTable();
+                populateWalletHistoryTable(walletAndUserData.filter(w => 
+                    w.userData?.name ? w.userData?.name.toLowerCase().trim().includes(searchKey): false ||
+                    w.userData?.firstName ? w.userData?.firstName.toLowerCase().trim().includes(searchKey): false ||
+                    w.userData?.lastName ? w.userData?.lastName.toLowerCase().trim().includes(searchKey): false ||
+                    (w.balance + '').toLowerCase().trim().includes(searchKey)
+                ))
+            }
+
+            populateWalletHistoryTable();
+        </script>
+    <% } %>
+</body>
+
+</html>

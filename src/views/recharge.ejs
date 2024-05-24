@@ -68,8 +68,12 @@
                     });
                     const rechargeResponse = await rechargeRequest.json();
                     const cashfree = Cashfree({
-                        mode: "production" //or production
+                        // mode: "production" //or production
+                        mode: "<%= data.mode == 'test'? 'sandbox': 'production' %>" //or production
                     });
+                    if (!rechargeRequest.ok) {
+                        return notyf.error("There was an error creating the payment link");
+                    }
                     cashfree.checkout({ paymentSessionId: rechargeResponse.paymentLink }).then(check => console.log(check)).catch(err => alert(error));
                     notyf.success("Redirecting to payment page")
                 } catch (error) {

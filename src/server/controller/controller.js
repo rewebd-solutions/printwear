@@ -3,7 +3,7 @@ var cashfreeSecretKey = "";
 
 const paymentMode = process.env.CASH_MODE;
 
-if (paymentMode == "test") {
+if (paymentMode != "test") {
   cashfreeAppID = process.env.CASH_APP_ID;
   cashfreeSecretKey = process.env.CASH_SECRET_KEY;
 } else {
@@ -46,7 +46,10 @@ const MockupModel = require("../model/mockupModel");
 const WalletModel = require("../model/walletModel");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
-const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
+/** I've not put CASHFREE_BASE_URL_TEST in yaml because mode should never be in test during production.. 
+ * hence below ternary will be false in production
+ */
+const CASHFREE_BASE_URL = paymentMode == "test"? process.env.CASHFREE_BASE_URL_TEST: process.env.CASHFREE_BASE_URL;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
 // const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history"); // done
@@ -2062,6 +2065,7 @@ exports.deleteorderitem = async (req, res) => {
 
     orderData.items = orderData.items.filter(item => item.designId + "" != req.body.designId);
     orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0);
+    orderData.taxes = orderData.totalAmount * 0.05;
 
     if (orderData.items.length == 0) {
       orderData.deleteOne();
@@ -2563,7 +2567,7 @@ exports.recharge = async (req, res) => {
     if (!wallet) {
       return res.render("recharge", { data: { userName: req.userName, error: true } });
     }
-    return res.render("recharge", { data: { userName: req.userName, walletData: wallet } });
+    return res.render("recharge", { data: { userName: req.userName, walletData: wallet, mode: paymentMode } });
   } catch (error) {
 
   }
@@ -2728,6 +2732,8 @@ exports.rechargewallet = async (req, res) => {
     const createRechargePaymentlinkResponse = await createRechargePaymentlinkRequest.json();
     console.log(createRechargePaymentlinkResponse);
 
+    if (createRechargePaymentlinkResponse.code) return res.status(400).json({ message: 'Error creating payment link!', error: createRechargePaymentlinkResponse.message });
+    
     UserWallet.transactions.push({
       walletOrderId: walletRechargeOrderId,
       amount: amount,
@@ -2739,7 +2745,6 @@ exports.rechargewallet = async (req, res) => {
 
     await UserWallet.save();
 
-    if (createRechargePaymentlinkResponse.code) return res.status(400).json({ message: 'Error creating payment link!', error: createRechargePaymentlinkResponse.message });
     return res.status(200).json({ paymentLink: createRechargePaymentlinkResponse.payment_session_id });
   } catch (error) {
     console.log(error);
@@ -3036,11 +3041,11 @@ exports.placeorder = async (req, res) => {
           }
         ],
         "billing_address": {
-          "address": userData.billingAddress.streetLandmark,
+          "address": billingAddress.streetLandmark,
           "street2": "",
-          "city": userData.billingAddress.city,
-          "state": userData.billingAddress.state,
-          "zipcode": userData.billingAddress.pincode,
+          "city": billingAddress.city,
+          "state": billingAddress.state,
+          "zipcode": billingAddress.pincode,
           "country": "India",
           "phone": userData.phone,
           "fax": "",
@@ -3130,7 +3135,7 @@ exports.placeorder = async (req, res) => {
       "is_discount_before_tax": "",
       "discount": 0,
       "discount_type": "",
-      "shipping_charge": orderDetails.orderData[0].deliveryCharges,
+      "shipping_charge": (orderDetails.orderData[0].deliveryCharges + orderDetails.orderData[0].cashOnDelivery? 50: 0) * 0.05,
       "adjustment": "",
       "adjustment_description": "Standard Shipping",
       "salesperson_id": "650580000000108050",
@@ -3447,97 +3452,7 @@ exports.placeorder = async (req, res) => {
 }
 
 
-// exports.missingshiprocket = async (req, res) => {
-//   try {
-//     const { orderData, designsData } = req.body;
-//     const shiprocketToken = await generateShiprocketToken();
-
-//     const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
-//     const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-
-//     const shiprocketOrderData = {
-//       order_id: orderData.printwearOrderId,
-//       order_date: formatDate(new Date(orderData.createdAt)),
-//       pickup_location: "Primary",
-//       channel_id: process.env.SHIPROCKET_CHANNEL_ID,
-//       comment:
-//         "Order for " +
-//         orderData.shippingAddress.firstName +
-//         " " +
-//         orderData.shippingAddress.lastName ?? "",
-//       // billing_customer_name: orderData.billingAddress.firstName,
-//       // billing_last_name: orderData.billingAddress.lastName,
-//       // billing_address: orderData.billingAddress.streetLandmark ?? "",
-//       // billing_address_2: "",
-//       // billing_city: orderData.billingAddress.city ?? "",
-//       // billing_pincode: orderData.billingAddress.pincode ?? "",
-//       // billing_state: orderData.billingAddress.state ?? "",
-//       // billing_country: orderData.billingAddress.country || "India",
-//       // billing_email: orderData.billingAddress.email,
-//       // billing_phone: orderData.billingAddress.mobile,
-//       shipping_is_billing: true, // --> later change to False
-//       billing_customer_name: orderData.shippingAddress.firstName,
-//       billing_last_name: orderData.shippingAddress.lastName,
-//       billing_address: orderData.shippingAddress.streetLandmark,
-//       billing_address_2: "",
-//       billing_city: orderData.shippingAddress.city,
-//       billing_pincode: orderData.shippingAddress.pincode,
-//       billing_state: orderData.shippingAddress.state,
-//       billing_country: orderData.shippingAddress.country,
-//       billing_email: orderData.shippingAddress.email,
-//       billing_phone: orderData.shippingAddress.mobile,
-//       order_items: orderData.items.map((item) => {
-//         let currentItemDesignData = designsData.designs.find(
-//           (design) => design._id + "" == item.designId + ""
-//         );
-//         return {
-//           name: currentItemDesignData.designName,
-//           sku: currentItemDesignData.designSKU,
-//           units: item.quantity,
-//           selling_price: currentItemDesignData.price,
-//           discount: "",
-//           tax: "",
-//           hsn: 441122,
-//         };
-//       }),
-//       payment_method: orderData.cashOnDelivery ? "COD" : "Prepaid",
-//       shipping_charges: orderData.deliveryCharges + (orderData.cashOnDelivery? 50: 0),
-//       giftwrap_charges: 0,
-//       transaction_charges: 0,
-//       total_discount: 0,
-//       sub_total: orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0), // i changed from Retail price to totalAmount.. idk how that works
-//       length: 28,
-//       breadth: 20,
-//       height: 0.5,
-//       weight: (
-//         0.25 * orderData.items.reduce((total, item) => total + item.quantity, 0)
-//       ).toFixed(2),
-//     };
-
-//     console.log("Shiprocket data:");
-//     console.dir(shiprocketOrderData, { depth: 5 });
-
-//     const createShiprocketOrderRequest = await fetch(
-//       SHIPROCKET_BASE_URL + "/orders/create/adhoc",
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: "Bearer " + SHIPROCKET_ACC_TKN,
-//         },
-//         method: "POST",
-//         body: JSON.stringify(shiprocketOrderData),
-//       }
-//     );
-//     const createShiprocketOrderResponse =
-//       await createShiprocketOrderRequest.json();
-//     console.log("Shiprocket order response:");
-//     console.log(createShiprocketOrderResponse);
-//     res.json(createShiprocketOrderResponse);
-//   } catch (error) {
-//     console.log("🚀 ~ exports.missingshiprocket= ~ error:", error)
-//     res.send("NO")
-//   }
-// }
+/** Deleted a comment for shiprocket missing data as complained with "shiprocket data not fetched" */
 
 // endpoint for wallet balance
 exports.walletballance = async (req, res) => {
@@ -4665,5 +4580,169 @@ exports.updateadminorder = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "Server error in bulk updates!" });
+  }
+}
+
+exports.renderadminwallets = async (req, res) => {
+  try {
+    // const [ userData, walletData ] = await Promise.all([
+    //   await UserModel.find(),
+    //   await WalletModel.find()
+    // ]);
+    const walletsAndUserData = await WalletModel.aggregate([
+      [
+        {
+          $lookup: {
+            from: "users", // Name of the users collection
+            localField: "userId",
+            foreignField: "_id",
+            as: "userData",
+          },
+        },
+        {
+          $unwind: "$userData", // Unwind the array to denormalize the data
+        },
+        {
+          $project: {
+            _id: 1,
+            userId: 1,
+            balance: 1,
+            "userData.name": 1,
+            "userData.firstName": 1,
+            "userData.lastName": 1,
+            "userData.email": 1,
+            "userData.phone": 1,
+          },
+        },
+      ],
+    ]);
+    if (walletsAndUserData.length < 1) throw new Error("Something went wrong with DB");
+    res.render("adminwallets", { error: null, data: walletsAndUserData });
+  } catch (error) {
+    console.log("🚀 ~ exports.renderadminwallets ~ error:", error)
+    res.render("adminwallets", { error: "Server error in displaying this page", data: null });
+  }
+}
+
+exports.renderadminwallet = async (req, res) => {
+  try {
+    const walletId = req.params.id;
+    const result = await WalletModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(walletId) } },
+      {
+        $lookup: {
+          from: "users", // Name of the User collection (use the actual collection name, usually the lowercase plural form of the model)
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails",
+          preserveNullAndEmptyArrays: true, // In case there are wallets without a corresponding user
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          balance: 1,
+          userId: 1,
+          transactions: 1,
+          "userDetails._id": 1,
+          "userDetails.name": 1,
+          "userDetails.firstName": 1,
+          "userDetails.lastName": 1,
+          "userDetails.email": 1,
+          "userDetails.phone": 1,
+        },
+      },
+    ]);
+    if (result.length < 1) throw new Error(`Could not find data for ${walletId}`);
+    res.render("adminwallet", { error: null, data: { ...result[0] } })
+  } catch (error) {
+    console.log("🚀 ~ exports.renderadminwal ~ error:", error)
+    res.render("adminwallet", { error: error, data: null })
+  }
+}
+
+exports.adminrefund = async (req, res) => {
+  try {
+    const refundData = req.body;
+    const walletId = req.params.id;
+    console.log(refundData);
+
+    const walletData = await WalletModel.findById(walletId);
+    if (!walletData) return res.status(404).json({ error: "Wallet could not be found!" });
+
+    let orderHistories;
+
+    if (refundData.orderId && refundData.orderId.length != 0) {
+      orderHistories = await OrderHistoryModel.findOne({
+        userId: walletData.userId,
+      });
+      if (!orderHistories)
+        return res
+          .status(404)
+          .json({ error: "Order history could not be found!" });
+
+      const orderIndex = orderHistories.orderData.findIndex(
+        (order) => order.printwearOrderId == refundData.orderId.trim()
+      );
+      if (orderIndex == -1) {
+        return res.status(404).json({ error: "Invalid Order ID" });
+      }
+
+      // const order = orderHistories.orderData.at(orderIndex);
+    }
+
+    const walletTransactionIds = walletData.transactions.map(
+      (trans) => trans.walletOrderId
+    );
+
+    
+    if (walletTransactionIds.includes(refundData.transactionId.trim())) {
+      return res.status(404).json({ error: "Transaction with same ID already found. Please enter new transaction ID" });
+    }
+    
+    if (refundData.comments.trim().length == 0) 
+      return res.status(404).json({ error: "Comments cannot be empty" });
+
+    /**
+     if (parseFloat(refundData.amount) > order.amountPaid) {
+ 
+     } 
+     * i am not sure if i should perform this check, heck i should ask if the client needs to refund only for specific orders or directly send cash 
+     * regardless of order id 
+     */
+     
+    if (parseFloat(refundData.amount) > walletData.balance) {
+      return res.status(403).json({ error: "Insufficient balance in customers wallet to debit!" });
+    }
+
+    walletData.transactions.push({
+      amount: refundData.amount,
+      transactionType: refundData.transactionType,
+      transactionNote:
+        refundData.comments + ((refundData.orderId != "")
+          ? `. Transaction for ${refundData.orderId}`
+          : "") + ". Initiated by admin",
+      walletOrderId: refundData.transactionType == "credit"? `CREDIT_${refundData.transactionId}`: `DEBIT_${refundData.transactionId}`,
+      transactionStatus: "success",
+    });
+
+    if (refundData.transactionType == "credit") {
+      walletData.balance = (walletData.balance + parseFloat(refundData.amount)).toFixed(2);
+    } else {
+      walletData.balance = (walletData.balance - parseFloat(refundData.amount)).toFixed(2);
+    }
+
+    await walletData.save({ validateBeforeSave: false });
+    // console.log("🚀 ~ exports.adminrefund= ~ walletData:", walletData)
+
+    res.json(walletData);
+  } catch (error) {
+    console.log("🚀 ~ exports.adminrefund= ~ error:", error)
+    res.status(500).json({ error: "Server error in issuing refund" })
   }
 }
