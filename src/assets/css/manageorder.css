@@ -120,11 +120,21 @@ table a:visited {
     font-size: 0.8rem;
 }
 
-.search-options input {
+.search-options input, .pay-action input {
     width: 70%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+}
+
+.pay-action input {
+    width: 30%;
+    padding: 6px;
+}
+
+.cod-btn {
+    width: fit-content;
+    font-size: 0.9rem !important;
 }
 
 .loader {

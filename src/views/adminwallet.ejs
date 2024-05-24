@@ -179,13 +179,13 @@ fieldset label {
 
                 if (!["credit", "debit"].includes(transType)) {
                     disableButton(false);
-                    return notyf.error("Invalid Transaction Type");
+                    return notyf.error({ message: "Invalid Transaction Type", duration: 5000 });
                 }
 
                 for (const elem of refundFormFields) {
                     if (!elem.reportValidity()) {
                         disableButton(false);
-                        return notyf.error("Check "+ elem.id.replace("-", " "));
+                        return notyf.error({ message: "Check "+ elem.id.replace("-", " "), duration: 5000 });
                     }    
                 }
 
@@ -210,7 +210,7 @@ fieldset label {
                     console.log(refundResponse)
                     if (!refundRequest.ok) {
                         disableButton(false);
-                        return notyf.error(refundResponse.error);
+                        return notyf.error({ message: refundResponse.error, duration: 5000 });
                     }
                     disableButton(false, "Refund successful!")
                     document.querySelector('#wallet-balance').innerHTML = '₹' + refundResponse.balance
@@ -218,7 +218,7 @@ fieldset label {
                     populateInvoiceTable(refundResponse)
                 } catch (error) {
                     console.log("🚀 ~ issueRefund ~ error:", error)
-                    return notyf.error(error);
+                    return notyf.error({ message: error, duration: 5000 });
                 }
             }
 

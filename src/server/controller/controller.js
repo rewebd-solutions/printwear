@@ -3202,13 +3202,14 @@ exports.placeorder = async (req, res) => {
     console.log(zohoInvoiceCreateResponse);
     if (zohoInvoiceCreateResponse.code != 0 || !zohoInvoiceCreateRequest.ok) {
       console.log(`Couldn't create invoice for ${orderData.printwearOrderId}`);
+    } else {
+      let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${walletOrderId}`)
+      walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice?.invoice_url;
     }
-    let purchaseTransactionIndex = walletData.transactions.findIndex(transaction => transaction.walletOrderId == `PAYMENT_${walletOrderId}`)
-    walletData.transactions[purchaseTransactionIndex].invoiceURL = zohoInvoiceCreateResponse.invoice?.invoice_url;
-    await walletData.save();
     
     res.json({ message: "Order was successfull!" });
-
+    
+    await walletData.save();
     updatedOrderHistory.orderData.at(-1).walletOrderId = walletOrderId;
     await updatedOrderHistory.save({ validateBeforeSave: false });
 
@@ -4670,7 +4671,6 @@ exports.adminrefund = async (req, res) => {
   try {
     const refundData = req.body;
     const walletId = req.params.id;
-    console.log(refundData);
 
     const walletData = await WalletModel.findById(walletId);
     if (!walletData) return res.status(404).json({ error: "Wallet could not be found!" });
@@ -4744,5 +4744,58 @@ exports.adminrefund = async (req, res) => {
   } catch (error) {
     console.log("🚀 ~ exports.adminrefund= ~ error:", error)
     res.status(500).json({ error: "Server error in issuing refund" })
+  }
+}
+
+exports.admincod = async (req, res) => {
+  try {
+    const allOrderHistories = await OrderHistoryModel.aggregate([
+      { $unwind: "$orderData" }, // Unwind the orderData array to get individual objects
+      { $match: { "orderData.cashOnDelivery": true } },
+      { $sort: { "orderData.createdAt": -1 } },
+      { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
+      { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
+    ]);
+    res.render("admincod", { error: null, data: allOrderHistories[0].allOrderData });
+  } catch (error) {
+    console.log("🚀 ~ exports.renderadminwallets ~ error:", error);
+    res.render("admincod", {
+      error: "Server error in displaying this page",
+      data: null,
+    });
+  }
+}
+
+exports.admincodremit = async (req, res) => {
+  try {
+    const remitData = req.body;
+    return res.json({ message: "COD Remittance was successful!" });
+
+    /** below method is false.. dont do this.. cuz direct bank acct transfer dhaan venum */
+    const orderHistory = await OrderHistoryModel.findOneAndUpdate({ "orderData.printwearOrderId": remitData.orderId }, { $inc: { "orderData.$.CODRemittance": remitData.remittanceAmount.toFixed(2) } }, { new: true });
+    const order = orderHistory.orderData.find(order => order.printwearOrderId == remitData.orderId);
+   
+    const userId = orderHistory.userId;
+    const walletData = await WalletModel.findOne({ userId: userId });
+    const orderTransactionIndex = walletData.transactions.findIndex(trans => (trans.walletOrderId == order.walletOrderId) || (trans.walletOrderId == ("PAYMENT_" + order.walletOrderId)));
+    
+    if (orderTransactionIndex == -1) {
+      return res.status(404).json({ error: "Could not find matching wallet transaction" });
+    }
+    walletData.transactions.push({
+      amount: remitData.remittanceAmount.toFixed(2),
+      transactionType: "credit",
+      transactionNote: `COD Remittance for Order ID: ${remitData.orderId}`,
+      walletOrderId: "REMITTANCE_" + otpGen.generate(4, { digits: true, lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false }) + "_" + remitData.orderId,
+      transactionStatus: "success"
+    });
+
+    walletData.balance = (walletData.balance + parseFloat(remitData.remittanceAmount)).toFixed(2);
+
+    await walletData.save({ validateBeforeSave: false });
+    res.json({ message: "COD Remittance was successful!" });
+  } catch (error) {
+    console.log("🚀 ~ exports.admincodremit= ~ error:", error)
+    res.status(500).json({ error: "Server error in remittance process" });
   }
 }

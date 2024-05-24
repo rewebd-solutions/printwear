@@ -97,6 +97,10 @@ var OrderHistorySchema = new mongoose.Schema({
         type: Boolean,
         default: false,
       },
+      CODRemittance: {
+        type: Number,
+        default: 0
+      },
       shipRocketCourier: {
         courierId: String,
         courierName: {

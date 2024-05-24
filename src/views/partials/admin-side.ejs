@@ -71,10 +71,18 @@
             <i class="fas fa-wallet"></i>
             <span>Wallets</span>
         </a>
+        <a href="/admin/cod">
+            <i class="fas fa-truck"></i>
+            <span>COD Remittance</span>
+        </a>
     </div>
 </div>
 <script>
     const routeName = location.pathname;
-    console.log("🚀 ~ routeName:", routeName)
-    document.querySelector(`a[href='${routeName}']`).classList.add("sidebar-active")
+    ["wallets", "orders", "cod"].forEach(o => {
+        if (routeName.includes(o)) {
+            document.querySelector(`a[href='/admin/${o}']`).classList.add("sidebar-active")
+        }
+    })
+    // document.querySelector(`a[href='${routeName}']`).classList.add("sidebar-active")
 </script>
