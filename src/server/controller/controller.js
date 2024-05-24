@@ -4469,7 +4469,7 @@ exports.createshiporder = async (req, res) => {
   }
 
   if (statusType === 'REFUND_STATUS_WEBHOOK') {
-    const userid = req.body.data.customer_details.customer_id;
+    const orderid = req.body.data.refund.order_id;
     console.log(`REFUND DETAILS for ${userid} on ${new Date().toLocaleString()}`);
     res.send("OK");
   }
@@ -4716,7 +4716,7 @@ exports.adminrefund = async (req, res) => {
      * regardless of order id 
      */
      
-    if (parseFloat(refundData.amount) > walletData.balance) {
+    if ((parseFloat(refundData.amount) > walletData.balance) && refundData.transactionType == "debit") {
       return res.status(403).json({ error: "Insufficient balance in customers wallet to debit!" });
     }
 

@@ -211,6 +211,7 @@
     position: relative;
     align-items: center;
     justify-content: center;
+    width: fit-content;
   }
 
   .dropdown-menu-items {
@@ -224,6 +225,7 @@
     background: white;
     border-radius: 6px;
     padding: 0.5rem 0.3rem;
+    width: max-content;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
   }
 
@@ -234,6 +236,7 @@
     font-size: 14px;
     text-decoration: none !important;
     display: flex;
+    align-items: center;
     gap: 0.5rem;
     cursor: pointer;
   }
@@ -242,6 +245,29 @@
     background: #F05A30;
     color: white;
   }
+
+  .warning-modal {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: white;
+  display: flex;
+  flex-direction: column;
+  top: 50%;
+  left: 50%;
+  padding: 2rem;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.warning-moda-wrapper {
+  background: rgba(0, 0, 0, 0.2);
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+}
 </style>
 <div class="navbar-top">
   <div class="navbar-logo">
@@ -259,6 +285,9 @@
         </a>
         <a href="/invoice?type=recharge" class="dropdown-link">
           <i class="fa fa-history"></i> Transactions
+        </a>
+        <a onclick="openRefunPopup()" class="dropdown-link">
+          <i class="fa fa-bank"></i> Refund wallet
         </a>
       </div>
     </div>
@@ -460,6 +489,29 @@
       }
     })
     console.log(walletWindow)
+  }
+
+  const openRefunPopup = () => {
+    document.querySelector("body").insertAdjacentHTML(
+      "beforeend",
+      `
+          <!-- modal for not asking users to pay and make orders -->
+          <div class="warning-moda-wrapper">
+            <div class="warning-modal">
+              <button onclick="document.querySelector('.warning-moda-wrapper').remove()"
+                  style="margin-left: auto;padding: 0.4rem 0.8rem; cursor: pointer; border: none; outline: 1px solid silver; border-radius: 100%;"><i class="fa fa-xmark"></i></button>
+              To refund your entire wallet back to your bank account, please provide us the following details as an e-mail to <a href="mailto:accounts@printwear.in"><strong>accounts@printwear.in</strong></a>
+              <br />
+              <ul>
+                <li>Your full name</li>
+                <li>Your bank name</li>
+                <li>Your bank account no.</li>
+                <li>Your bank account beneficiary name</li>
+              </ul>
+            </div>
+          </div>
+        `
+    );
   }
 
   const getBal = async () => {
