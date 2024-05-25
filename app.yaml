@@ -1,33 +1,5 @@
 runtime: nodejs20
 
-env_variables:
-  MONGODB_URL: mongodb+srv://sit21it063:ifP2Q7QWXU4j3vFw@testcluster.2llp5qx.mongodb.net/printwear?retryWrites=true&w=majority
-  TWILIO_ACCOUNT_SID: AC699a3ffcae69f6ff9fa6cb573827366f
-  TWILIO_AUTH_TOKEN: 48f4f5c7c0826079e8e07cff4861238a
-  CASH_MODE: prod
-  CASH_APP_ID: 1082826e9dcfa6e4c22bd8deca282801
-  CASH_SECRET_KEY: de6cfff2a612b7c79e10897df9c333e119092cd5
-  CASH_TEST_APP_ID: 62549ef60e51095a81325ca1f94526
-  CASH_TEST_SECRET_KEY: de9cf065a32c2646afb45c234f721496c0748ab0
-  ZOHO_CLIENT_ID: 1000.Q9IE9RH0XQVEDARXI56IWOFL1WNBOM
-  ZOHO_CLIENT_SECRET: b5aa9b6a5b7b66f931185f283c6f6bc86814aef2a8
-  ZOHO_ACCESS_TOKEN: 1000.06952240ceec93a81bbfb8b0ca966e1d.d5caa5d71f849530f778f8d6b2008e4a
-  ZOHO_REFRESH_TOKEN: 1000.f73252dec9e7c8845e2205769e0f09a2.64be188e7d06594cff2729b56bee1bc6
-  ZOHO_API_URL: https://www.zohoapis.in
-  WOOCOMMERCE_CONSUMER_KEY: ck_06c81dc6957bc2f3ccc4f80307d25bb86ef14886
-  WOOCOMMERCE_CONSUMER_SECRET: cs_ed977c60844bff730673dd2d322b592ca329c80f
-  CASHFREE_BASE_URL: https://api.cashfree.com/pg
-  WEBHOOK_URL: https://printwear-414416.el.r.appspot.com/
-  SHIPROCKET_URL: https://apiv2.shiprocket.in/v1/external
-  SHIPROCKET_EMAIL: printwearshiprocket@gmail.com
-  SHIPROCKET_SECRET: shiprocketpassword
-  SHIPROCKET_CHANNEL_ID: 4248923
-  WOO_PROD_CONSUMER_KEY: ck_4ab51ad3c66aaf7fa38825986a89a3c6c2f3f9fd
-  WOO_PROD_CONSUMER_SECRET: cs_2391d313efd71dad9be55d8a80872ad99f7cc1fa
-  JWT_SECRET: thatsasecret
-  CASHFREE_PAYOUT_TEST: https://payout-gamma.cashfree.com/payout/v1/authorize
-  CASHFREE_PAYOUT_PROD: https://payout-api.cashfree.com/payout/v1/authorize
-  PAYOUT_PKEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArbpO0bCVhJ8rwRlePyubcRalEdNgeEgb9oU1JUaahmB554ruRkZ0mKC0mFa54wM9gcJIfORQcxVRBhkGSpJ6C2slVYNUnAQ2bTLgr8D68EmmPRlFcYQtY1fbyNRlpAoXo7P1FNHSUjRZvXKjPqMIemHJhHNRFiVfvhjULNzwtLWCabwfYDRbHYhA96tjLHN2xnN/xgQjObY0rDRNUpwrRYl/DbWeOVXom7RPtiPb9rWRMdmpvMkp5XARbaZ9ndWopF8dqm0tKXfSyB/tGAX8ibtGjb5yGrRJv/acb8pYEBWQorU+o/13gqQixQeUeV/nGR6kogWdKI1TYPbSmBUcmQIDAQAB
 handlers:
   - url: /.*
     script: auto

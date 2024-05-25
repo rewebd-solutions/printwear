@@ -23,7 +23,6 @@ const OLD_PUBLIC_URL = "https://printwear.in/";
 /** this library was used for old data migration for finding img file size, but i dont need it now, so commented it out */
 // const imageFileSize = require("url-file-size");
 const crypto = require("crypto")
-const constants = require("constants");
 const algorithm = "sha256"
 const authServices = require("../services/auth");
 
@@ -45,6 +44,8 @@ const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");
 const MockupModel = require("../model/mockupModel");
 const WalletModel = require("../model/walletModel");
+const { Cashfree } = require("cashfree-payout");
+const CODModel = require("../model/codDetailsModel");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 /** I've not put CASHFREE_BASE_URL_TEST in yaml because mode should never be in test during production.. 
@@ -52,6 +53,8 @@ const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
  */
 const CASHFREE_BASE_URL = paymentMode == "test"? process.env.CASHFREE_BASE_URL_TEST: process.env.CASHFREE_BASE_URL;
 const CASHFREE_PAYOUT_URL = paymentMode == "test"? process.env.CASHFREE_PAYOUT_TEST: process.env.CASHFREE_PAYOUT_PROD;
+const CASHFREE_PAYOUT_CLIENT = paymentMode == "test"? process.env.CF_PAYOUT_CLIENT_TEST: process.env.CF_PAYOUT_CLIENT_PROD;
+const CASHFREE_PAYOUT_SECRET = paymentMode == "test"? process.env.CF_PAYOUT_SECRET_TEST: process.env.CF_PAYOUT_SECRET_PROD;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
 // const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history"); // done
@@ -678,31 +681,7 @@ exports.savebankdetails = async (req, res) => {
         return res.status(403).json({ error: input + " is invalid!" });
       }
     }
-    return res.json({ message: "Bank details saved successfully!" });
-    const PublicKey = process.env.PAYOUT_PKEY.replace(/\\n/g, '\n');
-    const curTimeStamp = Math.floor(Date.now() / 1000);
-    const message = `${cashfreeAppID}.${curTimeStamp}`;
-    const buffer = Buffer.from(message);
-    const encrypted = crypto.publicEncrypt({
-      key: PublicKey,
-      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING
-    }, buffer);
-	
-    const cert = encrypted.toString("base64");
-    console.log("🚀 ~ exports.savebankdetails= ~ cert:", cert)
-    const authorizeReq = await fetch("https://payout-gamma.cashfree.com/payout/v1/authorize",
-      {
-        method: "POST",
-        headers: {
-          "accept": "application/json",
-          "x-client-id": cashfreeAppID,
-          "x-client-secret": cashfreeSecretKey,
-          "x-cf-signature": cert
-        },
-      }
-    );
-    const authorizeRes = await authorizeReq.json();
-    console.log("🚀 ~ exports.savebankdetails= ~ authorizeRes:", authorizeRes)
+
     const beneficiaryId = otpGen.generate(8, { upperCaseAlphabets: false, specialChars: false });
 
     const beneDetails = {
@@ -719,12 +698,43 @@ exports.savebankdetails = async (req, res) => {
     }
 
     console.log("🚀 ~ exports.savebankdetails= ~ bankDetails:", beneDetails);
-    // authorize payout token
+    
+    Cashfree.XClientId = CASHFREE_PAYOUT_CLIENT;
+    Cashfree.XClientSecret = CASHFREE_PAYOUT_SECRET;
+    Cashfree.XEnvironment = paymentMode == "test"? Cashfree.Environment.SANDBOX: Cashfree.Environment.PRODUCTION;
 
-    // request beneficiary creation
-    // save beneid to mongouser
-    // res.json({ message: "Bank details saved successfully!" });
+    const createBene = await Cashfree.PayoutCreateBeneficiary("2024-01-01", "", {
+      beneficiary_id: beneficiaryId,
+      beneficiary_name: beneDetails.name,
+      beneficiary_instrument_details: {
+        bank_account_number: beneDetails.bankAccount,
+        bank_ifsc: beneDetails.ifsc,
+      },
+      beneficiary_contact_details: {
+        beneficiary_address: beneDetails.address1,
+        beneficiary_city: beneDetails.city,
+        beneficiary_country_code: "+91",
+        beneficiary_city: beneDetails.city,
+        beneficiary_email: beneDetails.email,
+        beneficiary_phone: beneDetails.phone,
+        beneficiary_state: beneDetails.state,
+        beneficiary_postal_code: beneDetails.pincode
+      },
+    });
+    console.log("🚀 ~ exports.savebankdetails= ~ createBene:", createBene.data)
+    if (createBene.data.type && createBene.data.type.includes("error")) {
+      return res.status(403).json({ error: createBene.data.message });
+    }
+    
+    await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { beneId: createBene.data.beneficiary_id } });
+    await CODModel.findOneAndUpdate({ userId: req.userId }, { $set: { beneId: createBene.data.beneficiary_id } }, { upsert: true, new: true });
+
+    res.json({ message: "Bank details saved successfully!" });
+
   } catch (error) {
+    if (error.response && error.response.data?.type) {
+      return res.status(error.response.status != 200 ? error.response.status: 403).json({ error: error.response.data.message });
+    }
     console.log("🚀 ~ exports.savebankdetails= ~ error:", error)
     res.status(500).json({ error: "Server error in saving bank details" });
   }
@@ -801,7 +811,8 @@ exports.dashboard = async (req, res) => {
       name: userData.name,
       orderCount: orderHistory?.orderData?.length ?? 0,
       address: userData.billingAddress?.phone ? true: false,
-      brand: userData.brandName ? true: false
+      brand: userData.brandName ? true: false,
+      beneId: userData.beneId
     }
 
     const stores = {
@@ -2592,7 +2603,7 @@ exports.billing = async (req, res) => {
         },
       },
     ]);
-    res.render("billing", { orderData, designsData: designsData[0].designs, billing: userData.billingAddress });
+    res.render("billing", { orderData, designsData: designsData[0].designs, billing: userData.billingAddress, beneficiary: userData.beneId });
   } catch (error) {
     console.log(error);
     res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
@@ -2954,15 +2965,16 @@ exports.placeorder = async (req, res) => {
     orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2)
     orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2)
 
+    orderData.paymentStatus = "success";
+    orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
+
     await orderData.save();
     console.log("🚀 ~ orderData:", orderData)
 
 
     /// STEP 2: CREATE SHIPROCKET ORDER
     if (courierId) { // check if order is not self pickup, courierId null means, self pickup = no need for shiprocket. 
-      orderData.paymentStatus = "success";
-      orderData.amountPaid = (orderData.totalAmount + orderData.taxes).toFixed(2);
-
+      /** previously debited walelt only when not self pickup, changed it to debit wallet always */
       const shiprocketToken = await generateShiprocketToken();
 
       const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
@@ -4831,32 +4843,70 @@ exports.admincod = async (req, res) => {
 exports.admincodremit = async (req, res) => {
   try {
     const remitData = req.body;
-    return res.json({ message: "COD Remittance was successful!" });
+    console.log("🚀 ~ exports.admincodremit= ~ remitData:", remitData)
+    // return res.json({ message: "COD Remittance was successful!" });
 
-    /** below method is false.. dont do this.. cuz direct bank acct transfer dhaan venum */
-    const orderHistory = await OrderHistoryModel.findOneAndUpdate({ "orderData.printwearOrderId": remitData.orderId }, { $inc: { "orderData.$.CODRemittance": remitData.remittanceAmount.toFixed(2) } }, { new: true });
-    const order = orderHistory.orderData.find(order => order.printwearOrderId == remitData.orderId);
-   
-    const userId = orderHistory.userId;
-    const walletData = await WalletModel.findOne({ userId: userId });
-    const orderTransactionIndex = walletData.transactions.findIndex(trans => (trans.walletOrderId == order.walletOrderId) || (trans.walletOrderId == ("PAYMENT_" + order.walletOrderId)));
-    
-    if (orderTransactionIndex == -1) {
-      return res.status(404).json({ error: "Could not find matching wallet transaction" });
+    Cashfree.XClientId = CASHFREE_PAYOUT_CLIENT;
+    Cashfree.XClientSecret = CASHFREE_PAYOUT_SECRET;
+    Cashfree.XEnvironment =
+      paymentMode == "test"
+        ? Cashfree.Environment.SANDBOX
+        : Cashfree.Environment.PRODUCTION;
+        
+    const orderHistory = await OrderHistoryModel.findOne({ "orderData.printwearOrderId": remitData.orderId });
+
+    if (!orderHistory) {
+      return res
+        .status(404)
+        .json({ error: "Could not find orders!" });
     }
-    walletData.transactions.push({
-      amount: remitData.remittanceAmount.toFixed(2),
-      transactionType: "credit",
-      transactionNote: `COD Remittance for Order ID: ${remitData.orderId}`,
-      walletOrderId: "REMITTANCE_" + otpGen.generate(4, { digits: true, lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false }) + "_" + remitData.orderId,
-      transactionStatus: "success"
+    const userData = await CODModel.findOne({ userId: orderHistory.userId });
+
+    if (!userData || !userData.beneId) {
+      return res.status(404).json({ error: "Customer has not filled beneficiary details!" });
+    }
+
+    const orderIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == remitData.orderId);
+
+    if (orderIndex == -1) return res.status(404).json({ error: "Could not find specific order details!" });
+
+    const transferId = otpGen.generate(10, { specialChars: false });
+    const payoutRequest = await Cashfree.PayoutInitiateTransfer("2024-01-01", "", {
+      beneficiary_details: {
+        beneficiary_id: userData.beneId,
+      },
+      transfer_amount: remitData.remittanceAmount,
+      transfer_id: transferId,
+      transfer_remarks: `COD Remittance for ${userData.userId}`
+    });
+    console.log("🚀 ~ exports.admincodremit= ~ payoutRequest:", payoutRequest.data)
+
+    if (["REJECTED", "FAILED"].includes(payoutRequest.data.status)) {
+      return res.status(500).json({ error: payoutRequest.data.status_description ?? "Unknown error occured"});
+    }
+    /** for now without webhook, simply save to DB as if money was immediately transferred, later implement webhook and onyl when webhook is complete,
+     * add CODRemittance amount to specifc order, update compeletedOn field in CODModel, etc.
+     */
+    
+    orderHistory.orderData.at(orderIndex).CODRemittance += remitData.remittanceAmount;
+    
+    userData.remittances.push({
+      orderId: remitData.orderId,
+      amount: remitData.remittanceAmount,
+      transferId: transferId,
+      completedOn: Date.now(), // --> temporary.. dont put completedon until webhook confirms the payment thing
     });
 
-    walletData.balance = (walletData.balance + parseFloat(remitData.remittanceAmount)).toFixed(2);
-
-    await walletData.save({ validateBeforeSave: false });
-    res.json({ message: "COD Remittance was successful!" });
+    await Promise.all([await userData.save({ validateBeforeSave: false }), await orderHistory.save({ validateBeforeSave: false })])
+    
+    res.json({ message: "COD Remittance is successfully initiated!" });
   } catch (error) {
+    if (error.response && error.response.data?.type) {
+      console.log("🚀 ~ exports.admincodremit= ~ error:", error.response)
+      return res
+      .status(error.response.status != 200 ? error.response.status : 403)
+      .json({ error: error.response.data.message });
+    }
     console.log("🚀 ~ exports.admincodremit= ~ error:", error)
     res.status(500).json({ error: "Server error in remittance process" });
   }

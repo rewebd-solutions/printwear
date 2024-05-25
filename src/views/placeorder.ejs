@@ -116,7 +116,7 @@
         const populateDesignWidget = (data = designDataResponse) => {
             designLibraryData.innerHTML = '';
             if (data.designs.length < 1) return designLibraryData.innerHTML = 'No designs yet!'
-            data.designs.forEach((design, i) => createTableRow(design, i+1));
+            data.designs.reverse().forEach((design, i) => createTableRow(design, i+1));
         }
 
         const populateOrderTable = (data = orderData) => {

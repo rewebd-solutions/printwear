@@ -158,10 +158,10 @@
           }
         }
 
-      async function remitCOD(orderId) {
+      async function remitCOD(e, orderId) {
           try {
             disableButton(true);
-            const remittanceAmount = parseFloat(document.querySelector(".action-container input").value);
+            const remittanceAmount = parseFloat(e.target.parentElement.children[0].value);
             const remitPaymentRequest = await fetch("/admin/cod/remit", {
               method: "POST",
               headers: {
@@ -214,11 +214,11 @@
                 <td>${formatDate(order.createdAt)}</td>
                 <td>₹${order.retailPrice ?? order.amountPaid}</td>
                 <td><h4 class="status-badge ${order.deliveryStatus}">${order.deliveryStatus}</h4></td>
-                <td>${order.CODRemittance? `✅Remitted ₹${order.CODRemittance ?? 0}`: 'Not Remitted'}</td>
+                <td>${order.CODRemittance? order.CODRemittance == order.retailPrice ? `✅Remitted ₹${order.CODRemittance ?? 0}` : `⚠️Partially Remitted ₹${order.CODRemittance ?? 0}` : '🚫Not Remitted'}</td>
                 <td> 
                   <div class="action-container pay-action">
                     <input type="number" step="0.01">
-                    <button onclick="remitCOD('${order.printwearOrderId}')" class="refund-btn cod-btn">Send</button>
+                    <button onclick="remitCOD(event, '${order.printwearOrderId}')" class="refund-btn cod-btn">Send</button>
                   </div>
                 </td>
             </tr>

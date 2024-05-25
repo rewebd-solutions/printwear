@@ -250,9 +250,10 @@
                         <input type="text" id="shipping-address-country" name="country" value="India" disabled>
                     </div>
                 </div>
-                <div>
+                <div style="display: flex; gap: 0.5rem;">
                     <input type="checkbox" name="cod-toggle" id="cod-toggle" />
                     <label for="cod-toggle">Cash on Delivery</label>
+                    <p id="bene-ok"></p>
                 </div>
                 <div class="courier-pickup-wrapper">
                     <button class="billing-button" id="courier-check">Get available couriers</button>
@@ -283,6 +284,7 @@
         AOS.init();
         var notyf = new Notyf();
         var ttlp = "<%= orderData.totalAmount %>";
+        var beneId = "<%= beneficiary %>";
         var disabled = false;
         var orderIdVerified = false;
         var retailVerified = false;
@@ -299,6 +301,7 @@
         const billSummary = document.querySelector(".bill-summary");
         const CODtoggle = document.querySelector("#cod-toggle");
         const billingAddressState = document.querySelector('#billing-address-state');
+        const beneP = document.getElementById("bene-ok");
 
         billingAddressState.onchange = (e) => {
             console.log("🚀 ~ e:", e.target.value)
@@ -317,6 +320,14 @@
             let hasRadioBeenChecked = false;
             let oldBtnInner = e.target.innerHTML;
             e.target.innerHTML = `<span class="loader-w"></span>`;
+
+            if (!beneId && !isSelfPickup) {
+                disabled = false;
+                e.target.innerHTML = oldBtnInner;
+                e.target.classList.remove("disabled");
+                e.target.removeAttribute("disabled");
+                return notyf.error({ message: "Bank details not found. Please enter details in profile page", duration: 3000 });
+            }
 
             if (orderIdInput.value.length < 3) {
                 disabled = false;
@@ -474,7 +485,7 @@
                 if (CODtoggle.checked) {
                     document.getElementById("cod-charge").remove();
                     CODtoggle.checked = false;
-                    // also remove anchor tag asking for COD details
+                    beneP.innerHTML = '';
                 }
                 modifyBillSummary(0.00);
                 if (courierRadioBtns) {
@@ -514,7 +525,13 @@
                 document.getElementById("total-charges").innerHTML = totalPrice
                 document.getElementById("taxes").innerHTML = taxes;
 
-                // add anchor tag
+                if (beneId) {
+                    beneP.style.color = "darkgreen";
+                    beneP.innerHTML = '(Eligible for COD Remittance)'
+                } else {
+                    beneP.style.color = "red";
+                    beneP.innerHTML = '(<i class="fa fa-warning"></i> Please add bank details <a href="/profile?return=true">here</a> to continue)'
+                }
 
             } else {
                 document.getElementById("cod-charge").remove();
@@ -526,6 +543,8 @@
 
                 document.getElementById("total-charges").innerHTML = totalPrice
                 document.getElementById("taxes").innerHTML = taxes;
+
+                beneP.innerHTML = '';
             }
         }
 
