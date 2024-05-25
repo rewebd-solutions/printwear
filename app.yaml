@@ -25,6 +25,9 @@ env_variables:
   WOO_PROD_CONSUMER_KEY: ck_4ab51ad3c66aaf7fa38825986a89a3c6c2f3f9fd
   WOO_PROD_CONSUMER_SECRET: cs_2391d313efd71dad9be55d8a80872ad99f7cc1fa
   JWT_SECRET: thatsasecret
+  CASHFREE_PAYOUT_TEST: https://payout-gamma.cashfree.com/payout/v1/authorize
+  CASHFREE_PAYOUT_PROD: https://payout-api.cashfree.com/payout/v1/authorize
+  PAYOUT_PKEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArbpO0bCVhJ8rwRlePyubcRalEdNgeEgb9oU1JUaahmB554ruRkZ0mKC0mFa54wM9gcJIfORQcxVRBhkGSpJ6C2slVYNUnAQ2bTLgr8D68EmmPRlFcYQtY1fbyNRlpAoXo7P1FNHSUjRZvXKjPqMIemHJhHNRFiVfvhjULNzwtLWCabwfYDRbHYhA96tjLHN2xnN/xgQjObY0rDRNUpwrRYl/DbWeOVXom7RPtiPb9rWRMdmpvMkp5XARbaZ9ndWopF8dqm0tKXfSyB/tGAX8ibtGjb5yGrRJv/acb8pYEBWQorU+o/13gqQixQeUeV/nGR6kogWdKI1TYPbSmBUcmQIDAQAB
 handlers:
   - url: /.*
     script: auto

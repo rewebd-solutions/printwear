@@ -68,7 +68,8 @@ var UserSchema = new mongoose.Schema({
     dateJoined: {
       type: mongoose.Schema.Types.Date,
       default: Date.now
-    }
+    },
+    beneId: String
 })
 
 const UserModel = mongoose.model('User', UserSchema);

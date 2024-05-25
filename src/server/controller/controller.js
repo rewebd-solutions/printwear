@@ -23,6 +23,7 @@ const OLD_PUBLIC_URL = "https://printwear.in/";
 /** this library was used for old data migration for finding img file size, but i dont need it now, so commented it out */
 // const imageFileSize = require("url-file-size");
 const crypto = require("crypto")
+const constants = require("constants");
 const algorithm = "sha256"
 const authServices = require("../services/auth");
 
@@ -50,6 +51,7 @@ const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
  * hence below ternary will be false in production
  */
 const CASHFREE_BASE_URL = paymentMode == "test"? process.env.CASHFREE_BASE_URL_TEST: process.env.CASHFREE_BASE_URL;
+const CASHFREE_PAYOUT_URL = paymentMode == "test"? process.env.CASHFREE_PAYOUT_TEST: process.env.CASHFREE_PAYOUT_PROD;
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
 // const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history"); // done
@@ -664,7 +666,67 @@ exports.updateinfo = async (req, res) => {
     res.status(200).json({ message: 'User info updated successfully!' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in saving user info" });
+  }
+}
+
+exports.savebankdetails = async (req, res) => {
+  try {
+    const bankDetails = req.body;
+    for(let input in bankDetails) {
+      if (!bankDetails[input] || (bankDetails[input].length < 1)) {
+        return res.status(403).json({ error: input + " is invalid!" });
+      }
+    }
+    return res.json({ message: "Bank details saved successfully!" });
+    const PublicKey = process.env.PAYOUT_PKEY.replace(/\\n/g, '\n');
+    const curTimeStamp = Math.floor(Date.now() / 1000);
+    const message = `${cashfreeAppID}.${curTimeStamp}`;
+    const buffer = Buffer.from(message);
+    const encrypted = crypto.publicEncrypt({
+      key: PublicKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING
+    }, buffer);
+	
+    const cert = encrypted.toString("base64");
+    console.log("🚀 ~ exports.savebankdetails= ~ cert:", cert)
+    const authorizeReq = await fetch("https://payout-gamma.cashfree.com/payout/v1/authorize",
+      {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "x-client-id": cashfreeAppID,
+          "x-client-secret": cashfreeSecretKey,
+          "x-cf-signature": cert
+        },
+      }
+    );
+    const authorizeRes = await authorizeReq.json();
+    console.log("🚀 ~ exports.savebankdetails= ~ authorizeRes:", authorizeRes)
+    const beneficiaryId = otpGen.generate(8, { upperCaseAlphabets: false, specialChars: false });
+
+    const beneDetails = {
+      beneId: beneficiaryId,
+      name: bankDetails.name,
+      email: bankDetails.email,
+      phone: bankDetails.phone,
+      address1: bankDetails.address,
+      bankAccount: bankDetails.bankNo,
+      ifsc: bankDetails.ifsc,
+      city: bankDetails.city,
+      state: bankDetails.state,
+      pincode: bankDetails.pincode,
+    }
+
+    console.log("🚀 ~ exports.savebankdetails= ~ bankDetails:", beneDetails);
+    // authorize payout token
+
+    // request beneficiary creation
+    // save beneid to mongouser
+    // res.json({ message: "Bank details saved successfully!" });
+  } catch (error) {
+    console.log("🚀 ~ exports.savebankdetails= ~ error:", error)
+    res.status(500).json({ error: "Server error in saving bank details" });
   }
 }
 

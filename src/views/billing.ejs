@@ -474,6 +474,7 @@
                 if (CODtoggle.checked) {
                     document.getElementById("cod-charge").remove();
                     CODtoggle.checked = false;
+                    // also remove anchor tag asking for COD details
                 }
                 modifyBillSummary(0.00);
                 if (courierRadioBtns) {
@@ -512,6 +513,8 @@
 
                 document.getElementById("total-charges").innerHTML = totalPrice
                 document.getElementById("taxes").innerHTML = taxes;
+
+                // add anchor tag
 
             } else {
                 document.getElementById("cod-charge").remove();
