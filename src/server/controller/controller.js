@@ -2457,7 +2457,7 @@ exports.payshoporder = async (req, res) => {
     
     if (shopType == "shopify") {
 
-      const orderData = await OrderModel.findOne({ userId: req.userId, shopifyId: orderId });
+      const [orderData, userData] = await Promise.all([await OrderModel.findOne({ userId: req.userId, shopifyId: orderId }), await UserModel.findById(req.userId)]);
       if (!orderData) return res.render('storeorderpay', { error: "Could not find such order!" });
       if (orderData.paymentStatus == "success") return res.render('storeorderpay', { error: "This order has already been paid for!" });
   
@@ -2485,27 +2485,30 @@ exports.payshoporder = async (req, res) => {
       const payOrderPageData = {
         id: orderId,
         orderName: shopifyOrderResponse.name,
-        firstName: shopifyOrderResponse.shipping_address.first_name ?? shopifyOrderResponse.billing_address.first_name,
-        lastName: shopifyOrderResponse.shipping_address.last_name ?? shopifyOrderResponse.billing_address.last_name,
-        email: shopifyOrderResponse.shipping_address.email ?? shopifyOrderResponse.billing_address.email ?? shopifyOrderResponse.customer.email,
-        streetLandmark: shopifyOrderResponse.shipping_address.address1 ?? shopifyOrderResponse.billing_address.address1opifyOrderResponse.shipping_address.address1 ?? shopifyOrderResponse.billing_address.address1,
-        city: shopifyOrderResponse.shipping_address.city ?? shopifyOrderResponse.billing_address.city,
-        phone: shopifyOrderResponse.shipping_address.phone ?? shopifyOrderResponse.billing_address.phone,
-        state: shopifyOrderResponse.shipping_address.province ?? shopifyOrderResponse.billing_address.province,
-        country: shopifyOrderResponse.shipping_address.country ?? shopifyOrderResponse.billing_address.country,
-        pincode: shopifyOrderResponse.shipping_address.zip ?? shopifyOrderResponse.billing_address.zip,
+        firstName: shopifyOrderResponse.shipping_address.first_name,
+        lastName: shopifyOrderResponse.shipping_address.last_name,
+        email: shopifyOrderResponse.shipping_address.email,
+        streetLandmark: shopifyOrderResponse.shipping_address.address1,
+        city: shopifyOrderResponse.shipping_address.city,
+        mobile: shopifyOrderResponse.shipping_address.phone,
+        state: shopifyOrderResponse.shipping_address.province,
+        country: shopifyOrderResponse.shipping_address.country,
+        pincode: shopifyOrderResponse.shipping_address.zip,
         total: orderData.totalAmount,
         retail: shopifyOrderResponse.total_line_items_price,
         itemCount: orderData.items.length ?? 0,
         shopType: "Shopify",
-        shopSlug: "shopify"
+        shopSlug: "shopify",
+        billingAddress: userData.billingAddress,
+        beneficiary: userData.beneId
       }
   
       return res.render('storeorderpay', { error: false, data: payOrderPageData });
     } else {
-      const [orderData, storeData] = await Promise.all([
+      const [orderData, storeData, userData] = await Promise.all([
         OrderModel.findOne({ userId: req.userId, wooCommerceId: orderId }),
-        StoreModel.findOne({ userid: req.userId })
+        StoreModel.findOne({ userid: req.userId }),
+        UserModel.findById(req.userId)
       ]);
       // console.log("🚀 ~ exports.payshoporder= ~ orderData:", orderData)
       if (!orderData)
@@ -2560,7 +2563,9 @@ exports.payshoporder = async (req, res) => {
         retail: wooCommerceOrderRes.total,
         itemCount: orderData.items.length ?? 0,
         shopType: "WooCommerce",
-        shopSlug: "woo"
+        shopSlug: "woo",
+        beneficiary: userData.beneId,
+        billingAddress: userData.billingAddress
       }
       // console.log("🚀 ~ exports.payshoporder= ~ payOrderPageData:", payOrderPageData)
       
@@ -2891,9 +2896,10 @@ exports.placeorder = async (req, res) => {
       courierId,
       courierData,
       cashOnDelivery,
+      isStore,
       billingAddress
     } = req.body;
-    // validate data
+    console.log(isStore)
     const [ orderData, userData, designData, labelData ] = await Promise.all([
       OrderModel.findOne({ userId: req.userId }),
       UserModel.findById(req.userId),
@@ -2928,8 +2934,9 @@ exports.placeorder = async (req, res) => {
       }
     }
 
-    for (const [field, value] of Object.entries(billingAddress)) {
-      if (value === "" || !value) {
+    // if (!isStore) {
+    for (const key of Object.keys(shippingAddressToCheck)) {
+      if (billingAddress[key] === "" || !billingAddress[key]) {
         return res
           .status(403)
           .json({
@@ -2938,6 +2945,7 @@ exports.placeorder = async (req, res) => {
           });
       }
     }
+    // }
 
     /// STEP 1: WALLET GAME
     const walletData = await WalletModel.findOne({ userId: req.userId });
@@ -3542,7 +3550,7 @@ exports.initiaterefund = async (req, res) => {
   // orderHistory with appropriate status and all
 
   /** removed 5 function that were previously used for cancellation */
-  
+
   try {
     var orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
     var walletData = await WalletModel.findOne({ userId: req.userId });
@@ -3786,8 +3794,7 @@ exports.checkorderid = async (req, res) => {
     const orderIDs = await OrderHistoryModel.findOne({ userId: req.userId });
     if (!orderIDs) return res.status(200).json({ message: "OK" });
     const orderIDmatches = orderIDs.orderData.find(order => (order.customerOrderId == currentOrderId) && (!["rto-delivered", "cancelled"].includes(order.deliveryStatus)));
-    console.log("🚀 ~ exports.checkorderid= ~ orderIDmatches:", orderIDmatches)
-    // console.log(currentOrderId, orderIDmatches)
+    
     if (!orderIDmatches) {
       return res.status(200).json({ message: "OK" })
     }

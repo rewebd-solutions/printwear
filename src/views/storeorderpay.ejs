@@ -34,11 +34,11 @@
                 <%= error %>
             </p>
             <% } else { %>
-                <h2>Confirm Billing Address and pay</h2>
+                <h2>Confirm Shipping Address and pay</h2>
                 <p>Your are paying for <%= data.shopType %> Order: <%= data.orderName %>, <a
                                 href="/mystores/<%= data.shopSlug %>/<%= data.id %>">click
                                 here</a> to overview order and edit details</p>
-                <p style="font-size: 0.8rem; color: rgb(255, 73, 73)">Order cannot be edited once placed. Please ensure
+                <p style="font-size: 0.8rem; color: rgb(255, 73, 73)">Order not be edited once placed. Please ensure
                     correct details and check every field.</p>
                 <div class="create-order-container">
                     <div class="retail-order-form">
@@ -57,52 +57,53 @@
                         </div>
                     </div>
                     <div class="billing-address-form">
+                        <h3>Billing Address:</h3>
                         <div class="form-group">
                             <div>
-                                <label for="firstName">First name:</label>
-                                <input type="text" id="firstName" name="firstName" required
-                                    value="<%= data.firstName %>">
+                                <label for="billing-address-firstName">First name:</label>
+                                <input type="text" id="billing-address-firstName" name="firstName" required
+                                    value="<%- data.billingAddress.firstName %>">
                             </div>
-
+                    
                             <div>
-                                <label for="lastName">Last name:</label>
-                                <input type="text" id="lastName" name="lastName" required value="<%= data.lastName %>">
+                                <label for="billing-address-lastName">Last name:</label>
+                                <input type="text" id="billing-address-lastName" name="lastName" required value="<%- data.billingAddress.lastName %>">
                             </div>
                         </div>
                         <div class="form-group">
                             <div>
-                                <label for="mobile">Mobile:</label>
-                                <input type="text" pattern="^[789]\d{9}$" id="mobile" name="mobile" required
-                                    value="<%= data.phone %>">
+                                <label for="billing-address-mobile">Mobile:</label>
+                                <input type="text" pattern="^[789]\d{9}$" id="billing-address-mobile" name="mobile" required
+                                    value="<%- data.billingAddress.phone %>">
                             </div>
-
+                    
                             <div>
-                                <label for="email">Email:</label>
-                                <input type="email" id="email" part="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" name="email"
-                                    required value="<%= data.email %>">
+                                <label for="billing-address-email">Email:</label>
+                                <input type="email" id="billing-address-email" part="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" name="email" required
+                                    value="<%- data.billingAddress.email %>">
                             </div>
                         </div>
                         <div class="form-group full-width">
-                            <label for="streetLandmark">Street, Landmark:</label>
-                            <input type="text" id="streetLandmark" name="streetLandmark" required
-                                value="<%= data.streetLandmark %>">
+                            <label for="billing-address-streetLandmark">Street, Landmark:</label>
+                            <input type="text" id="billing-address-streetLandmark" name="streetLandmark" required
+                                value="<%- data.billingAddress.streetLandmark %>">
                         </div>
                         <div class="form-group">
                             <div>
-                                <label for="city">City:</label>
-                                <input type="text" id="city" name="city" required value="<%= data.city %>">
+                                <label for="billing-address-city">City:</label>
+                                <input type="text" id="billing-address-city" name="city" required value="<%- data.billingAddress.city %>">
                             </div>
-
+                    
                             <div>
-                                <label for="pincode">Pincode:</label>
-                                <input type="text" id="pincode" pattern="[1-9][0-9]{5}" name="pincode" required
-                                    value="<%= data.pincode %>">
+                                <label for="billing-address-pincode">Pincode:</label>
+                                <input type="text" id="billing-address-pincode" pattern="[1-9][0-9]{5}" name="pincode" required
+                                    value="<%- data.billingAddress.pincode %>">
                             </div>
                         </div>
-
+                    
                         <div class="form-group full-width">
-                            <label for="state">State:</label>
-                            <select id="state" name="state" required>
+                            <label for="billing-address-state">State:</label>
+                            <select id="billing-address-state" name="state" required value="<%- data.billingAddress.state %>">
                                 <option value="Andhra Pradesh">Andhra Pradesh</option>
                                 <option value="Arunachal Pradesh">Arunachal Pradesh</option>
                                 <option value="Assam">Assam</option>
@@ -126,7 +127,7 @@
                                 <option value="Punjab">Punjab</option>
                                 <option value="Rajasthan">Rajasthan</option>
                                 <option value="Sikkim">Sikkim</option>
-                                <option value="Tamil Nadu" selected="false">Tamil Nadu</option>
+                                <option value="Tamil Nadu" selected>Tamil Nadu</option>
                                 <option value="Telangana">Telangana</option>
                                 <option value="Tripura">Tripura</option>
                                 <option value="Uttarakhand">Uttarakhand</option>
@@ -141,10 +142,99 @@
                                 <option value="Puducherry">Puducherry</option>
                             </select>
                         </div>
-
+                    
                         <div class="form-group full-width">
-                            <label for="country">Country:</label>
-                            <input type="text" id="country" name="country" value="India" disabled>
+                            <label for="billing-address-country">Country:</label>
+                            <input type="text" id="billing-address-country" name="country" value="India" disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="shipping-address-form">
+                        <h3>Shipping Address:</h3>
+                        <div class="form-group">
+                            <div>
+                                <label for="shipping-address-firstName">First name:</label>
+                                <input type="text" id="shipping-address-firstName" name="firstName" value="<%- data.firstName %>" required>
+                            </div>
+                    
+                            <div>
+                                <label for="shipping-address-lastName">Last name:</label>
+                                <input type="text" id="shipping-address-lastName" name="lastName" value="<%- data.lastName %>" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label for="shipping-address-mobile">Mobile:</label>
+                                <input type="text" pattern="^[789]\d{9}$" id="shipping-address-mobile" name="mobile" value="<%- data.mobile %>" required>
+                            </div>
+                    
+                            <div>
+                                <label for="shipping-address-email">Email:</label>
+                                <input type="email" id="shipping-address-email" part="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" name="email" value="<%- data.email %>"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="shipping-address-streetLandmark">Street, Landmark:</label>
+                            <input type="text" id="shipping-address-streetLandmark" name="streetLandmark" value="<%- data.streetLandmark %>" required>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label for="shipping-address-city">City:</label>
+                                <input type="text" id="shipping-address-city" name="city" value="<%- data.city %>" required>
+                            </div>
+                    
+                            <div>
+                                <label for="shipping-address-pincode">Pincode:</label>
+                                <input type="text" id="shipping-address-pincode" pattern="[1-9][0-9]{5}" name="pincode" value="<%- data.pincode %>" required>
+                            </div>
+                        </div>
+                    
+                        <div class="form-group full-width">
+                            <label for="shipping-address-state">State:</label>
+                            <select id="shipping-address-state" name="state" value="<%- data.state %>" required>
+                                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                <option value="Assam">Assam</option>
+                                <option value="Bihar">Bihar</option>
+                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                <option value="Goa">Goa</option>
+                                <option value="Gujarat">Gujarat</option>
+                                <option value="Haryana">Haryana</option>
+                                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                <option value="Jharkhand">Jharkhand</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Kerala">Kerala</option>
+                                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Manipur">Manipur</option>
+                                <option value="Meghalaya">Meghalaya</option>
+                                <option value="Mizoram">Mizoram</option>
+                                <option value="Nagaland">Nagaland</option>
+                                <option value="Odisha">Odisha</option>
+                                <option value="Punjab">Punjab</option>
+                                <option value="Rajasthan">Rajasthan</option>
+                                <option value="Sikkim">Sikkim</option>
+                                <option value="Tamil Nadu" selected>Tamil Nadu</option>
+                                <option value="Telangana">Telangana</option>
+                                <option value="Tripura">Tripura</option>
+                                <option value="Uttarakhand">Uttarakhand</option>
+                                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                <option value="West Bengal">West Bengal</option>
+                                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                <option value="Chandigarh">Chandigarh</option>
+                                <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                                <option value="Daman and Diu">Daman and Diu</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Lakshadweep">Lakshadweep</option>
+                                <option value="Puducherry">Puducherry</option>
+                            </select>
+                        </div>
+                    
+                        <div class="form-group full-width">
+                            <label for="shipping-address-country">Country:</label>
+                            <input type="text" id="shipping-address-country" name="country" value="India" disabled>
                         </div>
                     </div>
                     <div>
@@ -185,17 +275,29 @@
         var orderIdVerified = false;
         var retailVerified = false;
         var itemCount = parseInt('<%= data.itemCount %>');
+        var beneId = "<%= data.beneficiary %>";
         var isSelfPickup = false;
 
-        const pincode = document.querySelector("#pincode");
+        const pincode = document.querySelector("#shipping-address-pincode");
         const orderIdInput = document.querySelector("input#customerOrderId");
         const retailPriceInput = document.querySelector("input#retailPrice");
-        const billingAddressForm = document.querySelector(".billing-address-form");
+        const billingAddressForm = document.querySelector(".shipping-address-form");
         const courierGetBtn = document.querySelector("#courier-check");
         const courierPickupWrapper = document.querySelector(".courier-pickup-wrapper");
         const selfPickup = document.querySelector('#self-pickup');
         const billSummary = document.querySelector(".bill-summary");
         const CODtoggle = document.querySelector("#cod-toggle");
+        const billingAddressState = document.querySelector('#billing-address-state');
+        const beneP = document.getElementById("bene-ok");
+
+        billingAddressState.onchange = (e) => {
+            if ((e.target.value.trim() != "Tamil Nadu")) {
+                console.log("TN Ledhu")
+                document.querySelector('#gst').innerHTML = '(GST (5%))'
+                return;
+            }
+            document.querySelector('#gst').innerHTML = '(CGST (2.5%) + SGST (2.5%))'
+        }
 
         const handleCheckout = async (e) => {
             if (disabled) return;
@@ -204,6 +306,14 @@
             let hasRadioBeenChecked = false;
             let oldBtnInner = e.target.innerHTML;
             e.target.innerHTML = `<span class="loader-w"></span>`;
+
+            if (!beneId && !isSelfPickup) {
+                disabled = false;
+                e.target.innerHTML = oldBtnInner;
+                e.target.classList.remove("disabled");
+                e.target.removeAttribute("disabled");
+                return notyf.error({ message: "Bank details not found. Please enter details in profile page", duration: 3000 });
+            }
 
             if (orderIdInput.value.length < 3) {
                 disabled = false;
@@ -223,15 +333,19 @@
                 return notyf.error("Please check Order ID");
             }
 
-            if (!retailVerified) {
-                disabled = false;
-                e.target.innerHTML = oldBtnInner;
-                e.target.classList.remove("disabled");
-                e.target.removeAttribute("disabled");
-                return notyf.error("Please check retail price");
+            const billingAddressForm = document.querySelectorAll(".billing-address-form input");
+
+            for (const inputItem of billingAddressForm) {
+                inputItem.style.outline = "none";
+                if (!inputItem.reportValidity()) {
+                    disabled = false;
+                    e.target.innerHTML = oldBtnInner;
+                    e.target.classList.remove("disabled");
+                    return notyf.error("Check " + inputItem.id.replace("-", " "));
+                }
             }
 
-            const formsData = document.querySelectorAll(".billing-address-form input");
+            const formsData = document.querySelectorAll(".shipping-address-form input");
 
             for (const inputItem of formsData) {
                 inputItem.style.outline = "none";
@@ -239,7 +353,7 @@
                     disabled = false;
                     e.target.innerHTML = oldBtnInner;
                     e.target.classList.remove("disabled");
-                    return notyf.error("Check " + inputItem.id);
+                    return notyf.error("Check " + inputItem.id.replace("-", " "));
                 }
             }
 
@@ -258,6 +372,14 @@
                 }
             }
 
+            if (parseFloat(retailPriceInput.value) < parseFloat(document.querySelector("#total-charges").innerHTML.slice(1))) {
+                retailVerified = false;
+                disabled = false;
+                e.target.classList.remove("disabled");
+                e.target.innerHTML = oldBtnInner;
+                return notyf.error("Check retail price");
+            }
+
             const checkoutData = {
                 firstName: formsData[0].value,
                 lastName: formsData[1].value,
@@ -266,14 +388,26 @@
                 streetLandmark: formsData[4].value,
                 city: formsData[5].value,
                 pincode: formsData[6].value,
-                state: document.querySelector('#state').value,
+                state: document.querySelector('#shipping-address-state').value,
                 country: formsData[7].value,
                 retailPrice: retailPriceInput.value,
                 customerOrderId: orderIdInput.value,
                 shippingCharge: 0,
                 courierId: null,
                 courierData: null,
-                cashOnDelivery: CODtoggle.checked
+                cashOnDelivery: CODtoggle.checked,
+                billingAddress: {
+                    firstName: billingAddressForm[0].value,
+                    lastName: billingAddressForm[1].value,
+                    mobile: billingAddressForm[2].value,
+                    email: billingAddressForm[3].value,
+                    streetLandmark: billingAddressForm[4].value,
+                    city: billingAddressForm[5].value,
+                    pincode: billingAddressForm[6].value,
+                    state: document.querySelector('#billing-address-state').value,
+                    country: billingAddressForm[7].value,
+                },
+                pwOrderId: null
             }
 
             if (!isSelfPickup) {
@@ -281,9 +415,7 @@
                 checkoutData.courierId = courierId;
                 checkoutData.courierData = shippingChargesResponse.data.available_courier_companies.find(courier => courier.courier_company_id == courierId);
             }
-
             console.log(checkoutData);
-            /* */
             try {
                 openModal();
                 const createPaymentLinkRequest = await fetch("/placeorder", {
@@ -299,9 +431,13 @@
                     disabled = false;
                     e.target.classList.remove("disabled");
                     e.target.innerHTML = oldBtnInner;
-                    return notyf.error({
-                        message: createPaymentLinkResponse.message,
+                    notyf.error({
+                        message: createPaymentLinkResponse.message ?? createPaymentLinkResponse.error,
                     });
+                    setTimeout(() => {
+                        if (createPaymentLinkRequest.status == 403 && createPaymentLinkResponse.reason == "profile") return location.href = '/profile?return=true';
+                    }, 3000);
+                    return;
                 }
                 notyf.success("Order created successfuly!");
                 setTimeout(() => {
@@ -317,7 +453,6 @@
             } finally {
                     openModal(false);
             }
-            /* */
         }
 
         selfPickup.oninput = (e) => {
@@ -327,6 +462,7 @@
                 if (CODtoggle.checked) {
                     document.getElementById("cod-charge").remove();
                     CODtoggle.checked = false;
+                    beneP.innerHTML = '';
                 }
                 modifyBillSummary(0.00);
                 if (courierRadioBtns) {
@@ -335,10 +471,10 @@
                 } else {
                     // document.querySelector("#taxes").innerHTML = `₹${(parseFloat(ttlp) + parseFloat(ttlp) * 0.05).toFixed(2)}`;
                     billSummary.insertAdjacentHTML("afterend", `
-                        <button type="button" class="billing-button" id="btn-checkout">
-                            Proceed to checkout
-                        </button>
-                        `)
+                            <button type="button" class="billing-button" id="btn-checkout">
+                                Proceed to checkout
+                            </button>
+                            `)
                     document.querySelector("#btn-checkout").onclick = handleCheckout;
                 }
                 return;
@@ -366,6 +502,14 @@
                 document.getElementById("total-charges").innerHTML = totalPrice
                 document.getElementById("taxes").innerHTML = taxes;
 
+                if (beneId) {
+                    beneP.style.color = "darkgreen";
+                    beneP.innerHTML = '(Eligible for COD Remittance)'
+                } else {
+                    beneP.style.color = "red";
+                    beneP.innerHTML = '(<i class="fa fa-warning"></i> Please add bank details <a href="/profile?return=true">here</a> to continue)'
+                }
+
             } else {
                 document.getElementById("cod-charge").remove();
                 let totalPrice = document.getElementById("total-charges").innerHTML;
@@ -376,6 +520,8 @@
 
                 document.getElementById("total-charges").innerHTML = totalPrice
                 document.getElementById("taxes").innerHTML = taxes;
+
+                beneP.innerHTML = '';
             }
         }
 
@@ -418,7 +564,7 @@
 
         orderIdInput.oninput = async (e) => {
             let string = e.target.value;
-            e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_#]/g, '').toUpperCase();
+            e.target.value = string.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toUpperCase();
         }
 
         const modifyBillSummary = (charges) => {
@@ -428,10 +574,8 @@
             document.getElementById("taxes").innerHTML = `₹${((parseFloat(ttlp) + charges + (CODtoggle.checked ? 50 : 0)) * 0.05).toFixed(2)}`;
         }
 
-        let oldPincode = pincode.value.length > 0? '': pincode.value;
+        let oldPincode = pincode.value;
         const getAvailableCouriers = async (e) => {
-            // check for spamming check available couriers
-            if (oldPincode == pincode.value) return pincode.focus();
             oldPincode = pincode.value;
 
             if (!(pincode.value.length == 6)) return notyf.error("Pincode does not have 6 digits");

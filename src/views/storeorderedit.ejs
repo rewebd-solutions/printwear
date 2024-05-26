@@ -131,11 +131,10 @@
                     });
                     const createOrderRes = await createOrderReq.json();
                     if (createOrderRes.message) {
-                        notyf.success("Your order was successful!");
                         notyf.success("You will be redirected in a few moments!");
                         setTimeout(() => {
                             location.href = `/mystores/shopify/<%= shopifyData.order.id %>/pay`
-                        }, 3000);
+                        }, 1200);
                     }
                     if (createOrderRes.error) {
                         notyf.error(createOrderRes.error);
