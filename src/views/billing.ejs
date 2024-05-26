@@ -265,13 +265,13 @@
                         <h3>Bill total: </h3>
                     </div>
                     <div class="right-bill">
-                        <h4>₹.<%= orderData.totalAmount %> </h4>
+                        <h4>₹.<%= ['rto-delivered'].includes(orderData.deliveryStatus)? 0: orderData.totalAmount %> </h4>
                         <h4 id="shipping-charges">₹0.00 (Shipping charges) </h4>
                         <div style="display: flex; gap: 0.5rem">
-                            <h4 id="taxes">₹<%= (orderData.taxes).toFixed(2) %></h4><span id="gst">(CGST (2.5%) + SGST (2.5%))</span>
+                            <h4 id="taxes">₹<%= ['rto-delivered'].includes(orderData.deliveryStatus)? 0: (orderData.taxes).toFixed(2) %></h4><span id="gst">(CGST (2.5%) + SGST (2.5%))</span>
                         </div>
                         <hr />
-                        <h4 id="total-charges">₹<%=( orderData.totalAmount + orderData.taxes ).toFixed(2) %></h4>
+                        <h4 id="total-charges">₹<%= ['rto-delivered'].includes(orderData.deliveryStatus)? 0: (orderData.totalAmount + orderData.taxes).toFixed(2) %></h4>
                     </div>
                 </div>
             </div>
@@ -279,7 +279,7 @@
             <script>
                 AOS.init();
                 var notyf = new Notyf();
-                var ttlp = "<%= ['rto-delivered', 'cancelled'].includes(orderData.deliveryStatus)? 0: orderData.totalAmount %>";
+                var ttlp = "<%= ['rto-delivered'].includes(orderData.deliveryStatus)? 0: orderData.totalAmount %>";
                 var beneId = "<%= beneficiary %>";
                 var disabled = false;
                 var orderIdVerified = false;
@@ -341,14 +341,6 @@
                         e.target.classList.remove("disabled");
                         e.target.removeAttribute("disabled");
                         return notyf.error("Please check Order ID");
-                    }
-
-                    if (!retailVerified) {
-                        disabled = false;
-                        e.target.innerHTML = oldBtnInner;
-                        e.target.classList.remove("disabled");
-                        e.target.removeAttribute("disabled");
-                        return notyf.error("Please check retail price");
                     }
 
                     const billingAddressForm = document.querySelectorAll(".billing-address-form input");
@@ -451,7 +443,7 @@
                             e.target.classList.remove("disabled");
                             e.target.innerHTML = oldBtnInner;
                             notyf.error({
-                                message: createPaymentLinkResponse.message,
+                                message: createPaymentLinkResponse.message ??  createPaymentLinkResponse.error,
                             });
                             setTimeout(() => {
                                 if (createPaymentLinkRequest.status == 403 && createPaymentLinkResponse.reason == "profile") return location.href = '/profile?return=true';

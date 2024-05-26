@@ -313,9 +313,6 @@
             return notyf.error(initiateRefundResponse.message);
             // return type == "return"? notyf.success("Return order is now being processed! You will be refunded within 2-3 days") :notyf.success("Order cancelled successfully! You will be refunded within 2-3 working days.");
           }
-          if (initiateRefundResponse.to) {
-            return location.href += "/reship";
-          }
           setTimeout(() => {
             location.reload();
           }, 2000);

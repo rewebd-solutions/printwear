@@ -100,6 +100,7 @@ route.get("/getmockups", controller.getmockups);
 
 // route.post("/createpaymentlink", authServices.authorizeToken, controller.getpaymentlink);
 route.post("/placeorder", authServices.authorizeToken, controller.placeorder);
+route.post("/reshiporder", authServices.authorizeToken, controller.reshiporder);
 route.post("/createshiporder", controller.createshiporder);
 route.post("/calculateshippingcharges", authServices.authorizeToken, controller.calculateshippingcharges);
 
