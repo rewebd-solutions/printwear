@@ -310,10 +310,19 @@ hr {
     width: min-content;
 }
 
-/* remove */
-.processing, .placed, .unplaced, .processing, .dispatched, .delivered, .courier_assigned {
-    background-color: hsl(108, 48%, 94%);
-    color: hsl(136, 100%, 28%);
+.badge-cod {
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+    padding-top: 0.1875rem;
+    padding-bottom: 0.1875rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    color: #772bfc;
+    background-color: #F5F3FF;
+    width: fit-content;
+    height: fit-content;
+    cursor: default;
+    text-decoration: none !important;
 }
 
 .proceed-btn {
@@ -325,13 +334,7 @@ hr {
     font-size: 0.8rem;
 }
 
-/* remove */
-.return_init, .returned, .cancelled {
-    background-color: hsl(0, 100%, 97%);
-    color: hsl(0, 100%, 57%)   
-}
-
-.processing, .rtd, .pickup-scheduled, .out-for-pickup, .delivered, .completed, .rto, .shipped, .rts {
+.processing, .ready-to-ship, .pickup-scheduled, .out-for-pickup, .delivered, .completed, .in-transit, .shipped, .refunded, .success {
     background-color: hsl(108, 48%, 94%);
     color: hsl(136, 100%, 28%);
 }
@@ -341,12 +344,12 @@ hr {
     color: #777;
 }
 
-.on-hold {
+.on-hold, .return-init, .pending, .refund_init, .return-to-origin, .rto-delivered {
     background-color: #f8dda7;
     color: #b17a0c;
 }
 
-.undelivered, .shipment-cancel, .cancelled, .refunded {
+.undelivered, .shipment-cancel, .cancelled, .failed {
     background-color: hsl(0, 100%, 97%);
     color: hsl(0, 100%, 57%)
 }

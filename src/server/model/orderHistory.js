@@ -67,14 +67,16 @@ var OrderHistorySchema = new mongoose.Schema({
         default: "received",
         enum: [
           "received",
-          "rts",
+          "ready-to-ship", // -> ready to ship
           "on-hold",
           "processing",
-          "rtd",
+          "rto-delivered", // -> rto delivered
           "shipment-cancel",
           "pickup-scheduled",
           "out-for-pickup",
-          "rto",
+          "in-transit",
+          "return-to-origin", // -> return to origin
+          "return-init",
           "cancelled",
           "undelivered",
           "invoiced",

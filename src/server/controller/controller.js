@@ -2609,6 +2609,53 @@ exports.billing = async (req, res) => {
     res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
   }
 }
+// render reship page
+exports.reship = async (req, res) => {
+  try {
+    const pwOrderId = req.params.id;
+    console.log("Reship request for order id:", pwOrderId)
+    const [orderData, userData] = await Promise.all([
+      await OrderHistoryModel.findOne(
+        {
+          userId: req.userId,
+          orderData: { $elemMatch: { printwearOrderId: pwOrderId } },
+        },
+        { "orderData.$": 1 }
+      ),
+      await UserModel.findById(req.userId),
+    ]);
+    
+    if (!orderData || !["rto-delivered", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) 
+      return res.render("billing", { orderData: { items: [] } });
+
+    const designsFromOrders = orderData.orderData[0].items.map(item => item.designId);
+    // console.log(designsFromOrders);
+    const designsData = await NewDesignModel.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.userId), // Match the specific document by userId
+        },
+      },
+      {
+        $project: {
+          designs: {
+            $filter: {
+              input: '$designs',
+              as: 'design',
+              cond: {
+                $in: ['$$design._id', designsFromOrders.map(id => new mongoose.Types.ObjectId(id))],
+              },
+            },
+          },
+        },
+      },
+    ]);
+    res.render("billing", { orderData: orderData.orderData[0], designsData: designsData[0].designs, billing: userData.billingAddress, beneficiary: userData.beneId });
+  } catch (error) {
+    console.log(error);
+    res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
+  }
+}
 // render order details page
 exports.orderpage = async (req, res) => {
   try {
@@ -2960,7 +3007,7 @@ exports.placeorder = async (req, res) => {
       courierId: courierId ?? -1,
       courierName: courierData?.courier_name ?? 'SELF PICKUP',
       estimatedDelivery: courierData?.etd ?? 'N/A'
-    },
+    }
     orderData.cashOnDelivery = cashOnDelivery
     orderData.totalAmount = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)).toFixed(2)
     orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2)
@@ -3293,236 +3340,133 @@ exports.placeorder = async (req, res) => {
     // deleted a huge comment, if needed take from old commit
 
     /* no longer need to send data to santo.. cuz cpanel died :( 
-    const wooCommerceOrderData = {
-      // parent_id: orderDetails.orderData[0].customerOrderId + "23",
-      customer_note: `Order Reference number: ${orderDetails.orderData[0].customerOrderId}`,
-      payment_method: orderDetails.orderData[0].cashOnDelivery ? "cod" : "wallet",
-      payment_method_title: orderDetails.orderData[0].cashOnDelivery ? "Cash on Delivery" : "Wallet Payment",
-      transaction_id: walletData.transactions[purchaseTransactionIndex].walletOrderId,
-      shipping_total: orderDetails.orderData[0].deliveryCharges,
-      total: orderDetails.orderData[0].amountPaid,
-      total_tax: orderDetails.orderData[0].taxes,
-      prices_include_tax: false,
-      set_paid: orderDetails.orderData[0].cashOnDelivery ? false : true,
-      status: 'received', // for santo
-      // status: 'pending',
-      billing: {
-        first_name: orderDetails.orderData[0].billingAddress.firstName,
-        last_name: orderDetails.orderData[0].billingAddress.lastName,
-        address_1: orderDetails.orderData[0].billingAddress.streetLandmark,
-        address_2: "",
-        city: orderDetails.orderData[0].billingAddress.city,
-        state: orderDetails.orderData[0].billingAddress.state,
-        postcode: orderDetails.orderData[0].billingAddress.pincode + '',
-        country: orderDetails.orderData[0].billingAddress.country,
-        email: orderDetails.orderData[0].billingAddress.email,
-        phone: orderDetails.orderData[0].billingAddress.mobile
-      },
-      shipping: {
-        first_name: orderDetails.orderData[0].shippingAddress.firstName,
-        last_name: orderDetails.orderData[0].shippingAddress.lastName,
-        address_1: orderDetails.orderData[0].shippingAddress.streetLandmark,
-        address_2: "",
-        city: orderDetails.orderData[0].shippingAddress.city,
-        state: orderDetails.orderData[0].shippingAddress.state,
-        postcode: orderDetails.orderData[0].shippingAddress.pincode + '',
-        country: orderDetails.orderData[0].shippingAddress.country,
-        email: orderDetails.orderData[0].shippingAddress.email,
-        phone: orderDetails.orderData[0].shippingAddress.mobile
-      },
-      "meta_data": [
-        {
-          "key": "billing_landmark",
-          "value": orderDetails.orderData[0].billingAddress.streetLandmark
-        },
-        {
-          "key": "shipping_landmark",
-          "value": orderDetails.orderData[0].shippingAddress.streetLandmark
-        },
-        {
-          "key": "shipping_email",
-          "value": orderDetails.orderData[0].shippingAddress.email
-        },
-        {
-          "key": "shipping_courier",
-          "value": orderDetails.orderData[0].cashOnDelivery ? "COD" : orderDetails.orderData[0].shipRocketCourier.courierName
-        },
-        {
-          "key": "shipping_type",
-          "value": orderDetails.orderData[0].cashOnDelivery ? "COD" : "Standard Shipping"
-        },
-        {
-          "key": "reference_number",
-          "value": orderDetails.orderData[0].customerOrderId
-        },
-        {
-          "key": "retail_price",
-          "value": orderDetails.orderData[0].retailPrice
-        },
-        {
-          "key": "tracking_number",
-          "value": ""
-        },
-        {
-          "key": "invoice",
-          "value": zohoInvoiceCreateResponse.invoice.invoice_url
-        },
-        {
-          "key": "is_pickup_option",
-          "value": orderDetails.orderData[0].shipRocketCourier.courierId === "-1" ? "Yes" : "No"
-        },
-        {
-          "key": "shipping_label_file",
-          "value": ""
-        },
-        {
-          "key": "printwear_cod_order_charges",
-          "value": orderDetails.orderData[0].cashOnDelivery ? 50 : 0
-        }
-      ],
-      line_items: orderDetails.orderData[0].items.map(item => {
-        const currentItemDesignData = designData.designs.find(design => design._id + "" == item.designId + "");
-        const neckLabelURl = currentItemDesignData.neckLabel ? labelData.labels.find(lab => lab._id + '' == currentItemDesignData.neckLabel + '').url : '';
-        return {
-          product_id: item.designId,
-          variation_id: 0,
-          name: currentItemDesignData.product.name,
-          price: currentItemDesignData.product.price + '',
-          subtotal: (currentItemDesignData.price * item.quantity).toFixed(2),
-          total: (currentItemDesignData.price * item.quantity).toFixed(2),
-          quantity: item.quantity,
-          sku: currentItemDesignData.designSKU,
-          meta_data: [
-            {
-              meta_key: 'front_design_image',
-              meta_value: currentItemDesignData.designItems[0].URL
-            },
-            {
-              meta_key: 'front_mockup_image',
-              meta_value: currentItemDesignData.product.baseImage.front
-            },
-            {
-              meta_key: 'frontimageurl',
-              meta_value: currentItemDesignData.designImage.front
-            },
-            {
-              meta_key: 'back_design_image',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_mockup_image',
-              meta_value: ''
-            },
-            {
-              meta_key: 'backimageurl',
-              meta_value: ''
-            },
-            {
-              meta_key: 'front_printing_price',
-              meta_value: currentItemDesignData.price - currentItemDesignData.product.price - (currentItemDesignData.neckLabel ? 10 : 0)
-            },
-            {
-              meta_key: 'back_printing_price',
-              meta_value: 0
-            },
-            {
-              meta_key: 'handling_fulfilement_charges',
-              meta_value: 0
-            },
-            {
-              meta_key: 'printwear_branding_charges',
-              meta_value: currentItemDesignData.neckLabel ? 10 : 0
-            },
-            {
-              meta_key: 'gst_charges',
-              meta_value: currentItemDesignData.price * 0.05
-            },
-            {
-              meta_key: 'gst_percentage',
-              meta_value: 5
-            },
-            {
-              meta_key: 'lumise_data',
-              meta_value: ''
-            },
-            {
-              meta_key: 'temp_order_data_file',
-              meta_value: ''
-            },
-            {
-              meta_key: 'brand_image_url',
-              meta_value: currentItemDesignData.neckLabel ? neckLabelURl : ''
-            },
-            {
-              meta_key: 'front_top',
-              meta_value: currentItemDesignData.designDimensions.top
-            },
-            {
-              meta_key: 'front_left',
-              meta_value: currentItemDesignData.designDimensions.left
-            },
-            {
-              meta_key: 'front_width',
-              meta_value: currentItemDesignData.designDimensions.width
-            },
-            {
-              meta_key: 'front_height',
-              meta_value: currentItemDesignData.designDimensions.height
-            },
-            {
-              meta_key: 'back_top',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_left',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_width',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_height',
-              meta_value: ''
-            },
-            {
-              meta_key: 'front_dpi',
-              meta_value: ''
-            },
-            {
-              meta_key: 'back_dpi',
-              meta_value: ''
-            }
-          ]
-        }
-      }),
-      shipping_lines: [
-        {
-          method_id: "flat_rate",
-          method_title: orderDetails.orderData[0].shipRocketCourier?.courierId === "-1" ? "Self pickup" : orderDetails.orderData[0].shipRocketCourier?.courierName,
-          total: orderDetails.orderData[0].shipRocketCourier?.courierId === "-1" ? '0' : orderDetails.orderData[0].deliveryCharges + '',
-          total_tax: orderDetails.orderData[0].shipRocketCourier?.courierId === "-1" ? '0' : orderDetails.orderData[0].deliveryCharges * 0.05 + ''
-        }
-      ],
-    };
-
-    if (orderDetails.orderData[0].cashOnDelivery) wooCommerceOrderData.fee_lines = [
-      {
-        name: "COD Charges",
-        total: 50,
-        tax_status: "none",
-        tax_class: "",
-        total_tax: "2.5"
-      }
-    ]
-    */
-    // deleted big ass comment, check old git commits for the deleted comment hre
+    // hence deleted a bigass comment 
+    // deleted big ass comment, check old git commits for the deleted comment hre */
 
   } catch (error) {
     console.log("General error");
     console.log(error);
     console.log("Failed to create order for: " + req.userId + " Order Id: " + req.body.customerOrderId);
     res.status(500).json({ message: "Internal server Error" });
+  }
+}
+
+exports.reshiporder = async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country,
+      shippingCharge,
+      courierId,
+      courierData,
+      cashOnDelivery,
+      billingAddress,
+      pwOrderId
+    } = req.body;
+
+    const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
+    const walletData = await WalletModel.findOne({ userId: req.userId });
+
+    const orderToRefund = orderHistory.orderData.find(order => order.printwearOrderId == req.body.orderId);
+    const orderToRefundIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == req.body.orderId);
+    
+    if (!orderData || orderToRefundIndex == -1 || ["rto-delivered", "cancelled"].includes(orderToRefund.deliveryStatus)) 
+      return res.status(404).json({ error: "Invalid Reship order request" });
+    
+    const shippingAddressToCheck = { firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country
+    }
+
+    for (const [field, value] of Object.entries(shippingAddressToCheck)) {
+      if (value === "" || !value) {
+        return res
+          .status(403)
+          .json({
+            message: "Please fill shipping address",
+            reason: "invalid",
+          });
+      }
+    }
+
+    for (const [field, value] of Object.entries(billingAddress)) {
+      if (value === "" || !value) {
+        return res
+          .status(403)
+          .json({
+            message: "Please fill billing address",
+            reason: "invalid",
+          });
+      }
+    }
+
+    const isSelfPickup = !courierId;
+    const oldCharges = orderToRefund.deliveryStatus == "cancelled"? orderToRefund.items.reduce((curr, item) => curr + item.price, 0): 0;
+    const totalCharges = (shippingCharge + (cashOnDelivery ? 50: 0) + oldCharges) * 0.05;
+
+    /** wallet deduct charges */
+    const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false });
+    
+    if (!isSelfPickup) {
+      if (walletData.balance < totalCharges) {
+        return res.status(403).json({ message: "Not enough credits in wallet. Please recharge wallet" });
+      }
+  
+      walletData.balance = (walletData.balance - totalCharges).toFixed(2); // MONEY GONE!!!
+      walletData.transactions.push({
+        amount: totalPurchaseCost,
+        transactionType: "payment",
+        transactionStatus: "success",
+        walletOrderId: "RESHIP_" + pwOrderId + "_" + walletOrderId,
+        transactionNote: `Reship payment for Order ${orderToRefund.printwearOrderId}`,
+      }); // summa
+      await walletData.save() //summa
+      console.log(orderToRefund.printwearOrderId + " Wallet operation successful!");
+    }
+
+    /** update orderData */
+    orderHistory.orderData.at(orderToRefundIndex).shippingAddress = {
+      firstName,
+      lastName,
+      mobile,
+      email,
+      streetLandmark,
+      city,
+      pincode,
+      state,
+      country
+    }
+    orderHistory.orderData.at(orderToRefundIndex).deliveryCharges = shippingCharge;
+    orderHistory.orderData.at(orderToRefundIndex).walletOrderId = walletOrderId;
+    orderHistory.orderData.at(orderToRefundIndex).cashOnDelivery = cashOnDelivery? true: false;
+    orderHistory.orderData.at(orderToRefundIndex).totalAmount = totalCharges.toFixed(2);
+    orderHistory.orderData.at(orderToRefundIndex).taxes = (orderHistory.orderData.at(orderToRefundIndex).totalAmount * 0.05).toFixed(2);
+    orderHistory.orderData.at(orderToRefundIndex).deliveryStatus = "received";
+    orderHistory.orderData.at(orderToRefundIndex).shipRocketCourier = {
+      courierId: courierId ?? -1,
+      courierName: courierData?.courier_name ?? 'SELF PICKUP',
+      estimatedDelivery: courierData?.etd ?? 'N/A'
+    }
+    orderHistory.orderData.at(orderToRefundIndex).amountPaid = (orderHistory.orderData.at(orderToRefundIndex).taxes + orderHistory.orderData.at(orderToRefundIndex).totalAmount).toFixed(2);
+    orderHistory.save({ validateBeforeSave: true });
+    
+    return res.json({ message: "Reship was successfully initiated!" });
+  } catch (error) {
+    console.log("🚀 ~ exports.reshiporder= ~ error:", error)
+    res.status(500).json({ error: "Server error in creating reship order" });
   }
 }
 
@@ -3794,43 +3738,43 @@ exports.initiaterefund = async (req, res) => {
 
     if (!purchaseTransaction) return res.status(404).json({ message: "Wallet transaction not found!" }); // if no such transaction found, then cant refund, problem with us only
 
-    if (["pending", "received", "invoiced", "undelivered"].includes(orderToRefund.deliveryStatus)) {
+    if (["pending", "received", "invoiced"].includes(orderToRefund.deliveryStatus)) {
 
-      const isRefunded = await refundFunction(purchaseTransactionOrderId);
-      if (!(isRefunded.status === "refund_ok" && isRefunded.data != null)) return res.status(500).json({ message: "Failed to refund order! Please contact help" })
+      orderHistory.orderData.at(orderToRefundIndex).deliveryStatus = "cancelled";
+      
+      walletData.transactions.push({
+        amount: orderToRefund.amountPaid,
+        transactionType: "refund",
+        walletOrderId: `REFUND_` + walletOrderId,
+        refundAmount: orderToRefund.totalAmount,
+        transactionNote: "Refund for order " + orderToRefund.printwearOrderId,
+        transactionStatus: "success", // later listen to webhook and change status
+      });
+      walletData.balance = walletData.balance + orderToRefund.amountPaid;
 
-      const isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "cancelled");
-      if (!isWooUpdated) return res.status(500).json({ message: "Failed to update order status. Please try later or contact help" })
+      await walletData.save({ validateBeforeSave: false });
 
-      await updateRefundWalletRecord();
-
-      orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
-      orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
+      orderHistory.orderData.at(orderToRefundIndex).paymentStatus = "refunded";
       await orderHistory.save({ validateBeforeSave: false });
-      // call woocommerce santo endpoint to update order status
-      // refund if not COD
 
-      res.json({ message: "Order cancelled successfully!" });
-
-    } else if (["delivered"].includes(orderToRefund.deliveryStatus) || (orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1")) {
-
-      let cashfreeRefundStatus = await refundFunction(purchaseTransactionOrderId);
-      let shiprocketReturnCreated = await createShiprocketReturnOrder();
-
-      if (!(cashfreeRefundStatus.status === "refund_ok" && cashfreeRefundStatus.data != null)) return res.status(500).json({ message: "Something went wrong in initiating refund!" });
-      if (shiprocketReturnCreated.message || shiprocketReturnCreated.status_code !== 21) return res.status(500).json({ message: "Something went wrong in creating return order!" });
-
-      let isWooUpdated = await updateWooCommerceOrderStatus(orderToRefund.wooOrderId, "pickup-scheduled");
-      if (!isWooUpdated) return res.status(500).json({ message: "Something went wrong in updating return order" });
-
-      orderHistory.orderData[orderToRefundIndex].deliveryStatus = "pickup-scheduled";
-      orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
-      orderHistory.orderData[orderToRefundIndex].shipRocketReturn.orderId = shiprocketReturnCreated.order_id;
-      orderHistory.orderData[orderToRefundIndex].shipRocketReturn.shipmentId = shiprocketReturnCreated.shipment_id;
-      orderHistory.orderData[orderToRefundIndex].shipRocketReturn.status = shiprocketReturnCreated.status;
-      await orderHistory.save({ validateBeforeSave: false });
-      res.json({ message: "Return order created successfully!" });
+      return res.json({ message: "Order cancelled successfully!" });
     }
+
+    if (
+      ["delivered"].includes(orderToRefund.deliveryStatus) || ((orderToRefund.deliveryStatus === "completed" && orderToRefund.shipRocketCourier.courierId !== "-1"))
+    ) {
+      
+      orderHistory.orderData[orderToRefundIndex].deliveryStatus = "return-init";
+      
+      await orderHistory.save({ validateBeforeSave: false });
+      return res.json({ message: "Return request sent successfully!" });
+    }
+    
+    if (["cancelled", "rto-delivered"].includes(orderToRefund.deliveryStatus)) {
+      return res.redirect(`/order/${orderToRefund.printwearOrderId}/reship`); 
+    }
+
+    res.status(403).json({ error: "Invalid operation!" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong in cancelling this order!" });

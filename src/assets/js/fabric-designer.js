@@ -869,9 +869,9 @@ const saveDesign = async () => {
                 <br />
                 To save ${
                   designDirection == "front" ? "back" : "front"
-                } design, click <span id="front-side" class="side-btn active-btn">${
+                } design, click ${
                   designDirection == "front" ? "Back" : "Front"
-                }</span> as shown in the image and save it again
+                }button as shown in the image and save it again
             </div>
           </div>
         `

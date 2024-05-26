@@ -71,7 +71,7 @@
                     <td>${i+1}</td>
                     <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
                     <td>${transaction.walletOrderId ?? '—'}</td>
-                    <td>${["credit", "debit"].includes(transaction.transactionType) ? transaction.transactionType : transaction.transactionType === "recharge" ? "Recharge" : "Payment"}</td>
+                    <td>${transaction.transactionType}</td>
                     <td>₹ ${transaction.amount.toFixed(2)}</td>
                     <td>${["credit", "debit"].includes(transaction.transactionType) ? `${transaction.transactionNote}` : transaction.transactionType === "recharge" ? `Recharge for ₹ ${transaction.amount.toFixed(2)}` : `${transaction.transactionNote.split(" ").splice(0, 3).join(" ")} <a href='/order/${transaction.transactionNote.split(" ").at(-1)}'>${transaction.transactionNote.split(" ").at(-1)}</a>`}</td>
                     <td>${["credit", "debit", "recharge"].includes(transaction.transactionType) ? `<i class="fa fa-ban"></i>` : `<a href='${transaction.invoiceURL}'><i class="fa fa-download"></i></a>`}</td>

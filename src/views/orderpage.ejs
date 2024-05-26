@@ -46,7 +46,7 @@
         </div>
         
         <!-- use this shit in prod -->
-        <% if (["pending", "received" , "invoiced" , "on-hold"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <% if (["pending", "received" , "invoiced"].includes(orderData.orderData[0].deliveryStatus)) { %>
         <button class="orderpage-action-btn" onclick="initiateRefund(this)">
           Cancel Order
         </button>
@@ -57,7 +57,7 @@
         >
           Return Order
         </button>
-        <% } else if (["rto", "cancelled", "undelivered"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <% } else if (["rto-delivered", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) { %>
         <button
           class="orderpage-action-btn"
           onclick="initiateRefund(this, 'reship')"
@@ -143,8 +143,8 @@
                 %>
               </p>
             </div>
-            <% } %> <% if (orderData.orderData[0].shipRocketCourier.courierAWB)
-            { %>
+            <% } %> 
+            <% if (orderData.orderData[0].shipRocketCourier.courierAWB){ %>
             <div class="order-info">
               <p>Tracking Number</p>
               <p>
@@ -175,8 +175,7 @@
             <div class="order-info">
               <p>Address</p>
               <p>
-                <%= orderData.orderData[0].shippingAddress.streetLandmark + ","
-                %><br />
+                <%= orderData.orderData[0].shippingAddress.streetLandmark + ","%><br />
                 <%= orderData.orderData[0].shippingAddress.city + "," %><br />
                 <%= orderData.orderData[0].shippingAddress.state + ", " %><br />
                 <%= orderData.orderData[0].shippingAddress.pincode %>
@@ -275,14 +274,19 @@
 
       const initiateRefund = async (el, type = "cancel") => {
         el.classList.add("disable-button");
-        if (type === "reship") return (location.href += "/reship");
+        // if (type === "reship") return (location.href += "/reship");
+        /** if reship given, api call to backend to set the current orderhistorydata to orderdata and remove that from here and redirect to /reship */
         let cancelOrderConfirmation =
           type == "return"
             ? confirm(
                 "If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?"
               )
+            : type == "reship"?
+              confirm(
+                  "You will be taken to reshipping page where you can reship to a new delivery address. Delivery charges will be deducted. Do you wish to continue?"
+                )
             : confirm(
-                "Cancelling this order will remove the courier assigned to you. You can reship this order later with added shipping charges. Do you wish to cancel order?"
+                "Cancelling this order will refund your wallet. You can reship this order later. Do you wish to cancel order?"
               );
 
         if (!cancelOrderConfirmation)
@@ -294,16 +298,27 @@
             },
             body: JSON.stringify({
               orderId: "<%= orderData.orderData[0].printwearOrderId %>",
+              method: type
             }),
             method: "POST",
+            redirect: "follow"
           });
+          if (initiateRefundRequest.redirected) return location.href += "/reship";
           const initiateRefundResponse = await initiateRefundRequest.json();
           console.log(initiateRefundResponse);
           if (!initiateRefundRequest.ok) {
-            setTimeout(() => location.reload(), 3000);
+            setTimeout(() => {
+              location.reload();
+            }, 3000);
             return notyf.error(initiateRefundResponse.message);
             // return type == "return"? notyf.success("Return order is now being processed! You will be refunded within 2-3 days") :notyf.success("Order cancelled successfully! You will be refunded within 2-3 working days.");
           }
+          if (initiateRefundResponse.to) {
+            return location.href += "/reship";
+          }
+          setTimeout(() => {
+            location.reload();
+          }, 2000);
           return notyf.success(initiateRefundResponse.message);
         } catch (error) {
           console.log(error);

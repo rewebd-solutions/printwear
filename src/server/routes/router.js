@@ -48,6 +48,7 @@ route.get("/productgallery", authServices.authorizeToken, services.productgaller
 route.get("/manageorder", authServices.authorizeToken, services.manageorder);
 route.get("/placeorder", authServices.authorizeToken, services.placeorder);
 route.get("/order/:id", authServices.authorizeToken, controller.orderpage);
+route.get("/order/:id/reship", authServices.authorizeToken, controller.reship);
 route.get("/placeorder/billing", authServices.authorizeToken, controller.billing);
 route.get("/stock", authServices.authorizeToken, services.stock);
 route.get("/connectstore", authServices.authorizeToken, services.connectstore);

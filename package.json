@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "create-env": "printenv > .env",
     "start": "node src/server.js",
     "dev": "nodemon --inspect src/server.js"
   },

@@ -323,12 +323,12 @@
                 "completed",
                 "pending",
                 //'placed', 'processing', 'courier_assigned', 'dispatched' // this is for old deliveryStatus. Remove in prod
-            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+            ].includes(orderHistory.deliveryStatus)).reverse().map((orderHistory, i) => {
                 return `
                     <tr>
                         <td>${i + 1}</td>
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
-                        <td>${orderHistory.customerOrderId} ${orderHistory.wooCommerceId ? '<img src="images/WooCommerce_logo.svg" width="30" alt="" />': ''}${orderHistory.shopifyId ? '<i class="fa-brands fa-shopify" style="color: #3cd03c"></i>': ''}</td>
+                        <td>${orderHistory.customerOrderId}${orderHistory.cashOnDelivery ? `<p class="badge-cod">COD</p>` : ''} ${orderHistory.wooCommerceId ? '<img src="images/WooCommerce_logo.svg" width="30" alt="" />': ''}${orderHistory.shopifyId ? '<i class="fa-brands fa-shopify" style="color: #3cd03c"></i>': ''}</td>
                         <td>${orderHistory.shippingAddress.firstName + ' ' + orderHistory.shippingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid}</td>
                         <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>` : `unavailable`}</td>
@@ -337,18 +337,18 @@
                     </tr>                    
                 `;
 
-            }).reverse().join('\n');
+            }).join('\n');
             returnedOrderTable.innerHTML = data.filter(orderHistory => [
                 "pickup-scheduled",
                 "out-for-pickup",
                 "undelivered",
                 'return_init', 'returned'
-            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+            ].includes(orderHistory.deliveryStatus)).reverse().map((orderHistory, i) => {
                 return `
                     <tr>
                         <td>${i + 1}</td>
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
-                        <td>${orderHistory.customerOrderId}</a></td>
+                        <td>${orderHistory.customerOrderId}${orderHistory.cashOnDelivery ? `<p class="badge-cod">COD</p>` : ''}</td>
                         <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid}</td>
                         <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>` : `unavailable`}</td>
@@ -357,16 +357,16 @@
                     </tr>                    
                 `;
 
-            }).reverse().join('\n');
+            }).join('\n');
             cancelledOrderTable.innerHTML = data.filter(orderHistory => [
                 "shipment-cancel",
                 "cancelled",
-            ].includes(orderHistory.deliveryStatus)).map((orderHistory, i) => {
+            ].includes(orderHistory.deliveryStatus)).reverse().map((orderHistory, i) => {
                 return `
                     <tr>
                         <td>${i + 1}</td>
                         <td><a href="/order/${orderHistory.printwearOrderId}">${orderHistory.printwearOrderId}</a></td>
-                        <td>${orderHistory.customerOrderId}</a></td>
+                        <td>${orderHistory.customerOrderId}${orderHistory.cashOnDelivery ? `<p class="badge-cod">COD</p>` : ''}</td>
                         <td>${orderHistory.billingAddress.firstName + ' ' + orderHistory.billingAddress.lastName}</td>
                         <td>₹${orderHistory.amountPaid.toFixed(2)}</td>
                         <td>${orderHistory.shipRocketCourier.courierAWB ? `<a href="https://shiprocket.co/tracking/${orderHistory.shipRocketCourier.courierAWB}" target="_blank">${orderHistory.shipRocketCourier.courierAWB}</a>` : `unavailable`}</td>
@@ -375,7 +375,7 @@
                     </tr>                    
                 `;
 
-            }).reverse().join('\n');
+            }).join('\n');
         }
 
         const fetchOrderHistory = async () => {
