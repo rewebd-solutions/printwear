@@ -66,12 +66,20 @@
                     <div class="form-group">
                         <div>
                             <label for="customerOrderId">Your order ID:</label>
-                            <input type="text" id="customerOrderId" disabled="<%= ['rto-delivered', 'cancelled'].includes(orderData.deliveryStatus) %>" value="<%= ['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)? orderData.customerOrderId: '' %>" placeholder="Order ID must be 10 characters long" title="Order ID must be 10 characters long!" name="customerOrderId" required>
+                            <% if (['rto-delivered', 'cancelled'].includes(orderData.deliveryStatus)) { %>
+                                <input type="text" id="customerOrderId" disabled="<%= ['rto-delivered', 'cancelled'].includes(orderData.deliveryStatus) %>" value="<%= ['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)? orderData.customerOrderId: '' %>" placeholder="Order ID must be 10 characters long" title="Order ID must be 10 characters long!" name="customerOrderId" required>
+                            <% } else { %>
+                                <input type="text" id="customerOrderId" placeholder="Order ID must be 10 characters long" title="Order ID must be 10 characters long!" name="customerOrderId" required>
+                            <% }  %>
                         </div>
         
                         <div>
                             <label for="retailPrice">Retail Price:</label>
-                            <input type="text" id="retailPrice" disabled="<%= ['rto-delivered', 'cancelled'].includes(orderData.deliveryStatus) %>" value="<%= ['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)? orderData.retailPrice: '' %>" name="retailPrice" required>
+                            <% if (['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)) { %>
+                                <input type="text" id="retailPrice" disabled="<%= ['rto-delivered', 'cancelled'].includes(orderData.deliveryStatus) %>" value="<%= ['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)? orderData.retailPrice: '' %>" name="retailPrice" required>
+                            <% } else { %>
+                                <input type="text" id="retailPrice" name="retailPrice" required>
+                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -317,7 +325,7 @@
                     let oldBtnInner = e.target.innerHTML;
                     e.target.innerHTML = `<span class="loader-w"></span>`;
 
-                    if (!beneId && !isSelfPickup) {
+                    if (!beneId && CODtoggle.checked) {
                         disabled = false;
                         e.target.innerHTML = oldBtnInner;
                         e.target.classList.remove("disabled");
@@ -518,7 +526,7 @@
                             beneP.innerHTML = '(Eligible for COD Remittance)'
                         } else {
                             beneP.style.color = "red";
-                            beneP.innerHTML = '(<i class="fa fa-warning"></i> Please add bank details <a href="/profile?return=true">here</a> to continue)'
+                            beneP.innerHTML = `(<i class="fa fa-warning"></i> Please add bank details <a href="/profile?return=${location.pathname}">here</a> to continue)`
                         }
 
                     } else {

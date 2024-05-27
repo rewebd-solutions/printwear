@@ -83,7 +83,7 @@
                                     <h5>
                                         <%= item.quantity %> pcs
                                     </h5>
-                                    <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
+                                    <h5>₹<%= design.price.toFixed(2) %> x <%= item.quantity %> = ₹<%= (parseFloat(design.price)*parseInt(item.quantity)).toFixed(2) %>
                                     </h5>
                                     <div class="order-item-controls">
                                         <!-- <button class="delete-button">

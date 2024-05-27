@@ -843,7 +843,7 @@ const saveDesign = async () => {
       console.log(saveDesignResponse);
 
       if (!saveDesignRequest.ok) {
-        throw new Error("Save failed!");
+        throw new Error({ reason: "Save failed!", error: saveDesignResponse.error ?? saveDesignResponse.message });
       }
       isSaveSuccessful = true;
 
@@ -871,7 +871,7 @@ const saveDesign = async () => {
                   designDirection == "front" ? "back" : "front"
                 } design, click ${
                   designDirection == "front" ? "Back" : "Front"
-                }button as shown in the image and save it again
+                } button as shown in the image and save it again
             </div>
           </div>
         `
@@ -919,7 +919,7 @@ const saveDesign = async () => {
       );
     }).catch(error => {
       console.log(error);
-      notyf.error(error.error);
+      notyf.error(error.error ?? error.message);
       disableButton(false);
       disableSideSwitch(false);
       canvasContainer.forEach(
@@ -1012,6 +1012,9 @@ const populateUserDesigns = (data = userDesignResponse) => {
     // currentImage.addEventListener("load", () => {
     // })
   });
+
+  if (designImages[designDirection])
+      document.querySelector(`[data-id='${designImages[designDirection]}']`).classList.add("active-selection")
 };
 
 const fetchUserDesigns = async () => {

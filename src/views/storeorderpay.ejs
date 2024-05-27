@@ -49,7 +49,7 @@
                                 <input type="text" id="customerOrderId" placeholder="Order ID must be 10 characters long"
                                     title="Order ID must be 10 characters long!" value="<%= data.orderName %>" name="customerOrderId" required>
                             </div>
-                    
+                        
                             <div>
                                 <label for="retailPrice">Retail Price:</label>
                                 <input type="text" id="retailPrice" name="retailPrice" value="<%= data.retail %>" required>
@@ -240,6 +240,7 @@
                     <div>
                         <input type="checkbox" name="cod-toggle" id="cod-toggle" />
                         <label for="cod-toggle">Cash on Delivery</label>
+                        <p id="bene-ok"></p>
                     </div>
                     <div class="courier-pickup-wrapper">
                         <button class="billing-button" id="courier-check">Get available couriers</button>
@@ -307,7 +308,7 @@
             let oldBtnInner = e.target.innerHTML;
             e.target.innerHTML = `<span class="loader-w"></span>`;
 
-            if (!beneId && !isSelfPickup) {
+            if (!beneId && CODtoggle.checked) {
                 disabled = false;
                 e.target.innerHTML = oldBtnInner;
                 e.target.classList.remove("disabled");
@@ -507,7 +508,7 @@
                     beneP.innerHTML = '(Eligible for COD Remittance)'
                 } else {
                     beneP.style.color = "red";
-                    beneP.innerHTML = '(<i class="fa fa-warning"></i> Please add bank details <a href="/profile?return=true">here</a> to continue)'
+                    beneP.innerHTML = `(<i class="fa fa-warning"></i> Please add bank details <a href="/profile?return=${location.pathname}">here</a> to continue)`
                 }
 
             } else {

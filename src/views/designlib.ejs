@@ -121,7 +121,7 @@
         if (!addToshopifyRequest.ok) {
           document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
           return notyf.error({
-            message: "Shopify store not connected!",
+            message: addToshopifyResponse.error ?? addToshopifyResponse.message,
             dismissible: true,
             duration: 5000
           })
@@ -160,7 +160,7 @@
         if (!addToWoocommerceRequest.ok) {
           document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
           return notyf.error({
-            message: addToWoocommerceResponse.message,
+            message: addToWoocommerceResponse.message ?? addToWoocommerceResponse.error,
             dismissible: true,
             duration: 5000
           })

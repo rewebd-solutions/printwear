@@ -497,7 +497,7 @@
                 }
                 disableButton(e, false);
                 notyf.success(saveBankRes.message);
-                if (shouldReturn == "true") location.href = '/placeorder/billing';
+                if (shouldReturn) location.href = shouldReturn;
             } catch (error) {
                 disableButton(e, false);
                 console.log("🚀 ~ saveBankDetails ~ error:", error)

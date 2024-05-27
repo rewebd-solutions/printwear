@@ -230,7 +230,7 @@
                   <td>Total Product price (print + label)</td>
                   <% var totalPP=[]; %> 
                   <% orderData.orderData[0].items.forEach(design=> { %> 
-                  <% totalPP.push(design.quantity * design.price) %>
+                  <% totalPP.push((design.quantity * design.price).toFixed(2)) %>
                   <% }) %>
                   <td>₹<%= totalPP.join(" + ₹") %></td>
                 </tr>
@@ -320,8 +320,6 @@
         } catch (error) {
           console.log(error);
           return notyf.error("Error in initiating refund!");
-        } finally {
-          el.classList.remove("disable-button");
         }
       };
     </script>

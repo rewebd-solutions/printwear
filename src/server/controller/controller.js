@@ -733,6 +733,7 @@ exports.savebankdetails = async (req, res) => {
 
   } catch (error) {
     if (error.response && error.response.data?.type) {
+      console.log("🚀 ~ exports.savebankdetails= ~ error:", error.response)
       return res.status(error.response.status != 200 ? error.response.status: 403).json({ error: error.response.data.message });
     }
     console.log("🚀 ~ exports.savebankdetails= ~ error:", error)
@@ -1252,7 +1253,7 @@ exports.getshopifyorders = async (req, res) => {
         OrderHistoryModel.findOne({ userId: userId })
     ]);
 
-    if (!storeDetails) return res.status(404).json({ error: "Shopify Store not connected!" })
+    if (!storeDetails || !storeDetails.shopifyStore.shopifyAccessToken) return res.status(404).json({ error: "Shopify Store not connected!" })
     const allSKUs = designDetails.designs.map(design => design.designSKU);
 
     const shopifyStoreData = storeDetails.shopifyStore;
@@ -1302,7 +1303,7 @@ exports.getwooorders = async (req, res) => {
       NewDesignModel.findOne({ userId: userId }),
       OrderHistoryModel.findOne({ userId: userId })
     ]);
-    if (!storeDetails) return res.status(404).json({ error: "WooCommerce Store not connected!" })
+    if (!storeDetails || !storeDetails.wooCommerceStore.consumerKey) return res.status(404).json({ error: "WooCommerce Store not connected!" })
     const allSKUs = designDetails.designs.map((design) => design.designSKU);
     // console.log("🚀 ~ exports.getwooorders= ~ allSKUs:", allSKUs)
 
@@ -1717,52 +1718,81 @@ exports.createdesign = async (req, res) => {
     
     if (req.body.designId != "null") {
       const currentDirection = req.body.direction;
+      const currentDesign = await NewDesignModel.findOne({ userId: req.userId, "designs._id": req.body.designId });
+      const currentDesignIndex = currentDesign.designs.findIndex(design => design._id + "" == req.body.designId);
+      if (!currentDesignIndex) return res.status(404).json({ error: "Design could not be found!" });
+      if (currentDesign.designs.at(currentDesignIndex).designImage[currentDirection] != "false") return res.status(403).json({ error: "Design already saved!" });
       const printCharges = (designImageHeight <= 8.0 && designImageWidth <= 8.0
                   ? 70.0
                   : req.body.productData.price * 1 < 70.0
                   ? 70.0
                   : req.body.productData.price * 1)
-      const neckLabelCharges = (printCharges == (printCharges + (req.body.neckLabel == "null" ? 0 : 10))) ? 0: 10
-      const currentDesign = await NewDesignModel.findOneAndUpdate(
-        { userId: req.userId, "designs._id": req.body.designId },
-        {
-          $set: {
-            [`designs.$.designImage.${currentDirection}`]: fileDownloadURL,
-            [`designs.$.${
-              currentDirection == "front" ? "frontPrice" : "backPrice"
-            }`]: parseFloat(
-              (
-                printCharges + neckLabelCharges
-              ).toFixed(2)
-            ),
-            [`designs.$.${
-              currentDirection == "front"
-                ? "designDimensions"
-                : "backDesignDimensions"
-            }`]: {
-              ...req.body.productData[
-                currentDirection == "front"
-                  ? "designDimensions"
-                  : "backDesignDimensions"
-              ],
-            },
-          },
-          $push: {
-            "designs.$.designItems": {
-              itemName: req.body.designImageName,
-              URL: req.body.designImageURL,
-            },
-          },
-          $inc: {
-            "designs.$.price": parseFloat(
-              (
-                printCharges + neckLabelCharges
-              ).toFixed(2)
-            ),
-          },
-        },
-        { new: true }
+      console.log("🚀 ~ exports.createdesign= ~ printCharges:", printCharges)
+      const neckLabelCharges = currentDesign.designs.at(currentDesignIndex).neckLabel ? 0: 10;
+      console.log("🚀 ~ exports.createdesign= ~ neckLabelCharges:", neckLabelCharges)
+      currentDesign.designs.at(currentDesignIndex).designImage[currentDirection] = fileDownloadURL;
+      currentDesign.designs.at(currentDesignIndex)[currentDirection == "front" ? "frontPrice" : "backPrice"] = parseFloat(
+        (
+          printCharges
+        ).toFixed(2)
       );
+      currentDesign.designs.at(currentDesignIndex).designImage[currentDirection == "front"? "designDimensions": "backDesignDimensions"] = 
+      {
+        ...req.body.productData[
+          currentDirection == "front"
+          ? "designDimensions"
+          : "backDesignDimensions"
+        ],
+      };
+      currentDesign.designs.at(currentDesignIndex).designItems.push({
+        itemName: req.body.designImageName,
+        URL: req.body.designImageURL,
+      });
+      currentDesign.designs.at(currentDesignIndex).price += parseFloat(
+        (
+          printCharges + neckLabelCharges
+        ).toFixed(2)
+      )
+      await currentDesign.save({ validateBeforeSave: false }); 
+      // await currentDesign.updateOne(
+      //   {
+      //     $set: {
+      //       [`designs.$.designImage.${currentDirection}`]: fileDownloadURL,
+      //       [`designs.$.${
+      //         currentDirection == "front" ? "frontPrice" : "backPrice"
+      //       }`]: parseFloat(
+      //         (
+      //           printCharges + neckLabelCharges
+      //         ).toFixed(2)
+      //       ),
+      //       [`designs.$.${
+      //         currentDirection == "front"
+      //           ? "designDimensions"
+      //           : "backDesignDimensions"
+      //       }`]: {
+      //         ...req.body.productData[
+      //           currentDirection == "front"
+      //             ? "designDimensions"
+      //             : "backDesignDimensions"
+      //         ],
+      //       },
+      //     },
+      //     $push: {
+      //       "designs.$.designItems": {
+      //         itemName: req.body.designImageName,
+      //         URL: req.body.designImageURL,
+      //       },
+      //     },
+      //     $inc: {
+      //       "designs.$.price": parseFloat(
+      //         (
+      //           printCharges + neckLabelCharges
+      //         ).toFixed(2)
+      //       ),
+      //     },
+      //   },
+      //   { new: true }
+      // );
       return res.status(200).json(currentDesign);
     }
 
@@ -1771,8 +1801,12 @@ exports.createdesign = async (req, res) => {
       product: { ...req.body.productData.product },
       designSKU: uniqueSKU,
       designName: req.body.productData.designName,
-      price: parseFloat((req.body.productData.product.price + ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
-      [req.body.direction == "front"? 'frontPrice': 'backPrice']: parseFloat(((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1)) + (req.body.neckLabel == 'null' ? 0 : 10)).toFixed(2)),
+      price: parseFloat((req.body.productData.product.price + 
+        ((designImageHeight <= 8.0 && designImageWidth <= 8.0) 
+          ? 70.00 
+          : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))) + 
+          (req.body.neckLabel == 'null' ? 0 : 10))).toFixed(2),
+      [req.body.direction == "front"? 'frontPrice': 'backPrice']: parseFloat(((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))).toFixed(2)),
       designImage: {
         front: req.body.direction === "front" && fileDownloadURL,
         back: req.body.direction === "back" && fileDownloadURL,
@@ -2415,6 +2449,7 @@ exports.createordershopify = async (req, res) => {
       { new: true, upsert: true }
     );
     console.log("🚀 ~ exports.createordershopify= ~ orderData:", orderData)
+    if (!orderData) return res.status(402).json({ error: "Order could not be created! Please contact help" });
     return res.json({ message: "Created order successfully!" });
   } catch (error) {
     console.log("🚀 ~ exports.createordershopify= ~ error:", error)
@@ -2485,15 +2520,15 @@ exports.payshoporder = async (req, res) => {
       const payOrderPageData = {
         id: orderId,
         orderName: shopifyOrderResponse.name,
-        firstName: shopifyOrderResponse.shipping_address.first_name,
-        lastName: shopifyOrderResponse.shipping_address.last_name,
-        email: shopifyOrderResponse.shipping_address.email,
-        streetLandmark: shopifyOrderResponse.shipping_address.address1,
-        city: shopifyOrderResponse.shipping_address.city,
-        mobile: shopifyOrderResponse.shipping_address.phone,
-        state: shopifyOrderResponse.shipping_address.province,
-        country: shopifyOrderResponse.shipping_address.country,
-        pincode: shopifyOrderResponse.shipping_address.zip,
+        firstName: shopifyOrderResponse.shipping_address?.first_name ?? '',
+        lastName: shopifyOrderResponse.shipping_address?.last_name ?? '',
+        email: shopifyOrderResponse.shipping_address?.email ?? '',
+        streetLandmark: shopifyOrderResponse.shipping_address?.address1 ?? '',
+        city: shopifyOrderResponse.shipping_address?.city ?? '',
+        mobile: shopifyOrderResponse.shipping_address?.phone ?? '',
+        state: shopifyOrderResponse.shipping_address?.province ?? '',
+        country: shopifyOrderResponse.shipping_address?.country ?? '',
+        pincode: shopifyOrderResponse.shipping_address?.zip ?? '',
         total: orderData.totalAmount,
         retail: shopifyOrderResponse.total_line_items_price,
         itemCount: orderData.items.length ?? 0,
