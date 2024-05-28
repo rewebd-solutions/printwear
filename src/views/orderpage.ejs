@@ -31,45 +31,31 @@
       <div class="title">Invalid Order ID</div>
       <% } else { %>
       <!-- "rts" | "on-hold" | "processing" | "rtd" | "shipment-cancel" | "pickup-scheduled" |
-                "out-for-pickup" | "rto" | "cancelled" | "undelivered" | "shipped" | "delivered" | "completed" -->
+            "out-for-pickup" | "rto" | "cancelled" | "undelivered" | "shipped" | "delivered" | "completed" -->
       <div class="title">
         <div class="title-status-container">
           Order ID: <%= orderData.orderData[0].printwearOrderId %>
           <h3 class="status-badge <%= orderData.orderData[0].deliveryStatus %>">
-            STATUS: <%= orderData.orderData[0].deliveryStatus=="return_init" ?
-            "return initiated" : orderData.orderData[0].deliveryStatus %>
+            STATUS: <%= orderData.orderData[0].deliveryStatus === "return_init" ? "return initiated" : orderData.orderData[0].deliveryStatus %>
           </h3>
           <h3 class="status-badge <%= orderData.orderData[0].paymentStatus %>">
-            PAYMENT: <%= orderData.orderData[0].paymentStatus=="refund_init" ?
-            "refund initiated" : orderData.orderData[0].paymentStatus %>
+            PAYMENT: <%= orderData.orderData[0].paymentStatus === "refund_init" ? "refund initiated" : orderData.orderData[0].paymentStatus %>
           </h3>
         </div>
-        
-        <!-- use this shit in prod -->
+
         <% if (["pending", "received" , "invoiced"].includes(orderData.orderData[0].deliveryStatus)) { %>
-        <button class="orderpage-action-btn" onclick="initiateRefund(this)">
-          Cancel Order
-        </button>
-        <% } else if (["delivered"].includes(orderData.orderData[0].deliveryStatus) || (orderData.orderData[0].deliveryStatus==="completed" && orderData.orderData[0].shiprocketCourier.courierId !=="-1" )) { %>
-        <button
-          class="orderpage-action-btn"
-          onclick="initiateRefund(this, 'return')"
-        >
-          Return Order
-        </button>
+          <button class="orderpage-action-btn" onclick="initiateRefund(this)">Cancel Order</button>
+        <% } else if (["delivered"].includes(orderData.orderData[0].deliveryStatus) || (orderData.orderData[0].deliveryStatus === "completed" && orderData.orderData[0].shiprocketCourier.courierId !== "-1")) { %>
+          <button class="orderpage-action-btn" onclick="initiateRefund(this, 'return')">Return Order</button>
         <% } else if (["rto-delivered", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) { %>
-        <button
-          class="orderpage-action-btn"
-          onclick="initiateRefund(this, 'reship')"
-        >
-          Reship Order
-        </button>
+          <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">Reship Order</button>
         <% } %>
       </div>
+
       <div class="subtitle">
-        Placed on: <%= new
-        Date(orderData.orderData[0].createdAt).toLocaleString() %>
+        Placed on: <%= new Date(orderData.orderData[0].createdAt).toLocaleString() %>
       </div>
+
       <div class="columns">
         <div class="column">
           <div class="box">
@@ -85,28 +71,25 @@
                 </tr>
               </thead>
               <tbody>
-                <% designData.forEach((design, i)=> { %>
-                <tr>
-                  <td><%= i+1 %></td>
-                  <td><a href="<%= design.designImage.front != "false"? design.designImage.front: design.designImage.back %>" target="_blank"><%= design.designName %></a></td>
-                  <td><%= design.designSKU %></td>
-                  <td>₹<%= design.price.toFixed(2) %></td>
-                  <td><%= orderData.orderData[0].items[i].quantity %></td>
-                </tr>
+                <% orderData.orderData[0].items.forEach((order, i) => { %>
+                  <% const design = designData.find(design => design._id.toString() === order.designId.toString()) %>
+                  <tr>
+                    <td><%= i + 1 %></td>
+                    <td><a href="<%= design.designImage.front !== "false" ? design.designImage.front : design.designImage.back %>" target="_blank"><%= design.designName %></a></td>
+                    <td><%= design.designSKU %></td>
+                    <td>₹<%= design.price.toFixed(2) %></td>
+                    <td><%= order.quantity %></td>
+                  </tr>
                 <% }); %>
               </tbody>
             </table>
           </div>
+
           <% if (orderData.orderData[0].shipRocketCourier?.courierAWB) { %>
-          <div class="box">
-            You can track your courier live by clicking the link below:
-            <a
-              href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier?.courierAWB %>"
-              target="_blank"
-            >
-              <%= orderData.orderData[0].shipRocketCourier.courierAWB %>
-            </a>
-          </div>
+            <div class="box">
+              You can track your courier live by clicking the link below:
+              <a href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier.courierAWB %>" target="_blank"><%= orderData.orderData[0].shipRocketCourier.courierAWB %></a>
+            </div>
           <% } %>
         </div>
 
@@ -123,39 +106,29 @@
             </div>
             <div class="order-info">
               <p>Payment mode</p>
-              <p>
-                <%= orderData.orderData[0].cashOnDelivery? 'COD' : 'Prepaid' %>
-              </p>
+              <p><%= orderData.orderData[0].cashOnDelivery ? 'COD' : 'Prepaid' %></p>
             </div>
             <div class="order-info">
               <p>Courier</p>
-              <p>
-                <%= orderData.orderData[0].shipRocketCourier.courierId==-1?
-                "Self Pickup" :
-                orderData.orderData[0].shipRocketCourier.courierName %>
-              </p>
+              <p><%= orderData.orderData[0].shipRocketCourier.courierId === -1 ? "Self Pickup" : orderData.orderData[0].shipRocketCourier.courierName %></p>
             </div>
-            <% if (orderData.orderData[0].shipRocketCourier.courierId !=-1) { %>
-            <div class="order-info">
-              <p>Delivered By</p>
-              <p>
-                <%= orderData.orderData[0].shipRocketCourier.estimatedDelivery
-                %>
-              </p>
-            </div>
+            <% if (orderData.orderData[0].shipRocketCourier.courierId !== -1) { %>
+              <div class="order-info">
+                <p>Delivered By</p>
+                <p><%= orderData.orderData[0].shipRocketCourier.estimatedDelivery %></p>
+              </div>
             <% } %> 
-            <% if (orderData.orderData[0].shipRocketCourier.courierAWB){ %>
             <div class="order-info">
-              <p>Tracking Number</p>
-              <p>
-                <a
-                  href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier.courierAWB %>"
-                  target="_blank"
-                >
-                  <%= orderData.orderData[0].shipRocketCourier.courierAWB %>
-                </a>
-              </p>
+              <p>Wallet Transaction ID</p>
+              <p><%= orderData.orderData[0].walletOrderId %></p>
             </div>
+            <% if (orderData.orderData[0].shipRocketCourier.courierAWB) { %>
+              <div class="order-info">
+                <p>Tracking Number</p>
+                <p>
+                  <a href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier.courierAWB %>" target="_blank"><%= orderData.orderData[0].shipRocketCourier.courierAWB %></a>
+                </p>
+              </div>
             <% } %>
           </div>
 
@@ -163,10 +136,7 @@
             <h3>Customer Information</h3>
             <div class="order-info">
               <p>Name</p>
-              <p>
-                <%= orderData.orderData[0].shippingAddress.firstName + " " +
-                orderData.orderData[0].shippingAddress.lastName %>
-              </p>
+              <p><%= orderData.orderData[0].shippingAddress.firstName + " " + orderData.orderData[0].shippingAddress.lastName %></p>
             </div>
             <div class="order-info">
               <p>Phone</p>
@@ -175,7 +145,7 @@
             <div class="order-info">
               <p>Address</p>
               <p>
-                <%= orderData.orderData[0].shippingAddress.streetLandmark + ","%><br />
+                <%= orderData.orderData[0].shippingAddress.streetLandmark + "," %><br />
                 <%= orderData.orderData[0].shippingAddress.city + "," %><br />
                 <%= orderData.orderData[0].shippingAddress.state + ", " %><br />
                 <%= orderData.orderData[0].shippingAddress.pincode %>
@@ -193,30 +163,41 @@
                 </tr>
               </thead>
               <tbody>
-                <% var totalProductPrice=[]; var totalProductDesignArea=[]; var totalProductDesignCharges=[]; var totalNeckLabel=[];
-                  designData.forEach(design=> {
-                  totalProductPrice.push(design.product.price);
-                
-                  var designArea = design.designDimensions && design.designDimensions.width > 0
-                  ? (design.designDimensions.width * design.designDimensions.height)
-                  : (design.backDesignDimensions.width * design.backDesignDimensions.height);
-                  totalProductDesignArea.push(designArea.toFixed(2));
-                
-                  var designCharges = design.price - design.product.price - (design.neckLabel ? 10 : 0);
-                  totalProductDesignCharges.push(designCharges.toFixed(2));
-                
-                  totalNeckLabel.push(design.neckLabel ? 10 : 0);
-                  });
-                  %>
+                <% 
+                  var totalProductPrice = [];
+                  var totalProductDesignArea = [];
+                  var totalProductDesignAreaBack = [];
+                  var totalProductDesignCharges = [];
+                  var totalNeckLabel = [];
 
-                
+                  designData.forEach(design => {
+                    totalProductPrice.push(design.product.price);
+
+                    var designArea = design.designDimensions ? 
+                      (design.designDimensions.width > 0 ? (design.designDimensions.width * design.designDimensions.height) : 0) : 0;
+                    totalProductDesignArea.push(designArea.toFixed(2));
+
+                    designArea = design.backDesignDimensions ? 
+                      (design.backDesignDimensions.width > 0 ? (design.backDesignDimensions.width * design.backDesignDimensions.height) : 0) : 0;
+                    totalProductDesignAreaBack.push(designArea.toFixed(2));
+
+                    var designCharges = design.price - design.product.price - (design.neckLabel ? 10 : 0);
+                    totalProductDesignCharges.push(designCharges.toFixed(2));
+
+                    totalNeckLabel.push(design.neckLabel ? 10 : 0);
+                  });
+                %>
                 <tr>
                   <td>Product Price</td>
                   <td>₹<%= totalProductPrice.join(" + ₹") %></td>
                 </tr>
                 <tr>
-                  <td>Design Area</td>
+                  <td>Front Design Area</td>
                   <td><%= totalProductDesignArea.join(" + ") %> (in²)</td>
+                </tr>
+                <tr>
+                  <td>Back Design Area</td>
+                  <td><%= totalProductDesignAreaBack.join(" + ") %> (in²)</td>
                 </tr>
                 <tr>
                   <td>Design Print Charges</td>
@@ -228,17 +209,22 @@
                 </tr>
                 <tr>
                   <td>Total Product price (print + label)</td>
-                  <% var totalPP=[]; %> 
-                  <% orderData.orderData[0].items.forEach(design=> { %> 
-                  <% totalPP.push((design.quantity * design.price).toFixed(2)) %>
-                  <% }) %>
+                  <% 
+                    var totalPP = []; 
+                    orderData.orderData[0].items.forEach(order => { 
+                      totalPP.push(order.price.toFixed(2)).toFixed(2); 
+                    }); 
+                  %>
                   <td>₹<%= totalPP.join(" + ₹") %></td>
                 </tr>
                 <tr>
                   <td>Quantity</td>
-                  <% var totalQty=[]; %> <%
-                  orderData.orderData[0].items.forEach(design=> { %> <%
-                  totalQty.push(design.quantity) %> <% }) %>
+                  <% 
+                    var totalQty = []; 
+                    orderData.orderData[0].items.forEach(design => { 
+                      totalQty.push(design.quantity); 
+                    }); 
+                  %>
                   <td><%= totalQty.join(" + ") %></td>
                 </tr>
                 <tr>
@@ -252,7 +238,7 @@
                 </tr>
                 <% } %>
                 <tr>
-                  <td>Tax <%= orderData.orderData[0].billingAddress.state != "Tamil Nadu"? '(GST 5%)': '(CGST 2.5% + SGST 2.5%)' %></td>
+                  <td>Tax <%= orderData.orderData[0].billingAddress.state !== "Tamil Nadu" ? '(GST 5%)' : '(CGST 2.5% + SGST 2.5%)' %></td>
                   <td>₹<%= (orderData.orderData[0].taxes).toFixed(2) %></td>
                 </tr>
                 <tr>
@@ -264,65 +250,51 @@
           </div>
         </div>
       </div>
-    </div>
-    <script src=" https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script>
-      AOS.init();
-      var notyf = new Notyf();
-      var orderHistoryData = [];
-      var designData = {};
 
-      const initiateRefund = async (el, type = "cancel") => {
-        el.classList.add("disable-button");
-        // if (type === "reship") return (location.href += "/reship");
-        /** if reship given, api call to backend to set the current orderhistorydata to orderdata and remove that from here and redirect to /reship */
-        let cancelOrderConfirmation =
-          type == "return"
-            ? confirm(
-                "If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?"
-              )
-            : type == "reship"?
-              confirm(
-                  "You will be taken to reshipping page where you can reship to a new delivery address. Delivery charges will be deducted. Do you wish to continue?"
-                )
-            : confirm(
-                "Cancelling this order will refund your wallet. You can reship this order later. Do you wish to cancel order?"
-              );
+      <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+      <script>
+        AOS.init();
+        var notyf = new Notyf();
 
-        if (!cancelOrderConfirmation)
-          return el.classList.remove("disable-button");
-        try {
-          const initiateRefundRequest = await fetch("/initiaterefund", {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              orderId: "<%= orderData.orderData[0].printwearOrderId %>",
-              method: type
-            }),
-            method: "POST",
-            redirect: "follow"
-          });
-          if (initiateRefundRequest.redirected) return location.href += "/reship";
-          const initiateRefundResponse = await initiateRefundRequest.json();
-          console.log(initiateRefundResponse);
-          if (!initiateRefundRequest.ok) {
-            setTimeout(() => {
-              location.reload();
-            }, 3000);
-            return notyf.error(initiateRefundResponse.message);
-            // return type == "return"? notyf.success("Return order is now being processed! You will be refunded within 2-3 days") :notyf.success("Order cancelled successfully! You will be refunded within 2-3 working days.");
+        const initiateRefund = async (el, type = "cancel") => {
+          el.classList.add("disable-button");
+          let cancelOrderConfirmation = 
+            type === "return" ? confirm("If you initiate return, delivery person comes for return pickup. You can reship this order later with added shipping charges. Do you wish to return this order?")
+            : type === "reship" ? confirm("You will be taken to reshipping page where you can reship to a new delivery address. Delivery charges will be deducted. Do you wish to continue?")
+            : confirm("Cancelling this order will refund your wallet. You can reship this order later. Do you wish to cancel order?");
+
+          if (!cancelOrderConfirmation) return el.classList.remove("disable-button");
+
+          try {
+            const initiateRefundRequest = await fetch("/initiaterefund", {
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: "<%= orderData.orderData[0].printwearOrderId %>",
+                method: type
+              }),
+              method: "POST",
+              redirect: "follow"
+            });
+
+            if (initiateRefundRequest.redirected) return (location.href += "/reship");
+
+            const initiateRefundResponse = await initiateRefundRequest.json();
+            console.log(initiateRefundResponse);
+
+            if (!initiateRefundRequest.ok) {
+              setTimeout(() => { location.reload(); }, 3000);
+              return notyf.error(initiateRefundResponse.message);
+            }
+
+            setTimeout(() => { location.reload(); }, 2000);
+            return notyf.success(initiateRefundResponse.message);
+          } catch (error) {
+            console.log(error);
+            return notyf.error("Error in initiating refund!");
           }
-          setTimeout(() => {
-            location.reload();
-          }, 2000);
-          return notyf.success(initiateRefundResponse.message);
-        } catch (error) {
-          console.log(error);
-          return notyf.error("Error in initiating refund!");
-        }
-      };
-    </script>
+        };
+      </script>
     <% } %>
+
   </body>
 </html>

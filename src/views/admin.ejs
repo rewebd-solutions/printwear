@@ -184,7 +184,7 @@
             // fetchOrderData();
             const adminOrdersRequest = await fetch("/admin/recentorders");
             const adminOrdersResponse = await adminOrdersRequest.json();
-            // console.log("🚀 ~ adminOrdersResponse:", adminOrdersResponse)
+            console.log("🚀 ~ adminOrdersResponse:", adminOrdersResponse)
 
             if (adminOrdersRequest.status != 200) {
                 return notyf.error(adminOrdersResponse.error);
@@ -214,7 +214,7 @@
                         })
                     });
                     const changeStatusResponse = await changeStatusRequest.json();
-                    console.log("🚀 ~ changeStatus ~ changeStatusResponse:", changeStatusResponse)
+                    // console.log("🚀 ~ changeStatus ~ changeStatusResponse:", changeStatusResponse)
                     if (changeStatusRequest.status != 200) {
                         return notyf.error(changeStatusResponse.error);
                     }
@@ -233,8 +233,11 @@
                 $("#order-table tbody").append(`
                     <tr>
                         <td><input type="checkbox"/></td> <!-- Checkbox -->
-                        <td class="order-id clickable"><a href="/admin/orders/${order.printwearOrderId}">${order.printwearOrderId}</a>
+                        <td class="order-id clickable"><div style="display: flex; gap: 0.5rem;"><a href="/admin/orders/${order.printwearOrderId}">${order.printwearOrderId}</a>
+                            ${order.wooCommerceId ? '<img src="/images/WooCommerce_logo.svg" width="30" alt="" />' : ''}${order.shopifyId ? '<i class="fa-brands fa-shopify" style="color: #3cd03c"></i>': ''}
                             ${order.cashOnDelivery? `<p class="badge-cod">COD</p>`: ''}
+                            </div>
+                            (${order.customerOrderId})
                         </td>
                         <td>${order.billingAddress?.firstName + ' ' + order.billingAddress?.lastName}</td>
                         <td style="max-width: 300px">${order.shippingAddress?.firstName + ' ' + order.shippingAddress?.lastName + '<br /> <span style="font-size: 12px"><i class="fa fa-phone" style="font-size: 12px"></i> ' + order.shippingAddress?.mobile + '</span>'}

@@ -59,6 +59,8 @@
                 const productsDataReq = await fetch("/getzohoproducts");
                 const productsData = await productsDataReq.json();
                 console.log(productsData);
+                // const first = productsData.shift();
+                // productsData.splice(0, 2, first);
                 return productsData;
             } catch (error) {
                 console.log(error);
@@ -96,8 +98,12 @@
 
         const populateData = (data = productsData) => {
             cardsContainer.innerHTML = '';
-            if (Object.keys(data).length === Object.keys({}).length) return cardsContainer.innerHTML = 'Search not found!'
-            for (let style in data) {
+            const products = Object.keys(data);
+            if (products.length == 0) return cardsContainer.innerHTML = 'Search not found!'
+            const first = products.shift();
+            products.splice(3, 0, first);
+            console.log(products)
+            for (let style of products) {
                 let currentProduct = data[style];
                 if (currentProduct.baseImage.front == '') continue;
                 let cardDataDOMString = `

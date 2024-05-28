@@ -28,9 +28,9 @@
                 <hr />
             </div>
             <button class="filter-button filter-button-active"
-                onclick="changeWidget(event, 'confirmed')">Confirmed</button>
-            <button class="filter-button" onclick="changeWidget(event,'cancelled')">Cancelled</button>
-            <button class="filter-button" onclick="changeWidget(event,'returned')">Returned</button>
+            onclick="changeWidget(event, 'confirmed')">Confirmed / Successful</button>
+            <button class="filter-button" onclick="changeWidget(event,'cancelled')">Cancelled / Shipment Issues</button>
+            <button class="filter-button" onclick="changeWidget(event,'returned')">Returned / Failed</button>
         </div>
         <div class="order-table">
             <div id="printwear-order">
@@ -48,7 +48,7 @@
                         <th>Amount paid</th>
                         <th>Courier Tracking</th>
                         <th>Order placed on</th>
-                        <th>Delivery Status</th>
+                        <th>Order Status</th>
                     </thead>
                     <tbody>
                     </tbody>
@@ -312,11 +312,13 @@
             }
             orderHistoryTable.innerHTML = data.filter(orderHistory => [
                 "received",
-                "rts",
+                "ready-to-ship", // -> ready to ship
                 "on-hold",
                 "processing",
-                "rtd",
-                "rto",
+                "rto-delivered", // -> rto delivered
+                "pickup-scheduled",
+                "out-for-pickup",
+                "in-transit",
                 "invoiced",
                 "shipped",
                 "delivered",
@@ -339,10 +341,8 @@
 
             }).join('\n');
             returnedOrderTable.innerHTML = data.filter(orderHistory => [
-                "pickup-scheduled",
-                "out-for-pickup",
-                "undelivered",
-                'return_init', 'returned'
+                "return-to-origin", // -> return to origin
+                "return-init",
             ].includes(orderHistory.deliveryStatus)).reverse().map((orderHistory, i) => {
                 return `
                     <tr>
@@ -361,6 +361,7 @@
             cancelledOrderTable.innerHTML = data.filter(orderHistory => [
                 "shipment-cancel",
                 "cancelled",
+                "undelivered",
             ].includes(orderHistory.deliveryStatus)).reverse().map((orderHistory, i) => {
                 return `
                     <tr>

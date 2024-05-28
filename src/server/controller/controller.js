@@ -1728,15 +1728,17 @@ exports.createdesign = async (req, res) => {
                   ? 70.0
                   : req.body.productData.price * 1)
       console.log("🚀 ~ exports.createdesign= ~ printCharges:", printCharges)
-      const neckLabelCharges = currentDesign.designs.at(currentDesignIndex).neckLabel ? 0: 10;
+      // already necklabel = 0, if necklabel now, then 10
+      const neckLabelCharges = currentDesign.designs.at(currentDesignIndex).neckLabel ? 0: (req.body.neckLabel != 'null' ? 10: 0);
       console.log("🚀 ~ exports.createdesign= ~ neckLabelCharges:", neckLabelCharges)
+      currentDesign.designs.at(currentDesignIndex).neckLabel = req.body.neckLabel != 'null'? req.body.neckLabel: undefined;
       currentDesign.designs.at(currentDesignIndex).designImage[currentDirection] = fileDownloadURL;
       currentDesign.designs.at(currentDesignIndex)[currentDirection == "front" ? "frontPrice" : "backPrice"] = parseFloat(
         (
           printCharges
         ).toFixed(2)
       );
-      currentDesign.designs.at(currentDesignIndex).designImage[currentDirection == "front"? "designDimensions": "backDesignDimensions"] = 
+      currentDesign.designs.at(currentDesignIndex)[currentDirection == "front"? "designDimensions": "backDesignDimensions"] = 
       {
         ...req.body.productData[
           currentDirection == "front"
@@ -2422,6 +2424,7 @@ exports.woostoreorderedit = async (req, res) => {
     
     const designData = designsData.designs.filter(design => SKUs.includes(design.designSKU))
     // console.log("🚀 ~ exports.woostoreorderedit= ~ designData:", designData)
+    console.log("🚀 ~ exports.woostoreorderedit= ~ wooCommerceOrderRes:", wooCommerceOrderRes)
     res.render('storeorderedit', { error: false, shopifyData: null, wooData: { order: wooCommerceOrderRes, designs: designData } })
   } catch (error) {
     console.log("🚀 ~ exports.storeorderedit= ~ error:", error);
@@ -2438,14 +2441,23 @@ exports.createordershopify = async (req, res) => {
   try {
     let totalAmount = items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)
     const orderData = await OrderModel.findOneAndUpdate(
-      { userId: req.userId }, 
-      { $set: { 
-        items: items,
-        shopifyId: shopifyId,
-        totalAmount,
-        taxes: (totalAmount * 0.05).toFixed(2),
-        printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
-      }},
+      { userId: req.userId },
+      {
+        $set: {
+          items: items.map(item => ({ ...item, price: (item.price * item.quantity).toFixed(2) })),
+          shopifyId: shopifyId,
+          totalAmount,
+          taxes: (totalAmount * 0.05).toFixed(2),
+          printwearOrderId: otpGen.generate(6, {
+            digits: true,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+          }),
+        },
+        $unset: {
+          wooCommerceId: 1,
+        },
+      },
       { new: true, upsert: true }
     );
     console.log("🚀 ~ exports.createordershopify= ~ orderData:", orderData)
@@ -2465,12 +2477,16 @@ exports.createorderwoo = async (req, res) => {
     const orderData = await OrderModel.findOneAndUpdate(
       { userId: req.userId }, 
       { $set: { 
-        items: items,
-        wooCommerceId: wooId,
-        totalAmount,
-        taxes: (totalAmount * 0.05).toFixed(2),
-        printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
-      }},
+          items: items.map(item => ({ ...item, price: (item.price * item.quantity).toFixed(2) })),
+          wooCommerceId: wooId,
+          totalAmount,
+          taxes: (totalAmount * 0.05).toFixed(2),
+          printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
+        },
+        $unset: {
+          shopifyId: 1
+        }
+      },
       { new: true, upsert: true }
     );
     // console.log("🚀 ~ exports.createorderwoo= ~ orderData:", orderData)
@@ -2690,7 +2706,7 @@ exports.reship = async (req, res) => {
         },
       },
     ]);
-    res.render("billing", { orderData: orderData.orderData[0], designsData: designsData[0].designs, billing: userData.billingAddress, beneficiary: userData.beneId });
+    res.render("billing", { orderData: orderData.orderData[0], designsData: designsData[0].designs, billing: orderData.orderData[0].billingAddress ?? userData.billingAddress, beneficiary: userData.beneId });
   } catch (error) {
     console.log(error);
     res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
@@ -3413,6 +3429,7 @@ exports.reshiporder = async (req, res) => {
       billingAddress,
       pwOrderId
     } = req.body;
+    console.log(req.body)
     
     const orderHistory = await OrderHistoryModel.findOne({ userId: req.userId });
     const walletData = await WalletModel.findOne({ userId: req.userId });
@@ -3459,7 +3476,9 @@ exports.reshiporder = async (req, res) => {
     }
 
     const oldCharges = orderToRefund.deliveryStatus == "cancelled"? orderToRefund.items.reduce((curr, item) => curr + item.price, 0): 0;
+    console.log("🚀 ~ exports.reshiporder= ~ oldCharges:", oldCharges)
     const totalCharges = (shippingCharge + (cashOnDelivery ? 50: 0) + oldCharges);
+    console.log("🚀 ~ exports.reshiporder= ~ totalCharges:", totalCharges)
     // console.log("🚀 ~ exports.reshiporder= ~ totalCharges:", totalCharges)
 
     /** wallet deduct charges */
@@ -3497,7 +3516,7 @@ exports.reshiporder = async (req, res) => {
     orderHistory.orderData.at(orderToRefundIndex).deliveryCharges = shippingCharge;
     orderHistory.orderData.at(orderToRefundIndex).walletOrderId = walletOrderId;
     orderHistory.orderData.at(orderToRefundIndex).cashOnDelivery = cashOnDelivery? true: false;
-    orderHistory.orderData.at(orderToRefundIndex).totalAmount = totalCharges.toFixed(2);
+    orderHistory.orderData.at(orderToRefundIndex).totalAmount += totalCharges.toFixed(2); // remove toFixed
     orderHistory.orderData.at(orderToRefundIndex).taxes = (orderHistory.orderData.at(orderToRefundIndex).totalAmount * 0.05).toFixed(2);
     orderHistory.orderData.at(orderToRefundIndex).deliveryStatus = "received";
     orderHistory.orderData.at(orderToRefundIndex).shipRocketCourier = {
@@ -4259,6 +4278,7 @@ exports.createshiporder = async (req, res) => {
   console.log(req.body);
 
   const statusType = req.body.type;
+  const cf_order_id = req.body.data.order.order_id;
 
   if (statusType === 'WEBHOOK') return res.status(200).send("OK");
 
@@ -4266,7 +4286,6 @@ exports.createshiporder = async (req, res) => {
 
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
     const userid = req.body.data.customer_details.customer_id;
-    const cf_order_id = req.body.data.order.order_id;
 
     if (idempotencyKeys.has(cf_order_id)) {
       console.log("Response 200 sent after checking idempotency");
@@ -4343,12 +4362,12 @@ exports.createshiporder = async (req, res) => {
         UserWallet.transactions[currentTransactionIndex].transactionStatus =
           "failed";
         // UserWallet.balance += req.body.data.payment.payment_amount;
-
+        console.log("Updated FAILED transaction!");
         await UserWallet.save();
         return;
       }
     } catch (error) {
-      
+      console.log("Failed to update FAILED transaction!");
     }
   }
 
@@ -4365,7 +4384,7 @@ exports.getadminorders = async (req, res) => {
   try {
     const allOrderHistories = await OrderHistoryModel.aggregate([
       { $unwind: "$orderData" }, // Unwind the orderData array to get individual objects
-      { $sort: { 'orderData.createdAt': -1 } },
+      { $sort: { "orderData.createdAt": -1} },
       { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
       { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
     ]);
@@ -4385,7 +4404,8 @@ exports.getadminorder = async (req, res) => {
     if (!orderData) return res.status(404).json({ error: `Order data for ${pwOrder} not found!` });
     const designIds = orderData.orderData[0].items.map(item => item.designId)
     // console.log("🚀 ~ exports.getadminorder= ~ designIds:", designIds)
-    const designsData = await NewDesignModel.aggregate([
+    const [designsData, userData, walletData] = await Promise.all([
+      await NewDesignModel.aggregate([
       {
         $match: {
           userId: orderData.userId, // Match the specific document by userId
@@ -4407,9 +4427,12 @@ exports.getadminorder = async (req, res) => {
           },
         },
       },
+      ]),
+      await UserModel.findById(orderData.userId),
+      await WalletModel.findOne({ userId: orderData.userId }, { _id: 1 })
     ]);
     // console.log("🚀 ~ exports.getadminorder= ~ designsData:", designsData)
-    res.json({orderData: orderData.orderData[0], designsData: JSON.stringify(designsData) });
+    res.json({orderData: orderData.orderData[0], designsData: JSON.stringify(designsData), userData: userData, walletData });
   } catch (error) {
     console.log("🚀 ~ exports.getadminorder= ~ error:", error)
     res.status(500).json({ error: `Server error in fetching order ${pwOrder}` });
@@ -4423,23 +4446,25 @@ exports.updateadminorder = async (req, res) => {
     const statusToUpdate = req.body.status;
     console.log(IDsToUpdate, statusToUpdate);
     const validStatusEnum = [
-      "received",
-      "rts",
-      "on-hold",
-      "processing",
-      "rtd",
-      "shipment-cancel",
-      "pickup-scheduled",
-      "out-for-pickup",
-      "rto",
-      "cancelled",
-      "undelivered",
-      "invoiced",
-      "shipped",
-      "delivered",
-      "completed",
-      "pending",
-    ];
+          "received",
+          "ready-to-ship", // -> ready to ship
+          "on-hold",
+          "processing",
+          "rto-delivered", // -> rto delivered
+          "shipment-cancel",
+          "pickup-scheduled",
+          "out-for-pickup",
+          "in-transit",
+          "return-to-origin", // -> return to origin
+          "return-init",
+          "cancelled",
+          "undelivered",
+          "invoiced",
+          "shipped",
+          "delivered",
+          "completed",
+          "pending",
+        ];
     if (!validStatusEnum.includes(statusToUpdate)) return res.status(400).json({ error: "Invalid status string" });
     if (IDsToUpdate.length < 1) return res.status(400).json({ error: "Empty IDs string" });
     const updatedOrderHistories = await OrderHistoryModel.updateMany(
@@ -4497,6 +4522,7 @@ exports.renderadminwallets = async (req, res) => {
             "userData.lastName": 1,
             "userData.email": 1,
             "userData.phone": 1,
+            "userData.billingAddress": 1
           },
         },
       ],
@@ -4662,6 +4688,8 @@ exports.admincodremit = async (req, res) => {
       paymentMode == "test"
         ? Cashfree.Environment.SANDBOX
         : Cashfree.Environment.PRODUCTION;
+    
+    // Cashfree.axios.defaults.headers.
         
     const orderHistory = await OrderHistoryModel.findOne({ "orderData.printwearOrderId": remitData.orderId });
 

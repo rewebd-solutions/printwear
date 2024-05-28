@@ -94,7 +94,7 @@ const fetchProductData = async () => {
     const productDataRequest = await fetch("/getzohoproducts");
     const productDataResponse = await productDataRequest.json();
     productData = productDataResponse[productStyle];
-    console.log(productData);
+    // console.log(productData);
     productData.name = productStyle;
 
     const sizeOrder = {
@@ -151,7 +151,7 @@ const fetchProductData = async () => {
     loadMockupImage();
     displaySizes();
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     notyf.error({
       message: "There was an error trying to fetch product details!",
       dismissible: true,
@@ -195,7 +195,7 @@ const changeMockup = (e, color, id) => {
   let selectedMockup = Product.colors.find((color) => color._id === id);
   const element = document.getElementById(`${color}-${id}`);
 
-  console.log(e.target);
+  // console.log(e.target);
 
   renderColorBorder(color, id);
   globalProductID = null;
@@ -274,7 +274,7 @@ const calculateTotalWidth = () => {
   let totalWidth = object
     ? object.getScaledWidth() * Product.pixelToInchRatio
     : 0;
-  //console.log(totalWidth);
+  console.log(totalWidth);
   return totalWidth;
 };
 
@@ -320,11 +320,11 @@ const changeStatName = () => {
 };
 
 const updateStats = () => {
-  console.log("update stats called");
+  // console.log("update stats called");
   changeStatName();
 
   if (!designImageHeight || !designImageWidth || !designImg) {
-    // console.log("exiting in guard clause inside updateStats");
+    console.log("exiting in guard clause inside updateStats");
     // priceTable.children[0].children[1].innerHTML = "0 in";
     // priceTable.children[1].children[1].innerHTML = "0 in";
     designHeightInput.value = 0;
@@ -341,7 +341,7 @@ const updateStats = () => {
   let imageHeightInInches = calculateTotalHeight().toFixed(2);
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
-  // console.log(
+  //console.log(
   //   "🚀 ~ updateStats ~ imageDimensions:",
   //   imageHeightInInches,
   //   imageWidthInInches,
@@ -442,7 +442,7 @@ const setPixelRatio = (productID) => {
   currentProductVariant = Product.colors
     .find((color) => color._id === currentColor)
     .sizes.find((size) => size.id === productID);
-  console.log(currentProductVariant);
+  // console.log(currentProductVariant);
   Product.pixelToInchRatio = currentProductVariant.dimensions.length / 500;
   Product.inchToPixelRatio = 500 / currentProductVariant.dimensions.length;
   addFabricCanvasToTemplateDiv();
@@ -507,11 +507,11 @@ const loadState = () => {
   if (canvasState[designDirection] === null) fabricCanvas.clear();
   else fabricCanvas.loadFromJSON(canvasState[designDirection], updateStats);
   // else fabricCanvas.loadFromJSON(canvasState[designDirection], fabricCanvas.renderAll.bind(fabricCanvas), function (o, obj) {
-  //   console.log(o, obj);
+    // console.log(o, obj);
   //   updateStats();
   // });
   updateStats();
-  console.log("updateStatsCalled");
+  // console.log("updateStatsCalled");
 };
 
 /* Add Image to Canvas */
@@ -606,7 +606,7 @@ const changeSide = (e, side) => {
       document.querySelector(`[data-id='${designImages[designDirection]}']`).classList.add("active-selection");
   }
 
-  console.log("direction: " + designDirection);
+  // console.log("direction: " + designDirection);
   loadState();
   // changeStatName();
 };
@@ -643,14 +643,14 @@ const downloadDesign = () => {
 
   // Use a short delay to ensure the browser has updated the DOM with the transform
   setTimeout(() => {
-    console.log(fabricCanvas.getObjects());
+    // console.log(fabricCanvas.getObjects());
 
     /* tried html2canvas, which yeets a canvas again.. no use */
-    // html2canvas(node, { userCORS: true, allowTaint: true, scale: 1.0 }).then(x => console.log(x)).catch(x => console.log(x))
+    html2canvas(node, { userCORS: true, allowTaint: true, scale: 1.0 }).then(x => console.log(x)).catch(x => console.log(x))
 
     domtoimage.toBlob(node, config).then(function (blob) {
       // Restore original transformation
-      console.log(`yeppa aavdhaa ${blob}`);
+      // console.log(`yeppa aavdhaa ${blob}`);
       window.saveAs(
         blob,
         userName +
@@ -662,14 +662,14 @@ const downloadDesign = () => {
           designDirection +
           ".png"
       );
-      console.log("front image saved?");
+      // console.log("front image saved?");
       // change design direction and convert image
 
       /* rest of code to change direction of canvas and then download again */
       // designDirection == "front"? designDirection = "back": designDirection = "front";
 
       // loadState();
-      // console.log('sate changed');
+    //  console.log('sate changed');
 
       // setTimeout(() => {
       //   domtoimage.toBlob(node, config).then(function (blob) {
@@ -801,9 +801,9 @@ const saveDesign = async () => {
         ),
       }
     }
-    console.log(submitProduct);
-    console.log(designModelObject);
-    // console.log(filesFromBlobs)
+    // console.log(submitProduct);
+    // console.log(designModelObject);
+    //console.log(filesFromBlobs)
 
     domtoimage.toBlob(node, config).then(async (blob) => {
       const formData = new FormData();
@@ -831,7 +831,7 @@ const saveDesign = async () => {
       formData.append("designImageName", designImageName);
       formData.append("designId", dbDesignId);
 
-      // formData.forEach((v, k) => console.log(k, v))
+      formData.forEach((v, k) => console.log(k, v))
       // return;
 
       const saveDesignRequest = await fetch("/createdesign", {
@@ -840,7 +840,7 @@ const saveDesign = async () => {
       });
 
       const saveDesignResponse = await saveDesignRequest.json();
-      console.log(saveDesignResponse);
+      // console.log(saveDesignResponse);
 
       if (!saveDesignRequest.ok) {
         throw new Error({ reason: "Save failed!", error: saveDesignResponse.error ?? saveDesignResponse.message });
@@ -902,7 +902,7 @@ const saveDesign = async () => {
           }),
         });
         const addToOrderRes = await addToOrderReq.json();
-        console.log(addToOrderRes);
+        // console.log(addToOrderRes);
 
         if (!addToOrderReq.ok) {
           throw new Error("Couldn't add design to order");
@@ -918,7 +918,7 @@ const saveDesign = async () => {
         (item) => (item.style.border = "2px dashed black")
       );
     }).catch(error => {
-      console.log(error);
+      // console.log(error);
       notyf.error(error.error ?? error.message);
       disableButton(false);
       disableSideSwitch(false);
@@ -927,7 +927,7 @@ const saveDesign = async () => {
       );
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     notyf.error(error.error ?? error);
     disableButton(false);
     disableSideSwitch(false);
@@ -1000,18 +1000,18 @@ const populateUserDesigns = (data = userDesignResponse) => {
   userDesignsWrapper.innerHTML = "";
   if (!data || data.images.length === 0)
     return (userDesignsWrapper.innerHTML = "No uploads yet!");
-  data.images.map((imageItem) => {
+  userDesignsWrapper.innerHTML = data.images.map((imageItem) => {
     let currentImage = new Image();
     currentImage.src = imageItem.url;
 
-    userDesignsWrapper.innerHTML += `
+     return `
     <div class="user-design-image" onclick="addImageToCanvas(this, this.children[0].src, '${imageItem._id}')" data-id='${imageItem._id}'>
       <img src="${imageItem.url}" alt="" loading="lazy">
       <p>${imageItem.name}</p>
     </div>`;
     // currentImage.addEventListener("load", () => {
     // })
-  });
+  }).reverse().join('\n');
 
   if (designImages[designDirection])
       document.querySelector(`[data-id='${designImages[designDirection]}']`).classList.add("active-selection")
@@ -1025,26 +1025,26 @@ const fetchUserDesigns = async () => {
       populateUserDesigns();
     }
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     notyf.error("Something went wrong!");
   }
 };
 
 const populateUserLabels = (data = userLabelsResponse) => {
   userLabelsWrapper.innerHTML = "";
-  console.log(data);
+  // console.log(data);
   if (!data || data.labels.length == 0)
     return (userLabelsWrapper.innerHTML = "No labels yet!");
-  data.labels.map((imageItem) => {
+  userLabelsWrapper.innerHTML = data.labels.map((imageItem) => {
     let currentImage = new Image();
     currentImage.src = imageItem.url;
 
-    userLabelsWrapper.innerHTML += `
+    return `
     <div class="user-label-image" onclick="selectLabel(this, '${imageItem._id}')">
       <img src="${imageItem.url}" loading="lazy" alt="${imageItem.name}">
       <p>${imageItem.name}</p>
     </div>`;
-  });
+  }).reverse().join('\n');
 };
 
 const fetchUserLabels = async () => {
@@ -1055,7 +1055,7 @@ const fetchUserLabels = async () => {
       populateUserLabels();
     }
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     notyf.error("Something went wrong in fetching labels!");
   }
 };
@@ -1118,7 +1118,7 @@ document.querySelector("#design-search").addEventListener("input", (e) => {
   const searchDesigns = userDesignResponse.images.filter((design) =>
     design.name.toLowerCase().includes(searchKey.toLowerCase())
   );
-  console.log(searchDesigns);
+  // console.log(searchDesigns);
   if (searchDesigns.length == 0)
     return (userDesignsWrapper.innerHTML = "Invalid Search");
   populateUserDesigns({ images: searchDesigns });

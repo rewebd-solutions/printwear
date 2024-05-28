@@ -124,3 +124,26 @@ table a:visited {
 select.refund-input {
     padding: 0.1rem;
 }
+
+.status-badge {
+    display: inline;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.65rem;
+    border-radius: 6px;
+    width: min-content;
+}
+
+.success {
+    background-color: hsl(108, 48%, 94%);
+    color: hsl(136, 100%, 28%);
+}
+
+.failed {
+    background-color: hsl(0, 100%, 97%);
+    color: hsl(0, 100%, 57%)
+}
+
+.pending {
+    background-color: #f8dda7;
+    color: #b17a0c;
+}

@@ -73,7 +73,7 @@
                         <div class="form-group">
                             <div>
                                 <label for="billing-address-mobile">Mobile:</label>
-                                <input type="text" pattern="^[789]\d{9}$" id="billing-address-mobile" name="mobile" required
+                                <input type="text" pattern="^(\+91)?[6789]\d{9}$" id="billing-address-mobile" name="mobile" required
                                     value="<%- data.billingAddress.phone %>">
                             </div>
                     
@@ -165,7 +165,7 @@
                         <div class="form-group">
                             <div>
                                 <label for="shipping-address-mobile">Mobile:</label>
-                                <input type="text" pattern="^[789]\d{9}$" id="shipping-address-mobile" name="mobile" value="<%- data.mobile %>" required>
+                                <input type="text" pattern="^(\+91)?[6789]\d{9}$" id="shipping-address-mobile" name="mobile" value="<%- data.mobile ?? data.phone %>" required>
                             </div>
                     
                             <div>

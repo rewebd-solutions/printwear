@@ -197,6 +197,16 @@
               <p>Cash On Delivery: ${orderData.orderData.cashOnDelivery ? "Yes" : "No"}</p>
               <p>Paid on: ${formatDate(orderData.orderData.createdAt)} via Wallet Payment (Transaction ID: ${orderData.orderData.walletOrderId})</p>
             </div>
+            
+            <div id="contact-details">
+              <h3>User Details:</h3>
+              <p>Merchant name: ${orderData.userData.name} ${orderData.userData.firstName ? ('(' + orderData.userData.firstName + ' ' + orderData.userData.lastName + ')'): ''}</p>
+              <p>Merchant phone: ${orderData.userData.phone}</p>
+              <p>Merchant email: ${orderData.userData.email}</p>
+              <p>Merchant brand: ${orderData.userData.brandName ?? 'Not set'}</p>
+              <p>Merchant wallet: <a href='/admin/wallets/${orderData.walletData._id}'>Click here</a></p>
+              ${orderData.orderData.cashOnDelivery ? `<p>Merchant beneficiary id: ${orderData.userData.beneId}</p>`: ''}
+            </div>
         `;
 
       orderDesignsContainer.innerHTML = orderData.orderData.items.map(order => {
@@ -325,19 +335,19 @@
               <tbody>
                 <tr>
                   <td>Order Total</td>
-                  <td>₹ ${orderData.orderData.totalAmount - orderData.orderData.deliveryCharges}</td>
+                  <td>₹ ${(orderData.orderData.items.reduce((curr, item) => curr + item.price, 0)).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>Delivery Charges</td>
-                  <td>₹ ${orderData.orderData.deliveryCharges}</td>
+                  <td>₹ ${(orderData.orderData.deliveryCharges).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>COD Charges</td>
-                  <td>₹ ${orderData.orderData.cashOnDelivery ? 50 : 0}</td>
+                  <td>₹ ${(orderData.orderData.cashOnDelivery ? 50 : 0).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>Taxes</td>
-                  <td>₹ ${orderData.orderData.taxes}</td>
+                  <td>₹ ${(orderData.orderData.taxes).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td><strong>Grand Total</strong></td>

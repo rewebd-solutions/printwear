@@ -76,7 +76,7 @@
                         <div>
                             <label for="retailPrice">Retail Price:</label>
                             <% if (['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)) { %>
-                                <input type="text" id="retailPrice" disabled="<%= ['rto-delivered', 'cancelled'].includes(orderData.deliveryStatus) %>" value="<%= ['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)? orderData.retailPrice: '' %>" name="retailPrice" required>
+                                <input type="text" id="retailPrice" value="<%= ['rto-delivered', 'cancelled' ].includes(orderData.deliveryStatus)? orderData.retailPrice: '' %>" name="retailPrice" required>
                             <% } else { %>
                                 <input type="text" id="retailPrice" name="retailPrice" required>
                             <% } %>
@@ -88,44 +88,44 @@
                     <div class="form-group">
                         <div>
                             <label for="billing-address-firstName">First name:</label>
-                            <input type="text" id="billing-address-firstName" name="firstName" required value="<%- billing.firstName %>">
+                            <input type="text" id="billing-address-firstName" name="firstName" required value="<%= billing.firstName %>">
                         </div>
     
                         <div>
                             <label for="billing-address-lastName">Last name:</label>
-                            <input type="text" id="billing-address-lastName" name="lastName" required value="<%- billing.lastName %>">
+                            <input type="text" id="billing-address-lastName" name="lastName" required value="<%= billing.lastName %>">
                         </div>
                     </div>
                     <div class="form-group">
                         <div>
                             <label for="billing-address-mobile">Mobile:</label>
-                            <input type="text" pattern="^[789]\d{9}$" id="billing-address-mobile" name="mobile" required value="<%- billing.phone %>">
+                            <input type="text" pattern="^(\+91)?[6789]\d{9}$" id="billing-address-mobile" name="mobile" required value="<%= billing.phone ?? billing.mobile %>">
                         </div>
     
                         <div>
                             <label for="billing-address-email">Email:</label>
-                            <input type="email" id="billing-address-email" part="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" name="email" required value="<%- billing.email %>">
+                            <input type="email" id="billing-address-email" part="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" name="email" required value="<%= billing.email %>">
                         </div>
                     </div>
                     <div class="form-group full-width">
                         <label for="billing-address-streetLandmark">Street, Landmark:</label>
-                        <input type="text" id="billing-address-streetLandmark" name="streetLandmark" required value="<%- billing.streetLandmark %>">
+                        <input type="text" id="billing-address-streetLandmark" name="streetLandmark" required value="<%= billing.streetLandmark %>">
                     </div>
                     <div class="form-group">
                         <div>
                             <label for="billing-address-city">City:</label>
-                            <input type="text" id="billing-address-city" name="city" required value="<%- billing.city %>">
+                            <input type="text" id="billing-address-city" name="city" required value="<%= billing.city %>">
                         </div>
     
                         <div>
                             <label for="billing-address-pincode">Pincode:</label>
-                            <input type="text" id="billing-address-pincode" pattern="[1-9][0-9]{5}" name="pincode" required value="<%- billing.pincode %>">
+                            <input type="text" id="billing-address-pincode" pattern="[1-9][0-9]{5}" name="pincode" required value="<%= billing.pincode %>">
                         </div>
                     </div>
     
                     <div class="form-group full-width">
                         <label for="billing-address-state">State:</label>
-                        <select id="billing-address-state" name="state" required value="<%- billing.state %>">
+                        <select id="billing-address-state" name="state" required value="<%= billing.state %>">
                             <option value="Andhra Pradesh">Andhra Pradesh</option>
                             <option value="Arunachal Pradesh">Arunachal Pradesh</option>
                             <option value="Assam">Assam</option>
@@ -187,7 +187,7 @@
                     <div class="form-group">
                         <div>
                             <label for="shipping-address-mobile">Mobile:</label>
-                            <input type="text" pattern="^[789]\d{9}$" id="shipping-address-mobile" name="mobile" required>
+                            <input type="text" pattern="^(\+91)?[6789]\d{9}$" id="shipping-address-mobile" name="mobile" required>
                         </div>
     
                         <div>

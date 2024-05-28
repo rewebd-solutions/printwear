@@ -131,7 +131,8 @@
           dismissible: true,
           duration: 5000
         })
-        document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+        const modal = document.querySelector(".product-modal-wrapper")
+        if (modal) document.querySelector("main").removeChild()
       } catch (error) {
         console.log(error);
         notyf.error("Something went wrong!");
@@ -170,7 +171,8 @@
           dismissible: true,
           duration: 5000
         })
-        document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
+        const modal = document.querySelector(".product-modal-wrapper")
+        if (modal) document.querySelector("main").removeChild()
       } catch (error) {
         console.log(error);
         notyf.error("Something went wrong!");

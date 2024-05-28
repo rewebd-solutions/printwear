@@ -181,13 +181,29 @@
 
         let chart;
 
+        function parseDate(dateString) {
+            const [day, month, year] = dateString.split('/').map(Number);
+            return new Date(year, month - 1, day);
+
+        }
+
+
+
+        function formatDate(dateString) {
+            const date = parseDate(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function initializeChart() {
 
             const ctx = document.getElementById('orderChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: graph.map(item => item.date), // Use dates as labels
+                    labels: graph.map(item => formatDate(item.date)), // Use dates as labels
                     datasets: [{
                         label: 'Orders',
                         data: graph.map(item => item.orders), // Use orders data
@@ -212,22 +228,21 @@
             const today = new Date();
             const cutoffDate = new Date();
             cutoffDate.setDate(today.getDate() - n);
-
-            return graph.filter(item => new Date(item.date) >= cutoffDate);
+            console.log(graph.filter(item => parseDate(item.date) >= cutoffDate))
+            return graph.filter(item => parseDate(item.date) >= cutoffDate);
         }
 
         function updateChart() {
-            const selectedRange = parseInt(document.getElementById('timeRange').value);
-
+            const selectedRange = parseInt(document.getElementById('timeRange').value, 10);
             const filteredData = getLastNDaysData(selectedRange);
-
-            const labels = filteredData.map(item => item.date);
+            const labels = filteredData.map(item => formatDate(item.date));
             const ordersData = filteredData.map(item => item.orders);
-
             chart.data.labels = labels;
             chart.data.datasets[0].data = ordersData;
             chart.update();
         }
+
+        document.getElementById('timeRange').addEventListener('change', updateChart);
 
         initializeChart();
     </script>
