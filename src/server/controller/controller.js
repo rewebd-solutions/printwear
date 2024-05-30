@@ -44,7 +44,7 @@ const storageReference = require("../services/firebase");
 const ZohoProductModel = require("../model/zohoProductModel");
 const MockupModel = require("../model/mockupModel");
 const WalletModel = require("../model/walletModel");
-const { Cashfree } = require("cashfree-payout");
+// const { Cashfree } = require("cashfree-payout");
 const CODModel = require("../model/codDetailsModel");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
@@ -52,9 +52,7 @@ const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
  * hence below ternary will be false in production
  */
 const CASHFREE_BASE_URL = paymentMode == "test"? process.env.CASHFREE_BASE_URL_TEST: process.env.CASHFREE_BASE_URL;
-const CASHFREE_PAYOUT_URL = paymentMode == "test"? process.env.CASHFREE_PAYOUT_TEST: process.env.CASHFREE_PAYOUT_PROD;
-const CASHFREE_PAYOUT_CLIENT = paymentMode == "test"? process.env.CF_PAYOUT_CLIENT_TEST: process.env.CF_PAYOUT_CLIENT_PROD;
-const CASHFREE_PAYOUT_SECRET = paymentMode == "test"? process.env.CF_PAYOUT_SECRET_TEST: process.env.CF_PAYOUT_SECRET_PROD;
+/** check old commit to see removed key from .env */
 const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 
 // const pw_transaction_history = require("../../../.test_assets/wc-data/pw_transaction_history"); // done
@@ -76,7 +74,7 @@ const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 //// testing endpoints.. do not commit
 // exports.testing = async (req, res) => {
 //   /* can save or not toggle */
-//   const canSave = true;
+//   const canSave = false;
 
 //   const extractTransactionHistoryFromUserID = () => {
 //     const ids = pw_users.at(2).data.map(d => d.ID);
@@ -283,23 +281,26 @@ const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
 //           }),
 //           paymentStatus: "success",
 //           billingAddress: {
-//             firstName: order.order_meta._billing_first_name,
-//             lastName: order.order_meta._billing_last_name,
-//             email: order.order_meta._billing_email,
-//             mobile: order.order_meta._billing_phone,
+//             firstName: order.order_meta._billing_first_name ?? '',
+//             lastName: order.order_meta._billing_last_name ?? '',
+//             email: order.order_meta._billing_email ?? '',
+//             mobile: order.order_meta._billing_phone ?? '',
+//             city: order.order_meta._billing_city ?? '',
+//             state: order.order_meta._billing_state ?? '',
+//             pincode: order.order_meta._billing_postcode ?? '',
+//             streetLandmark: `${order.order_meta._billing_company ?? ''}, ${order.order_meta._billing_address_1 ?? ''}, ${order.order_meta._billing_address_2 ?? ''}`,
+//           },
+//           shippingAddress: {
+//             firstName: order.order_meta._shipping_first_name ?? '',
+//             lastName: order.order_meta._shipping_last_name ?? '',
+//             email: order.order_meta._shipping_email ?? '',
+//             mobile: order.order_meta._shipping_phone ?? '',
+//             city: order.order_meta._shipping_city ?? '',
+//             state: order.order_meta._shipping_state ?? '',
+//             pincode: order.order_meta._shipping_postcode ?? '',
+//             streetLandmark: `${order.order_meta._shipping_company ?? ''}, ${order.order_meta._shipping_address_1 ?? ''}, ${order.order_meta._shipping_address_2 ?? ''}`,
 //           },
 //           customerOrderId: order.order_meta.reference_number,
-//           shippingAddress: {
-//             firstName: order.order_meta._shipping_first_name,
-//             lastName: order.order_meta._billing_last_name,
-//             email: order.order_meta.shipping_email,
-//             mobile: order.order_meta._billing_phone,
-//             streetLandmark: order.order_meta._shipping_address_1 + " " + order.order_meta._shipping_address_2,
-//             city: order.order_meta._shipping_city,
-//             pincode: order.order_meta._shipping_postcode,
-//             state: order.order_meta._shipping_state,
-//             country: order.order_meta._shipping_country
-//           },
 //           cashOnDelivery: parseInt(order.order_meta.printwear_cod_order_charges) > 0? true: false
 //         }
 //       })
@@ -673,73 +674,7 @@ exports.updateinfo = async (req, res) => {
   }
 }
 
-exports.savebankdetails = async (req, res) => {
-  try {
-    const bankDetails = req.body;
-    for(let input in bankDetails) {
-      if (!bankDetails[input] || (bankDetails[input].length < 1)) {
-        return res.status(403).json({ error: input + " is invalid!" });
-      }
-    }
-
-    const beneficiaryId = otpGen.generate(8, { upperCaseAlphabets: false, specialChars: false });
-
-    const beneDetails = {
-      beneId: beneficiaryId,
-      name: bankDetails.name,
-      email: bankDetails.email,
-      phone: bankDetails.phone,
-      address1: bankDetails.address,
-      bankAccount: bankDetails.bankNo,
-      ifsc: bankDetails.ifsc,
-      city: bankDetails.city,
-      state: bankDetails.state,
-      pincode: bankDetails.pincode,
-    }
-
-    console.log("🚀 ~ exports.savebankdetails= ~ bankDetails:", beneDetails);
-    
-    Cashfree.XClientId = CASHFREE_PAYOUT_CLIENT;
-    Cashfree.XClientSecret = CASHFREE_PAYOUT_SECRET;
-    Cashfree.XEnvironment = paymentMode == "test"? Cashfree.Environment.SANDBOX: Cashfree.Environment.PRODUCTION;
-
-    const createBene = await Cashfree.PayoutCreateBeneficiary("2024-01-01", "", {
-      beneficiary_id: beneficiaryId,
-      beneficiary_name: beneDetails.name,
-      beneficiary_instrument_details: {
-        bank_account_number: beneDetails.bankAccount,
-        bank_ifsc: beneDetails.ifsc,
-      },
-      beneficiary_contact_details: {
-        beneficiary_address: beneDetails.address1,
-        beneficiary_city: beneDetails.city,
-        beneficiary_country_code: "+91",
-        beneficiary_city: beneDetails.city,
-        beneficiary_email: beneDetails.email,
-        beneficiary_phone: beneDetails.phone,
-        beneficiary_state: beneDetails.state,
-        beneficiary_postal_code: beneDetails.pincode
-      },
-    });
-    console.log("🚀 ~ exports.savebankdetails= ~ createBene:", createBene.data)
-    if (createBene.data.type && createBene.data.type.includes("error")) {
-      return res.status(403).json({ error: createBene.data.message });
-    }
-    
-    await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { beneId: createBene.data.beneficiary_id } });
-    await CODModel.findOneAndUpdate({ userId: req.userId }, { $set: { beneId: createBene.data.beneficiary_id } }, { upsert: true, new: true });
-
-    res.json({ message: "Bank details saved successfully!" });
-
-  } catch (error) {
-    if (error.response && error.response.data?.type) {
-      console.log("🚀 ~ exports.savebankdetails= ~ error:", error.response)
-      return res.status(error.response.status != 200 ? error.response.status: 403).json({ error: error.response.data.message });
-    }
-    console.log("🚀 ~ exports.savebankdetails= ~ error:", error)
-    res.status(500).json({ error: "Server error in saving bank details" });
-  }
-}
+// removed savebank fucntion
 
 exports.deleteprofile = async (req, res) => {
   // first delete from userModel, then delete from all the records where the userId is there
@@ -813,7 +748,6 @@ exports.dashboard = async (req, res) => {
       orderCount: orderHistory?.orderData?.length ?? 0,
       address: userData.billingAddress?.phone ? true: false,
       brand: userData.brandName ? true: false,
-      beneId: userData.beneId
     }
 
     const stores = {
@@ -2551,7 +2485,6 @@ exports.payshoporder = async (req, res) => {
         shopType: "Shopify",
         shopSlug: "shopify",
         billingAddress: userData.billingAddress,
-        beneficiary: userData.beneId
       }
   
       return res.render('storeorderpay', { error: false, data: payOrderPageData });
@@ -2615,7 +2548,6 @@ exports.payshoporder = async (req, res) => {
         itemCount: orderData.items.length ?? 0,
         shopType: "WooCommerce",
         shopSlug: "woo",
-        beneficiary: userData.beneId,
         billingAddress: userData.billingAddress
       }
       // console.log("🚀 ~ exports.payshoporder= ~ payOrderPageData:", payOrderPageData)
@@ -2659,7 +2591,7 @@ exports.billing = async (req, res) => {
         },
       },
     ]);
-    res.render("billing", { orderData, designsData: designsData[0].designs, billing: userData.billingAddress, beneficiary: userData.beneId });
+    res.render("billing", { orderData, designsData: designsData[0].designs, billing: userData.billingAddress });
   } catch (error) {
     console.log(error);
     res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
@@ -2706,7 +2638,7 @@ exports.reship = async (req, res) => {
         },
       },
     ]);
-    res.render("billing", { orderData: orderData.orderData[0], designsData: designsData[0].designs, billing: orderData.orderData[0].billingAddress ?? userData.billingAddress, beneficiary: userData.beneId });
+    res.render("billing", { orderData: orderData.orderData[0], designsData: designsData[0].designs, billing: orderData.orderData[0].billingAddress ?? userData.billingAddress });
   } catch (error) {
     console.log(error);
     res.send("<h1>Something went wrong :( Contact Help</h1><a href='/contact'>Help</a>");
@@ -4154,121 +4086,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
 // removed, maybe need na add from git
 
 // dummy endpoint for adding new product data in womens rn
-exports.addwomens = async (req, res) => {
-  try {
-    const colorHexCodes = {
-      "black": "#000000",
-      "pink": "#ffb6c1",
-      "charcoal melange": "#464646",
-      "ecru melange": "#F5F5DC",
-      "grey melange": "#808080",
-      "mustard yellow": "#FFDB58",
-      "navy blue": "#000080",
-      "red": "#FF0000",
-      "white": "#FFFFFF",
-      "army green": "#4B5320",
-      "royal blue": "#4169E1",
-      "maroon": "#800000",
-      "lemon yellow": "#FFF44F",
-      "olive green": "#556B2F",
-      "leaf green": "#228B22",
-      "beige": "#F5F5DC",
-      "yellow": "#FFFF00",
-      "navy": "#000080",
-      "turquoise": "#40E0D0",
-      "turcoise blue": "#00FFEF",
-      "turquoise blue": "#40e0d0",
-      "chocolate brown": "#7B3F00",
-      "sky blue": "#87CEEB",
-      "bottle green": "#006A4E",
-      "iris lavender": "#897CAC"
-    };
-    const { zohoProgGroups } = require("../../.test_assets/zohoProgGroups");
-    const womensRN = zohoProgGroups.itemgroups.filter(itemgroup => /WOMENS RN/.test(itemgroup.group_name))
-    const y = {
-      "_id": "6520cee2094cfa85e4fcbd1b",
-      "style": "Womens Round Neck",
-      "brand": "PRINTWEAR",
-      "manufacturer": "I CLOTHING",
-      "description": "Item available for designing",
-      "group": "WOMENS",
-      "baseImage": {
-        "front": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fwomens%20rn%20WHITE.jpg?alt=media&token=45a08662-ee07-410f-b53d-1d0c02ef5532",
-        "back": "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fwomens%20rn%20WHITE-BACK.jpg?alt=media&token=ffd62e6d-0fe5-4a88-a6d2-08dba8c6e8ee"
-      },
-      "colors": {
-
-      },
-      "canvas": {
-        "front": {
-          "startX": 0,
-          "startY": 0,
-          "width": 13,
-          "height": 18
-        },
-        "back": {
-          "startX": 0,
-          "startY": 0,
-          "width": 13,
-          "height": 18
-        }
-      }
-    }
-    // womensRN.forEach(women => {
-    //   women.items.forEach(item => {
-    //     let colorName = item.name.split(" ")[6]
-    //     actualData.colors[colorName] = {
-    //       "frontImage": "",
-    //       "backImage": "",
-    //       "colorCode": colorHexCodes[colorName],
-    //     }
-    //   })
-    // })
-    womensRN.forEach(group => {
-      const groupName = group.group_name.replace("WOMENS RN ", ""); // Extract color name
-
-      // Convert color name to title case
-      const colorName = groupName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
-      // Initialize colors object if not present
-      if (!y.colors[colorName]) {
-        y.colors[colorName] = {
-          "frontImage": "",
-          "backImage": "",
-          "colorCode": colorHexCodes[colorName.toLowerCase()],
-          sizes: {}
-        };
-      }
-
-      // Iterate through items in the group
-      group.items.forEach(item => {
-        console.log(item.name);
-        let sizeKey = item.name.split(' - ')[1]?.trim(); // Extract size name
-        if (!sizeKey) sizeKey = item.name.split('-')[1].trim()
-
-        if (!y.colors[colorName].sizes[sizeKey]) {
-          y.colors[colorName].sizes[sizeKey] = {
-            "id": item.item_id,
-            "name": item.name,
-            "stock": item.available_stock,
-            "price": item.rate,
-            "sku": item.sku,
-            "dimensions": {
-              "length": 28,
-              "chest": 38,
-              "sleeve": 7.5,
-              "weight": 0.5
-            }
-          };
-        }
-      });
-    });
-    res.json(y);
-  } catch (error) {
-    console.log("🚀 ~ exports.addwomens= ~ error:", error)
-    res.json({ 0: 0 })
-  }
-}
+// removed addwomens endpoint function, venuna git landhu eduthuko
 
 
 /// WEBHOOKS
@@ -4680,64 +4498,63 @@ exports.admincodremit = async (req, res) => {
   try {
     const remitData = req.body;
     console.log("🚀 ~ exports.admincodremit= ~ remitData:", remitData)
-    // return res.json({ message: "COD Remittance was successful!" });
-
-    Cashfree.XClientId = CASHFREE_PAYOUT_CLIENT;
-    Cashfree.XClientSecret = CASHFREE_PAYOUT_SECRET;
-    Cashfree.XEnvironment =
-      paymentMode == "test"
-        ? Cashfree.Environment.SANDBOX
-        : Cashfree.Environment.PRODUCTION;
-    
-    // Cashfree.axios.defaults.headers.
         
     const orderHistory = await OrderHistoryModel.findOne({ "orderData.printwearOrderId": remitData.orderId });
-
     if (!orderHistory) {
       return res
         .status(404)
         .json({ error: "Could not find orders!" });
     }
-    const userData = await CODModel.findOne({ userId: orderHistory.userId });
 
-    if (!userData || !userData.beneId) {
-      return res.status(404).json({ error: "Customer has not filled beneficiary details!" });
+    const orderIndex = orderHistory.orderData.findIndex(
+      (order) => order.printwearOrderId == remitData.orderId
+    );
+
+    if (orderIndex == -1)
+      return res
+        .status(404)
+        .json({ error: "Could not find specific order details!" });
+
+    const retail = orderHistory.orderData.at(orderIndex).retailPrice 
+    const codAmount = orderHistory.orderData.at(orderIndex).CODRemittance
+    console.log("🚀 ~ exports.admincodremit= ~ codAmount:", retail, codAmount, retail-codAmount)
+    if ((retail - codAmount) < remitData.remittanceAmount)
+      return res.status(400).json({ error: "COD Remittance amount greater than retail price!" });
+
+    const [remittanceData, walletData] = await Promise.all([await CODModel.findOne({ userId: orderHistory.userId }), await WalletModel.findOne({ userId: orderHistory.userId })]);
+
+    if (!remittanceData) {
+      return res.status(404).json({ error: "Invalid customer details!" });
     }
-
-    const orderIndex = orderHistory.orderData.findIndex(order => order.printwearOrderId == remitData.orderId);
-
-    if (orderIndex == -1) return res.status(404).json({ error: "Could not find specific order details!" });
 
     const transferId = otpGen.generate(10, { specialChars: false });
-    const payoutRequest = await Cashfree.PayoutInitiateTransfer("2024-01-01", "", {
-      beneficiary_details: {
-        beneficiary_id: userData.beneId,
-      },
-      transfer_amount: remitData.remittanceAmount,
-      transfer_id: transferId,
-      transfer_remarks: `COD Remittance for ${userData.userId}`
-    });
-    console.log("🚀 ~ exports.admincodremit= ~ payoutRequest:", payoutRequest.data)
-
-    if (["REJECTED", "FAILED"].includes(payoutRequest.data.status)) {
-      return res.status(500).json({ error: payoutRequest.data.status_description ?? "Unknown error occured"});
-    }
-    /** for now without webhook, simply save to DB as if money was immediately transferred, later implement webhook and onyl when webhook is complete,
-     * add CODRemittance amount to specifc order, update compeletedOn field in CODModel, etc.
-     */
+    // removed cashfree payout funciton as client said it was unecessary
     
     orderHistory.orderData.at(orderIndex).CODRemittance += remitData.remittanceAmount;
     
-    userData.remittances.push({
+    remittanceData.remittances.push({
       orderId: remitData.orderId,
       amount: remitData.remittanceAmount,
       transferId: transferId,
       completedOn: Date.now(), // --> temporary.. dont put completedon until webhook confirms the payment thing
     });
 
-    await Promise.all([await userData.save({ validateBeforeSave: false }), await orderHistory.save({ validateBeforeSave: false })])
+    walletData.transactions.push({
+      amount: remitData.remittanceAmount,
+      transactionType: "cod-remittance",
+      transactionNote: `COD Remittance for ${remitData.orderId}`,
+      transactionStatus: "success",
+      walletOrderId: transferId,
+    });
+
+    walletData.balance = (walletData.balance + remitData.remittanceAmount).toFixed(2);
+
+    await Promise.all([await remittanceData.save({ validateBeforeSave: false }), 
+      await walletData.save({ validateBeforeSave: false }), 
+      await orderHistory.save({ validateBeforeSave: false })]
+    );
     
-    res.json({ message: "COD Remittance is successfully initiated!" });
+    res.json({ message: "COD Remittance is successful!" });
   } catch (error) {
     if (error.response && error.response.data?.type) {
       console.log("🚀 ~ exports.admincodremit= ~ error:", error.response)

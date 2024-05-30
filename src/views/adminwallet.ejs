@@ -101,7 +101,7 @@ fieldset label {
                     <input id="search-invoices" type="search"
                         placeholder="Order ID, Tracking number, Customer Name, Shipment ID" />
                 </div>
-                <h2>Total Wallet Balance: <span id="wallet-balance">₹<%= data.balance %></span></h2>
+                <h2>Total Wallet Balance: <span id="wallet-balance">₹<%= data.balance.toFixed(2) %></span></h2>
                 <table>
                     <thead>
                         <th>S. No.</th>
@@ -213,7 +213,7 @@ fieldset label {
                         return notyf.error({ message: refundResponse.error, duration: 5000 });
                     }
                     disableButton(false, "Refund successful!")
-                    document.querySelector('#wallet-balance').innerHTML = '₹' + refundResponse.balance
+                    document.querySelector('#wallet-balance').innerHTML = '₹' + refundResponse.balance.toFixed(2)
                     notyf.success("Transaction was successful!");
                     populateInvoiceTable(refundResponse)
                 } catch (error) {

@@ -231,9 +231,10 @@
             <tr>
               <td>
                 <div>
-                  ${currentDesign?.designImage?.front != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.front}\', '_blank')" src="${currentDesign?.designImage?.front}" />` : ''}
-                  ${currentDesign?.designImage?.back != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.back}\', '_blank')" src="${currentDesign?.designImage?.back}" />` : ''}
+                  ${currentDesign?.designImage?.front != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.front}\', '_blank')" src="${currentDesign?.designImage?.front}" /> <p style="font-size: 12px">(Front)</p>` : ''}
+                  ${currentDesign?.designImage?.back != "false" ? `<img style="width: 200px; object-fit: contain; cursor: pointer;" onclick="window.open(\'${currentDesign?.designImage?.back}\', '_blank')" src="${currentDesign?.designImage?.back}" /> <p style="font-size: 12px">(Back)</p>` : ''}
                 </div>
+                <br />
                 <h5>${currentDesign?.designName}</h5>
                 <p>SKU: ${currentDesign?.designSKU}</p>
               </td>
@@ -245,7 +246,9 @@
                   <br />
                   <span>
                     Design Image: 
-                    <a href="${currentDesign?.designItems[0]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[0]?.itemName} (Front) </a>
+                    <br />
+                    <a href="${currentDesign?.designItems[0]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[0]?.itemName} (${currentDesign?.frontPrice ? 'Front': 'Back'}) </a>
+                    <br />
                     ${currentDesign?.designItems[1] ? 
                       `<a href="${currentDesign?.designItems[1]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[1]?.itemName} (Back) </a>`: ''
                     }

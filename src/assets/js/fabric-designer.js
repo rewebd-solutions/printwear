@@ -305,6 +305,25 @@ const capitalizeFirst = (string) => {
   return string[0].toUpperCase() + string.slice(1);
 };
 
+designHeightInput.oninput = (e) => {
+  const heightInInches = e.target.value / Product.pixelToInchRatio;
+  if (heightInInches <= 0) return;
+  fabricCanvas.getActiveObject().scaleToHeight(heightInInches);
+  designWidthInput.value = fabricCanvas.getActiveObject().getScaledWidth() * Product.pixelToInchRatio
+  updateStats(false)
+  fabricCanvas.renderAll();
+}
+
+designWidthInput.oninput = (e) => {
+  const widthInInches = e.target.value / Product.pixelToInchRatio;
+  if (widthInInches <= 0) return;
+  fabricCanvas.getActiveObject().scaleToHeight(widthInInches);
+  designHeightInput.value =
+    fabricCanvas.getActiveObject().getScaledHeight() * Product.pixelToInchRatio;
+    updateStats(false)
+  fabricCanvas.renderAll();
+}
+
 /* Change Direction Name in Stats */
 const changeStatName = () => {
   table.style.display = "table";
@@ -319,12 +338,11 @@ const changeStatName = () => {
     (curDirection === "Front" ? "Back" : "Front") + " Design price";
 };
 
-const updateStats = () => {
+const updateStats = (shouldUpdateInput = true) => {
   // console.log("update stats called");
   changeStatName();
 
   if (!designImageHeight || !designImageWidth || !designImg) {
-    console.log("exiting in guard clause inside updateStats");
     // priceTable.children[0].children[1].innerHTML = "0 in";
     // priceTable.children[1].children[1].innerHTML = "0 in";
     designHeightInput.value = 0;
@@ -357,9 +375,10 @@ const updateStats = () => {
       : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
       ? 70.0
       : imageAreaInInches * 1;
-
-  designHeightInput.value = imageHeightInInches;
-  designWidthInput.value = imageWidthInInches;
+  if(shouldUpdateInput) {
+    designHeightInput.value = imageHeightInInches;
+    designWidthInput.value = imageWidthInInches;
+  }
   priceTable.children[2].children[1].innerHTML = imageAreaInInches + " in²";
   priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
   priceTable.children[4].children[1].innerHTML = "₹" + printingPrice.toFixed(2);

@@ -177,6 +177,7 @@
             }
             disableButton(false);
             notyf.success(remitPaymentResponse.message);
+            location.reload();
           } catch (error) {
             console.log("🚀 ~ remitCOD ~ error:", error)
             disableButton(false);

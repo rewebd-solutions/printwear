@@ -73,7 +73,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td>${walletData.userData.name} ${walletData.userData.firstName? '(' + walletData.userData.firstName + ' ' + (walletData.userData.lastName ?? '') + ')': ''}</td>
-                    <td>₹${walletData.balance}</td>
+                    <td>₹${walletData.balance.toFixed(2)}</td>
                     <td>
                         <a href="wallets/${walletData._id}" class="proceed-btn">Details ▶</a>
                     </td>

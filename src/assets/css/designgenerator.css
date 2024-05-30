@@ -459,6 +459,7 @@ i.left {
   height: 200px;
   display: grid;
   place-items: center;
+  position: relative;
 }
 
 .user-design-image img,
@@ -500,4 +501,15 @@ i.left {
     font-weight: 500;
     font-size: 2rem;
   }
+}
+
+.remove-design {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  padding: 0.7rem;
+  border-radius: 100%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
 }

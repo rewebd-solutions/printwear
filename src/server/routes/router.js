@@ -26,7 +26,7 @@ route.post("/changepassword", authServices.authorizeToken, controller.changepass
 route.post("/resetpassword", controller.resetpassword);
 route.get("/resetpassword", authServices.authorizeLogin, services.resetpassword);
 route.post("/updateinfo", authServices.authorizeToken, controller.updateinfo);
-route.post("/savebank", authServices.authorizeToken, controller.savebankdetails);
+// route.post("/savebank", authServices.authorizeToken, controller.savebankdetails); --> no need for COD bank transfer, no need for beneId check
 
 route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), controller.uploadimage);
 route.get("/obtainimages", authServices.authorizeToken, controller.obtainimages);
@@ -115,7 +115,7 @@ route.post("/generatezohoinvoice", controller.generateZohoBooksInvoice); // add 
 route.get("/invoice", authServices.authorizeToken, controller.getinvoices);
 
 // route.get("/dummytest", controller.createdummyorder); // remove asap after testing woocommerce order
-route.get("/zohogrptest", controller.addwomens); // remove asap after adding womens rn data
+//route.get("/zohogrptest", controller.addwomens); // remove asap after adding womens rn data
 
 
 // new admin page controllers
