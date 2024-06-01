@@ -2650,22 +2650,25 @@ exports.orderpage = async (req, res) => {
     const orderId = req.params.id;
 
     // query db with specific order id
-    const orderDetails = await OrderHistoryModel.findOne(
+    const [orderDetails, designDetails, labelData] = await Promise.all([
+      await OrderHistoryModel.findOne(
       {
         "userId": req.userId,
         "orderData": { $elemMatch: { "printwearOrderId": orderId } }
       },
-      { "orderData.$": 1 },);
+      { "orderData.$": 1 },),
+      await NewDesignModel.findOne({ userId: req.userId }),
+      await LabelModel.findOne({ userId: req.userId })
+    ]);
     // check if null, if so return a page with not found error
-    if (!orderDetails) return res.render('orderpage', { orderData: null }); // go to that page and check if null and shout
+    if (!orderDetails || !designDetails) return res.render('orderpage', { orderData: null }); // go to that page and check if null and shout
     // obtain design data with ids from orderhistory
     const designIds = orderDetails.orderData[0].items.map(order => order.designId + '');
-    const designDetails = await NewDesignModel.findOne({ userId: req.userId });
     let designs = designDetails.designs.filter(design => designIds.includes(design._id + ''));
-    res.render('orderpage', { orderData: orderDetails, designData: designs });
+    res.render('orderpage', { orderData: orderDetails, designData: designs, labelData });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Error obtaining order details" });
+    res.render('orderpage', { orderData: null });
   }
 }
 // render wallet recharge page
@@ -3407,7 +3410,7 @@ exports.reshiporder = async (req, res) => {
       }
     }
 
-    const oldCharges = orderToRefund.deliveryStatus == "cancelled"? orderToRefund.items.reduce((curr, item) => curr + item.price, 0): 0;
+    const oldCharges = orderToRefund.deliveryStatus == "cancelled"? orderToRefund.items.reduce((curr, item) => curr + item.price, 0): orderToRefund.totalAmount;
     console.log("🚀 ~ exports.reshiporder= ~ oldCharges:", oldCharges)
     const totalCharges = (shippingCharge + (cashOnDelivery ? 50: 0) + oldCharges);
     console.log("🚀 ~ exports.reshiporder= ~ totalCharges:", totalCharges)
@@ -3417,13 +3420,18 @@ exports.reshiporder = async (req, res) => {
     const walletOrderId = otpGen.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: true, digits: true, specialChars: false });
     
     if (courierId) {
-      if (walletData.balance < (totalCharges * 1.05)) {
+      const walletDeduction =
+      orderToRefund.deliveryStatus == "cancelled"
+      ? totalCharges * 1.05
+      : (shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05;
+      console.log(walletDeduction)
+      if (walletData.balance < walletDeduction) {
         return res.status(403).json({ message: "Not enough credits in wallet. Please recharge wallet" });
       }
-  
-      walletData.balance = (walletData.balance - (totalCharges * 1.05)).toFixed(2); // MONEY GONE!!!
+
+      walletData.balance = (walletData.balance - walletDeduction).toFixed(2); // MONEY GONE!!!
       walletData.transactions.push({
-        amount: totalCharges,
+        amount: walletDeduction,
         transactionType: "payment",
         transactionStatus: "success",
         walletOrderId: "RESHIP_" + pwOrderId + "_" + walletOrderId,
@@ -3445,12 +3453,13 @@ exports.reshiporder = async (req, res) => {
       state,
       country
     }
-    orderHistory.orderData.at(orderToRefundIndex).deliveryCharges = shippingCharge;
+    orderHistory.orderData.at(orderToRefundIndex).deliveryCharges += shippingCharge;
     orderHistory.orderData.at(orderToRefundIndex).walletOrderId = walletOrderId;
     orderHistory.orderData.at(orderToRefundIndex).cashOnDelivery = cashOnDelivery? true: false;
-    orderHistory.orderData.at(orderToRefundIndex).totalAmount += totalCharges.toFixed(2); // remove toFixed
+    orderHistory.orderData.at(orderToRefundIndex).totalAmount = totalCharges
     orderHistory.orderData.at(orderToRefundIndex).taxes = (orderHistory.orderData.at(orderToRefundIndex).totalAmount * 0.05).toFixed(2);
     orderHistory.orderData.at(orderToRefundIndex).deliveryStatus = "received";
+    orderHistory.orderData.at(orderToRefundIndex).paymentStatus = "success";
     orderHistory.orderData.at(orderToRefundIndex).shipRocketCourier = {
       courierId: courierId ?? -1,
       courierName: courierData?.courier_name ?? 'SELF PICKUP',
@@ -4222,35 +4231,33 @@ exports.getadminorder = async (req, res) => {
     if (!orderData) return res.status(404).json({ error: `Order data for ${pwOrder} not found!` });
     const designIds = orderData.orderData[0].items.map(item => item.designId)
     // console.log("🚀 ~ exports.getadminorder= ~ designIds:", designIds)
-    const [designsData, userData, walletData] = await Promise.all([
+    const [designsData, userData, walletData, labelData] = await Promise.all([
       await NewDesignModel.aggregate([
-      {
-        $match: {
-          userId: orderData.userId, // Match the specific document by userId
+        {
+          $match: {
+            userId: orderData.userId, // Match the specific document by userId
+          },
         },
-      },
-      {
-        $project: {
-          designs: {
-            $filter: {
-              input: "$designs",
-              as: "design",
-              cond: {
-                $in: [
-                  "$$design._id",
-                  designIds
-                ],
+        {
+          $project: {
+            designs: {
+              $filter: {
+                input: "$designs",
+                as: "design",
+                cond: {
+                  $in: ["$$design._id", designIds],
+                },
               },
             },
           },
         },
-      },
       ]),
       await UserModel.findById(orderData.userId),
-      await WalletModel.findOne({ userId: orderData.userId }, { _id: 1 })
+      await WalletModel.findOne({ userId: orderData.userId }, { _id: 1 }),
+      await LabelModel.findOne({ userId: orderData.userId }),
     ]);
     // console.log("🚀 ~ exports.getadminorder= ~ designsData:", designsData)
-    res.json({orderData: orderData.orderData[0], designsData: JSON.stringify(designsData), userData: userData, walletData });
+    res.json({orderData: orderData.orderData[0], designsData: JSON.stringify(designsData), userData: userData, walletData, labelData });
   } catch (error) {
     console.log("🚀 ~ exports.getadminorder= ~ error:", error)
     res.status(500).json({ error: `Server error in fetching order ${pwOrder}` });

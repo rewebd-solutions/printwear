@@ -132,7 +132,7 @@
           duration: 5000
         })
         const modal = document.querySelector(".product-modal-wrapper")
-        if (modal) document.querySelector("main").removeChild()
+        if (modal) document.querySelector("main").removeChild(modal)
       } catch (error) {
         console.log(error);
         notyf.error("Something went wrong!");
@@ -172,7 +172,7 @@
           duration: 5000
         })
         const modal = document.querySelector(".product-modal-wrapper")
-        if (modal) document.querySelector("main").removeChild()
+        if (modal) modal.remove();
       } catch (error) {
         console.log(error);
         notyf.error("Something went wrong!");

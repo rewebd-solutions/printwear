@@ -211,7 +211,7 @@
 
       orderDesignsContainer.innerHTML = orderData.orderData.items.map(order => {
         const currentDesign = JSON.parse(orderData.designsData)[0].designs.find(design => design._id == order.designId)
-        // console.log("🚀 ~ populateData ~ currentDesign:", currentDesign)
+        const currentLabel = currentDesign.neckLabel? orderData.labelData.labels.find(label => label._id == currentDesign.neckLabel): null;
         if (!currentDesign) return ''
         if (currentDesign.designImage?.front.includes("printwear.in") && !currentDesign.designImage?.front.includes("admin.printwear.in")) {
           currentDesign.designImage.front = currentDesign.designImage.front.replace("printwear.in", "admin.printwear.in");
@@ -252,7 +252,13 @@
                     ${currentDesign?.designItems[1] ? 
                       `<a href="${currentDesign?.designItems[1]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[1]?.itemName} (Back) </a>`: ''
                     }
-                  </span>
+                    </span>
+                  <br />
+                  ${currentLabel ? `
+                    <span>
+                      Neck Label: <a href="${currentDesign.URL}" target="_blank" style="font-size: 14px">${currentLabel.name} </a>
+                    </span>
+                  `: ``}
                   <br />
                   <br />
                   <span>Base price: <p style="font-size: 14px">₹ ${currentDesign?.product.price} </p></span>
@@ -260,7 +266,7 @@
                   <span>Design Dimensions: <p style="font-size: 13px">
                     ${currentDesign?.designDimensions && currentDesign?.designDimensions.width>0 ? '<p style="font-size: 13px"><strong>Front:</strong> ' + currentDesign?.designDimensions.width.toFixed(2) + ` in x ${currentDesign?.designDimensions?.height.toFixed(2)}in </p>`: ''} 
                     ${currentDesign?.backDesignDimensions? '<p style="font-size: 13px"><strong>Back:</strong> ' + currentDesign?.backDesignDimensions.width.toFixed(2) + ` in x ${currentDesign?.backDesignDimensions?.height.toFixed(2)}in </p>`: ''} 
-                    </span>
+                  </span>
                   <br />
                   <span>Design Offset: 
                   ${

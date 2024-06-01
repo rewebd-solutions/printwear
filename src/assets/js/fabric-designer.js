@@ -342,7 +342,7 @@ const updateStats = (shouldUpdateInput = true) => {
   // console.log("update stats called");
   changeStatName();
 
-  if (!designImageHeight || !designImageWidth || !designImg) {
+  if (!designImg && !canvasState.front && !canvasState.back) {
     // priceTable.children[0].children[1].innerHTML = "0 in";
     // priceTable.children[1].children[1].innerHTML = "0 in";
     designHeightInput.value = 0;
@@ -353,18 +353,39 @@ const updateStats = (shouldUpdateInput = true) => {
     priceTable.children[3].children[1].innerHTML = "₹" + variantPrice;
     priceTable.children[4].children[1].innerHTML = "₹0";
     priceTable.children[5].children[1].innerHTML = "₹" + variantPrice;
+    const imageHeightInInches =
+      canvasState[designDirection == "front" ? "back" : "front"] &&
+      canvasState[designDirection == "front" ? "back" : "front"].objects.reduce(
+        (ttl, curr) =>
+          ttl +
+          (curr.height * curr.scaleY) / Product.inchToPixelRatio,
+        0
+      );
+    const imageWidthInInches =
+      canvasState[designDirection == "front" ? "back" : "front"] &&
+      canvasState[designDirection == "front" ? "back" : "front"].objects.reduce(
+        (ttl, curr) =>
+          ttl +
+          (curr.width * curr.scaleX) / Product.inchToPixelRatio,
+        0
+      );
+    const imageAreaInInches = imageWidthInInches * imageHeightInInches * Product.pixelToInchRatio * Product.pixelToInchRatio
+    let printingPrice =
+    imageHeightInInches <= 8.0 &&
+    imageWidthInInches <= 8.0 &&
+    imageHeightInInches > 0 &&
+    imageWidthInInches > 0
+      ? 70.0
+      : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
+      ? 70.0
+      : imageAreaInInches * 1;
+    priceTable.children[8].children[1].innerHTML = "₹" + ((isNeckLabelSelected? 10: 0) + printingPrice + variantPrice);
     return;
   }
 
   let imageHeightInInches = calculateTotalHeight().toFixed(2);
   let imageWidthInInches = calculateTotalWidth().toFixed(2);
   let imageAreaInInches = calculateTotalArea().toFixed(2);
-  //console.log(
-  //   "🚀 ~ updateStats ~ imageDimensions:",
-  //   imageHeightInInches,
-  //   imageWidthInInches,
-  //   imageAreaInInches
-  // );
 
   let printingPrice =
     imageHeightInInches <= 8.0 &&
@@ -533,8 +554,33 @@ const loadState = () => {
   // console.log("updateStatsCalled");
 };
 
+/** remove design image function */
+const deleteDesignImage = () => {
+  if (canvasState[designDirection]) {
+    designImg = null;
+    designImages[designDirection] = null;
+    updateStats();
+    fabricCanvas.remove(fabricCanvas.getObjects()[0]);
+    document
+      .querySelectorAll(".user-design-image")
+      .forEach((element) => element.classList.remove("active-selection"));
+      const removeBtn = document.querySelector(".remove-design");
+      if (removeBtn) {
+        removeBtn.removeEventListener("click", handleImageRemove);
+        removeBtn.remove();
+      }
+      updateStats()
+  }
+}
+
+const handleImageRemove = (e) => {
+  e.stopPropagation();
+  deleteDesignImage();
+  const idToDelete = e.target.parentElement.getAttribute("data-id");
+}
+
 /* Add Image to Canvas */
-const addImageToCanvas = async (el, imageURL, imageId) => {
+const addImageToCanvas = async (e, el, imageURL, imageId) => {
   if (!globalProductID)
     return notyf.error("Select a shirt size before applying");
   if (!imageURL) return notyf.error("Invalid image, please try another");
@@ -545,8 +591,18 @@ const addImageToCanvas = async (el, imageURL, imageId) => {
 
   document
     .querySelectorAll(".user-design-image")
-    .forEach((element) => element.classList.remove("active-selection"));
+    .forEach((element) => {
+      element.classList.remove("active-selection")
+      const removeBtn = document.querySelector(".remove-design")
+      if (removeBtn) {
+        removeBtn.removeEventListener("click", handleImageRemove);
+        removeBtn.remove()
+      };
+    });
   el.classList.add("active-selection");
+  el.innerHTML += `<button class="remove-design"><i class="fa fa-close"></i></button>`;
+
+  document.querySelector(".remove-design").addEventListener("click", handleImageRemove)
 
   const blobReq = await fetch(imageURL);
   const blobRes = await blobReq.blob();
@@ -619,10 +675,22 @@ const changeSide = (e, side) => {
 
   document
     .querySelectorAll(".user-design-image")
-    .forEach((element) => element.classList.remove("active-selection"));
+    .forEach((element) => {
+      element.classList.remove("active-selection")
+      const removeBtn = document.querySelector(".remove-design");
+      if (removeBtn) {
+        removeBtn.removeEventListener("click", handleImageRemove);
+        removeBtn.remove();
+      }
+    });
   
     if (designImages[designDirection]) {
-      document.querySelector(`[data-id='${designImages[designDirection]}']`).classList.add("active-selection");
+      const currDes = document.querySelector(`[data-id='${designImages[designDirection]}']`)
+      currDes.classList.add("active-selection");
+      currDes.innerHTML += `<button class="remove-design"><i class="fa fa-close"></i></button>`;
+      document
+        .querySelector(".remove-design")
+        .addEventListener("click", handleImageRemove);
   }
 
   // console.log("direction: " + designDirection);
@@ -959,9 +1027,9 @@ const saveDesign = async () => {
 
 /* Set Design Position */
 const setPosition = (e, position) => {
-  if (!fabricCanvas || !designImg) return;
+  if (!fabricCanvas || !fabricCanvas[designDirection]) return;
   // Changing position of selected image
-  const designImage = fabricCanvas.getActiveObject();
+  const designImage = fabricCanvas.getObjects[0]();
   if (!designImage) return;
 
   const canvasWidth = fabricCanvas.width;
@@ -1024,7 +1092,7 @@ const populateUserDesigns = (data = userDesignResponse) => {
     currentImage.src = imageItem.url;
 
      return `
-    <div class="user-design-image" onclick="addImageToCanvas(this, this.children[0].src, '${imageItem._id}')" data-id='${imageItem._id}'>
+    <div class="user-design-image" onclick="addImageToCanvas(event, this, this.children[0].src, '${imageItem._id}')" data-id='${imageItem._id}'>
       <img src="${imageItem.url}" alt="" loading="lazy">
       <p>${imageItem.name}</p>
     </div>`;
@@ -1117,15 +1185,7 @@ document.addEventListener(
   "keydown",
   (e) => {
     if (e.keyCode === 46) {
-      // 46 is the keyCode for the Delete key
-      if (fabricCanvas.getActiveObject()) {
-        designImg = null;
-        updateStats();
-        fabricCanvas.remove(fabricCanvas.getActiveObject());
-        document
-          .querySelectorAll(".user-design-image")
-          .forEach((element) => element.classList.remove("active-selection"));
-      }
+      handleImageRemove(e);
     }
   },
   false

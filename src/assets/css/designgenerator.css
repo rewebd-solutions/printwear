@@ -507,9 +507,14 @@ i.left {
   position: absolute;
   right: -6px;
   top: -6px;
-  padding: 0.7rem;
-  border-radius: 100%;
-  cursor: pointer;
+  height: 25px;
+  width: 25px !important;
+  border-radius: 100% !important;
   display: grid;
   place-items: center;
+  font-size: 12px;
+}
+
+.remove-design i.fa {
+  font-size: 15px !important;
 }

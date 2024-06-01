@@ -28,7 +28,7 @@
     </div>
     <div class="container">
       <% if (!orderData) { %>
-      <div class="title">Invalid Order ID</div>
+        <div class="title">There is a server side error in generating this page</div>
       <% } else { %>
       <!-- "rts" | "on-hold" | "processing" | "rtd" | "shipment-cancel" | "pickup-scheduled" |
             "out-for-pickup" | "rto" | "cancelled" | "undelivered" | "shipped" | "delivered" | "completed" -->
@@ -42,12 +42,28 @@
             PAYMENT: <%= orderData.orderData[0].paymentStatus === "refund_init" ? "refund initiated" : orderData.orderData[0].paymentStatus %>
           </h3>
         </div>
-
-        <% if (["pending", "received" , "invoiced"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <%
+          function isDifferenceLessThan30Days(date1, date2) {
+            // Create Date objects from the given date string and timestamp
+            const firstDate = new Date(date1);
+            const secondDate = new Date(date2);
+            
+            // Calculate the difference in milliseconds
+            const diffInMilliseconds = Math.abs(firstDate.getTime() - secondDate.getTime());
+            
+            // Convert the difference from milliseconds to days
+            const millisecondsPerDay = 24 * 60 * 60 * 1000; // Hours * minutes * seconds * milliseconds
+            const diffInDays = diffInMilliseconds / millisecondsPerDay;
+            
+            // Check if the difference in days is more than 30
+            return diffInDays < 30;
+          }
+        %>
+        <% if (["pending", "received" , "invoiced"].includes(orderData.orderData[0].deliveryStatus) && (isDifferenceLessThan30Days(orderData.orderData[0].createdAt, Date.now()))) { %>
           <button class="orderpage-action-btn" onclick="initiateRefund(this)">Cancel Order</button>
         <% } else if (["delivered"].includes(orderData.orderData[0].deliveryStatus) || (orderData.orderData[0].deliveryStatus === "completed" && orderData.orderData[0].shiprocketCourier.courierId !== "-1")) { %>
           <button class="orderpage-action-btn" onclick="initiateRefund(this, 'return')">Return Order</button>
-        <% } else if (["rto-delivered", "cancelled"].includes(orderData.orderData[0].deliveryStatus)) { %>
+        <% } else if (["rto-delivered", "cancelled"].includes(orderData.orderData[0].deliveryStatus) && (isDifferenceLessThan30Days(orderData.orderData[0].createdAt, Date.now()))) { %>
           <button class="orderpage-action-btn" onclick="initiateRefund(this, 'reship')">Reship Order</button>
         <% } %>
       </div>
@@ -65,6 +81,7 @@
                 <tr>
                   <th>S.No</th>
                   <th>Product</th>
+                  <th>Images</th>
                   <th>SKU</th>
                   <th>Price</th>
                   <th>Quantity</th>
@@ -73,9 +90,29 @@
               <tbody>
                 <% orderData.orderData[0].items.forEach((order, i) => { %>
                   <% const design = designData.find(design => design._id.toString() === order.designId.toString()) %>
+                  <% const label = labelData && design.neckLabel? labelData.labels.find(label => label._id.toString() === design.neckLabel.toString()): null %>
                   <tr>
                     <td><%= i + 1 %></td>
                     <td><a href="<%= design.designImage.front !== "false" ? design.designImage.front : design.designImage.back %>" target="_blank"><%= design.designName %></a></td>
+                    <td>
+                      <a style="display: block;" href="<%= design.designItems[0].URL %>" target="_blank">
+                      <% if (design.frontPrice) { %>
+                      <span>Front</span>
+                      <% } else { %>
+                        <span>Back</span> %></a>
+                        <% } %>
+                      </a>
+                      <% if (design.designItems[1]) { %>
+                        <a style="display: block;" href="<%= design.designItems[1].URL %>" target="_blank">
+                          <span>Back</span>
+                        </a>
+                      <% } %>
+                      <% if (label) { %>
+                        <a style="display: block;" href="<%= label.url %>" target="_blank">
+                          <span>Neck Label</span>
+                        </a>
+                      <% } %>
+                    </td>
                     <td><%= design.designSKU %></td>
                     <td>₹<%= design.price.toFixed(2) %></td>
                     <td><%= order.quantity %></td>
