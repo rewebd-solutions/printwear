@@ -307,19 +307,19 @@ const capitalizeFirst = (string) => {
 
 designHeightInput.oninput = (e) => {
   const heightInInches = e.target.value / Product.pixelToInchRatio;
-  if (heightInInches <= 0) return;
-  fabricCanvas.getActiveObject().scaleToHeight(heightInInches);
-  designWidthInput.value = fabricCanvas.getActiveObject().getScaledWidth() * Product.pixelToInchRatio
+  if (heightInInches <= 0 || !fabricCanvas.getObjects()[0]) return;
+  fabricCanvas.getObjects()[0].scaleToHeight(heightInInches);
+  designWidthInput.value = fabricCanvas.getObjects()[0].getScaledWidth() * Product.pixelToInchRatio
   updateStats(false)
   fabricCanvas.renderAll();
 }
 
 designWidthInput.oninput = (e) => {
   const widthInInches = e.target.value / Product.pixelToInchRatio;
-  if (widthInInches <= 0) return;
-  fabricCanvas.getActiveObject().scaleToHeight(widthInInches);
+  if (widthInInches <= 0 || !fabricCanvas.getObjects()[0]) return;
+  fabricCanvas.getObjects()[0].scaleToHeight(widthInInches);
   designHeightInput.value =
-    fabricCanvas.getActiveObject().getScaledHeight() * Product.pixelToInchRatio;
+    fabricCanvas.getObjects()[0].getScaledHeight() * Product.pixelToInchRatio;
     updateStats(false)
   fabricCanvas.renderAll();
 }
@@ -556,21 +556,19 @@ const loadState = () => {
 
 /** remove design image function */
 const deleteDesignImage = () => {
-  if (canvasState[designDirection]) {
-    designImg = null;
-    designImages[designDirection] = null;
-    updateStats();
-    fabricCanvas.remove(fabricCanvas.getObjects()[0]);
-    document
-      .querySelectorAll(".user-design-image")
-      .forEach((element) => element.classList.remove("active-selection"));
-      const removeBtn = document.querySelector(".remove-design");
-      if (removeBtn) {
-        removeBtn.removeEventListener("click", handleImageRemove);
-        removeBtn.remove();
-      }
-      updateStats()
+  designImg = null;
+  designImages[designDirection] = null;
+  updateStats();
+  fabricCanvas.remove(fabricCanvas.getObjects()[0]);
+  document
+    .querySelectorAll(".user-design-image")
+    .forEach((element) => element.classList.remove("active-selection"));
+    const removeBtn = document.querySelector(".remove-design");
+  if (removeBtn) {
+    removeBtn.removeEventListener("click", handleImageRemove);
+    removeBtn.remove();
   }
+  updateStats()
 }
 
 const handleImageRemove = (e) => {
@@ -1027,9 +1025,9 @@ const saveDesign = async () => {
 
 /* Set Design Position */
 const setPosition = (e, position) => {
-  if (!fabricCanvas || !fabricCanvas[designDirection]) return;
+  if (!fabricCanvas) return;
   // Changing position of selected image
-  const designImage = fabricCanvas.getObjects[0]();
+  const designImage = fabricCanvas.getObjects()[0];
   if (!designImage) return;
 
   const canvasWidth = fabricCanvas.width;

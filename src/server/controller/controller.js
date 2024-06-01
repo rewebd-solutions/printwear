@@ -16,7 +16,8 @@ const zohoClientID = process.env.ZOHO_CLIENT_ID;
 const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
-const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
+const ZOHO_INVOICE_TEMPLATE_ID = "650580000000013130";
+// const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
 const WOO_SANTO_URL = 'https://admin.printwear.in/admin';
 const OLD_PUBLIC_URL = "https://printwear.in/";
 
@@ -3197,106 +3198,102 @@ exports.placeorder = async (req, res) => {
     const zohoCustomerId = userData.zohoCustomerID;
     const zohoContactId = userData.zohoContactID;
     const invoiceData = {
-      "branch_id": "650580000000098357",
-      "autonumbergenerationgroup_id": "650580000004188098",
-      "reference_number": orderDetails.orderData[0].printwearOrderId,
-      "payment_terms": 0,
-      "payment_terms_label": "Due on Receipt",
-      "customer_id": zohoCustomerId,
-      "contact_persons": [
-
-      ],
-      "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
-      "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
-      "is_inclusive_tax": false,
-      "line_items":
-        orderDetails.orderData[0].items.map((item, i) => {
-          let currentDesignItem = designData.designs.find(design => design._id + '' == item.designId);
-          return {
-            "item_order": (i + 1),
-            "item_id": currentDesignItem.product.id,
-            "rate": currentDesignItem.price * 1.05,
-            "name": currentDesignItem.product.name,
-            "description": currentDesignItem.designName,
-            "quantity": (item.quantity).toFixed(2),
-            "discount": "0%",
-            "tax_id": "650580000000013321",
-            "tax_name": (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? "SGST + CGST": "GST",
-            "tax_type": "tax",
-            "tax_percentage": (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? 2.5: 5,
-            "project_id": "",
-            "tags": [
-
-            ],
-            "tax_exemption_code": "",
-            "account_id": "650580000000000486",
-            "item_custom_fields": [
-
-            ],
-            "hsn_or_sac": "61130000",
-            "gst_treatment_code": "",
-            "unit": "pcs"
-          }
-        }),
-      "allow_partial_payments": false,
-      "custom_fields": [
+      branch_id: "650580000000098357",
+      autonumbergenerationgroup_id: "650580000004188098",
+      reference_number: orderDetails.orderData[0].printwearOrderId,
+      payment_terms: 0,
+      payment_terms_label: "Due on Receipt",
+      customer_id: zohoCustomerId,
+      contact_persons: [zohoContactId],
+      date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      notes:
+        "Thanks for your business with Printwear.\npls write us for additional information accounts@printwear.in",
+      terms:
+        "subject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+      is_inclusive_tax: false,
+      line_items: orderDetails.orderData[0].items.map((item, i) => {
+        let currentDesignItem = designData.designs.find(
+          (design) => design._id + "" == item.designId
+        );
+        return {
+          item_order: 1,
+          item_id: currentDesignItem.product.id,
+          rate: currentDesignItem.price,
+          name: currentDesignItem.product.name,
+          description: currentDesignItem.designName,
+          quantity: item.quantity.toFixed(2),
+          discount: "0%",
+          tax_id: "650580000000013321",
+          project_id: "",
+          tags: [],
+          tax_exemption_code: "",
+          account_id: "650580000000000486",
+          item_custom_fields: [],
+          hsn_or_sac: "61091000",
+          gst_treatment_code: "",
+          unit: "PCS",
+        };
+      }),
+      allow_partial_payments: false,
+      custom_fields: [
         {
-          "value": "",
-          "customfield_id": "650580000000103311"
-        }
+          value: Object.keys(orderDetails.orderData[0].billingAddress)
+            .map((key) => orderDetails.orderData[0].billingAddress[key])
+            .join(", "),
+          customfield_id: "650580000000103311",
+        },
       ],
-      "is_discount_before_tax": "",
-      "discount": 0,
-      "discount_type": "",
-      "shipping_charge": (orderDetails.orderData[0].deliveryCharges + orderDetails.orderData[0].cashOnDelivery? 50: 0) * 0.05,
-      "adjustment": "",
-      "adjustment_description": "Standard Shipping",
-      "salesperson_id": "650580000000108050",
-      "tax_exemption_code": "",
-      "tax_authority_name": "",
-      // "zcrm_potential_id": "",
-      // "zcrm_potential_name": "",
-      "pricebook_id": "",
-      "template_id": ZOHO_INVOICE_TEMPLATE_ID,
-      "project_id": "",
-      "documents": [
-
-      ],
-      "mail_attachments": [
-
-      ],
-      // "billing_address_id": "650580000004394004",
-      // "shipping_address_id": "650580000004394006",
-      "gst_treatment": "business_none",
-      "gst_no": "",
-      "place_of_supply": "TN",
-      "quick_create_payment": {
-        "account_id": "650580000000000459",
-        "payment_mode": "Bank Transfer"
+      is_discount_before_tax: "",
+      discount: 0,
+      discount_type: "",
+      adjustment:
+        (orderDetails.orderData[0].deliveryCharges +
+          (orderDetails.orderData[0].cashOnDelivery ? 50 : 0)) *
+        1.05,
+      adjustment_description: "Standard Shipping",
+      shipping_charge: 0,
+      tax_exemption_code: "",
+      tax_authority_name: "",
+      pricebook_id: "",
+      template_id: ZOHO_INVOICE_TEMPLATE_ID,
+      project_id: "",
+      documents: [],
+      mail_attachments: [],
+      // billing_address_id: "650580000004548004",
+      // shipping_address_id: "650580000004548006",
+      gst_treatment: "consumer",
+      gst_no: "",
+      place_of_supply: "TN",
+      quick_create_payment: {
+        account_id: "650580000000000459",
+        payment_mode: "Bank Transfer",
       },
-      "tds_tax_id": "650580000000013032",
-      "is_tds_amount_in_percent": true,
-      "taxes": (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? [
-        {
-          "tax_name": "CGST",
-          "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.025
-        },
-        {
-          "tax_name": "SGST",
-          "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.025
-        },
-      ]: 
-      [
-        {
-          "tax_name": "GST",
-          "tax_amount": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges) * 0.05
-        },
-      ],
-      "tax_total": (orderDetails.orderData[0].totalAmount + orderDetails.orderData[0].deliveryCharges + orderDetails.orderData[0].cashOnDelivery? 50: 0) * 0.05,
-      payment_made: orderDetails.orderData[0].amountPaid
-    }
+      tcs_tax_id: "",
+      is_tcs_amount_in_percent: true,
+      tds_tax_id: "",
+      is_tds_amount_in_percent: true,
+      taxes:
+        orderDetails.orderData[0].billingAddress.state == "Tamil Nadu"
+          ? [
+              {
+                tax_name: "CGST",
+                tax_amount: orderDetails.orderData[0].totalAmount * 0.025,
+              },
+              {
+                tax_name: "SGST",
+                tax_amount: orderDetails.orderData[0].totalAmount * 0.025,
+              },
+            ]
+          : [
+              {
+                tax_name: "GST",
+                tax_amount: orderDetails.orderData[0].totalAmount * 0.05,
+              },
+            ],
+      tax_total: orderDetails.orderData[0].totalAmount * 0.05,
+      payment_made: orderDetails.orderData[0].amountPaid,
+    };
     console.log("Zoho invoice data: ", invoiceData)
 
     const zohoInvoiceFormData = new FormData();
@@ -3605,94 +3602,7 @@ exports.initiaterefund = async (req, res) => {
     console.log(error);
     res.status(500).json({ message: "Something went wrong in cancelling this order!" });
   }
-
-
-  /// new comment: for now, indha rendu states dhaan iruka mudiyum... meedhi ask client what and all the actions to be done if 
-  /// if an order is cancelled on various order status changes
-
-  // if (orderToRefund.deliveryStatus == "cancelled" && (orderToRefund.paymentStatus == "refund_init" || orderToRefund.paymentStatus == "refunded")) {
-  //   // assign courier automatically again
-  //   // this is test.. change it to implement new billing page like /order/SDJA23/reship and there get the charges and shit
-
-  //   // create payment link for added delivery charge
-  //   // after payment made, make respective changes in webhook
-  //   // maybe add a note to payment data and in /createshiporder if the note has "reship for {printwearOrderId}" then change status
-  //   return res.status(200).send({ message: `Reshipping again to ${orderToRefund.billingAddress.firstName + " " + orderToRefund.billingAddress.lastName}` });
-  // }
-
-  // if (orderToRefund.deliveryStatus == "courier_assigned") {
-  //   // if it is still processing and neither picked up nor delivered, simply hit SR API to remove that courier and issue refund
-  //   const shiprocketToken = await generateShiprocketToken();
-  //   const SHIPROCKET_ACC_TKN = shiprocketToken.token;
-
-  //   try {
-  //     const cancelSROrderRequest = await fetch(`${SHIPROCKET_BASE_URL}/orders/cancel/shipment/awbs`, {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: 'Bearer ' + SHIPROCKET_ACC_TKN
-  //       },
-  //       method: "POST",
-  //       body: JSON.stringify({
-  //         awbs: [
-  //           orderToRefund.shipRocketCourier.courierAWB
-  //         ]
-  //       })
-  //     });
-  //     const cancelSROrderResponse = await cancelSROrderRequest.json();
-  //     console.log(cancelSROrderResponse);
-
-  //     if (cancelSROrderRequest.status == 200 || cancelSROrderRequest.status == 204) {
-  //       console.log(orderToRefund.printwearOrderId + " shipment cancelled");
-  //       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
-  //       (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId != -1) && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId = null);
-  //       orderHistory.orderData[orderToRefundIndex].shipRocketCourier.estimatedDelivery = 'N/A';
-  //       orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierAWB = null;
-  //       (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName != 'SELF PICKUP') && (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierName = 'unassigned');
-  //       orderHistory.orderData[orderToRefundIndex].deliveryCharges = 0.0;
-
-  //       let cashfreeRefundStatus = await refundFunction();
-
-  //       if (cashfreeRefundStatus == 'refund_ok') {
-  //         orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
-  //         await orderHistory.save();
-  //         return res.status(200).json({ orderData: orderHistory.orderData });
-  //       } else {
-  //         return res.status(500).json({ message: cashfreeRefundStatus });
-  //       }
-
-  //     } else {
-  //       console.log(orderToRefund.printwearOrderId + " failed to cancel order", cancelSROrderResponse);
-  //       return res.status(500).json({ message: cancelSROrderResponse.message });
-  //     }
-
-  //   } catch (error) {
-  //     console.log(error);
-  //     return res.status(500).json({ message: "Server error in cancelling order" });
-  //   }
-  // }
-
-  // once processing start pantaanga na, you cant cancel the order, so below if is waste
-  // if (orderToRefund.deliveryStatus == "processing" && orderToRefund.paymentStatus == "success") {
-  //   // simply call refund function
-  //   let cashfreeRefundStatus = await refundFunction();
-
-  //   if (cashfreeRefundStatus == 'refund_ok') {
-  //     orderHistory.orderData[orderToRefundIndex].paymentStatus = "refund_init";
-  //     if (orderHistory.orderData[orderToRefundIndex].shipRocketCourier.courierId == -1) {
-  //       orderHistory.orderData[orderToRefundIndex].deliveryStatus = "cancelled";
-  //     }
-  //     await orderHistory.save();
-  //     return res.status(200).json({ orderData: orderHistory.orderData });
-  //   } else {
-  //     return res.status(500).json({ message: cashfreeRefundStatus });
-  //   }
-  //   // listen to refund event in webhook, then change the status of the order accordingly
-  //   return res.status(200).send("ok");
-  // }
-
-  // if (orderToRefund.deliveryStatus == "delivered") {
-  //   // hit SR API to create a return order
-  // }
+  /** deleted a huge descriptive + code comment */
 }
 
 
@@ -3822,8 +3732,8 @@ exports.generateZohoBooksInvoice = async (req, res) => {
     const zohoToken = await generateZohoToken();
     console.log(zohoToken)
     // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
-    let userid = '653e3284308b660442fd55a6';
-    let testorderid = '81OIWL';
+    let userid = '665352ff1b7a6080ec15ab9b';
+    let testorderid = '6L3J5M';
     const userData = await UserModel.findById(userid);
     if (!userData.isZohoCustomer) {
       // write endpoint to create zoho customer 
@@ -3893,175 +3803,94 @@ exports.generateZohoBooksInvoice = async (req, res) => {
     const zohoCustomerId = userData.zohoCustomerID;
     const zohoContactId = userData.zohoContactID;
 
-    // const invoiceData2 = {
-    //   "branch_id": "650580000000098357",
-    //   "autonumbergenerationgroup_id": "650580000004188098",
-    //   "payment_terms": 0,
-    //   "payment_terms_label": "Due on Receipt",
-    //   "customer_id": zohoCustomerId,
-    //   // "contact_persons": [
-    //   //   zohoContactId
-    //   // ],
-    //   // "invoice_number": "PW/2023-2024/16069",
-    //   // "invoice_number": "INV-696969",
-    //   "place_of_supply": "TN",
-    //   "gst_treatment": "business_none",
-    //   "gst_no": "",
-    //   discount: 0.0,
-    //   "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-    //   "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-    //   total: orderDetails.orderData[0].amountPaid,
-    //   "line_items": [
-    //     orderDetails.orderData[0].items.map((item, i) => {
-    //       let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
-    //       return {
-    //         item_id: currentDesignItem.product.id,
-    //         name: currentDesignItem.designName,
-    //         rate: item.price * 1.00,
-    //         quantity: parseFloat((+item.quantity).toFixed(2)),
-    //         "item_order": i + 1,
-    //         "description": "",
-    //         "discount": "0%",
-    //         "tax_id": "650580000000013321",
-    //         "project_id": "",
-    //         "tags": [
-
-    //         ],
-    //         "tax_exemption_code": "",
-    //         "account_id": "650580000000000486",
-    //         "item_custom_fields": [
-
-    //         ],
-    //         "hsn_or_sac": "61130000",
-    //         "gst_treatment_code": "",
-    //         "unit": "pcs"
-    //       }
-    //     })
-    //   ],
-    //   "shipping_charge": orderDetails.orderData[0].deliveryCharges,
-    //   "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
-    //   "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
-    //   "allow_partial_payments": false,
-    //   "is_discount_before_tax": "",
-    //   "discount": 0,
-    //   "discount_type": "",
-    //   "adjustment": "",
-    //   "adjustment_description": "Standard Shipping",
-    //   "salesperson_id": "650580000000108050",
-    //   "tax_exemption_code": "",
-    //   "tax_authority_name": "",
-    //   "zcrm_potential_id": "",
-    //   "zcrm_potential_name": "",
-    //   "pricebook_id": "",
-    //   "template_id": ZOHO_INVOICE_TEMPLATE_ID,
-    //   "project_id": "",
-    //   "documents": [
-
-    //   ],
-    //   "mail_attachments": [
-
-    //   ],
-    //   "quick_create_payment": {
-    //     "account_id": "650580000000000459",
-    //     "payment_mode": "Bank Transfer"
-    //   },
-    //   "tds_tax_id": "650580000000013032",
-    //   "is_tds_amount_in_percent": true
-    // }
     const invoiceData = {
-      "branch_id": "650580000000098357",
-      "autonumbergenerationgroup_id": "650580000004188098",
-      "reference_number": testorderid,
-      "payment_terms": 0,
-      "payment_terms_label": "Due on Receipt",
-      "customer_id": zohoCustomerId,
-      "contact_persons": [
-
-      ],
-      "date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      "due_date": formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      "notes": "Thanks for your business with Printwear.\nPlease write to us for additional information: accounts@printwear.in",
-      "terms": "Subject to Chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2 days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
-      "is_inclusive_tax": false,
-      "line_items":
-        orderDetails.orderData[0].items.map((item, i) => {
-          let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
-          return {
-            "item_order": 1,
-            "item_id": currentDesignItem.product.id,
-            "rate": currentDesignItem.price * 1.00,
-            "name": currentDesignItem.product.name,
-            "description": currentDesignItem.designName,
-            "quantity": (item.quantity).toFixed(2),
-            "discount": "0%",
-            "tax_id": "650580000000013321",
-            "tax_name": "SGST + CGST",
-            "tax_type": "tax",
-            "tax_percentage": 2.5,
-            "project_id": "",
-            "tags": [
-
-            ],
-            "tax_exemption_code": "",
-            "account_id": "650580000000000486",
-            "item_custom_fields": [
-
-            ],
-            "hsn_or_sac": "61130000",
-            "gst_treatment_code": "",
-            "unit": "pcs"
-          }
-        }),
-      "allow_partial_payments": false,
-      "custom_fields": [
-        {
-          "value": "",
-          "customfield_id": "650580000000103311"
+      branch_id: "650580000000098357",
+      autonumbergenerationgroup_id: "650580000004188098",
+      reference_number: orderDetails.orderData[0].printwearOrderId,
+      payment_terms: 0,
+      payment_terms_label: "Due on Receipt",
+      customer_id: zohoCustomerId,
+      contact_persons: [zohoContactId],
+      date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      notes:
+        "Thanks for your business with Printwear.\npls write us for additional information accounts@printwear.in",
+      terms:
+        "subject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+      is_inclusive_tax: false,
+      line_items: orderDetails.orderData[0].items.map((item, i) => {
+        let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
+        return {
+          item_order: 1,
+          item_id: currentDesignItem.product.id,
+          rate: currentDesignItem.price,
+          name: currentDesignItem.product.name,
+          description: currentDesignItem.designName,
+          quantity: item.quantity.toFixed(2),
+          discount: "0%",
+          tax_id: "650580000000013321",
+          project_id: "",
+          tags: [],
+          tax_exemption_code: "",
+          account_id: "650580000000000486",
+          item_custom_fields: [],
+          hsn_or_sac: "61091000",
+          gst_treatment_code: "",
+          unit: "PCS",
         }
+      }),
+      allow_partial_payments: false,
+      custom_fields: [
+        {
+          value: Object.keys(orderDetails.orderData[0].billingAddress).map(key => orderDetails.orderData[0].billingAddress[key]).join(', '),
+          customfield_id: "650580000000103311",
+        },
       ],
-      "is_discount_before_tax": "",
-      "discount": 0,
-      "discount_type": "",
-      "shipping_charge": orderDetails.orderData[0].deliveryCharges,
-      "adjustment": "",
-      "adjustment_description": "Standard Shipping",
-      "salesperson_id": "650580000000108050",
-      "tax_exemption_code": "",
-      "tax_authority_name": "",
-      // "zcrm_potential_id": "",
-      // "zcrm_potential_name": "",
-      "pricebook_id": "",
-      "template_id": ZOHO_INVOICE_TEMPLATE_ID,
-      "project_id": "",
-      "documents": [
-
-      ],
-      "mail_attachments": [
-
-      ],
-      // "billing_address_id": "650580000004394004",
-      // "shipping_address_id": "650580000004394006",
-      "gst_treatment": "business_none",
-      "gst_no": "",
-      "place_of_supply": "TN",
-      "quick_create_payment": {
+      is_discount_before_tax: "",
+      discount: 0,
+      discount_type: "",
+      adjustment: (orderDetails.orderData[0].deliveryCharges + (orderDetails.orderData[0].cashOnDelivery? 50: 0)) * 1.05,
+      adjustment_description: "Standard Shipping",
+      shipping_charge: 0,
+      tax_exemption_code: "",
+      tax_authority_name: "",
+      pricebook_id: "",
+      template_id: ZOHO_INVOICE_TEMPLATE_ID,
+      project_id: "",
+      documents: [],
+      mail_attachments: [],
+      // billing_address_id: "650580000004548004",
+      // shipping_address_id: "650580000004548006",
+      gst_treatment: "consumer",
+      gst_no: "",
+      place_of_supply: "TN",
+      quick_create_payment: {
         "account_id": "650580000000000459",
         "payment_mode": "Bank Transfer"
       },
-      "tds_tax_id": "650580000000013032",
-      "is_tds_amount_in_percent": true,
-      "taxes": [
+      tcs_tax_id: "",
+      is_tcs_amount_in_percent: true,
+      tds_tax_id: "",
+      is_tds_amount_in_percent: true,
+      taxes: (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? [
         {
-          "tax_name": "CGST",
-          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+          tax_name: "CGST",
+          tax_amount: (orderDetails.orderData[0].totalAmount) * 0.025
         },
         {
-          "tax_name": "SGST",
-          "tax_amount": (orderDetails.orderData[0].totalAmount) * 0.025
+          tax_name: "SGST",
+          tax_amount: (orderDetails.orderData[0].totalAmount) * 0.025
+        },
+      ]: 
+      [
+        {
+          tax_name: "GST",
+          tax_amount: (orderDetails.orderData[0].totalAmount) * 0.05
         },
       ],
-      "tax_total": (orderDetails.orderData[0].totalAmount) * 0.05
-    }
+      tax_total: (orderDetails.orderData[0].totalAmount) * 0.05,
+      payment_made: orderDetails.orderData[0].amountPaid
+    };
     console.log(invoiceData)
 
     const zohoInvoiceFormData = new FormData();
