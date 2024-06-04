@@ -30,6 +30,8 @@ var isSetPixelRatioCalled = false;
 
 var variantPrice = 0;
 
+var heightLimit = 2.5;
+
 // storing back design printing price to show in criteria table
 var backPrintingPrice = 0;
 var frontPrintingPrice = 0;
@@ -274,7 +276,7 @@ const calculateTotalWidth = () => {
   let totalWidth = object
     ? object.getScaledWidth() * Product.pixelToInchRatio
     : 0;
-  console.log(totalWidth);
+  // console.log(totalWidth);
   return totalWidth;
 };
 
@@ -609,8 +611,8 @@ const addImageToCanvas = async (e, el, imageURL, imageId) => {
     const imageURL = URL.createObjectURL(designImg);
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
-      designImage.minScaleLimit = 0.05;
-
+      designImage.minScaleLimit = (2.5 * 100)/(designImg.height * Product.pixelToInchRatio);
+      
       /* Updating Sizes */
       designImageHeight = designImage.getScaledHeight();
       designImageWidth = designImage.getScaledWidth();
