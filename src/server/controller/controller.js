@@ -3936,14 +3936,18 @@ exports.createshiporder = async (req, res) => {
   console.log(req.body);
 
   const statusType = req.body.type;
-  const cf_order_id = req.body.data.order.order_id;
+  const cf_order_id = req.body?.data?.order?.order_id;
+
+  if (!cf_order_id) return;
 
   if (statusType === 'WEBHOOK') return res.status(200).send("OK");
 
   if (statusType === 'PAYMENT_CHARGES_WEBHOOK') return res.json({ message: "OK" });
 
   if (statusType === 'PAYMENT_SUCCESS_WEBHOOK') {
-    const userid = req.body.data.customer_details.customer_id;
+    const userid = req.body.data?.customer_details?.customer_id;
+    
+    if (!userid) return;
 
     if (idempotencyKeys.has(cf_order_id)) {
       console.log("Response 200 sent after checking idempotency");
@@ -3980,16 +3984,17 @@ exports.createshiporder = async (req, res) => {
       }
 
     } catch (error) {
-      console.log("General error");
+      console.log("Webhook error");
       console.log(error);
-      const userid = req.body.data.customer_details.customer_id;
-      const cf_order_id = req.body.data.order.order_id;
-      console.log("Failed to create order for: " + userid + "CF Order Id: " + cf_order_id);
+      const userid = req.body?.data?.customer_details?.customer_id;
+      const cf_order_id = req.body?.data?.order?.order_id;
+      console.log("Failed to update wallet for: " + userid + "CF Order Id: " + cf_order_id);
     }
   }
 
   if (statusType === 'PAYMENT_FAILED_WEBHOOK') {
-    const userid = req.body.data.customer_details.customer_id;
+    const userid = req.body.data?.customer_details?.customer_id;
+    if (!userid) return;
     res.send("OK");
     try {
       if (cf_order_id.split("_")[0] == "RECHARGE") {
@@ -4030,7 +4035,7 @@ exports.createshiporder = async (req, res) => {
   }
 
   if (statusType === 'REFUND_STATUS_WEBHOOK') {
-    const orderid = req.body.data.refund.order_id;
+    const orderid = req.body.data?.refund?.order_id;
     console.log(`REFUND DETAILS for ${userid} on ${new Date().toLocaleString()}`);
     res.send("OK");
   }

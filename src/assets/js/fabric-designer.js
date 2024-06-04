@@ -611,7 +611,7 @@ const addImageToCanvas = async (e, el, imageURL, imageId) => {
     const imageURL = URL.createObjectURL(designImg);
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
-      designImage.minScaleLimit = (2.5 * 100)/(designImg.height * Product.pixelToInchRatio);
+      designImage.minScaleLimit = 0.01;
       
       /* Updating Sizes */
       designImageHeight = designImage.getScaledHeight();
