@@ -161,7 +161,7 @@
                             <option value="Daman and Diu">Daman and Diu</option>
                             <option value="Delhi">Delhi</option>
                             <option value="Lakshadweep">Lakshadweep</option>
-                            <option value="Puducherry">Puducherry</option>
+                            <option value="Pondicherry">Pondicherry</option>
                         </select>
                     </div>
     
@@ -249,7 +249,7 @@
                             <option value="Daman and Diu">Daman and Diu</option>
                             <option value="Delhi">Delhi</option>
                             <option value="Lakshadweep">Lakshadweep</option>
-                            <option value="Puducherry">Puducherry</option>
+                            <option value="Pondicherry">Pondicherry</option>
                         </select>
                     </div>
     
@@ -302,12 +302,11 @@
                 const selfPickup = document.querySelector('#self-pickup');
                 const billSummary = document.querySelector(".bill-summary");
                 const CODtoggle = document.querySelector("#cod-toggle");
-                const billingAddressState = document.querySelector('#billing-address-state');
+                const shippingAddressState = document.querySelector('#shipping-address-state');
 
-                billingAddressState.onchange = (e) => {
+                shippingAddressState.onchange = (e) => {
                     console.log("🚀 ~ e:", e.target.value)
                     if ((e.target.value.trim() != "Tamil Nadu")) {
-                        console.log("TN Ledhu")
                         document.querySelector('#gst').innerHTML = '(GST (5%))'
                         return;
                     }

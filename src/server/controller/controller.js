@@ -810,7 +810,7 @@ exports.obtainimages = async (req, res) => {
     res.status(200).json(imageData);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in loading images" });
   }
 }
 
@@ -825,7 +825,9 @@ exports.deleteimage = async (req, res) => {
       await imageToDelete.save({ validateBeforeSave: false });
       return res.status(200).json({ message: "Deleted successfully!" });
     }
-    const fileReference = storageReference.child(`images/${req.userId + "_" + imageToDelete.images[0].name}`);
+    const fileNameFromURL = imageToDelete.images[0].url.split("?alt")[0].split("images%2F")[1];
+    console.log("🚀 ~ exports.deleteimage ~ fileNameFromURL:", fileNameFromURL)
+    const fileReference = storageReference.child(`images/${fileNameFromURL}`);
     await fileReference.delete();
 
     await ImageModel.findOneAndUpdate(
@@ -843,7 +845,7 @@ exports.deleteimage = async (req, res) => {
     res.status(200).json({ message: "Deleted successfully!" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in deleting image!" });
   }
 
 }
@@ -2864,7 +2866,24 @@ exports.rechargewallet = async (req, res) => {
   }
 }
 
+// state to code mapping for GST
+const stateToCode = {
+  "Andhra Pradesh": "AP",	"Kerala": "KL",	"Tripura": "TR",
+"Arunachal Pradesh": "AR",	"Madhya Pradesh": "MP",	"Uttarakhand": "UK",
+"Assam": "AS",	"Maharashtra": "MH",	"Uttar Pradesh": "UP",
+"Bihar": "BR",	"Manipur": "MN",	"West Bengal": "WB",
+"Chhattisgarh": "CG",	"Meghalaya": "ML",	 	 
+"Goa": "GA",	"Mizoram": "MZ",	"Andaman and Nicobar Islands": "AN",
+"Gujarat": "GJ",	"Nagaland": "NL",	"Chandigarh": "CH",
+"Haryana": "HR",	"Orissa": "OR",	"Dadra and Nagar Haveli": "DH",
+"Himachal Pradesh": "HP",	"Punjab": "PB",	"Daman and Diu": "DD",
+"Jammu and Kashmir": "JK",	"Rajasthan": "RJ",	"Delhi": "DL",
+"Jharkhand": "JH",	"Sikkim": "SK",	"Lakshadweep": "LD",
+"Karnataka": "KA",	"Tamil Nadu": "TN",	"Pondicherry": "PY", "Telangana": "TG"
+}
 
+const INTERSTATE_TAX_ID = "650580000000013309";
+const TN_TAX_ID = "650580000000013321";
 // the brand new endpoint for creating orders
 exports.placeorder = async (req, res) => {
   try {
@@ -3140,7 +3159,7 @@ exports.placeorder = async (req, res) => {
 
     /// STEP 4: GENERATE ZOHO INVOICE
     const zohoToken = await generateZohoToken();
-    if (!userData.isZohoCustomer) {
+    if (!userData.zohoCustomerID || !userData.zohoContactID) {
       // write endpoint to create zoho customer 
       let customerData = {
         "contact_name": userData.name,
@@ -3148,8 +3167,8 @@ exports.placeorder = async (req, res) => {
         "contact_persons": [
           {
             "salutation": userData.name,
-            "first_name": userData.firstName,
-            "last_name": userData.lastName,
+            "first_name": userData.firstName ?? billingAddress.firstName,
+            "last_name": userData.lastName ?? billingAddress.lastName,
             "email": userData.email,
             "phone": userData.phone,
             "mobile": userData.phone,
@@ -3169,7 +3188,7 @@ exports.placeorder = async (req, res) => {
         },
         "language_code": "en",
         "country_code": "IN",
-        "place_of_contact": "TN",
+        "place_of_contact": stateToCode[billingAddress.state],
       }
       const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
         method: "POST",
@@ -3204,7 +3223,7 @@ exports.placeorder = async (req, res) => {
       payment_terms: 0,
       payment_terms_label: "Due on Receipt",
       customer_id: zohoCustomerId,
-      contact_persons: [zohoContactId],
+      contact_persons: zohoContactId ? [zohoContactId]: [],
       date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
       due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
       notes:
@@ -3217,14 +3236,14 @@ exports.placeorder = async (req, res) => {
           (design) => design._id + "" == item.designId
         );
         return {
-          item_order: 1,
+          item_order: i+1,
           item_id: currentDesignItem.product.id,
           rate: currentDesignItem.price,
           name: currentDesignItem.product.name,
           description: currentDesignItem.designName,
           quantity: item.quantity.toFixed(2),
           discount: "0%",
-          tax_id: "650580000000013321",
+          tax_id: stateToCode[orderDetails.orderData[0].shippingAddress.state] == "TN"? TN_TAX_ID: INTERSTATE_TAX_ID,
           project_id: "",
           tags: [],
           tax_exemption_code: "",
@@ -3264,7 +3283,7 @@ exports.placeorder = async (req, res) => {
       // shipping_address_id: "650580000004548006",
       gst_treatment: "consumer",
       gst_no: "",
-      place_of_supply: "TN",
+      place_of_supply: stateToCode[orderDetails.orderData[0].shippingAddress.state],
       quick_create_payment: {
         account_id: "650580000000000459",
         payment_mode: "Bank Transfer",
@@ -3273,24 +3292,6 @@ exports.placeorder = async (req, res) => {
       is_tcs_amount_in_percent: true,
       tds_tax_id: "",
       is_tds_amount_in_percent: true,
-      taxes:
-        orderDetails.orderData[0].billingAddress.state == "Tamil Nadu"
-          ? [
-              {
-                tax_name: "CGST",
-                tax_amount: orderDetails.orderData[0].totalAmount * 0.025,
-              },
-              {
-                tax_name: "SGST",
-                tax_amount: orderDetails.orderData[0].totalAmount * 0.025,
-              },
-            ]
-          : [
-              {
-                tax_name: "GST",
-                tax_amount: orderDetails.orderData[0].totalAmount * 0.05,
-              },
-            ],
       tax_total: orderDetails.orderData[0].totalAmount * 0.05,
       payment_made: orderDetails.orderData[0].amountPaid,
     };
@@ -3669,7 +3670,8 @@ exports.deletelabel = async (req, res) => {
   try {
     const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels._id': imageId }, { 'labels.$': 1 });
     // const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels.' })
-    const fileReference = storageReference.child(`labels/${req.userId + "_" + imageToDelete.labels[0].name}`);
+    const fileNameFromURL = imageToDelete.images[0].url.split("?alt")[0].split("labels%2F")[1];
+    const fileReference = storageReference.child(`labels/${fileNameFromURL}`);
     await fileReference.delete();
 
     await LabelModel.findOneAndUpdate(

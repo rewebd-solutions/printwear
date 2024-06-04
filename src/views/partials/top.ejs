@@ -386,10 +386,12 @@
         method: 'POST'
       });
       const imageDeleteResponse = await imageDeleteRequest.json();
-      if (imageDeleteRequest.ok) {
-        notyf.success("Design Image deleted successfully!");
-        fetchImageAndPopulate(modularData[type]);
+      if (!imageDeleteRequest.ok) {
+        notyf.error(imageDeleteResponse.error);
+        return;
       }
+      notyf.success("Design Image deleted successfully!");
+      fetchImageAndPopulate(modularData[type]);
     } catch (error) {
       console.log(error);
       notyf.error("Something went wrong in deleting!");
