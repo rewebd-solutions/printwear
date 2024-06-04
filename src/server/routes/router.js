@@ -32,11 +32,11 @@ route.post('/uploadimage', authServices.authorizeToken, upload.single('image'), 
 route.get("/obtainimages", authServices.authorizeToken, controller.obtainimages);
 route.post("/deleteimage", authServices.authorizeToken, controller.deleteimage);
 
-route.post('/addproduct', controller.addproduct); // adding a product by us, not user
+// route.post('/addproduct', controller.addproduct); // adding a product by us, not user
 route.get("/getproducts", controller.getproducts);// get request that retrieves all product info → for use in stock inventory
 route.get("/getproduct/:id", controller.getproduct);
 
-route.post("/adddesign", authServices.authorizeToken, controller.adddesign);
+// route.post("/adddesign", authServices.authorizeToken, controller.adddesign);
 // route.get("/getdesigns", authServices.authorizeToken, controller.getdesigns);
 route.post("/deletedesign", authServices.authorizeToken, controller.deletedesign);
 
@@ -88,7 +88,7 @@ route.post("/connect-shopify", authServices.authorizeToken, controller.connectSh
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
 
 route.get("/getzohoproducts", controller.getZohoProducts);
-route.get("/getzohoproductgroups", controller.getZohoProductGroups);
+// route.get("/getzohoproductgroups", controller.getZohoProductGroups);
 
 route.post("/createshopifyproduct", authServices.authorizeToken, controller.createshopifyproduct);
 route.post("/createwoocommerceorder", authServices.authorizeToken, controller.createwoocommerceorder);
@@ -110,7 +110,7 @@ route.post("/deletelabel", authServices.authorizeToken, controller.deletelabel)
 
 route.post("/checkorderid", authServices.authorizeToken, controller.checkorderid);
 route.post("/initiaterefund", authServices.authorizeToken, controller.initiaterefund);
-route.post("/generatezohoinvoice", controller.generateZohoBooksInvoice); // add authService.authorizeToken soon
+// route.post("/generatezohoinvoice", controller.generateZohoBooksInvoice); // add authService.authorizeToken soon
 
 route.get("/invoice", authServices.authorizeToken, controller.getinvoices);
 

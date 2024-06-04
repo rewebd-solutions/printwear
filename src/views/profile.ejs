@@ -17,98 +17,6 @@
             <%- include('partials/top.ejs') %>
     </div>
     
-    <!-- <div class="profile">
-        <div class="left">
-            <div class="prof">
-                <div class="img">
-                    <img src='<%= data.userData.profileImage %>' id="pht">
-                </div>
-                <div class="hd">
-                    <h2>
-                        <%= data.userData.name %>
-                    </h2>
-                </div>
-            </div>
-            <div class="details">
-                <div class="same">
-                    <div class="sm">
-                        <h5>First Name</h5>
-                        <p>
-                            <%= data.userData.firstName %>
-                        </p>
-                    </div>
-                    <div class="sm">
-                        <h5>Last Name</h5>
-                        <p>
-                            <%= data.userData.lastName %>
-                        </p>
-                    </div>
-                </div>
-                <div class="same">
-                    <div class="sm">
-                        <h5>Email</h5>
-                        <p>
-                            <%= data.userData.email %>
-                        </p>
-                    </div>
-                    <div class="sm">
-                        <h5>Phn_No</h5>
-                        <p>
-                            <%= data.userData.phone %>
-                        </p>
-                    </div>
-                </div>
-                <div class="same">
-                    <div class="sm">
-                        <h5>Password</h5>
-                        <p>*********</p>
-                    </div>
-                </div>
-                <div class="same">
-                    <a href="#">Change password</a>
-                </div>
-            </div>
-        </div>
-        <div class="right">
-            <div class="righttop">
-                <h3>Your Shopify Stores:</h3>
-                <div class="det">
-                    <h5>Shopify Store Name:</h5>
-                    <p>
-                        <%= data.storeData?.shopifyStore?.shopName %>
-                    </p>
-                </div>
-                <div class="det">
-                    <h5>Shopify Store URL:</h5>
-                    <p>
-                        <%= data.storeData?.shopifyStore.shopifyStoreURL %>
-                    </p>
-                </div>
-                <div class="det">
-                    <a href="/stock">Stock data&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a>
-                </div>
-            </div>
-            <div class="rightbot">
-                <h3>Your WooCommerce Stores:</h3>
-                <div class="det">
-                    <h5>WooCommerce Store Name:</h5>
-                    <p>
-                        <%= data.storeData?.wooCommerceStore.shopName %>
-                    </p>
-                </div>
-                <div class="det">
-                    <h5>WooCommerce Store URL:</h5>
-                    <p>
-                        <%= data.storeData?.wooCommerceStore.url %>
-                    </p>
-                </div>
-                <div class="det">
-                    <a href="#">Stock data&nbsp;<i class="fa-solid fa-arrow-up-right-from-square"></i></a>
-                </div>
-            </div>
-        </div>
-    </div> -->
-    
     <div class="profile" 
     style="
         padding: 1rem;
@@ -124,8 +32,6 @@
                 <div class="col-md-3 pt-0">
                     <div class="list-group list-group-flush account-settings-links">
                         <a class="list-group-item list-group-item-action active" data-toggle="list"
-                            href="#account-bene">COD Remittance</a>
-                        <a class="list-group-item list-group-item-action" data-toggle="list"
                             href="#account-general">General</a>
                         <a class="list-group-item list-group-item-action" data-toggle="list"
                             href="#account-address">Address</a>
@@ -141,7 +47,7 @@
                 </div>
                 <div class="col-md-9">
                     <div class="tab-content">
-                        <div class="tab-pane fade" id="account-general">
+                        <div class="tab-pane fade active show" id="account-general">
                             <hr class="border-light m-0">
                             <div class="card-body">
                                 <div class="form-group">

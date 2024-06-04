@@ -50,6 +50,8 @@ var savedState = {
 // Design ID from backend before save has been triggered once
 var dbDesignId = null;
 
+var saveDesignResponse = null;
+
 /* Notfy - Notification Snackbar */
 var notyf = new Notyf();
 /* Initialize Animate On Scroll */
@@ -182,6 +184,21 @@ const disableButton = (state, text = "Saving...") => {
   state
     ? (saveButton.innerHTML = text)
     : (saveButton.innerHTML = `<i class="fa-regular fa-page"></i> Save Design`);
+};
+
+/* Toggle Disable and Enable button */
+const disableOrderButton = (state, text = "Adding to order...") => {
+  const saveButton = document.querySelector(".order-button");
+  if (!saveButton) return;
+  state
+    ? saveButton.setAttribute("disabled", true)
+    : saveButton.removeAttribute("disabled");
+  state
+    ? saveButton.classList.add("disabled")
+    : saveButton.classList.remove("disabled");
+  state
+    ? (saveButton.innerHTML = text)
+    : (saveButton.innerHTML = `<i class="fa-regular fa-list"></i> Add to order`);
 };
 
 /** Disable function for switching sides when saving */
@@ -548,10 +565,12 @@ const loadState = () => {
   if (!fabricCanvas) return;
   if (canvasState[designDirection] === null) fabricCanvas.clear();
   else fabricCanvas.loadFromJSON(canvasState[designDirection], updateStats);
-  // else fabricCanvas.loadFromJSON(canvasState[designDirection], fabricCanvas.renderAll.bind(fabricCanvas), function (o, obj) {
-    // console.log(o, obj);
-  //   updateStats();
-  // });
+  fabricCanvas.getObjects().forEach(obj => obj.setControlsVisibility({
+    mb: false,
+    mt: false,
+    mr: false,
+    ml: false,
+  }));
   updateStats();
   // console.log("updateStatsCalled");
 };
@@ -698,6 +717,57 @@ const changeSide = (e, side) => {
   // changeStatName();
 };
 
+const checkAndAddOrderButton = async () => {
+  /** check if page has been navigated to, from orders la create new design */
+  const searchParams = new URLSearchParams(location.search);
+  let hasBeenRedirected = searchParams.get("from") === "orders";
+  const orderId = hasBeenRedirected ? searchParams.get("id") : null;
+
+  if (hasBeenRedirected && orderId) {
+    document.querySelector(".action-buttons").innerHTML += 
+      `<button onclick="addToOrder()" class="order-button"><i class="fa-regular fa-list"></i> Add to order</button>`;
+  }
+}
+
+const addToOrder = async () => {
+  disableOrderButton(true);
+
+  const latestDesign = saveDesignResponse && saveDesignResponse?.designs?.at(-1);
+  if (!dbDesignId || !latestDesign._id) {
+    disableOrderButton(false);
+    return notyf.error("Save design before adding to order!");
+  }
+
+  try {
+    const addToOrderReq = await fetch("/createorder", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        designId: latestDesign._id,
+        productId: latestDesign.productId,
+        price: latestDesign.price,
+      }),
+    });
+    const addToOrderRes = await addToOrderReq.json();
+    // console.log(addToOrderRes);
+  
+    if (!addToOrderReq.ok) {
+      throw new Error("Couldn't add design to order");
+    }
+  
+    notyf.success("Added to orders, redirecting to order page");
+    setTimeout(() => {
+      location.href = "/placeorder";
+    }, 2000);
+    
+  } catch (error) {
+    console.log("🚀 ~ addToOrder ~ error:", error)
+    notyf.error(error);
+  }
+}
+
 /* Download Image */
 const downloadDesign = () => {
   // Deselecting active object
@@ -749,31 +819,6 @@ const downloadDesign = () => {
           designDirection +
           ".png"
       );
-      // console.log("front image saved?");
-      // change design direction and convert image
-
-      /* rest of code to change direction of canvas and then download again */
-      // designDirection == "front"? designDirection = "back": designDirection = "front";
-
-      // loadState();
-    //  console.log('sate changed');
-
-      // setTimeout(() => {
-      //   domtoimage.toBlob(node, config).then(function (blob) {
-      //     window.saveAs(
-      //       blob,
-      //       userName +
-      //       "_" +
-      //       designName.value +
-      //       "_" +
-      //       new Date().toLocaleTimeString() +
-      //       "-" +
-      //       designDirection +
-      //       ".png"
-      //   )});
-      // }, 200);
-
-      // designDirection == "front"? designDirection = "back": designDirection = "front";
 
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed black")
@@ -804,6 +849,7 @@ const saveDesign = async () => {
   
   try {
     disableButton(true);
+    disableOrderButton("Add to order",true);
     disableSideSwitch(true);
     const canvasContainer = document.querySelectorAll(".canvas-container > *");
     canvasContainer.forEach((item) => (item.style.border = "none"));
@@ -926,15 +972,16 @@ const saveDesign = async () => {
         body: formData,
       });
 
-      const saveDesignResponse = await saveDesignRequest.json();
+      saveDesignResponse = await saveDesignRequest.json();
       // console.log(saveDesignResponse);
 
       if (!saveDesignRequest.ok) {
-        throw new Error({ reason: "Save failed!", error: saveDesignResponse.error ?? saveDesignResponse.message });
+        throw new Error({ reason: "Save failed!", error: saveDesignResponse.message });
       }
       isSaveSuccessful = true;
 
       document.querySelector(".save-button").innerHTML = "Saved!";
+      disableOrderButton(false);
       notyf.success("Design saved successfully!");
 
       savedState[designDirection] = true;
@@ -964,49 +1011,13 @@ const saveDesign = async () => {
         `
         );
       }
-
-      /** check if page has been navigated to, from orders la create new design */
-      const searchParams = new URLSearchParams(location.search);
-      let hasBeenRedirected = searchParams.get("from") === "orders";
-      const orderId = hasBeenRedirected ? searchParams.get("id") : null;
-
-      if (hasBeenRedirected) {
-        const saveDesignButton = document.querySelector(".save-button");
-
-        saveDesignButton.innerHTML = "Adding to order...";
-
-        const latestDesign = saveDesignResponse.designs.at(-1);
-
-        const addToOrderReq = await fetch("/createorder", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            designId: latestDesign._id,
-            productId: latestDesign.productId,
-            price: latestDesign.price,
-          }),
-        });
-        const addToOrderRes = await addToOrderReq.json();
-        // console.log(addToOrderRes);
-
-        if (!addToOrderReq.ok) {
-          throw new Error("Couldn't add design to order");
-        }
-
-        notyf.success("Added to orders, redirecting to order page");
-        setTimeout(() => {
-          location.href = "/placeorder";
-        }, 3000);
-      }
       // disableButton(false);
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed black")
       );
     }).catch(error => {
       // console.log(error);
-      notyf.error(error.error ?? error.message);
+      notyf.error(error.message);
       disableButton(false);
       disableSideSwitch(false);
       canvasContainer.forEach(
@@ -1179,6 +1190,7 @@ const selectLabel = (el, labelId) => {
 fetchProductData();
 fetchUserDesigns();
 fetchUserLabels();
+checkAndAddOrderButton();
 
 /* Delete Active Canvas Object with Delete */
 document.addEventListener(

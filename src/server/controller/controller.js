@@ -547,7 +547,7 @@ exports.login = async (req, res) => {
     const check = await UserModel.findOne({ email: req.body.email })
 
     if (check === null) {
-      return res.render("login", { data: {error: "User does not exist. If you are an existing customer, please contact +91 9345496725"} });
+      return res.render("login", { data: {error: "Invalid email or password. If old printwear user, please contact +91 9345496725"} });
     }
 
     if (check.name === "support-admin@gmail.com") {
@@ -852,139 +852,7 @@ exports.deleteimage = async (req, res) => {
 
 
 // for adding products and getting products data
-exports.addproduct = async (req, res) => {
-  const productData = req.body;
-
-  const mockData = { // this mockData should be parsed from the req.body and not hard coded
-    colors: [
-      {
-        colorName: "white",
-        colorSKU: "WHT",
-        colorCode: "#fff",
-        colorImage: {
-          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontwhite.png?alt=media&token=6b8377cc-7820-4510-ad56-6a48b9d5b254",
-          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackwhite.png?alt=media&token=7d3ec7ea-6860-4fb9-81e4-82c8f514618e"
-        },
-        sizes: [
-          {
-            sizeSKU: "SM",
-            size: "S",
-            stock: 3
-          },
-          {
-            sizeSKU: "MD",
-            size: "M",
-            stock: 9
-          },
-          {
-            sizeSKU: "LG",
-            size: "L",
-            stock: 10
-          },
-        ]
-      },
-      {
-        colorName: "black",
-        colorSKU: "BLK",
-        colorCode: "#313131",
-        colorImage: {
-          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontblack.png?alt=media&token=8500e6ef-77fc-4449-8044-45b5ba248c45",
-          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackblack.png?alt=media&token=b8f3c471-a0d9-4999-966e-a89e87b6b476"
-        },
-        sizes: [
-          {
-            sizeSKU: "XSM",
-            size: "XS",
-            stock: 10
-          },
-          {
-            sizeSKU: "SM",
-            size: "S",
-            stock: 7
-          },
-          {
-            sizeSKU: "MD",
-            size: "M",
-            stock: 6
-          }
-        ],
-
-      },
-      {
-        colorName: "red",
-        colorSKU: "RED",
-        colorCode: "#f24660",
-        colorImage: {
-          front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontred.png?alt=media&token=fe6afdd3-eacf-47a3-8814-8113b3b78971",
-          back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackred.png?alt=media&token=67474d4f-e96c-4e8e-919b-91725d58689b"
-        },
-        sizes: [
-          {
-            sizeSKU: "SM",
-            size: "S",
-            stock: 4
-          },
-          {
-            sizeSKU: "MD",
-            size: "M",
-            stock: 9
-          },
-          {
-            sizeSKU: "LG",
-            size: "L",
-            stock: 0
-          }
-        ],
-
-      },
-    ],
-    product: {
-      SKU: "HOOD",
-      name: "Test Hoodie",
-      category: "Hoodies",
-      gender: "M",
-      description: "This is a test hoodie that is currently used for testing purposes",
-      productImage: {
-        front: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalefrontwhite.png?alt=media&token=6b8377cc-7820-4510-ad56-6a48b9d5b254",
-        back: "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2Fhoodiemalebackwhite.png?alt=media&token=7d3ec7ea-6860-4fb9-81e4-82c8f514618e",
-      },
-      price: {
-        xs: 400,
-        s: 450,
-        m: 500,
-        l: 550,
-        xl: 600
-      },
-      colors: [],
-      canvas: {
-        front: {
-          startX: 524,
-          startY: 359,
-          width: 490,
-          height: 950
-        },
-        back: {
-          startX: 245,
-          startY: 163,
-          width: 230,
-          height: 450
-        }
-      }
-    }
-  }
-
-  const productSave = new ProductModel(mockData.product);
-  // console.log(productSave);
-  for (let colorEntry of mockData.colors) {
-    let colorData = new ColorModel(colorEntry);
-    colorData.productId = productSave._id;
-    productSave.colors.push(colorData._id)
-    await colorData.save();
-    // console.log(productSave);
-  }
-  await productSave.save();
-  res.status(200).send("ok");
-}
+/** removed addproduct very old endpoint */
 
 exports.getproducts = async (req, res) => {
   try {
@@ -1024,38 +892,7 @@ exports.getproduct = async (req, res) => {
 
 
 // endpoint for adding design
-exports.adddesign = async (req, res) => {
-  const reqBody = req.body;
-  const frontImage = reqBody.frontImage.substring(reqBody.frontImage.indexOf(',') + 1);
-  const backImage = reqBody.backImage.substring(reqBody.backImage.indexOf(',') + 1);
-  // check if color is null.. if null, then white only.. also for now obtain from req param of client
-  try {
-    const frontImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_front_${otpGen.generate(4, { digits: true })}.png`);
-    await frontImageReference.putString(frontImage, 'base64', { ContentType: 'image/png' });
-    const frontImageDownloadURL = await frontImageReference.getDownloadURL();
-
-    const backImageReference = storageReference.child(`designs/${req.userId}_${reqBody.designName || "My_design"}_back_${otpGen.generate(4, { digits: true })}.png`);
-    await backImageReference.putString(backImage, 'base64', { ContentType: 'image/png' });
-    const backImageDownloadURL = await backImageReference.getDownloadURL();
-
-    // console.log(frontImageDownloadURL, backImageDownloadURL);
-    const designData = new DesignModel({
-      designName: reqBody.designName || "My_design",
-      baseProductId: reqBody.productId,
-      color: reqBody.color,
-      designImage: {
-        front: frontImageDownloadURL,
-        back: backImageDownloadURL
-      },
-      createdBy: req.userId
-    });
-    await designData.save();
-    res.status(200).json(designData);
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({ error });
-  }
-}
+/** old design format removed */
 
 
 
@@ -1291,337 +1128,7 @@ exports.getwooorders = async (req, res) => {
 
 
 // zoho inventory hitting
-exports.getZohoProductsFromInventory = async (req, res) => {
-  try {
-    // get acctkn then hit the API
-    const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, { method: "POST" });
-    const zohoAccResponse = await zohoAccRequest.json();
-    // console.log(zohoAccResponse);
-    const zohoAPIAccessToken = zohoAccResponse.access_token;
-
-    const zohoInventoryItemsResponse = { items: [] }
-
-    const pagePromises = [1, 2, 3, 4, 5].map(async page => {
-      const zohoInventoryItemsRequest = await fetch(`https://www.zohoapis.in/inventory/v1/items?organization_id=60010804173&page=${page}&per_page=400`, {
-        headers: {
-          'Authorization': 'Zoho-oauthtoken ' + zohoAPIAccessToken
-        }
-      })
-      return zohoInventoryItemsRequest.json()
-    })
-
-    // regex pattern string arrays
-    const shirtFilterKeywords = [
-      "bw mens",
-      "bw womens",
-      "hoodie",
-      "hoodies",
-      "kids half sleeve",
-      "men oversized",
-      "men rn",
-      "mens rn",
-      "mens round neck",
-      "mens full sleeve",
-      "mens half sleeve",
-      "mens oversize",
-      "mens raglan sleeve",
-      "oversize tees",
-      "oversized t-shirt",
-      "polo",
-      "sweatshirts",
-      "women boyfriend",
-      "womens boyfriend",
-      "womens 3/4",
-      "womens half sleeve",
-      "womens raglan sleeve",
-      "womens rn",
-      "work wear polo",
-      "workwear polo",
-    ];
-    const colorFilterKeywords = [
-      "black",
-      "pink",
-      "charcoal melange",
-      "ecru melange",
-      "grey melange",
-      "mustard yellow",
-      "navy blue",
-      "red",
-      "white",
-      "army green",
-      "royal blue",
-      "maroon",
-      "lemon yellow",
-      "olive green",
-      "leaf green",
-      "beige",
-      "yellow",
-      "navy",
-      "turquoise blue",
-      "turquoise",
-      "turcoise blue",
-      "chocolate brown",
-      "sky blue",
-      "bottle green",
-      "iris lavender"
-    ]
-    const colorHexCodes = {
-      "black": "#000000",
-      "pink": "#ffb6c1",
-      "charcoal melange": "#464646",
-      "ecru melange": "#F5F5DC",
-      "grey melange": "#808080",
-      "mustard yellow": "#FFDB58",
-      "navy blue": "#000080",
-      "red": "#FF0000",
-      "white": "#FFFFFF",
-      "army green": "#4B5320",
-      "royal blue": "#4169E1",
-      "maroon": "#800000",
-      "lemon yellow": "#FFF44F",
-      "olive green": "#556B2F",
-      "leaf green": "#228B22",
-      "beige": "#F5F5DC",
-      "yellow": "#FFFF00",
-      "navy": "#000080",
-      "turquoise": "#40E0D0",
-      "turcoise blue": "#00FFEF",
-      "turquoise blue": "#40e0d0",
-      "chocolate brown": "#7B3F00",
-      "sky blue": "#87CEEB",
-      "bottle green": "#006A4E",
-      "iris lavender": "#897CAC"
-    };
-    const sizeFilterKeywords = [
-      "xs",
-      "s",
-      "m",
-      "l",
-      "xl",
-      "2xl",
-      "3xl",
-      "4xl",
-      "5xl",
-      "6xl",
-      "0-1yrs",
-      "12-13yrs",
-      "10-11yrs",
-      "14-15yrs",
-      "16-17yrs",
-      "2-3yrs",
-      "3-4years",
-      "4-5yrs",
-      "5-6yrs",
-      "6-7yrs",
-      "8-9yrs",
-      "9-10yrs",
-      "10-11yrs",
-      "11-12yrs",
-      "12-13yrs",
-      "13-14yrs",
-      "14-15yrs",
-      "15-16yrs",
-      "16-17yrs",
-    ]
-    const dressFilterKeywords = ["shirt", "shirts", "men", "mens", "hoodie", "hoodies", "kid", "kids", "women", "womens", "tees", "tee", "polo"];
-
-    const colorPattern = new RegExp(colorFilterKeywords.join('|'), 'i');
-    const shirtPattern = new RegExp(shirtFilterKeywords.join('|'), 'i');
-    const sizePattern = new RegExp(sizeFilterKeywords.join('|'), 'i');
-
-    const imageNames = await storageReference.child("products/").listAll();
-    const imageURLs = imageNames.items.map(item => ({
-      image: item._delegate._location.path_.split("/")[1].toLowerCase(),
-      url: Promise.resolve(item.getDownloadURL())
-    }));
-    const imageURLsPromise = imageURLs.map(url => url.url);
-
-    const URLResults = await Promise.all(imageURLsPromise);
-    URLResults.forEach((result, i) => {
-      imageURLs[i].url = result
-    })
-
-    Promise.allSettled(pagePromises).then(results => {
-      var categorizedProducts = {};
-      var filterArray = {};
-      results.forEach(result => {
-        if (result.status === 'fulfilled') {
-          zohoInventoryItemsResponse.items.push(...result.value.items)
-
-          // filtering out only valid items and only having necessary fields for each item
-          zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.map(item => {
-            if (dressFilterKeywords.some(keyword => item.item_name.toLowerCase().includes(keyword))) return {
-              item_name: item.item_name,
-              actual_available_stock: item.actual_available_stock,
-              brand: item.brand,
-              image_document_id: item.image_document_id,
-              item_id: item.item_id,
-              item_name: item.item_name,
-              manufacturer: item.manufacturer,
-              sku: item.sku,
-              purchase_rate: item.purchase_rate,
-              rate: item.rate,
-              decription: item.description,
-              group: item.group_name
-            }
-          })
-
-          // filter null products
-          zohoInventoryItemsResponse.items = zohoInventoryItemsResponse.items.filter(product => {
-            if (product != null) return product
-          });
-
-          // apply categorization for each product
-          zohoInventoryItemsResponse.items.forEach((product, i) => {
-
-            const { item_name, item_id, actual_available_stock, purchase_rate, sku, brand, manufacturer, description, group } = product;
-            const splitItemName = item_name.split(/\s*[- ]\s*/);
-
-            // Use the regular expression to find matching colors in the item_name
-            let colorMatches = item_name.toLowerCase().match(colorPattern);
-            let shirtMatches = item_name.toLowerCase().match(shirtPattern);
-            let sizeMatches = splitItemName[splitItemName.length - 1].toLowerCase().match(sizePattern);
-            if (shirtMatches && shirtMatches[0] === "kids half sleeve") sizeMatches = item_name.split(" - ")[1].toLowerCase().match(sizePattern);
-
-            // if size and shirt matches, then
-            if (colorMatches && shirtMatches && sizeMatches) {
-
-              sizeMatches.forEach((sizeMatch) => {
-                const size = shirtMatches[0] === "kids half sleeve" ? sizeMatch : splitItemName[splitItemName.length - 1];
-                const style = shirtMatches ? item_name.substring(shirtMatches.index, shirtMatches[0].length) : null;
-                const color = colorMatches ? colorMatches[0].split(" ").map(colorWord => colorWord[0].toUpperCase() + colorWord.substring(1,)).join(' ') : 'color';
-                const colorCode = colorHexCodes[colorMatches ? colorMatches[0] : 'white'];
-
-                if (!style) return;
-
-                // Create the nested structure if it doesn't exist
-                if (!categorizedProducts[style]) {
-                  categorizedProducts[style] = {
-                    brand,
-                    manufacturer,
-                    description: description ?? 'Item available for designing',
-                    group: group ? group.split(" ")[0] : 'Ungrouped',
-                    baseImage: {
-                      front: '',
-                      back: ''
-                    },
-                    colors: {},
-                    canvas: {
-                      front: {
-                        startX: 0,
-                        startY: 0,
-                        width: 13,
-                        height: 18,
-                      },
-                      back: {
-                        startX: 0,
-                        startY: 0,
-                        width: 13,
-                        height: 18,
-                      },
-                    },
-                  };
-                }
-
-                if (!categorizedProducts[style]['colors'][color]) {
-                  categorizedProducts[style].colors[color] = {
-                    frontImage: '',
-                    backImage: '',
-                    colorCode,
-                    sizes: {}
-                  };
-                }
-
-                // Update the stock quantity for the specific size and color
-                categorizedProducts[style].colors[color].sizes[size] = {
-                  id: item_id,
-                  name: item_name,
-                  stock: actual_available_stock,
-                  price: purchase_rate,
-                  sku: sku,
-                  dimensions: {
-                    //Added extra data
-                    length: 28, //inches
-                    chest: 38, //inches
-                    sleeve: 7.5, //inches
-                    weight: 0.5, //kilograms
-                  }
-                };
-              });
-            }
-          });
-
-        } else {
-          console.log(result.reason);
-          categorizedProducts['error'] = result.reason;
-        };
-      });
-
-      // grouping logical products together
-      if (categorizedProducts["MENS ROUND NECK"]) categorizedProducts["MENS ROUND NECK"].colors = { ...categorizedProducts["MENS ROUND NECK"].colors, ...categorizedProducts["MENS RN"].colors, ...categorizedProducts["MEN RN"].colors }
-      if (categorizedProducts["MENS RN"]) delete categorizedProducts["MENS RN"];
-      if (categorizedProducts["MEN RN"]) delete categorizedProducts["MEN RN"];
-      if (categorizedProducts["HOODIE"]) delete categorizedProducts["HOODIE"];
-      if (categorizedProducts["POLO"]) delete categorizedProducts["POLO"];
-      if (categorizedProducts["Women Boyfriend"]) delete categorizedProducts["Women Boyfriend"]
-
-      // creating regex pattern to match and find cloud image product with colors
-      const colorPatterns = {};
-      Object.keys(categorizedProducts).forEach(key => {
-        colorPatterns[key] = new RegExp(Object.keys(categorizedProducts[key].colors).join("|"), "i");
-      })
-
-      // iterate thru each pattern and find the style and color match
-      Object.keys(colorPatterns).forEach(item => {
-        imageURLs.forEach((imageURL, i) => {
-          let nameMatch = imageURL.image.toLowerCase().match(new RegExp(item, "i"))
-          let colorMatch = imageURL.image.toLowerCase().split("-").join(" ").match(colorPatterns[item])
-
-          if (nameMatch && colorMatch) {
-            let specificSelection = categorizedProducts[item]
-            let specificSelectedProduct = specificSelection.colors[Object.keys(specificSelection.colors).find(x => x.toLowerCase() === colorMatch[0])];
-
-            // match pattern la back irundhuchuna, then i assign backimage else frontimage
-            if (colorMatch.input.split(/[ .]/)[colorMatch.input.split(/[ .]/).length - 2] === "back")
-              specificSelectedProduct.backImage = imageURL.url;
-            else specificSelectedProduct.frontImage = imageURL.url;
-
-            // overall style baseimage
-            specificSelection.baseImage.front = specificSelectedProduct.frontImage;
-            specificSelection.baseImage.back = specificSelectedProduct.backImage;
-          }
-        });
-
-      })
-      res.json(categorizedProducts);
-    })
-
-  } catch (error) {
-    console.log(error);
-    res.json({ error });
-  }
-}
-
-exports.getZohoProductGroups = async (req, res) => {
-  try {
-    // get acctkn then hit the API
-    const zohoAccRequest = await fetch(`https://accounts.zoho.in/oauth/v2/token?refresh_token=${zohoRefreshToken}&client_id=${zohoClientID}&client_secret=${zohoClientSecret}&grant_type=refresh_token`, { method: "POST" });
-    const zohoAccResponse = await zohoAccRequest.json();
-    console.log(zohoAccResponse);
-    const zohoAPIAccessToken = zohoAccResponse.access_token;
-
-    const zohoInventoryItemGroupsRequest = await fetch(`https://www.zohoapis.in/inventory/v1/itemgroups?organization_id=60010804173`, {
-      headers: {
-        'Authorization': 'Zoho-oauthtoken ' + zohoAPIAccessToken
-      }
-    });
-    const zohoInventoryItemGroupsResponse = await zohoInventoryItemGroupsRequest.json();
-    res.json(zohoInventoryItemGroupsResponse);
-  } catch (error) {
-    console.log(error);
-    res.json({ error });
-  }
-}
+/** 2 huge funcitons for zoho removed, was used for db data creation for zohoproducts */
 
 
 // endpoints for uploading design images
@@ -1657,8 +1164,8 @@ exports.createdesign = async (req, res) => {
       const currentDirection = req.body.direction;
       const currentDesign = await NewDesignModel.findOne({ userId: req.userId, "designs._id": req.body.designId });
       const currentDesignIndex = currentDesign.designs.findIndex(design => design._id + "" == req.body.designId);
-      if (!currentDesignIndex) return res.status(404).json({ error: "Design could not be found!" });
-      if (currentDesign.designs.at(currentDesignIndex).designImage[currentDirection] != "false") return res.status(403).json({ error: "Design already saved!" });
+      if (!currentDesignIndex) return res.status(404).json({ message: "Design could not be found!" });
+      if (currentDesign.designs.at(currentDesignIndex).designImage[currentDirection] != "false") return res.status(403).json({ message: "Design already saved!" });
       const printCharges = (designImageHeight <= 8.0 && designImageWidth <= 8.0
                   ? 70.0
                   : req.body.productData.price * 1 < 70.0
@@ -1963,18 +1470,7 @@ exports.createwoocommerceorder = async (req, res) => {
 
 
 // temp for creating zoho products, disable in prod
-exports.createZohoProducts = async (req, res) => {
-  const dataToPut = require("../../.test_assets/zohoproductdata")['zohoData']
-  const zohoProductsData = Object.keys(dataToPut).map(dataItem => ({ style: dataItem, ...dataToPut[dataItem] }))
-  // res.json(zohoProductsData);
-  try {
-    const created = await ZohoProductModel.create(zohoProductsData);
-    // const created = await ZohoProductModel.deleteMany({});
-    res.json(created);
-  } catch (error) {
-    res.json({ error })
-  }
-}
+/** cleared temp endpoint for dev */
 
 // actual endpoint to fetch zoho products from mongoDB
 exports.getZohoProducts = async (req, res) => {
@@ -2374,7 +1870,6 @@ exports.woostoreorderedit = async (req, res) => {
 // endpoint for creating order from shopify & woo
 exports.createordershopify = async (req, res) => {
   const { shopifyId, items } = req.body;
-  console.log("🚀 ~ exports.createordershopify= ~ items:", items)
   try {
     let totalAmount = items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)
     const orderData = await OrderModel.findOneAndUpdate(
@@ -2869,17 +2364,17 @@ exports.rechargewallet = async (req, res) => {
 // state to code mapping for GST
 const stateToCode = {
   "Andhra Pradesh": "AP",	"Kerala": "KL",	"Tripura": "TR",
-"Arunachal Pradesh": "AR",	"Madhya Pradesh": "MP",	"Uttarakhand": "UK",
-"Assam": "AS",	"Maharashtra": "MH",	"Uttar Pradesh": "UP",
-"Bihar": "BR",	"Manipur": "MN",	"West Bengal": "WB",
-"Chhattisgarh": "CG",	"Meghalaya": "ML",	 	 
-"Goa": "GA",	"Mizoram": "MZ",	"Andaman and Nicobar Islands": "AN",
-"Gujarat": "GJ",	"Nagaland": "NL",	"Chandigarh": "CH",
-"Haryana": "HR",	"Orissa": "OR",	"Dadra and Nagar Haveli": "DH",
-"Himachal Pradesh": "HP",	"Punjab": "PB",	"Daman and Diu": "DD",
-"Jammu and Kashmir": "JK",	"Rajasthan": "RJ",	"Delhi": "DL",
-"Jharkhand": "JH",	"Sikkim": "SK",	"Lakshadweep": "LD",
-"Karnataka": "KA",	"Tamil Nadu": "TN",	"Pondicherry": "PY", "Telangana": "TG"
+  "Arunachal Pradesh": "AR",	"Madhya Pradesh": "MP",	"Uttarakhand": "UK",
+  "Assam": "AS",	"Maharashtra": "MH",	"Uttar Pradesh": "UP",
+  "Bihar": "BR",	"Manipur": "MN",	"West Bengal": "WB",
+  "Chhattisgarh": "CG",	"Meghalaya": "ML",	 	 
+  "Goa": "GA",	"Mizoram": "MZ",	"Andaman and Nicobar Islands": "AN",
+  "Gujarat": "GJ",	"Nagaland": "NL",	"Chandigarh": "CH",
+  "Haryana": "HR",	"Orissa": "OR",	"Dadra and Nagar Haveli": "DH",
+  "Himachal Pradesh": "HP",	"Punjab": "PB",	"Daman and Diu": "DD",
+  "Jammu and Kashmir": "JK",	"Rajasthan": "RJ",	"Delhi": "DL",
+  "Jharkhand": "JH",	"Sikkim": "SK",	"Lakshadweep": "LD",
+  "Karnataka": "KA",	"Tamil Nadu": "TN",	"Pondicherry": "PY", "Telangana": "TG"
 }
 
 const INTERSTATE_TAX_ID = "650580000000013309";
@@ -3495,19 +2990,6 @@ exports.walletballance = async (req, res) => {
 exports.calculateshippingcharges = async (req, res) => {
   try {
     const { weight, pincode, cod } = req.body;
-    //verify pincode
-    // this endpoint service down
-    // const pincodeRequest = await fetch("https://api.postalpincode.in/pincode/" + pincode);
-    // const pincodeResponse = await pincodeRequest.json();
-    // if (pincodeRequest.status == 500 || pincodeRequest.status == 503) console.log("Pincode service down!");
-    // if (!pincodeResponse[0].Status == "Success") return res.status(500).json({ message: "Pincode could not be verified" });
-
-    /* Do I even need to verify pincode? doesnt shiprocket do it for me? */
-    // const pincodeRequest = await fetch("https://api.opencagedata.com/geocode/v1/json?key=518b0ac375bb4bb8bb17019ae3e63818&q=" + pincode);
-    // const pincodeResponse = await pincodeRequest.json();
-    // // if (pincodeRequest.status == 500 || pincodeRequest.status == 503) console.log("Pincode service down!");
-    // if (!pincodeResponse.total_results > 0 || pincodeResponse.results.findIndex(result => result.components.country == "India") == -1) return res.status(500).json({ message: "Pincode could not be verified" });
-
     // get couriers
     const shippingChargeRequest = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/serviceability?pickup_postcode=600087&weight=${weight}&delivery_postcode=${pincode}&cod=${cod ? 1 : 0}`, {
       headers: {
@@ -3670,7 +3152,7 @@ exports.deletelabel = async (req, res) => {
   try {
     const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels._id': imageId }, { 'labels.$': 1 });
     // const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels.' })
-    const fileNameFromURL = imageToDelete.images[0].url.split("?alt")[0].split("labels%2F")[1];
+    const fileNameFromURL = imageToDelete.labels[0].url.split("?alt")[0].split("labels%2F")[1];
     const fileReference = storageReference.child(`labels/${fileNameFromURL}`);
     await fileReference.delete();
 
@@ -3715,7 +3197,6 @@ exports.checkorderid = async (req, res) => {
 
 // endpoint for getting invoice link for the orders
 exports.getinvoices = async (req, res) => {
-  // temporary invoice collecting endpoint as the actual invoices must be obtained from zoho invoice only
   try {
     const walletData = await WalletModel.findOne({ userId: req.userId });
     const lastTransaction = walletData.transactions.at(-1);
@@ -3729,196 +3210,199 @@ exports.getinvoices = async (req, res) => {
 
 
 //endpoint for generating zoho books invoice
-exports.generateZohoBooksInvoice = async (req, res) => {
-  try {
-    const zohoToken = await generateZohoToken();
-    console.log(zohoToken)
-    // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
-    let userid = '665352ff1b7a6080ec15ab9b';
-    let testorderid = '6L3J5M';
-    const userData = await UserModel.findById(userid);
-    if (!userData.isZohoCustomer) {
-      // write endpoint to create zoho customer 
-      let customerData = {
-        "contact_name": userData.name,
-        "company_name": userData.brandName ?? 'N/A',
-        "contact_persons": [
-          {
-            "salutation": userData.name,
-            "first_name": userData.firstName,
-            "last_name": userData.lastName,
-            "email": userData.email,
-            "phone": userData.phone,
-            "mobile": userData.phone,
-            "is_primary_contact": true
-          }
-        ],
-        "billing_address": {
-          "address": userData.billingAddress.landmark,
-          "street2": "",
-          "city": userData.billingAddress.city,
-          "state": userData.billingAddress.state,
-          "zipcode": userData.billingAddress.pincode,
-          "country": "India",
-          "phone": userData.phone,
-          "fax": "",
-          "attention": ""
-        },
-        "language_code": "en",
-        "country_code": "IN",
-        "place_of_contact": "TN",
-      }
-      const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
-        method: "POST",
-        headers: {
-          Authorization: 'Zoho-oauthtoken ' + zohoToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(customerData)
-      });
-      const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
-      res.json(zohoCustomerCreateResponse); // remove
-      if (zohoCustomerCreateResponse.code == 0) {
-        console.log(`zohoCustomer for ${userid} created!`)
-        userData.isZohoCustomer = true;
-        userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
-        userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
-        await userData.save();
-      }
-    }
+/** zoho books invoice testing endpoint, before making edits, copy current invoicing logic with states selections anol and paste it here
+ * and conitnue
+ */
+// exports.generateZohoBooksInvoice = async (req, res) => {
+//   try {
+//     const zohoToken = await generateZohoToken();
+//     console.log(zohoToken)
+//     // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
+//     let userid = '665352ff1b7a6080ec15ab9b';
+//     let testorderid = '6L3J5M';
+//     const userData = await UserModel.findById(userid);
+//     if (!userData.isZohoCustomer) {
+//       // write endpoint to create zoho customer 
+//       let customerData = {
+//         "contact_name": userData.name,
+//         "company_name": userData.brandName ?? 'N/A',
+//         "contact_persons": [
+//           {
+//             "salutation": userData.name,
+//             "first_name": userData.firstName,
+//             "last_name": userData.lastName,
+//             "email": userData.email,
+//             "phone": userData.phone,
+//             "mobile": userData.phone,
+//             "is_primary_contact": true
+//           }
+//         ],
+//         "billing_address": {
+//           "address": userData.billingAddress.landmark,
+//           "street2": "",
+//           "city": userData.billingAddress.city,
+//           "state": userData.billingAddress.state,
+//           "zipcode": userData.billingAddress.pincode,
+//           "country": "India",
+//           "phone": userData.phone,
+//           "fax": "",
+//           "attention": ""
+//         },
+//         "language_code": "en",
+//         "country_code": "IN",
+//         "place_of_contact": "TN",
+//       }
+//       const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+//         method: "POST",
+//         headers: {
+//           Authorization: 'Zoho-oauthtoken ' + zohoToken,
+//           'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(customerData)
+//       });
+//       const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
+//       res.json(zohoCustomerCreateResponse); // remove
+//       if (zohoCustomerCreateResponse.code == 0) {
+//         console.log(`zohoCustomer for ${userid} created!`)
+//         userData.isZohoCustomer = true;
+//         userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
+//         userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
+//         await userData.save();
+//       }
+//     }
 
-    // create item
-    // not necessary because when taking data from zoho inventory i got the product id which was saved in newdesigns itself!
-    // so for now, just query the designs, and for each of them simply fetch their id and use it for invoice
-    // following query is for testing only, take actual data from the createshiporder data
-    const orderDetails = await OrderHistoryModel.findOne(
-      {
-        "userId": userid,
-        "orderData": { $elemMatch: { "printwearOrderId": testorderid } }
-      },
-      { "orderData.$": 1 });
-    const designIds = orderDetails.orderData[0].items.map(item => item.designId + '');
-    const designsData = await NewDesignModel.findOne({ userId: userid });
-    let productIds = designsData.designs.filter(design => designIds.includes(design._id + '')).map(design => design.product.id);
-    console.log(designIds, productIds)
-    // create invoice request
-    const zohoCustomerId = userData.zohoCustomerID;
-    const zohoContactId = userData.zohoContactID;
+//     // create item
+//     // not necessary because when taking data from zoho inventory i got the product id which was saved in newdesigns itself!
+//     // so for now, just query the designs, and for each of them simply fetch their id and use it for invoice
+//     // following query is for testing only, take actual data from the createshiporder data
+//     const orderDetails = await OrderHistoryModel.findOne(
+//       {
+//         "userId": userid,
+//         "orderData": { $elemMatch: { "printwearOrderId": testorderid } }
+//       },
+//       { "orderData.$": 1 });
+//     const designIds = orderDetails.orderData[0].items.map(item => item.designId + '');
+//     const designsData = await NewDesignModel.findOne({ userId: userid });
+//     let productIds = designsData.designs.filter(design => designIds.includes(design._id + '')).map(design => design.product.id);
+//     console.log(designIds, productIds)
+//     // create invoice request
+//     const zohoCustomerId = userData.zohoCustomerID;
+//     const zohoContactId = userData.zohoContactID;
 
-    const invoiceData = {
-      branch_id: "650580000000098357",
-      autonumbergenerationgroup_id: "650580000004188098",
-      reference_number: orderDetails.orderData[0].printwearOrderId,
-      payment_terms: 0,
-      payment_terms_label: "Due on Receipt",
-      customer_id: zohoCustomerId,
-      contact_persons: [zohoContactId],
-      date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      notes:
-        "Thanks for your business with Printwear.\npls write us for additional information accounts@printwear.in",
-      terms:
-        "subject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
-      is_inclusive_tax: false,
-      line_items: orderDetails.orderData[0].items.map((item, i) => {
-        let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
-        return {
-          item_order: 1,
-          item_id: currentDesignItem.product.id,
-          rate: currentDesignItem.price,
-          name: currentDesignItem.product.name,
-          description: currentDesignItem.designName,
-          quantity: item.quantity.toFixed(2),
-          discount: "0%",
-          tax_id: "650580000000013321",
-          project_id: "",
-          tags: [],
-          tax_exemption_code: "",
-          account_id: "650580000000000486",
-          item_custom_fields: [],
-          hsn_or_sac: "61091000",
-          gst_treatment_code: "",
-          unit: "PCS",
-        }
-      }),
-      allow_partial_payments: false,
-      custom_fields: [
-        {
-          value: Object.keys(orderDetails.orderData[0].billingAddress).map(key => orderDetails.orderData[0].billingAddress[key]).join(', '),
-          customfield_id: "650580000000103311",
-        },
-      ],
-      is_discount_before_tax: "",
-      discount: 0,
-      discount_type: "",
-      adjustment: (orderDetails.orderData[0].deliveryCharges + (orderDetails.orderData[0].cashOnDelivery? 50: 0)) * 1.05,
-      adjustment_description: "Standard Shipping",
-      shipping_charge: 0,
-      tax_exemption_code: "",
-      tax_authority_name: "",
-      pricebook_id: "",
-      template_id: ZOHO_INVOICE_TEMPLATE_ID,
-      project_id: "",
-      documents: [],
-      mail_attachments: [],
-      // billing_address_id: "650580000004548004",
-      // shipping_address_id: "650580000004548006",
-      gst_treatment: "consumer",
-      gst_no: "",
-      place_of_supply: "TN",
-      quick_create_payment: {
-        "account_id": "650580000000000459",
-        "payment_mode": "Bank Transfer"
-      },
-      tcs_tax_id: "",
-      is_tcs_amount_in_percent: true,
-      tds_tax_id: "",
-      is_tds_amount_in_percent: true,
-      taxes: (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? [
-        {
-          tax_name: "CGST",
-          tax_amount: (orderDetails.orderData[0].totalAmount) * 0.025
-        },
-        {
-          tax_name: "SGST",
-          tax_amount: (orderDetails.orderData[0].totalAmount) * 0.025
-        },
-      ]: 
-      [
-        {
-          tax_name: "GST",
-          tax_amount: (orderDetails.orderData[0].totalAmount) * 0.05
-        },
-      ],
-      tax_total: (orderDetails.orderData[0].totalAmount) * 0.05,
-      payment_made: orderDetails.orderData[0].amountPaid
-    };
-    console.log(invoiceData)
+//     const invoiceData = {
+//       branch_id: "650580000000098357",
+//       autonumbergenerationgroup_id: "650580000004188098",
+//       reference_number: orderDetails.orderData[0].printwearOrderId,
+//       payment_terms: 0,
+//       payment_terms_label: "Due on Receipt",
+//       customer_id: zohoCustomerId,
+//       contact_persons: [zohoContactId],
+//       date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+//       due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+//       notes:
+//         "Thanks for your business with Printwear.\npls write us for additional information accounts@printwear.in",
+//       terms:
+//         "subject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+//       is_inclusive_tax: false,
+//       line_items: orderDetails.orderData[0].items.map((item, i) => {
+//         let currentDesignItem = designsData.designs.find(design => design._id + '' == item.designId);
+//         return {
+//           item_order: 1,
+//           item_id: currentDesignItem.product.id,
+//           rate: currentDesignItem.price,
+//           name: currentDesignItem.product.name,
+//           description: currentDesignItem.designName,
+//           quantity: item.quantity.toFixed(2),
+//           discount: "0%",
+//           tax_id: "650580000000013321",
+//           project_id: "",
+//           tags: [],
+//           tax_exemption_code: "",
+//           account_id: "650580000000000486",
+//           item_custom_fields: [],
+//           hsn_or_sac: "61091000",
+//           gst_treatment_code: "",
+//           unit: "PCS",
+//         }
+//       }),
+//       allow_partial_payments: false,
+//       custom_fields: [
+//         {
+//           value: Object.keys(orderDetails.orderData[0].billingAddress).map(key => orderDetails.orderData[0].billingAddress[key]).join(', '),
+//           customfield_id: "650580000000103311",
+//         },
+//       ],
+//       is_discount_before_tax: "",
+//       discount: 0,
+//       discount_type: "",
+//       adjustment: (orderDetails.orderData[0].deliveryCharges + (orderDetails.orderData[0].cashOnDelivery? 50: 0)) * 1.05,
+//       adjustment_description: "Standard Shipping",
+//       shipping_charge: 0,
+//       tax_exemption_code: "",
+//       tax_authority_name: "",
+//       pricebook_id: "",
+//       template_id: ZOHO_INVOICE_TEMPLATE_ID,
+//       project_id: "",
+//       documents: [],
+//       mail_attachments: [],
+//       // billing_address_id: "650580000004548004",
+//       // shipping_address_id: "650580000004548006",
+//       gst_treatment: "consumer",
+//       gst_no: "",
+//       place_of_supply: "TN",
+//       quick_create_payment: {
+//         "account_id": "650580000000000459",
+//         "payment_mode": "Bank Transfer"
+//       },
+//       tcs_tax_id: "",
+//       is_tcs_amount_in_percent: true,
+//       tds_tax_id: "",
+//       is_tds_amount_in_percent: true,
+//       taxes: (orderDetails.orderData[0].billingAddress.state == "Tamil Nadu")? [
+//         {
+//           tax_name: "CGST",
+//           tax_amount: (orderDetails.orderData[0].totalAmount) * 0.025
+//         },
+//         {
+//           tax_name: "SGST",
+//           tax_amount: (orderDetails.orderData[0].totalAmount) * 0.025
+//         },
+//       ]: 
+//       [
+//         {
+//           tax_name: "GST",
+//           tax_amount: (orderDetails.orderData[0].totalAmount) * 0.05
+//         },
+//       ],
+//       tax_total: (orderDetails.orderData[0].totalAmount) * 0.05,
+//       payment_made: orderDetails.orderData[0].amountPaid
+//     };
+//     console.log(invoiceData)
 
-    const zohoInvoiceFormData = new FormData();
-    zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
-    zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
-    zohoInvoiceFormData.append('is_quick_create', 'true');
-    console.log(zohoInvoiceFormData);
+//     const zohoInvoiceFormData = new FormData();
+//     zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
+//     zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
+//     zohoInvoiceFormData.append('is_quick_create', 'true');
+//     console.log(zohoInvoiceFormData);
 
-    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
-      // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
-      method: "POST",
-      headers: {
-        Authorization: 'Zoho-oauthtoken ' + zohoToken,
-        // "Content-Type": "application/json"
-      },
-      body: zohoInvoiceFormData
-    });
-    const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
-    res.json(zohoInvoiceCreateResponse);
-    // console.log(zohoInvoiceCreateResponse);
+//     const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
+//       // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
+//       method: "POST",
+//       headers: {
+//         Authorization: 'Zoho-oauthtoken ' + zohoToken,
+//         // "Content-Type": "application/json"
+//       },
+//       body: zohoInvoiceFormData
+//     });
+//     const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+//     res.json(zohoInvoiceCreateResponse);
+//     // console.log(zohoInvoiceCreateResponse);
 
-  } catch (error) {
-    console.log(error);
-    res.send(error);
-  }
-}
+//   } catch (error) {
+//     console.log(error);
+//     res.send(error);
+//   }
+// }
 
 
 // dummy testing endpoint for testing santo woocomms order creation
@@ -3931,6 +3415,7 @@ exports.generateZohoBooksInvoice = async (req, res) => {
 
 /// WEBHOOKS
 // webhook for cashfree to hit and notify about payment
+
 exports.createshiporder = async (req, res) => {
 
   console.log(req.body);
@@ -3938,7 +3423,7 @@ exports.createshiporder = async (req, res) => {
   const statusType = req.body.type;
   const cf_order_id = req.body?.data?.order?.order_id;
 
-  if (!cf_order_id) return;
+  if (!cf_order_id) return res.status(200).send("OK");
 
   if (statusType === 'WEBHOOK') return res.status(200).send("OK");
 
