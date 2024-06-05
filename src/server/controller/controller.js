@@ -758,7 +758,7 @@ exports.dashboard = async (req, res) => {
 
     const totalExpense = orderHistory?.orderData? orderHistory?.orderData.reduce((total, curr) => total + curr.totalAmount, 0): 0;
     const totalRetail = orderHistory?.orderData? orderHistory?.orderData.reduce((total, curr) => total + (curr.retailPrice ?? 0), 0): 0;
-    console.log("🚀 ~ exports.dashboard= ~ totalExpense:", totalExpense, totalRetail)
+    console.log("🚀 ~ exports.dashboard= ~ totalExpense:", req.userName, totalExpense, totalRetail)
 
     res.render('dashboard', { error: false, data: { graph: graphData, user: userDataToSend, store: stores, stats: { orders: orderHistory?.orderData?.length ?? 0, revenue: totalRetail - totalExpense } }});
   } catch (error) {
@@ -774,7 +774,9 @@ exports.uploadimage = async (req, res) => {
   try {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
-    const fileReference = storageReference.child(`images/${req.userId + "_" + otpGen.generate(4) + "_" + req.file.originalname}`);
+    const fileName = req.file.originalname.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    console.log("🚀 ~ exports.uploadimage= ~ fileName:", fileName)
+    const fileReference = storageReference.child(`images/${req.userId + "_" + otpGen.generate(4, { specialChars: false }) + "_" + fileName}`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
 
@@ -2339,7 +2341,7 @@ exports.rechargewallet = async (req, res) => {
     });
 
     const createRechargePaymentlinkResponse = await createRechargePaymentlinkRequest.json();
-    console.log(createRechargePaymentlinkResponse);
+    console.log("🚀 ~ exports.rechargewal ~ createRechargePaymentlinkResponse:", createRechargePaymentlinkResponse)
 
     if (createRechargePaymentlinkResponse.code) return res.status(400).json({ message: 'Error creating payment link!', error: createRechargePaymentlinkResponse.message });
     
@@ -3109,7 +3111,8 @@ exports.uploadlabel = async (req, res) => {
   try {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
-    const fileReference = storageReference.child(`labels/${req.userId + "_" + otpGen.generate(4) + "_" + req.file.originalname}`);
+    const fileName = req.file.originalname.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    const fileReference = storageReference.child(`labels/${req.userId + "_" + otpGen.generate(4, { specialChars: false }) + "_" + fileName}`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
 
@@ -3445,7 +3448,7 @@ exports.createshiporder = async (req, res) => {
 
     idempotencyKeys.add(cf_order_id);
 
-    console.log(`PAYMENT OK for ${userid} on ${new Date().toLocaleString()}`)
+    console.log(`PAYMENT OK for ${userid} on ${new Date().toLocaleString(undefined, { timeZone: 'Asia/Kolkata' })}`)
 
     try {
       // check if CF order ID has RECHARGE_{no} in it and if so, handle wallet increase and return

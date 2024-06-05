@@ -487,10 +487,9 @@
       if (e.origin != location.origin) return;
       const { goTo } = e.data;
       if (goTo == "dashboard") {
-        location.href = "/dashboard";
+        getBal();
       }
     })
-    console.log(walletWindow)
   }
 
   const openRefunPopup = () => {

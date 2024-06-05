@@ -55,12 +55,10 @@
 
         const searchWalletData = (searchKey) => {
             searchKey = searchKey.toLowerCase().trim();
-            console.log("🚀 ~ searchWalletData ~ searchKey:", searchKey)
             if (!searchKey) {
                 return populateInvoiceTable();
             }
             let filteredData = walletData.transactions.filter(transaction =>  transaction.walletOrderId?.toLowerCase().includes(searchKey) || transaction.transactionNote?.toLowerCase().includes(searchKey) || transaction.transactionType?.includes(searchKey));
-            console.log("🚀 ~ filteredData ~ filteredData:", filteredData)
             populateInvoiceTable({ transactions: filteredData });
         }
         
@@ -74,24 +72,11 @@
                     <td>${transaction.transactionType}<br /><p class="status-badge ${transaction.transactionStatus}">${transaction.transactionStatus}</p></td>
                     <td>₹ ${transaction.amount.toFixed(2)}</td>
                     <td>${["credit", "debit"].includes(transaction.transactionType) ? `${transaction.transactionNote}` : transaction.transactionType === "recharge" ? `Recharge for ₹ ${transaction.amount.toFixed(2)}` : `${transaction.transactionNote.split(" ").splice(0, 3).join(" ")} <a href='/order/${transaction.transactionNote.split(" ").at(-1)}'>${transaction.transactionNote.split(" ").at(-1)}</a>`}</td>
-                    <td>${["credit", "debit", "recharge"].includes(transaction.transactionType) ? `<i class="fa fa-ban"></i>` : `<a href='${transaction.invoiceURL}'><i class="fa fa-download"></i></a>`}</td>
+                    <td>${["credit", "debit", "recharge"].includes(transaction.transactionType) ? `<i class="fa fa-ban"></i>` : `<a href='${transaction.invoiceURL}' target="_blank"><i class="fa fa-download"></i></a>`}</td>
                 </tr>
             `).join('\n');
         }
 
-        const fetchInvoices = async () => {
-            try {
-                const invoiceRequest = await fetch("/getinvoices");
-                invoiceResponse = await invoiceRequest.json();
-                console.log(invoiceResponse);
-                document.querySelector('#printwear-invoice').innerHTML = `
-                    <a href="${invoiceResponse.invoice_url}" target="_blank" download>Click here to download invoices</a>
-                `;
-            } catch (error) {
-                console.log(error);
-                return notyf.error("Something went wrong in fetching invoices");
-            }
-        }
 
         const searchInput = document.querySelector('#search-invoices');
         searchInput.oninput = (e) => searchWalletData(e.target.value);

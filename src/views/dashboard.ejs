@@ -160,7 +160,6 @@
         var notyf = new Notyf();
 
         const graph = <%- JSON.stringify(data.graph) %>;
-        // console.log(graph);
 
         let chart;
 
@@ -211,7 +210,6 @@
             const today = new Date();
             const cutoffDate = new Date();
             cutoffDate.setDate(today.getDate() - n);
-            console.log(graph.filter(item => parseDate(item.date) >= cutoffDate))
             return graph.filter(item => parseDate(item.date) >= cutoffDate);
         }
 

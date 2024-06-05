@@ -47,6 +47,7 @@
                 e.target.value = instrin.replace(/[^0-9]/g, '');
             }
             const handleCancel = () => {
+                window.postMessage({ goTo: 'successfull' }, location.origin);
                 window.close();
             }
 
