@@ -774,7 +774,7 @@ exports.uploadimage = async (req, res) => {
   try {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
-    const fileName = req.file.originalname.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    const fileName = req.file.originalname.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_.]/g, '');
     console.log("🚀 ~ exports.uploadimage= ~ fileName:", fileName)
     const fileReference = storageReference.child(`images/${req.userId + "_" + otpGen.generate(4, { specialChars: false }) + "_" + fileName}`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
@@ -3111,7 +3111,7 @@ exports.uploadlabel = async (req, res) => {
   try {
     // console.log(req.file);
     const fileBuffer = req.file.buffer;
-    const fileName = req.file.originalname.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_]/g, '');
+    const fileName = req.file.originalname.replace(/ /g, '-').replace(/[^a-zA-Z0-9-_.]/g, '');
     const fileReference = storageReference.child(`labels/${req.userId + "_" + otpGen.generate(4, { specialChars: false }) + "_" + fileName}`);
     await fileReference.put(fileBuffer, { contentType: 'image/png' });
     const fileDownloadURL = await fileReference.getDownloadURL();
