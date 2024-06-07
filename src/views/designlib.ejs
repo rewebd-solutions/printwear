@@ -275,6 +275,20 @@
 
     const createDesignCards = (data = designsResponseData) => {
       const designCardsDOMString = data.designs.map(design => {
+        if (design.designImage?.front.includes("printwear.in") && !design.designImage?.front.includes("admin.printwear.in")) {
+          design.designImage.front = design.designImage.front.replace("printwear.in", "admin.printwear.in");
+          design.designImage.back = design.designImage.back.replace("printwear.in", "admin.printwear.in");
+        }
+        design.designItems = design.designItems.map(item => {
+          if (item?.URL?.includes("printwear.in") && !item?.URL?.includes("admin.printwear.in")) {
+            return {
+              ...item,
+              URL: item.URL.replace("printwear.in", "admin.printwear.in")
+            }
+          } else {
+            return item
+          }
+        })
         return `
           <div class="design-card" data-aos="fade-up">
             <div class="card-img">
