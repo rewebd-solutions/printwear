@@ -69,7 +69,7 @@
                 if (!data || data?.length < 1) {
                     return walletHistoryTable.innerHTML = 'No results found!'
                 }
-                walletHistoryTable.innerHTML = data.map((walletData, i) => `
+                walletHistoryTable.innerHTML = data.reverse().map((walletData, i) => `
                 <tr>
                     <td>${i + 1}</td>
                     <td>${walletData.userData.name} ${walletData.userData.firstName? '(' + walletData.userData.firstName + ' ' + (walletData.userData.lastName ?? '') + ')': ''}</td>

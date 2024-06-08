@@ -2415,6 +2415,10 @@ exports.placeorder = async (req, res) => {
       return console.log(`No such order data found for ${req.userId}`);
     }
 
+    let totalPurchaseCost = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05;
+
+    if (retailPrice < totalPurchaseCost) return res.status(403).json({ error: `Retail price should be greater than ${totalPurchaseCost}` })
+
     const shippingAddressToCheck = { firstName,
       lastName,
       mobile,
@@ -2452,7 +2456,6 @@ exports.placeorder = async (req, res) => {
 
     /// STEP 1: WALLET GAME
     const walletData = await WalletModel.findOne({ userId: req.userId });
-    let totalPurchaseCost = (orderData.totalAmount + shippingCharge + (cashOnDelivery ? 50 : 0)) * 1.05;
 
     if (!walletData) return res.status(404).json({ message: "Wallet not found!" });
 

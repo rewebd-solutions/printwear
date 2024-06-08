@@ -378,7 +378,7 @@
                         }
                     }
 
-                    if (parseFloat(retailPriceInput.value) < parseFloat(document.querySelector("#total-charges").innerHTML.slice(1))) {
+                    if (!retailPriceInput.value || (parseFloat(retailPriceInput.value) < parseFloat(document.querySelector("#total-charges").innerHTML.slice(1)))) {
                         retailVerified = false;
                         disabled = false;
                         e.target.classList.remove("disabled");
