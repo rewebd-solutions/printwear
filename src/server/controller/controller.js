@@ -3533,6 +3533,11 @@ exports.createshiporder = async (req, res) => {
 
 }
 
+exports.updateorderdetails = async (req, res) => {
+  console.log("Shiprocket webhook:");
+  console.log(req.body);
+}
+
 
 exports.getadminorders = async (req, res) => {
   try {

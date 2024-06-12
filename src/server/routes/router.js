@@ -102,6 +102,7 @@ route.get("/getmockups", controller.getmockups);
 route.post("/placeorder", authServices.authorizeToken, controller.placeorder);
 route.post("/reshiporder", authServices.authorizeToken, controller.reshiporder);
 route.post("/createshiporder", controller.createshiporder);
+route.post("/updateorderdetails", controller.updateorderdetails);
 route.post("/calculateshippingcharges", authServices.authorizeToken, controller.calculateshippingcharges);
 
 route.get("/obtainlabels", authServices.authorizeToken, controller.obtainlabels);
