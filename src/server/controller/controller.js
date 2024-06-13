@@ -3536,6 +3536,7 @@ exports.createshiporder = async (req, res) => {
 exports.updateorderdetails = async (req, res) => {
   console.log("Shiprocket webhook:");
   console.log(req.body);
+  res.send("OK");
 }
 
 
