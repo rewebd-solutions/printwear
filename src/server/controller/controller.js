@@ -1388,7 +1388,7 @@ exports.createshopifyproduct = async (req, res) => {
 exports.createwoocommerceorder = async (req, res) => {
   const storeData = await StoreModel.findOne({ userid: req.userId });
   // console.log(storeData.wooCommerceStore);
-  if (!(storeData.wooCommerceStore.url)) return res.status(404).json({ error: "WooCommerce store not connected!" });
+  if (!(storeData?.wooCommerceStore?.url)) return res.status(404).json({ error: "WooCommerce store not connected!" });
   const designData = (await NewDesignModel.findOne({ userId: req.userId })).designs.find(design => design.designSKU === req.body.designSKU)
 
   const consumerKey = storeData.wooCommerceStore.consumerKey;
@@ -1466,7 +1466,7 @@ exports.createwoocommerceorder = async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ err });
+    res.status(500).json({ error: "Server error in creating woocommerce order!" });
   }
 };
 
