@@ -3858,10 +3858,10 @@ exports.admincodremit = async (req, res) => {
     const retail = orderHistory.orderData.at(orderIndex).retailPrice 
     const codAmount = orderHistory.orderData.at(orderIndex).CODRemittance
     console.log("🚀 ~ exports.admincodremit= ~ codAmount:", retail, codAmount, retail-codAmount)
-    if ((retail - codAmount) < remitData.remittanceAmount)
+    if ((retail - codAmount) < remitData.remittanceAmount && !orderHistory.orderData.at(orderIndex).wooOrderId)
       return res.status(400).json({ error: "COD Remittance amount greater than retail price!" });
 
-    const [remittanceData, walletData] = await Promise.all([await CODModel.findOne({ userId: orderHistory.userId }), await WalletModel.findOne({ userId: orderHistory.userId })]);
+    const walletData = await WalletModel.findOne({ userId: orderHistory.userId })
 
     if (!walletData) {
       return res.status(404).json({ error: "Invalid customer details!" });
@@ -3871,13 +3871,22 @@ exports.admincodremit = async (req, res) => {
     // removed cashfree payout funciton as client said it was unecessary
     
     orderHistory.orderData.at(orderIndex).CODRemittance += remitData.remittanceAmount;
-    
-    remittanceData.remittances.push({
-      orderId: remitData.orderId,
-      amount: remitData.remittanceAmount,
-      transferId: transferId,
-      completedOn: Date.now(), // --> temporary.. dont put completedon until webhook confirms the payment thing
-    });
+
+    await CODModel.findOneAndUpdate({
+      userId: orderHistory.userId
+    },{
+      $setOnInsert: {
+        userId: orderHistory.userId,
+      },
+      $push: {
+        remittances: {
+          orderId: remitData.orderId,
+          amount: remitData.remittanceAmount,
+          transferId: transferId,
+          completedOn: Date.now(), // --> temporary.. dont put completedon until webhook confirms the payment thing
+        }
+      }
+    }, { upsert: true, new: true });
 
     walletData.transactions.push({
       amount: remitData.remittanceAmount,
@@ -3889,7 +3898,7 @@ exports.admincodremit = async (req, res) => {
 
     walletData.balance = (walletData.balance + remitData.remittanceAmount).toFixed(2);
 
-    await Promise.all([await remittanceData.save({ validateBeforeSave: false }), 
+    await Promise.all([ 
       await walletData.save({ validateBeforeSave: false }), 
       await orderHistory.save({ validateBeforeSave: false })]
     );

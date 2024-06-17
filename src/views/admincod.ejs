@@ -119,6 +119,7 @@
             <th>S.No.</th>
             <th>Order Id</th>
             <th>Date</th>
+            <th>Order Amount</th>
             <th>COD</th>
             <th>Delivery Status</th>
             <th>Remittance</th>
@@ -211,9 +212,10 @@
           $("#order-table tbody").append(`
             <tr>
                 <td>${index + 1}
-                <td><a href="/admin/orders/${order.printwearOrderId}" class="clickable">${order.printwearOrderId}</a>(${order.customerOrderId})</td>
+                <td><a href="/admin/orders/${order.printwearOrderId}" class="clickable">${order.printwearOrderId}</a><br />(${order.customerOrderId})</td>
                 <td>${formatDate(order.createdAt)}</td>
-                <td>₹${order.retailPrice ?? order.amountPaid}</td>
+                <td>₹${order.amountPaid}</td>
+                <td>₹${order.retailPrice ?? '<i class="fa fa-x" style="color: red"></i>'}</td>
                 <td><h4 class="status-badge ${order.deliveryStatus}">${order.deliveryStatus}</h4></td>
                 <td>${order.CODRemittance? order.CODRemittance == order.retailPrice ? `✅Remitted ₹${order.CODRemittance ?? 0}` : `⚠️Partially Remitted ₹${order.CODRemittance ?? 0}` : '🚫Not Remitted'}</td>
                 <td> 
