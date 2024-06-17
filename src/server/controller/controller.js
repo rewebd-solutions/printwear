@@ -3863,7 +3863,7 @@ exports.admincodremit = async (req, res) => {
 
     const [remittanceData, walletData] = await Promise.all([await CODModel.findOne({ userId: orderHistory.userId }), await WalletModel.findOne({ userId: orderHistory.userId })]);
 
-    if (!remittanceData) {
+    if (!walletData) {
       return res.status(404).json({ error: "Invalid customer details!" });
     }
 
