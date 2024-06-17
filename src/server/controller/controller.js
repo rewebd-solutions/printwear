@@ -2659,7 +2659,7 @@ exports.placeorder = async (req, res) => {
 
     /// STEP 4: GENERATE ZOHO INVOICE
     const zohoToken = await generateZohoToken();
-    if (!userData.zohoCustomerID || !userData.zohoContactID) {
+    if (!userData.zohoCustomerID || !userData.zohoContactID || !userData.isZohoCustomer) {
       // write endpoint to create zoho customer 
       let customerData = {
         "contact_name": userData.name,
