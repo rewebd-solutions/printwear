@@ -279,7 +279,7 @@ const loadMockupImage = () => {
 
 /* Caculate dimensions of Active Canvas Objects */
 const calculateTotalHeight = () => {
-  if (!fabricCanvas) return;
+  if (!fabricCanvas) return 0;
   const objects = fabricCanvas.getObjects();
   let totalHeight = objects
     .map((obj) => obj.getScaledHeight() * Product.pixelToInchRatio)
@@ -288,7 +288,7 @@ const calculateTotalHeight = () => {
 };
 
 const calculateTotalWidth = () => {
-  if (!fabricCanvas) return;
+  if (!fabricCanvas) return 0;
   const object = fabricCanvas.getObjects()[0];
   let totalWidth = object
     ? object.getScaledWidth() * Product.pixelToInchRatio
@@ -298,7 +298,7 @@ const calculateTotalWidth = () => {
 };
 
 const calculateTotalArea = () => {
-  if (!fabricCanvas) return;
+  if (!fabricCanvas) return 0;
   const objects = fabricCanvas.getObjects();
   let totalArea = objects
     .map(
@@ -771,7 +771,6 @@ const addToOrder = async () => {
 /* Download Image */
 const downloadDesign = () => {
   // Deselecting active object
-  if (!designImg) return notyf.error("No design selected!");
   if (fabricCanvas.getActiveObject()) {
     fabricCanvas.discardActiveObject().renderAll();
   }
@@ -830,6 +829,9 @@ const downloadDesign = () => {
 /* Save to Cloud */
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
+  if (!designImg && !confirm("No design selected! You are creating a plain shirt design. Do you want to continue?")) {
+    return;
+  }
   if (!globalProductID) return notyf.error("Select a size before continuing!");
   let isSaveSuccessful = false;
 
@@ -846,13 +848,14 @@ const saveDesign = async () => {
   }
 
   /* Remove Border for Final Image Rendering */
+  const canvasContainer = document.querySelectorAll(".canvas-container > *");
   
   try {
     disableButton(true);
     disableOrderButton("Add to order",true);
     disableSideSwitch(true);
-    const canvasContainer = document.querySelectorAll(".canvas-container > *");
-    canvasContainer.forEach((item) => (item.style.border = "none"));
+    if (canvasContainer)
+      canvasContainer.forEach((item) => (item.style.border = "none"));
 
     const node = document.getElementById("product-design");
 
@@ -871,9 +874,9 @@ const saveDesign = async () => {
     send the URL to the formData, then send the design image blob separately. */
 
     let designImageURL =
-      document.querySelector(".active-selection").children[0].src;
+      designImg && document.querySelector(".active-selection").children[0].src;
     let designImageName =
-      document.querySelector(".active-selection").children[1].innerText;
+      designImg && document.querySelector(".active-selection").children[1].innerText;
 
     let submitProduct = Product.colors
       .find((x) => x._id === currentColor)
@@ -908,13 +911,13 @@ const saveDesign = async () => {
         width: parseFloat(calculateTotalWidth().toFixed(3)),
         height: parseFloat(calculateTotalHeight().toFixed(3)),
         top: parseFloat(
-          (fabricCanvas.getObjects()[0].top * Product.pixelToInchRatio).toFixed(
+          (fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio).toFixed(
             3
           )
         ),
         left: parseFloat(
           (
-            fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio
+            fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
           ).toFixed(3)
         ),
       }
@@ -923,13 +926,13 @@ const saveDesign = async () => {
         width: parseFloat(calculateTotalWidth().toFixed(3)),
         height: parseFloat(calculateTotalHeight().toFixed(3)),
         top: parseFloat(
-          (fabricCanvas.getObjects()[0].top * Product.pixelToInchRatio).toFixed(
+          (fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio).toFixed(
             3
           )
         ),
         left: parseFloat(
           (
-            fabricCanvas.getObjects()[0].left * Product.pixelToInchRatio
+            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
           ).toFixed(3)
         ),
       }
@@ -1012,6 +1015,7 @@ const saveDesign = async () => {
         );
       }
       // disableButton(false);
+      if (canvasContainer)
       canvasContainer.forEach(
         (item) => (item.style.border = "2px dashed black")
       );
@@ -1025,10 +1029,11 @@ const saveDesign = async () => {
       );
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     notyf.error(error.error ?? error);
     disableButton(false);
     disableSideSwitch(false);
+    if (canvasContainer)
     canvasContainer.forEach(
       (item) => (item.style.border = "2px dashed black")
     );

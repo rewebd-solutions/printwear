@@ -1140,9 +1140,9 @@ exports.createdesign = async (req, res) => {
     const fileBuffer = req.files[0].buffer;
     // console.log(fileBuffer);
 
-    // return res.json({ message: "OK" });
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData)
+    // return res.json({ message: "OK" });
 
     let uniqueSKU = req.body.productData.product.SKU + "-" + (req.body.productData.designSKU != '' ? req.body.productData.designSKU : otpGen.generate(5, { lowerCaseAlphabets: false, specialChars: false }));
     // console.log(uniqueSKU);
@@ -1160,7 +1160,7 @@ exports.createdesign = async (req, res) => {
     //   recordOfFileNames[file.originalname] = fileDownloadURL;
     // }
     const designImageHeight = req.body.direction === "front"? req.body.productData.designDimensions.height: req.body.productData.backDesignDimensions.height;
-    const designImageWidth = req.body.direction === "front"? req.body.productData.designDimensions.wdith: req.body.productData.backDesignDimensions.wdith;
+    const designImageWidth = req.body.direction === "front"? req.body.productData.designDimensions.width: req.body.productData.backDesignDimensions.width;
     
     if (req.body.designId != "null") {
       const currentDirection = req.body.direction;
@@ -1249,18 +1249,20 @@ exports.createdesign = async (req, res) => {
       product: { ...req.body.productData.product },
       designSKU: uniqueSKU,
       designName: req.body.productData.designName,
-      price: parseFloat((req.body.productData.product.price + 
-        ((designImageHeight <= 8.0 && designImageWidth <= 8.0) 
-          ? 70.00 
-          : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))) + 
-          (req.body.neckLabel == 'null' ? 0 : 10))).toFixed(2),
-      [req.body.direction == "front"? 'frontPrice': 'backPrice']: parseFloat(((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))).toFixed(2)),
+      price: parseFloat(parseFloat(designImageWidth) == 0?
+        (req.body.productData.product.price + 0) 
+        :(req.body.productData.product.price + 
+          ((designImageHeight <= 8.0 && designImageHeight && designImageWidth <= 8.0) 
+            ? 70.00 
+            : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))) + 
+            (req.body.neckLabel == 'null' ? 0 : 10))).toFixed(2),
+      [req.body.direction == "front"? 'frontPrice': 'backPrice']: parseFloat(designImageWidth == 0? 0: ((designImageHeight <= 8.0 && designImageWidth <= 8.0) ? 70.00 : ((req.body.productData.price * 1) < 70.00 ? 70.00 : (req.body.productData.price * 1))).toFixed(2)),
       designImage: {
         front: req.body.direction === "front" && fileDownloadURL,
         back: req.body.direction === "back" && fileDownloadURL,
       },
       designItems: [{
-        itemName: req.body.designImageName,
+        itemName: req.body.designImageName, // saves as "undefined", check for "undefined" in the name and then NOT render it
         URL: req.body.designImageURL
       }],
       neckLabel: req.body.neckLabel == 'null' ? undefined : req.body.neckLabel

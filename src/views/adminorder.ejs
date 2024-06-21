@@ -248,13 +248,14 @@
                   <br />
                   <br />
                   <span>
-                    Design Image: 
-                    <br />
-                    <a href="${currentDesign?.designItems[0]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[0]?.itemName} (${currentDesign?.frontPrice ? 'Front': 'Back'}) </a>
-                    <br />
-                    ${currentDesign?.designItems[1] ? 
-                      `<a href="${currentDesign?.designItems[1]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[1]?.itemName} (Back) </a>`: ''
-                    }
+                    Design Image: ${currentDesign?.designItems[0]?.URL === "undefined"? "Plain design": `
+                      <br />
+                      <a href="${currentDesign?.designItems[0]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[0]?.itemName} (${currentDesign?.frontPrice ? 'Front': 'Back'}) </a>
+                      <br />
+                      ${currentDesign?.designItems[1] ? 
+                        `<a href="${currentDesign?.designItems[1]?.URL}" target="_blank" style="font-size: 14px">${currentDesign?.designItems[1]?.itemName} (Back) </a>`: ''
+                      }
+                    `}
                     </span>
                   <br />
                   <br />
