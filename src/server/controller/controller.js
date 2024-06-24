@@ -1250,7 +1250,7 @@ exports.createdesign = async (req, res) => {
       designSKU: uniqueSKU,
       designName: req.body.productData.designName,
       price: parseFloat(parseFloat(designImageWidth) == 0?
-        (req.body.productData.product.price + 0) 
+        (req.body.productData.product.price + 0) + (req.body.neckLabel == 'null' ? 0 : 10)
         :(req.body.productData.product.price + 
           ((designImageHeight <= 8.0 && designImageHeight && designImageWidth <= 8.0) 
             ? 70.00 
