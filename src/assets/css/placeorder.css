@@ -219,6 +219,7 @@ input[type='search'] {
 
 .order-image-container img {
     width: 150px;
+    height: auto;
 }
 
 .order-image-container {

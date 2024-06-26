@@ -1530,41 +1530,46 @@ exports.getmockups = async (req, res) => {
 // endpoints for creating order
 exports.createorder = async (req, res) => {
   try {
-    const orderExists = await OrderModel.findOne({ userId: req.userId, 'items.designId': req.body.designId });
-    if (orderExists) return res.status(400).json({ message: 'Item already in cart' })
     let orderData = await OrderModel.findOne({ userId: req.userId });
+    const design = await NewDesignModel.findOne({ userId: req.userId, "designs._id": req.body.designId }, { "designs.$": 1 });
 
-    if (orderData) {
-      orderData.items.push({
-        designId: req.body.designId,
-        productId: req.body.productId,
-        price: req.body.price
-      });
-      let totalCost = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
-      orderData.totalAmount = totalCost
-      orderData.printwearOrderId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
-      orderData.taxes = (totalCost * 0.05).toFixed(2);
-      await orderData.save();
-    } else {
+    if (!design) return res.status(404).json({ error: "Invalid design ID" });
+    
+    const currDesign = design.designs[0];
+
+    if (!orderData) {
       const newOrder = new OrderModel({
         userId: req.userId,
         items: [{
-          designId: req.body.designId,
-          productId: req.body.productId,
-          price: req.body.price
+          designId: currDesign._id,
+          productId: currDesign.productId,
+          price: currDesign.price
         }],
-        totalAmount: req.body.price,
-        taxes: (parseFloat(req.body.price) * 0.05).toFixed(2),
+        totalAmount: currDesign.price,
+        taxes: (currDesign.price * 0.05).toFixed(2),
         printwearOrderId: otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false })
       });
       await newOrder.save();
-      orderData = newOrder;
+      return res.json(newOrder);
     }
-    // console.log(orderData);
+
+    if (orderData.items.find(item => String(item.designId) == req.body.designId )) return res.status(400).json({ message: 'Item already in cart' })
+  
+    orderData.items.push({
+      designId: currDesign._id,
+      productId: currDesign.productId,
+      price: currDesign.price
+    });
+    let totalCost = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
+    orderData.totalAmount = totalCost
+    orderData.printwearOrderId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
+    orderData.taxes = (totalCost * 0.05).toFixed(2);
+    await orderData.save();
     res.json(orderData)
+
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in creating order" });
   }
 }
 
@@ -1610,8 +1615,8 @@ exports.deleteorderitem = async (req, res) => {
     if (!orderData) return res.status(400).json({ message: "Couldn't find item" });
 
     orderData.items = orderData.items.filter(item => item.designId + "" != req.body.designId);
-    orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0);
-    orderData.taxes = orderData.totalAmount * 0.05;
+    orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
+    orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2);
 
     if (orderData.items.length == 0) {
       orderData.deleteOne();
@@ -1639,24 +1644,24 @@ exports.updateorder = async (req, res) => {
     // }, { new: true });
     // console.log(req.body)
     const orderData = await OrderModel.findOne({ userId: req.userId, 'items.designId': req.body.designId });
-    if (!orderData) return res.status(400).json({ message: "Coulnd't find order" });
+    if (!orderData) return res.status(400).json({ error: "Coulnd't find order" });
 
-    const currentItem = orderData.items.findIndex(item => item.designId + "" == req.body.designId);
+    const currentItem = orderData.items.findIndex(item => String(item.designId) == req.body.designId);
 
-    if (!orderData) return res.status(400).json({ message: "Coulnd't find item" });
+    if (currentItem === -1) return res.status(400).json({ error: "Coulnd't find item" });
 
-    orderData.items[currentItem].quantity = req.body.quantity;
-    orderData.items[currentItem].price = req.body.price * req.body.quantity;
+    orderData.items[currentItem].quantity = parseInt(req.body.quantity);
+    orderData.items[currentItem].price = (parseFloat(req.body.price) * parseInt(req.body.quantity)).toFixed(2);
 
     orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
-    orderData.taxes = orderData.totalAmount * 0.05;
+    orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2);
 
     await orderData.save();
 
     res.json({ totalPrice: orderData.totalAmount });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: '500 Internal Server Error' });
+    res.status(500).json({ error: '500 Internal Server Error' });
   }
 }
 

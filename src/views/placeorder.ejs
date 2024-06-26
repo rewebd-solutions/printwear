@@ -117,21 +117,22 @@
             designLibraryData.innerHTML = '';
             if (data.designs.length < 1) return designLibraryData.innerHTML = 'No designs yet!'
             data.designs.reverse().forEach((design, i) => createTableRow(design, i+1));
+            data.designs.reverse();
         }
 
         const populateOrderTable = (data = orderData) => {
             //console.log(data)
             if (data.length < 1) return createOrderContainer.innerHTML = `
-            <p>Add a product to start creating your order</p>
-            <button type="button" onclick="openModal()" id="toggle-modal" class="option-button">
-                <i class="fa fa-circle-plus"></i>
-                Choose design
-            </button>
-            or
-            <button type="button" onclick="location.href='/mystores'" class="option-button">
-                <i class="fa fa-store"></i>
-                Pull store orders
-            </button>
+                <p>Add a product to start creating your order</p>
+                <button type="button" onclick="openModal()" id="toggle-modal" class="option-button">
+                    <i class="fa fa-circle-plus"></i>
+                    Choose design
+                </button>
+                or
+                <button type="button" onclick="location.href='/mystores'" class="option-button">
+                    <i class="fa fa-store"></i>
+                    Pull store orders
+                </button>
             `;
             createOrderContainer.innerHTML = `
             <button type="button" onclick="openModal()" id="toggle-modal" class="option-button">
@@ -200,7 +201,7 @@
             }).join('');
             createOrderContainer.innerHTML += `
             </tbody></table>
-            <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹ ${(orderDataResponse.orderData.items.reduce((total, curr) => total + curr.price * curr.quantity, 0) * 1.05).toFixed(2)}</h4> </div>
+            <div id="total-price" style="display: flex; justify-content: flex-end; padding: 0.4rem;"><h4>Total Price: ₹ ${(orderDataResponse.orderData.items.reduce((total, curr) => total + (curr.price), 0) * 1.05).toFixed(2)}</h4> </div>
             <a href="/placeorder/billing"><button type="button" class="option-button">Proceed to Shipping</button></a>
             `
         }
@@ -226,7 +227,7 @@
                     document.querySelector("#total-price h4").innerHTML = "Total Price: ₹" + (updateQuantityResponse.totalPrice * 1.05).toFixed(2);
                     return notyf.success("Updated quantity!");
                 } else {
-                    return notyf.error("Couldn't increment quantity");
+                    return notyf.error(updateQuantityResponse.error);
                 }
             } catch (error) {
                 console.log(error);
@@ -265,11 +266,15 @@
                     })
                 });
                 const deleteOrderResponse = await deleteOrderRequest.json();
-                //console.log(deleteOrderResponse);
+                console.log(deleteOrderResponse, orderDataResponse);
+
                 if (!deleteOrderRequest.ok) return notyf.error("Couldn't delete item!");
-                orderData = orderData.filter(order => order._id !== designId);
                 orderDataResponse.orderData = deleteOrderResponse;
-                //console.log(orderData);
+                
+                console.log("🚀 ~ deleteOrder ~ orderDataResponse:", orderDataResponse)
+                orderData = orderData.filter(order => order._id != designId);
+                
+                console.log(orderData);
                 populateOrderTable();
                 notyf.success("Deleted item successfully!");
             } catch (error) {
@@ -394,8 +399,6 @@
                 return notyf.error("Design already added to order");
             }
             const designData = designDataResponse.designs.find(design => design.designSKU == searchSKU);
-            orderData.push(designData);
-            console.log(designData, orderData);
             // probably a call to backend to store order data
             try {
                 const addOrderRequest = await fetch("/createorder", {
@@ -415,6 +418,7 @@
                     e.target.classList.remove("disable-button");
                     return notyf.error("Couldn't add to cart!");
                 }
+                orderData.push(designData);
                 e.target.classList.remove("disable-button");
                 orderDataResponse.orderData = addOrderResponse;
                 populateOrderTable();
@@ -445,7 +449,7 @@
                 <td>${designItem.designName}</td>
                 <td>${designItem.designSKU}</td>
                 <td><img class="design-preview-image" src="${designItem.designImage.front}"></td>
-                <td><button onclick="addToOrder('${designItem.designSKU}')">Add to order</button></td>
+                <td><button onclick="addToOrder(event, '${designItem.designSKU}')">Add to order</button></td>
             </tr>
             `;
         }
