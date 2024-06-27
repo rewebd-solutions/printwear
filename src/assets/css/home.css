@@ -31,7 +31,7 @@ i{
     margin-right: 20px !important;
 }
 .banner-image {
-    background-image: url('/images/Home_bg.png');
+    background-image: url('/images/Home_bg.webp');
     background-size: cover;
     background-color: gray;
     background-blend-mode: multiply;
