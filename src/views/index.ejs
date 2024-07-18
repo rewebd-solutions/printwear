@@ -359,6 +359,19 @@
   </div> -->
   <!-- Hear-from-our-clients ends here -->
 
+  <!-- Cookie Cosnet -->
+  <div class="cookie-container hide">
+    <p class="cookie-text">
+      We use cookies and similar technologies that are necessary to operate the website. Additional cookies are used to
+      perform analysis of website usage. By continuing to use our website, consent to our use of cookies. For more
+      information, please read our <a href="/privacypolicy"> Privacy Policy.</a>
+      <br /> <br /> If you are on iOS platform, please use Google Chrome for the best results.
+    </p>
+    <div class="agree">
+      <button>Okay!</button>
+    </div>
+  </div>
+
   
 
   <!-- Blogs start here -->
@@ -527,6 +540,34 @@
         nav.classList.remove('dark', 'shadow');
       }
     });
+    const cookieContainer = document.querySelector(".cookie-container");
+    const agreeBtn = document.querySelector(".agree button");
+
+    function setCookie(cname, cvalue, exdays) {
+        const d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        let expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      }
+
+    function getCookie(cname) {
+      let cookies = Object.fromEntries(document.cookie.split(";").map(x => x.trim().split("=").map(y => y.trim())))
+      return cookies[cname];
+    }
+
+    const cookieAgreed = getCookie("agreecookie");
+
+    if (cookieAgreed != "true") {
+      setTimeout(() => {
+        cookieContainer.classList.remove("hide");
+      }, 1000);
+    }
+    
+    agreeBtn.addEventListener("click", () => {
+      cookieContainer.classList.add("hide");
+      setCookie("agreecookie", "true", 60);
+    });
+
   </script>
 </body>
 
