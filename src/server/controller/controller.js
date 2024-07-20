@@ -519,7 +519,7 @@ exports.register = async (req, res) => {
   // new user
   let num = req.body.number;
 
-  const existingUser = await UserModel.findOne({ name: req.body.name });
+  const existingUser = await UserModel.findOne({ name: req.body.name, email: req.body.email });
   console.log("🚀 ~ exports.register= ~ existingUser:", existingUser)
   if (existingUser) return res.render("login", { data: { error: "Username already exists" }})
 

@@ -48,18 +48,25 @@
             </form>
         </div>
     </div>
-    <% if (data.error) { %>
-        <script>
-            var notyf = new Notyf();
-            notyf.error({ message: "<%= data.error %>", duration: 20000 });
-            console.log(data.error);
+    <% if (data) { %>
+        <% if (data.error) { %>
+            <script>
+                var notyf = new Notyf();
+                notyf.error({ message: "<%= data.error %>", duration: 20000 });
+                console.log(data.error);
+                </script>
+        <% } else { %>
+            <script>
+                var notyf = new Notyf();
+                notyf.success("<%= data.status %>");
             </script>
+        <% }  %>
     <% } else { %>
         <script>
             var notyf = new Notyf();
-            notyf.success("<%= data.status %>");
+            notyf.error({ message: "Something went wrong! Please try later", duration: 20000 });
         </script>
-    <% }  %>
+    <% } %>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         AOS.init();

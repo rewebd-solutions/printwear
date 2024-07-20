@@ -7,13 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "create-env": "printenv > .env",
     "start": "node src/server.js",
-    "dev": "nodemon --inspect src/server.js"
+    "dev": "nodemon --inspect src/server.js",
+    "publish": "git push -u origin pull-merge:new-flow"
   },
   "keywords": [
     "printwear",
     "print-on-demand"
   ],
-  "author": "Sujay-0304, RookieProgrammerSachin, harish, barath, jolanjose, majestymewtwo",
+  "author": "Sujay-0304, RookieProgrammerSachin, harish, barath, majestymewtwo",
   "license": "ISC",
   "dependencies": {
     "cashfree-payout": "^0.0.14",
