@@ -34,7 +34,6 @@ var StoreModel = require('../model/storeModel');
 var UserModel = require("../model/userModel");
 var ImageModel = require("../model/imageModel")
 var ColorModel = require("../model/colorModel");
-var DesignModel = require("../model/designModel");
 var OrderModel = require("../model/orderModel");
 var NewDesignModel = require("../model/newDesignModel");
 var OrderHistoryModel = require("../model/orderHistory");
@@ -663,7 +662,9 @@ exports.updateinfo = async (req, res) => {
     } else if (type == "address") {
       const { firstName, lastName, email, address, city, state, pincode, phone, country } = req.body;
       const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { billingAddress: { firstName: firstName, lastName: lastName, email: email, streetLandmark: address, city: city, state: state, country: country || 'India', pincode: pincode, phone: phone  } } }, { new: true });
-      // console.log("🚀 ~ exports.updateinfo= ~ userInfo:", userInfo)
+      if (!userInfo) return res.status(404).json({ message: 'User not found!' });
+    } else if (type == "gst") {
+      const userInfo = await UserModel.findOneAndUpdate({ _id: req.userId }, { $set: { gstNo: req.body.gst }}, { new: true });
       if (!userInfo) return res.status(404).json({ message: 'User not found!' });
     } else {
       return res.status(403).json({ message: "Invalid update type!" });
@@ -982,7 +983,7 @@ exports.getshopifystock = async (req, res) => {
       const SHOPIFY_SHOP_URL = store.shopifyStoreURL;
       const SHOPIFY_SHOP_NAME = store.shopName;
 
-      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products.json?fields=id,title,vendor,product_type,tags,variants,options`;
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/products.json?fields=id,title,vendor,product_type,tags,variants,options`;
 
       try {
         const shopifyStoreStockRequest = await fetch(shopifyEndpoint, {
@@ -1038,7 +1039,7 @@ exports.getshopifyorders = async (req, res) => {
     const SHOPIFY_SHOP_URL = shopifyStoreData.shopifyStoreURL;
     const SHOPIFY_SHOP_NAME = shopifyStoreData.shopName;
 
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders.json`;
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/orders.json`;
 
     const shopifyStoreOrderRequest = await fetch(shopifyEndpoint, {
       headers: {
@@ -1374,6 +1375,7 @@ exports.createshopifyproduct = async (req, res) => {
       })
     });
     const shopifyProductCreateResponse = await shopifyProductCreateRequest.json();
+    console.log("🚀 ~ exports.createshopifyproduct= ~ shopifyProductCreateResponse:", shopifyProductCreateResponse)
 
     if (shopifyProductCreateRequest.ok) {
       await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToShopify': true } })
@@ -1749,7 +1751,7 @@ exports.shopifystoreorderedit = async (req, res) => {
     const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
     const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
     
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${shopOrderId}.json`;
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/orders/${shopOrderId}.json`;
     
     const shopifyOrderRequest = await fetch(shopifyEndpoint, {
       headers: {
@@ -1959,7 +1961,7 @@ exports.payshoporder = async (req, res) => {
       const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
       const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
   
-      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/orders/${orderId}.json`;
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/orders/${orderId}.json`;
   
       const shopifyOrderRequest = await fetch(shopifyEndpoint, {
         headers: {
@@ -2712,7 +2714,7 @@ exports.placeorder = async (req, res) => {
         userData.isZohoCustomer = true;
         userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
         userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
-        await userData.save();
+        await userData.save({ validateBeforeSave: false });
       }
     }
 

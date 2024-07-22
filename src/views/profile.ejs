@@ -190,10 +190,10 @@
                             <div class="card-body pb-2">
                                 <div class="form-group">
                                     <label class="form-label">Enter GST No.</label>
-                                    <input type="text" class="form-control" placeholder="">
+                                    <input type="text" class="form-control" id="gst-no" value="<%= data.userData.gstNo %>" placeholder="">
                                 </div>
                                 <div class="text-right mt-3">
-                                    <button type="button" onclick="saveGST()" class="btn btn-danger">Save changes</button>
+                                    <button type="button" onclick="saveGST()" class="btn btn-primary">Save changes</button>
                                 </div>
                             </div>
                         </div>
@@ -364,7 +364,33 @@
             }
         }
 
-        const saveGST = () => {
+        const saveGST = async () => {
+            const gst = document.querySelector("#gst-no");
+            if (!gst.value) return notyf.error("GST no. invalid");
+            try {
+                const updateInfoRequest = await fetch("/updateinfo", {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'POST',
+                    body: JSON.stringify({
+                        type: "gst",
+                        gst: gst.value
+                    })
+                });
+                const updateInfoResponse = await updateInfoRequest.json();
+                if (updateInfoRequest.ok) {
+                    return notyf.success("Information updated successfully!");
+                    location.reload();
+                } else if (updateInfoRequest.status === 404) {
+                    return notyf.error(updateInfoResponse.message);
+                } else {
+                    return notyf.error("Information could not be changed!");
+                }
+            } catch (error) {
+                console.log(error);
+                notyf.error('Something went wrong!');
+            }
             notyf.success("Details saved!");
         }
 
@@ -390,7 +416,7 @@
                 if (updateInfoRequest.ok) {
                     return notyf.success("Information updated successfully!");
                     location.reload();
-                } else if (updateInfoRequest.status === 400) {
+                } else if (updateInfoRequest.status === 404) {
                     return notyf.error(updateInfoResponse.message);
                 } else {
                     return notyf.error("Information could not be changed!");

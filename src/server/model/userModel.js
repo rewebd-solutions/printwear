@@ -69,7 +69,8 @@ var UserSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.Date,
       default: Date.now
     },
-    beneId: String
+    beneId: String,
+    gstNo: String
 })
 
 const UserModel = mongoose.model('User', UserSchema);
