@@ -1362,7 +1362,7 @@ exports.createshopifyproduct = async (req, res) => {
       ]
     }
 
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2023-07/products.json`
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/products.json`
 
     const shopifyProductCreateRequest = await fetch(shopifyEndpoint, {
       headers: {
