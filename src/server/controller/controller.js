@@ -1364,6 +1364,7 @@ exports.createshopifyproduct = async (req, res) => {
 
     const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/products.json`
 
+    console.log("🚀 ~ exports.createshopifyproduct= ~ shopifyEndpoint:", shopifyEndpoint)
     const shopifyProductCreateRequest = await fetch(shopifyEndpoint, {
       headers: {
         'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
