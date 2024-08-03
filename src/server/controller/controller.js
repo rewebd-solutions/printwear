@@ -1632,14 +1632,14 @@ exports.deleteorderitem = async (req, res) => {
   try {
     // console.log(req.body.designId)
     const orderData = await OrderModel.findOne({ userId: req.userId });
-    if (!orderData) return res.status(400).json({ message: "Couldn't find item" });
+    if (!orderData) return res.status(404).json({ message: "Couldn't find item" });
 
     orderData.items = orderData.items.filter(item => item.designId + "" != req.body.designId);
     orderData.totalAmount = orderData.items.reduce((total, item) => total + item.price, 0).toFixed(2);
     orderData.taxes = (orderData.totalAmount * 0.05).toFixed(2);
 
     if (orderData.items.length == 0) {
-      orderData.deleteOne();
+      await orderData.deleteOne();
     } else {
       await orderData.save();
     }
@@ -1647,7 +1647,7 @@ exports.deleteorderitem = async (req, res) => {
     res.json(orderData);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in deleting order item" });
   }
 }
 
@@ -1681,7 +1681,7 @@ exports.updateorder = async (req, res) => {
     res.json({ totalPrice: orderData.totalAmount });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: '500 Internal Server Error' });
+    res.status(500).json({ error: 'Server error in updating order' });
   }
 }
 
