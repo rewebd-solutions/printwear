@@ -88,7 +88,8 @@
           }),
           method: 'POST'
         });
-        const deleteDesignResponse = await deleteDesignRequest.text();
+        const deleteDesignResponse = await deleteDesignRequest.json();
+        if (!deleteDesignRequest.ok) return notyf.error({ message: deleteDesignResponse.error })
         notyf.success({
           message: "Design deleted successfully",
           dismissible: true,

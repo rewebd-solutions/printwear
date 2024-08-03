@@ -1296,12 +1296,29 @@ exports.createdesign = async (req, res) => {
 
 exports.deletedesign = async (req, res) => {
   try {
-    const userDesigns = await NewDesignModel.findOneAndUpdate({ userId: req.userId }, { $pull: { designs: { designSKU: req.body.designSKU } } });
-    // console.log(userDesigns);
-    res.send("OK");
+    const userDesigns = await NewDesignModel.findOne({ userId: req.userId, "designs.designSKU": req.body.designSKU });
+    if (!userDesigns) return res.status(404).json({ error: "Invalid design cannot be deleted" });
+    
+    const designId = userDesigns.designs.find(design => design.designSKU == req.body.designSKU)._id;
+    await userDesigns.updateOne({ $pull: { designs: { designSKU: req.body.designSKU } }}, { new: true })
+
+    console.log("User " + req.userId + " deleted design with Id: " + designId);
+
+    const userOrders = await OrderModel.findOne({ userId: req.userId, "items.designId": new mongoose.Types.ObjectId(designId) })
+    if (userOrders) {
+      const newOrderItems = userOrders.items.filter(item => item.designId + "" != designId + "");
+      userOrders.items = newOrderItems
+      userOrders.totalAmount = newOrderItems.reduce((total, item) => total + item.price, 0).toFixed(2)
+      userOrders.taxes = (userOrders.totalAmount * 0.05).toFixed(2);
+      console.log("User " + req.userId + " orders after deleting design: " + userOrders);
+      
+      await userOrders.save({ validateBeforeSave: false });
+    }
+
+    res.json({ message: "Deleted design successfully!" });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error });
+    res.status(500).send({ error: "Server error in deleting design!" });
   }
 }
 
