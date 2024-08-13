@@ -55,11 +55,6 @@
                 notyf.error({ message: "<%= data.error %>", duration: 20000 });
                 console.log(data.error);
                 </script>
-        <% } else { %>
-            <script>
-                var notyf = new Notyf();
-                notyf.success("<%= data.status %>");
-            </script>
         <% }  %>
     <% } else { %>
         <script>

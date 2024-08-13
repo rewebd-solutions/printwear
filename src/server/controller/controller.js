@@ -644,7 +644,7 @@ exports.resetpassword = async (req, res) => {
     if (pwd !== newPwd) return res.render('resetpassword', { error: 'Passwords don\'t match' });
     const passwordHash = crypto.createHash(algorithm).update(pwd).digest("hex");
     const userData = await UserModel.findOneAndUpdate({ email: email }, { $set: { password: passwordHash } }, { new: true })
-    if (!userData) return res.render('resetpassword', { error: 'Cannot find user with the provided email' })
+    if (!userData) return res.render('resetpassword', { data: { error: 'Cannot find user with the provided email. Please create an account.'} })
     res.redirect('login');
   } catch (error) {
     console.log("🚀 ~ exports.resetpassword= ~ error:", error)

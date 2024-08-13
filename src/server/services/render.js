@@ -34,7 +34,7 @@ exports.loginpage = (req, res) => {
 }
 
 exports.resetpassword = (req, res) => {
-    res.render("resetpassword", { error: false });
+    res.render("resetpassword", { data: { error: false } });
 }
 
 exports.adminpage = (req, res) => {
