@@ -518,3 +518,10 @@ i.left {
 .remove-design i.fa {
   font-size: 15px !important;
 }
+
+.size-chart-link {
+  font-size: 0.8rem;
+  color: dodgerblue;
+  text-decoration: underline;
+  cursor: pointer;
+}

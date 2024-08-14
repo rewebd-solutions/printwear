@@ -114,12 +114,13 @@ const fetchProductData = async () => {
       "6XL": 9,
     };
 
+    const productColorsForDescription = Object.keys(productData.colors)
     /* Modify Product Object */
     Product = {
       ...productData,
       brand: productData.brand,
       name: productData.name,
-      description: productData.description,
+      description: productData.description + `\n Available in ${productColorsForDescription.length} colors and ${Object.keys(productData.colors[productColorsForDescription[0]].sizes).length} sizes`,
       category: productData.group,
       colors: Object.keys(productData.colors).map((color, i) => {
         return {
@@ -269,13 +270,38 @@ const renderColors = () => {
   });
 };
 
+const openSizeChart = () => {
+  document.querySelector(".App").insertAdjacentHTML(
+          "afterend",
+          `
+          <!-- Modal for size chart -->
+          <div class="warning-moda-wrapper">
+            <div class="warning-modal">
+              <button onclick="document.querySelector('.warning-moda-wrapper').remove()"
+                style="margin-left: auto;padding: 0.4rem 0.8rem; cursor: pointer; border: none; outline: 1px solid silver; border-radius: 100%;"><i class="fa fa-xmark"></i>
+              </button>
+              Size chart for ${Product.name}<br />
+              <img src="images/size-charts/${Product.name}.png" alt="Size chart">
+            </div>
+          </div>
+        `
+        );
+}
+
 /* Load First Mockup Image */
 const loadMockupImage = () => {
   const image = document.getElementById("mockup-image");
   image.src = Product.colors.find(
     (color) => color._id === currentColor
   ).colorImage.front;
+  const descriptionUL = document.getElementById("product-desc");
+  const sizeChartLink = document.getElementById("size-choice-title-container");
+  descriptionUL.innerHTML = Product.description.split("\n").map(desc => `<li>${desc}</li>`).join("\n");
+
+  sizeChartLink.innerHTML += "<p class='size-chart-link' onclick=\"openSizeChart()\">Size Chart</p>"
 };
+
+
 
 /* Caculate dimensions of Active Canvas Objects */
 const calculateTotalHeight = () => {
