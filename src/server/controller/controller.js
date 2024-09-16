@@ -3763,6 +3763,16 @@ exports.renderadminwallet = async (req, res) => {
   }
 }
 
+exports.renderadminqueries = async (req, res) => {
+  try {
+    const userQueries = await QueryModel.find();
+    res.render("adminqueries", { data: { queries: userQueries, error: null } });
+  } catch (error) {
+    console.log("🚀 ~ exports.renderadminqueries= ~ error:", error)
+    res.render("adminqueries", { data: { queries: null, error: "Server error in fetching details!" } });
+  }
+}
+
 exports.adminrefund = async (req, res) => {
   try {
     const refundData = req.body;

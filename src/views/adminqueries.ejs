@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/adminorder.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <title>Admin Order details - Printwear</title>
+    <style>
+        .message-box {
+            padding: 1rem;
+            width: 98%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="banner">
+        <%- include('partials/admin-side.ejs') %>
+            <%- include('partials/admin-nav.ejs') %>
+    </div>
+
+    <div class="manageorder">
+        <% if (data.error) { %>
+            <!-- Display error message if there's an error -->
+            <h2>
+                <%= data.error %>
+            </h2>
+            <% } else if (data.queries && data.queries.length> 0) { %>
+                <!-- Loop through data array and create message-box div for each object -->
+                <% data.queries.forEach(item=> { %>
+                    <div class="message-box">
+                        <h4>Name: <%= item.name %>
+                        </h4>
+                        <h4>Email: <%= item.email %>
+                        </h4>
+                        <h4>Contact: <%= item.contact %>
+                        </h4>
+                        <h4>Query:</h4>
+                        <p>
+                            <%= item.message %>
+                        </p>
+                        <a href="mailto:<%= item.email %>" target="_blank" class="filter-button filter-button-active" style="margin-top: 1rem; text-decoration: none">Respond</a>
+                    </div>
+                    <% }) %>
+                        <% } else { %>
+                            <!-- Display this if there is no data and no error -->
+                            <h2>No data available</h2>
+                            <% } %>
+    </div>
+</body>
+
+</html>

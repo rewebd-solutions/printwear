@@ -75,11 +75,15 @@
             <i class="fas fa-truck"></i>
             <span>COD Remittance</span>
         </a>
+        <a href="/admin/queries">
+            <i class="fa fa-message"></i>
+            <span>Queries</span>
+        </a>
     </div>
 </div>
 <script>
     const routeName = location.pathname;
-    ["wallets", "orders", "cod"].forEach(o => {
+    ["wallets", "orders", "cod", "queries"].forEach(o => {
         if (routeName.includes(o)) {
             document.querySelector(`a[href='/admin/${o}']`).classList.add("sidebar-active")
         }

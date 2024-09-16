@@ -134,7 +134,8 @@ route.post("/admin/cod/remit", authServices.authorizeAdmin, controller.admincodr
 route.get("/admin/recentorders", authServices.authorizeAdmin, controller.getadminorders);
 route.get("/admin/recentorders/:id", authServices.authorizeAdmin, controller.getadminorder);
 route.post("/admin/recentorders/update", authServices.authorizeAdmin, controller.updateadminorder);
-
 route.post("/sendquery", controller.query);
+
+route.get("/admin/queries", authServices.authorizeAdmin, controller.renderadminqueries);
 
 module.exports = route
