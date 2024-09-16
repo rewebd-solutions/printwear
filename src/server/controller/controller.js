@@ -46,6 +46,7 @@ const MockupModel = require("../model/mockupModel");
 const WalletModel = require("../model/walletModel");
 // const { Cashfree } = require("cashfree-payout");
 const CODModel = require("../model/codDetailsModel");
+const QueryModel = require("../model/queryModel");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 /** I've not put CASHFREE_BASE_URL_TEST in yaml because mode should never be in test during production.. 
@@ -3940,5 +3941,27 @@ exports.admincodremit = async (req, res) => {
     }
     console.log("🚀 ~ exports.admincodremit= ~ error:", error)
     res.status(500).json({ error: "Server error in remittance process" });
+  }
+}
+
+exports.query = async (req, res) => {
+  try {
+    const content = req.body;
+    console.log(content);
+    if (!content.email || !content.mobile) {
+      return res.status(400).json({ error: "Missing mobile or email" });
+    }
+    if (!content.message || content.message.length < 10)
+      return res.status(400).json({ error: "Message content too small!" });
+    await QueryModel.create({
+      name: content.name,
+      email: content.email,
+      message: content.message,
+      mobile: content.mobile
+    });
+    res.json({ message: "Query was sent successfully!" });
+  } catch (error) {
+    console.log("🚀 ~ exports.query= ~ error:", error)
+    res.status(500).json({ error: "Server error in sending query. Please try again later." })
   }
 }
