@@ -30,7 +30,7 @@
     <title>PrintWear</title>
     <style>
         .contact-card {
-            width: 30%;
+            min-width: 30%;
             background-color: #f9f9f9;
             border-radius: 8px;
             padding: 20px;
@@ -172,12 +172,13 @@
                 <button class="submit-btn">Send</button>
             </form>
         </div>
-    </main>
-
-    <main class="card-cont">
-        <h1>CONTACT US</h1>
+        <h1>TALK TO US</h1>
         <div class="contact-cards-container" id="contactCardsContainer">
-            <!-- Contact Cards will be dynamically added here -->
+            <div class="contact-card">
+                <p><i class="fa fa-phone"></i> Whatsapp / Call us at : +91- 9345496725</p>
+                <p><i class="fa fa-envelope"></i> <a href="mailto:madhusudan@printwear.in">Email : madhusudan@printwear.in</a></p>
+                <p><i class="fa fa-clock"></i> Mon to Fri : 11am - 5pm</p>
+            </div>
         </div>
     </main>
 
@@ -218,38 +219,6 @@
         let nav = document.querySelector('nav');
         nav.classList.add('dark', 'shadow');
         document.addEventListener('DOMContentLoaded', function () {
-            const contacts = [
-                { category: 'Drop Shipping & Print on Demand', email: 'dropship@printwear.in', logo: 'logo1.png' },
-                { category: 'Bulk Order & General Enquiry', email: 'sai@printwear.in', logo: 'logo1.png' },
-                { category: 'Design Help', email: 'designs@printwear.in', logo: 'logo1.png' },
-                { category: 'Payments Related', email: 'accounts@printwear.in', logo: 'logo1.png' },
-                { category: 'Warehouse & Corporate Office', address: '3rd Street, Valasaravakkam, Chennai-600087', whatsapp: '9025597987', logo: 'logo2.png' }
-            ];
-
-            const contactCardsContainer = document.getElementById('contactCardsContainer');
-
-            contacts.forEach(contact => {
-                const card = document.createElement('div');
-                card.classList.add('contact-card');
-
-                if (contact.email) {
-                    card.innerHTML = `
-            <i class="fa fa-envelope"></i>
-            <p><strong>${contact.category}</strong></p>
-            <p>Email: <a href="mailto:${contact.email}">${contact.email}</a></p>
-        `;
-                } else {
-                    card.innerHTML = `
-            <i class="fa fa-phone"></i>
-            <p><strong>${contact.category}</strong></p>
-            <p>Address: ${contact.address}</p>
-            <p>WhatsApp: ${contact.whatsapp}</p>
-        `;
-                }
-
-                contactCardsContainer.appendChild(card);
-            });
-    
             const form = document.forms[0];
             form.addEventListener("submit", async (e) => {
                 e.preventDefault();
