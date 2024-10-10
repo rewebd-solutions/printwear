@@ -45,7 +45,8 @@
         </div>
         <div class="shopify-form">
             <form id="shopify-data-form" action="/connect-shopify" method="post">
-                <p style="font-size: 12px; color: #333">Access scopes required: read_orders, read_products, write_products, write_product_listings, read_product_listings, read_all_orders</p>
+                <p style="font-size: 12px; color: #333; padding: 8px; border-radius: 8px; background: rgba(255, 0, 0, 0.292)"><strong>Access scopes required:</strong> read_orders, read_products, write_products, write_product_listings, read_product_listings, read_all_orders</p>
+                <p style="font-size: 12px; color: #333; padding: 8px; border-radius: 8px; background: rgba(255, 0, 0, 0.292)"><strong>Webhook Version:</strong> 2024-04 or less </p>
                 <div class="input-wrapper">
                     <label for="store_name">Select a name for your store:</label>
                     <input required type="text" placeholder="Eg.: My mug store" name="store_name" id="inp-s0" />
@@ -192,9 +193,9 @@
 
                 // change shopify form data
                 if (storeDetailsResponse.shopify) {
-                    shopifyForm.children[0].children[0].children[1].value = storeDetailsResponse.shopify.shopName;
-                    shopifyForm.children[0].children[1].children[1].value = storeDetailsResponse.shopify.shopifyStoreURL;
-                    shopifyForm.children[0].children[2].children[1].value = storeDetailsResponse.shopify.shopifyAccessToken;
+                    shopifyForm.children[0].children[2].children[1].value = storeDetailsResponse.shopify.shopName;
+                    shopifyForm.children[0].children[3].children[1].value = storeDetailsResponse.shopify.shopifyStoreURL;
+                    shopifyForm.children[0].children[4].children[1].value = storeDetailsResponse.shopify.shopifyAccessToken;
                     shopifyForm.querySelector("button").innerText = 'Edit and Save';
                 }
                 

@@ -1375,14 +1375,15 @@ exports.createshopifyproduct = async (req, res) => {
       ],
       images: [
         {
-          src: designData.designImage.front ?? designData.designImage.back
+          src: designData.designImage.front == "false" ? designData.designImage.back: designData.designImage.front
         }
       ]
     }
 
     const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/products.json`
 
-    console.log("🚀 ~ exports.createshopifyproduct= ~ shopifyEndpoint:", shopifyEndpoint)
+    console.log("🚀 ~ exports.createshopifyproduct= ~ productData:")
+    console.dir(productData, { depth: 4});
     const shopifyProductCreateRequest = await fetch(shopifyEndpoint, {
       headers: {
         'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
@@ -1394,7 +1395,8 @@ exports.createshopifyproduct = async (req, res) => {
       })
     });
     const shopifyProductCreateResponse = await shopifyProductCreateRequest.json();
-    console.log("🚀 ~ exports.createshopifyproduct= ~ shopifyProductCreateResponse:", shopifyProductCreateResponse)
+    console.log("🚀 ~ exports.createshopifyproduct= ~ shopifyProductCreateResponse:")
+    console.dir(shopifyProductCreateResponse, { depth: 4});
 
     if (shopifyProductCreateRequest.ok) {
       await NewDesignModel.findOneAndUpdate({ userId: req.userId, 'designs.designSKU': req.body.designSKU }, { $set: { 'designs.$.isAddedToShopify': true } })
