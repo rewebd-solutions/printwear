@@ -1085,6 +1085,7 @@ exports.getwooorders = async (req, res) => {
       OrderHistoryModel.findOne({ userId: userId })
     ]);
     if (!storeDetails || !storeDetails.wooCommerceStore.consumerKey) return res.status(404).json({ error: "WooCommerce Store not connected!" })
+    if (!designDetails || designDetails?.designs?.length < 1) return res.status(404).json({ error: "No designs created yet!" })
     const allSKUs = designDetails.designs.map((design) => design.designSKU);
     // console.log("🚀 ~ exports.getwooorders= ~ allSKUs:", allSKUs)
 
@@ -1111,15 +1112,17 @@ exports.getwooorders = async (req, res) => {
           order.line_items.filter((item) => allSKUs.includes(item.sku)).length > 0
       );
       // console.log("🚀 ~ exports.getwooorders= ~ dataToSend:", dataToSend)
-      const orderIDsFromHistory = orderHistoryData.orderData.map(order => ({ wooCommerceId: order.wooCommerceId, printwearOrderId: order.printwearOrderId, deliveryStatus: order.deliveryStatus }));
-      dataToSend.forEach((order, i) => {
-          const isPlaced = orderIDsFromHistory.find(id => id.wooCommerceId == order.id);
-          if (isPlaced) {
-            dataToSend[i].isOrderPlaced = true
-            dataToSend[i].printwearOrderId = isPlaced.printwearOrderId;
-            dataToSend[i].printwearStatus = isPlaced.deliveryStatus
-          }
-      })
+      if (orderHistoryData && orderHistoryData.orderData?.length > 0) {
+        const orderIDsFromHistory = orderHistoryData.orderData.map(order => ({ wooCommerceId: order.wooCommerceId, printwearOrderId: order.printwearOrderId, deliveryStatus: order.deliveryStatus }));
+        dataToSend.forEach((order, i) => {
+            const isPlaced = orderIDsFromHistory.find(id => id.wooCommerceId == order.id);
+            if (isPlaced) {
+              dataToSend[i].isOrderPlaced = true
+              dataToSend[i].printwearOrderId = isPlaced.printwearOrderId;
+              dataToSend[i].printwearStatus = isPlaced.deliveryStatus
+            }
+        })
+      }
       res.json({ woo: dataToSend });
     } catch (error) {
       console.log(error);
@@ -1128,7 +1131,7 @@ exports.getwooorders = async (req, res) => {
 
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in fetching data" });
   }
 }
 
