@@ -83,7 +83,8 @@
     }
 
     const openDeleteConfirmation = (button, designName, designSKU) => {
-      if (confirm("Are you sure you wish to delete the design " + designName)) deleteDesign(button, designSKU)
+      if (prompt("Deleting the design will completely erase your design from the database. You will not be able to place orders with this design. You will also not be able to process Shopify or WooCommerce orders that have this design as line item.\n Are you sure you wish to delete the design " + designName + "\n Type the design's name to delete it:") === designName) deleteDesign(button, designSKU)
+      else alert("Design was not deleted")
     }
 
     const deleteDesign = async (button, designSKU) => {

@@ -1,1 +1,2 @@
 .test_assets
+src/views/*.ejs

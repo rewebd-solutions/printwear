@@ -31,264 +31,337 @@
     </div>
     <% if (error) { %>
         <div class="container">
-        <h2>
-            <%= error %>
-        </h2>
-        </div>
-    <% } else if (shopifyData) { %>
-        <div class="container">
-            <h2>Order Details for <%= shopifyData.order?.name %>
+            <h2>
+                <%= error %>
             </h2>
-            <p>Order by <%= ((shopifyData.order?.customer?.first_name ?? '' ) + ' ' + (shopifyData.order?.customer?.last_name
-                    ?? 'N/A' )) %>
-            </p>
-            <div class="create-order-container">
-                <% if (shopifyData.order.fulfillment_status) { %>
-                    <ul class="orders-list disable-button">
-                        <% shopifyData.order.line_items.forEach(item=> { %>
-                            <% const design=shopifyData.designs.find(design=> design.designSKU == item.sku); %>
-                                <li>
-                                    <img width="100" height="100"
-                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
-                                    <div>
-                                        <h4>
-                                            <%= design.designName %>
-                                        </h4>
-                                        <h6>
-                                            <%= design.product.name %>
-                                        </h6>
-                                    </div>
-                                    <h5>
-                                        <%= item.quantity %> pcs
-                                    </h5>
-                                    <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
-                                    </h5>
-                                    <div class="order-item-controls">
-                                        <!-- <button class="delete-button">
-                                            <i class="fa fa-trash"></i>
-                                        </button> -->
-                                    </div>
-                                </li>
-                                <% }) %>
-                    </ul>
-                    <button class="confirm-shop-order disable-button">
-                        Proceed ▶
-                    </button>
-                    <p>This order has already been fulfilled, you cannot proceed to pay for it</p>
-                <% } else { %>
-                    <ul class="orders-list">
-                        <% shopifyData.order.line_items.forEach(item=> { %>
-                            <% const design=shopifyData.designs.find(design=> design.designSKU == item.sku); %>
-                                <li>
-                                    <img width="100" height="100"
-                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>" alt="" />
-                                    <div>
-                                        <h4>
-                                            <%= design.designName %>
-                                        </h4>
-                                        <h6>
-                                            <%= design.product.name %>
-                                        </h6>
-                                    </div>
-                                    <h5>
-                                        <%= item.quantity %> pcs
-                                    </h5>
-                                    <h5>₹<%= design.price.toFixed(2) %> x <%= item.quantity %> = ₹<%= (parseFloat(design.price)*parseInt(item.quantity)).toFixed(2) %>
-                                    </h5>
-                                    <div class="order-item-controls">
-                                        <!-- <button class="delete-button">
-                                            <i class="fa fa-trash"></i>
-                                        </button> -->
-                                    </div>
-                                </li>
-                                <% }) %>
-                    </ul>
-                    <button class="confirm-shop-order">
-                        Proceed ▶
-                    </button>
-                    <p><span style="color: red;">NOTE:</span> If you wish to edit this order, you can do so in your shopify admin page and refresh it here.</p>
-                    <p>Click on proceed will create an order in Printwear. Please proceed to pay.</p>
-                <% } %>
-                    
-            </div>
         </div>
-        <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-        <script>
-            var notyf = new Notyf();
-            const proceedBtn = document.querySelector(".confirm-shop-order");
-            const data = <%- JSON.stringify(shopifyData) %>;
-            const items = data.order.line_items.map(item => {
-                const design = data.designs.find(design => design.designSKU == item.sku);
-                return {
-                    productId: design.productId,
-                    designId: design._id,
-                    price: design.price,
-                    quantity: item.quantity,
-                }
-            })
-
-            const createOrderFromShopify = async (e) => {
-                try {
-                    const createOrderReq = await fetch("/createordershopify", {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            shopifyId: '<%= shopifyData.order.id %>',
-                            items: items
-                        })
-                    });
-                    const createOrderRes = await createOrderReq.json();
-                    if (createOrderRes.message) {
-                        notyf.success("You will be redirected in a few moments!");
-                        setTimeout(() => {
-                            location.href = `/mystores/shopify/<%= shopifyData.order.id %>/pay`
-                        }, 1200);
-                    }
-                    if (createOrderRes.error) {
-                        notyf.error(createOrderRes.error);
-                    }
-                } catch (error) {
-                    console.log("🚀 ~ createShopifyOrder ~ error:", error)
-                    notyf.error("Something went wrong!");
-                    e.target.classList.remove("disable-button");
-                }
-            }
-            
-            proceedBtn.addEventListener("click", (e) => {
-                e.target.classList.add("disable-button");
-                createOrderFromShopify(e);
-            })
-        </script>
-    <% } else { %>
-        <div class="container">
-            <h2>Order Details for <%= wooData.order?.id %>
-            </h2>
-            <p>Order by <%= 
-            ((wooData.order?.billing?.first_name ? (wooData.order?.billing?.first_name  + ' ' + wooData.order?.billing?.last_name): wooData.order?.shipping?.first_name? (wooData.order?.shipping?.first_name + ' ' + wooData.order?.shipping?.last_name): 'N/A'  )) %>
-            </p>
-            <div class="create-order-container">
-                <% if (wooData.order.status === "cancelled") { %>
-                    <ul class="orders-list disable-button">
-                        <% wooData.order.line_items.forEach(item=> { %>
-                            <% const design=wooData.designs.find(design=> design.designSKU == item.sku); %>
-                                <li>
-                                    <img width="100" height="100"
-                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>"
-                                        alt="" />
-                                    <div>
-                                        <h4>
-                                            <%= design.designName %>
-                                        </h4>
-                                        <h6>
-                                            <%= design.product.name %>
-                                        </h6>
-                                    </div>
-                                    <h5>
-                                        <%= item.quantity %> pcs
-                                    </h5>
-                                    <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%=
-                                                    parseFloat(design.price)*parseInt(item.quantity) %>
-                                    </h5>
-                                    <div class="order-item-controls">
-                                        <!-- <button class="delete-button">
+        <% } else if (shopifyData) { %>
+            <div class="container">
+                <h2>Order Details for <%= shopifyData.order?.name %>
+                </h2>
+                <p>Order by <%= ((shopifyData.order?.customer?.first_name ?? '' ) + ' ' +
+                        (shopifyData.order?.customer?.last_name ?? 'N/A' )) %>
+                </p>
+                <div class="create-order-container">
+                    <% if (shopifyData.order.fulfillment_status) { %>
+                        <ul class="orders-list disable-button">
+                            <% shopifyData.order.line_items.forEach(item=> { %>
+                                <% const design=shopifyData.designs.find(design=> design.designSKU == item.sku); %>
+                                    <% if (!design) { %>
+                                        <li>
+                                            <img width="100" height="100" src="/images/warning.png" alt="" />
+                                            <div>
+                                                <h4>
+                                                    <%= item.name %>
+                                                </h4>
+                                                <h6>
+                                                    <%= item.title %>
+                                                </h6>
+                                            </div>
+                                            <h5 style="margin-right: auto;"><i>This design has been deleted from your
+                                                    products</i></h5>
+                                        </li>
+                                        <% } else { %>
+                                            <li>
+                                                <img width="100" height="100"
+                                                    src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>"
+                                                    alt="" />
+                                                <div>
+                                                    <h4>
+                                                        <%= design.designName %>
+                                                    </h4>
+                                                    <h6>
+                                                        <%= design.product.name %>
+                                                    </h6>
+                                                </div>
+                                                <h5>
+                                                    <%= item.quantity %> pcs
+                                                </h5>
+                                                <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%=
+                                                                parseFloat(design.price)*parseInt(item.quantity) %>
+                                                </h5>
+                                                <div class="order-item-controls">
+                                                    <!-- <button class="delete-button">
                                             <i class="fa fa-trash"></i>
                                         </button> -->
-                                    </div>
-                                </li>
-                                <% }) %>
-                    </ul>
-                    <p>This order has been cancelled</p>
-                <% } else { %>
-                    <ul class="orders-list">
-                        <% wooData.order.line_items.forEach(item=> { %>
-                            <% const design = wooData.designs.find(design=> design.designSKU == item.sku); %>
-                                <li>
-                                    <img width="100" height="100"
-                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>"
-                                        alt="" />
-                                    <div>
-                                        <h4>
-                                            <%= design.designName %>
-                                        </h4>
-                                        <h6>
-                                            <%= design.product.name %>
-                                        </h6>
-                                    </div>
-                                    <h5>
-                                        <%= item.quantity %> pcs
-                                    </h5>
-                                    <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%= parseFloat(design.price)*parseInt(item.quantity) %>
-                                    </h5>
-                                    <div class="order-item-controls">
-                                        <!-- <button class="delete-button">
-                                            <i class="fa fa-trash"></i>
-                                        </button> -->
-                                    </div>
-                                </li>
-                        <% }) %>
+                                                </div>
+                                            </li>
+                                            <% } %>
+                                                <% }) %>
                         </ul>
-                        <button class="confirm-shop-order">
+                        <button class="confirm-shop-order disable-button">
                             Proceed ▶
                         </button>
-                        <p><span style="color: red;">NOTE:</span> If you wish to edit this order, you can do so in your WooCommerce admin page and
-                            refresh it here.</p>
-                        <p>Click on proceed will create an order in Printwear. Please proceed to pay in the next page.</p>
-                <% } %>
-        
+                        <p>This order has already been fulfilled, you cannot proceed to pay for it</p>
+                        <% } else { %>
+                            <ul class="orders-list">
+                                <% shopifyData.order.line_items.forEach(item=> { %>
+                                    <% const design=shopifyData.designs.find(design=> design.designSKU == item.sku); %>
+                                        <% if (!design) { %>
+                                            <li>
+                                                <img width="100" height="100" src="/images/warning.png" alt="" />
+                                                <div>
+                                                    <h4>
+                                                        <%= item.name %>
+                                                    </h4>
+                                                    <h6>
+                                                        <%= item.title %>
+                                                    </h6>
+                                                </div>
+                                                <h5><i>This design has been deleted from your products</i></h5>
+                                            </li>
+                                            <% } else { %>
+                                                <li>
+                                                    <img width="100" height="100"
+                                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>"
+                                                        alt="" />
+                                                    <div>
+                                                        <h4>
+                                                            <%= design.designName %>
+                                                        </h4>
+                                                        <h6>
+                                                            <%= design.product.name %>
+                                                        </h6>
+                                                    </div>
+                                                    <h5>
+                                                        <%= item.quantity %> pcs
+                                                    </h5>
+                                                    <h5>₹<%= design.price.toFixed(2) %> x <%= item.quantity %> = ₹<%=
+                                                                    (parseFloat(design.price)*parseInt(item.quantity)).toFixed(2)
+                                                                    %>
+                                                    </h5>
+                                                    <div class="order-item-controls">
+                                                        <!-- <button class="delete-button">
+                                            <i class="fa fa-trash"></i>
+                                        </button> -->
+                                                    </div>
+                                                </li>
+                                                <% } %>
+                                                    <% }) %>
+                            </ul>
+                            <button class="confirm-shop-order">
+                                Proceed ▶
+                            </button>
+                            <p><span style="color: red;">NOTE:</span> If you wish to edit this order, you can do so in
+                                your shopify admin page and refresh it here.</p>
+                            <p>Click on proceed will create an order in Printwear. Please proceed to pay.</p>
+                            <% } %>
+
+                </div>
             </div>
-        </div>
-        <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-        <script>
-            var notyf = new Notyf();
-            const proceedBtn = document.querySelector(".confirm-shop-order");
-            const data = <%- JSON.stringify(wooData) %>;
-            const items = data.order.line_items.map(item => {
-                const design = data.designs.find(design => design.designSKU == item.sku);
-                return {
-                    productId: design.productId,
-                    designId: design._id,
-                    price: design.price,
-                    quantity: item.quantity,
-                }
-            })
-
-            const createOrderFromWoo = async (e) => {
-                try {
-                    const createOrderReq = await fetch("/createorderwoo", {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            wooId: '<%= wooData.order.id %>',
-                            items: items
-                        })
-                    });
-                    const createOrderRes = await createOrderReq.json();
-                    if (createOrderRes.message) {
-                        notyf.success("Your order was successful!");
-                        notyf.success("You will be redirected in a few moments!");
-                        location.href = `/mystores/woo/<%= wooData.order.id %>/pay`
+            <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+            <script>
+                var notyf = new Notyf();
+                const proceedBtn = document.querySelector(".confirm-shop-order");
+                const data = <%- JSON.stringify(shopifyData) %>;
+                const items = data.order.line_items.map(item => {
+                    const design = data.designs.find(design => design.designSKU == item.sku);
+                    if (!design) return null;
+                    return {
+                        productId: design.productId,
+                        designId: design._id,
+                        price: design.price,
+                        quantity: item.quantity,
                     }
-                    if (createOrderRes.error) {
-                        notyf.error(createOrderRes.error);
-                    }
-                } catch (error) {
-                    console.log("🚀 ~ createShopifyOrder ~ error:", error)
-                    notyf.error("Something went wrong!");
-                } finally {
-                    e.target.classList.remove("disable-button");
-                }
-            }
+                })
 
-            proceedBtn.addEventListener("click", (e) => {
-                e.target.classList.add("disable-button");
-                createOrderFromWoo(e);
-            })
-        </script>
-    <% } %>
+                const createOrderFromShopify = async (e) => {
+                    try {
+                        const createOrderReq = await fetch("/createordershopify", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                shopifyId: '<%= shopifyData.order.id %>',
+                                items: items
+                            })
+                        });
+                        const createOrderRes = await createOrderReq.json();
+                        if (createOrderRes.message) {
+                            notyf.success("You will be redirected in a few moments!");
+                            setTimeout(() => {
+                                location.href = `/mystores/shopify/<%= shopifyData.order.id %>/pay`
+                            }, 1200);
+                        }
+                        if (createOrderRes.error) {
+                            notyf.error(createOrderRes.error);
+                        }
+                    } catch (error) {
+                        console.log("🚀 ~ createShopifyOrder ~ error:", error)
+                        notyf.error("Something went wrong!");
+                        e.target.classList.remove("disable-button");
+                    }
+                }
+
+                proceedBtn.addEventListener("click", (e) => {
+                    e.target.classList.add("disable-button");
+                    createOrderFromShopify(e);
+                })
+            </script>
+            <% } else { %>
+                <div class="container">
+                    <h2>Order Details for <%= wooData.order?.id %>
+                    </h2>
+                    <p>Order by <%= ((wooData.order?.billing?.first_name ? (wooData.order?.billing?.first_name + ' ' +
+                            wooData.order?.billing?.last_name): wooData.order?.shipping?.first_name?
+                            (wooData.order?.shipping?.first_name + ' ' + wooData.order?.shipping?.last_name): 'N/A' ))
+                            %>
+                    </p>
+                    <div class="create-order-container">
+                        <% if (wooData.order.status==="cancelled" ) { %>
+                            <ul class="orders-list disable-button">
+                                <% wooData.order.line_items.forEach(item=> { %>
+                                    <% const design=wooData.designs.find(design=> design.designSKU == item.sku); %>
+                                        <% if (!design) { %>
+                                            <li>
+                                                <div>
+                                                    <h4>
+                                                        <%= item.name %>
+                                                    </h4>
+                                                    <h6>
+                                                        <%= item.title %>
+                                                    </h6>
+                                                </div>
+                                                <h5><i>This design has been deleted from your products</i></h5>
+                                            </li>
+                                            <% } else { %>
+                                                <li>
+                                                    <img width="100" height="100"
+                                                        src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>"
+                                                        alt="" />
+                                                    <div>
+                                                        <h4>
+                                                            <%= design.designName %>
+                                                        </h4>
+                                                        <h6>
+                                                            <%= design.product.name %>
+                                                        </h6>
+                                                    </div>
+                                                    <h5>
+                                                        <%= item.quantity %> pcs
+                                                    </h5>
+                                                    <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%=
+                                                                    parseFloat(design.price)*parseInt(item.quantity) %>
+                                                    </h5>
+                                                    <div class="order-item-controls">
+                                                        <!-- <button class="delete-button">
+                                            <i class="fa fa-trash"></i>
+                                        </button> -->
+                                                    </div>
+                                                </li>
+                                                <% } %>
+                                                    <% }) %>
+                            </ul>
+                            <p>This order has been cancelled</p>
+                            <% } else { %>
+                                <ul class="orders-list">
+                                    <% wooData.order.line_items.forEach(item=> { %>
+                                        <% const design=wooData.designs.find(design=> design.designSKU == item.sku); %>
+                                            <% if (!design) { %>
+                                                <li>
+                                                    <div>
+                                                        <h4>
+                                                            <%= item.name %>
+                                                        </h4>
+                                                        <h6>
+                                                            <%= item.title %>
+                                                        </h6>
+                                                    </div>
+                                                    <h5><i>This design has been deleted from your products</i></h5>
+                                                </li>
+                                                <% } else { %>
+                                                    <li>
+                                                        <img width="100" height="100"
+                                                            src="<%= design.designImage.front ? design.designImage.front: design.designImage.back  %>"
+                                                            alt="" />
+                                                        <div>
+                                                            <h4>
+                                                                <%= design.designName %>
+                                                            </h4>
+                                                            <h6>
+                                                                <%= design.product.name %>
+                                                            </h6>
+                                                        </div>
+                                                        <h5>
+                                                            <%= item.quantity %> pcs
+                                                        </h5>
+                                                        <h5>₹<%= design.price %> x <%= item.quantity %> = ₹<%=
+                                                                        parseFloat(design.price)*parseInt(item.quantity)
+                                                                        %>
+                                                        </h5>
+                                                        <div class="order-item-controls">
+                                                            <!-- <button class="delete-button">
+                                            <i class="fa fa-trash"></i>
+                                        </button> -->
+                                                        </div>
+                                                    </li>
+                                                    <% } %>
+                                                        <% }) %>
+                                </ul>
+                                <button class="confirm-shop-order">
+                                    Proceed ▶
+                                </button>
+                                <p><span style="color: red;">NOTE:</span> If you wish to edit this order, you can do so
+                                    in your WooCommerce admin page and
+                                    refresh it here.</p>
+                                <p>Click on proceed will create an order in Printwear. Please proceed to pay in the next
+                                    page.</p>
+                                <% } %>
+
+                    </div>
+                </div>
+                <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+                <script>
+                    var notyf = new Notyf();
+                    const proceedBtn = document.querySelector(".confirm-shop-order");
+                    const data = <%- JSON.stringify(wooData) %>;
+                    const items = data.order.line_items.map(item => {
+                        const design = data.designs.find(design => design.designSKU == item.sku);
+                        if (!design) return null;
+                        return {
+                            productId: design.productId,
+                            designId: design._id,
+                            price: design.price,
+                            quantity: item.quantity,
+                        }
+                    })
+
+                    const createOrderFromWoo = async (e) => {
+                        try {
+                            const createOrderReq = await fetch("/createorderwoo", {
+                                method: "POST",
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    wooId: '<%= wooData.order.id %>',
+                                    items: items
+                                })
+                            });
+                            const createOrderRes = await createOrderReq.json();
+                            if (createOrderRes.message) {
+                                notyf.success("Your order was successful!");
+                                notyf.success("You will be redirected in a few moments!");
+                                location.href = `/mystores/woo/<%= wooData.order.id %>/pay`
+                            }
+                            if (createOrderRes.error) {
+                                notyf.error(createOrderRes.error);
+                            }
+                        } catch (error) {
+                            console.log("🚀 ~ createShopifyOrder ~ error:", error)
+                            notyf.error("Something went wrong!");
+                        } finally {
+                            e.target.classList.remove("disable-button");
+                        }
+                    }
+
+                    proceedBtn.addEventListener("click", (e) => {
+                        e.target.classList.add("disable-button");
+                        createOrderFromWoo(e);
+                    })
+                </script>
+                <% } %>
 
 </body>
 

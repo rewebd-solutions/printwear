@@ -1032,6 +1032,7 @@ exports.getshopifyorders = async (req, res) => {
     ]);
 
     if (!storeDetails || !storeDetails.shopifyStore.shopifyAccessToken) return res.status(404).json({ error: "Shopify Store not connected!" })
+    if (!designDetails || designDetails?.designs?.length < 1) return res.status(404).json({ error: "No designs created yet!" })
     const allSKUs = designDetails.designs.map(design => design.designSKU);
 
     const shopifyStoreData = storeDetails.shopifyStore;
@@ -1052,16 +1053,18 @@ exports.getshopifyorders = async (req, res) => {
     const dataToSend = shopifyStoreOrderResponse.orders.filter(order => 
       order.line_items.filter(item => allSKUs.includes(item.sku)).length > 0
     )
-    // console.log("🚀 ~ exports.getshopifyorders= ~ dataToSend:", dataToSend
-    const orderIDsFromHistory = orderHistoryData.orderData.map(order => ({ shopifyId: order.shopifyId, printwearOrderId: order.printwearOrderId,deliveryStatus: order.deliveryStatus }));
-    dataToSend.forEach((order, i) => {
-        const isPlaced = orderIDsFromHistory.find(id => id.shopifyId == order.id);
-        if (isPlaced) {
-          dataToSend[i].isOrderPlaced = true
-          dataToSend[i].printwearOrderId = isPlaced.printwearOrderId;
-          dataToSend[i].printwearStatus = isPlaced.deliveryStatus
-        }
-    })
+    console.log("🚀 ~ exports.getshopifyorders= ~ dataToSend:", dataToSend)
+    if (orderHistoryData && orderHistoryData.orderData?.length > 0) {
+      const orderIDsFromHistory = orderHistoryData.orderData.map(order => ({ shopifyId: order.shopifyId, printwearOrderId: order.printwearOrderId,deliveryStatus: order.deliveryStatus }));
+      dataToSend.forEach((order, i) => {
+          const isPlaced = orderIDsFromHistory.find(id => id.shopifyId == order.id);
+          if (isPlaced) {
+            dataToSend[i].isOrderPlaced = true
+            dataToSend[i].printwearOrderId = isPlaced.printwearOrderId;
+            dataToSend[i].printwearStatus = isPlaced.deliveryStatus
+          }
+      })
+    }
     // console.log(dataToSend);
     res.json({ shopify: dataToSend });
     
@@ -1797,10 +1800,10 @@ exports.shopifystoreorderedit = async (req, res) => {
 
     
     const SKUs = shopifyOrderResponse.order.line_items.map(item => item.sku);
-    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ SKUs:", SKUs)
     
+    // deleted designs prechana pannudhu -- fixed it by checking on frontend
     const designData = designsData.designs.filter(design => SKUs.includes(design.designSKU))
-    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ designData:", designData)
+    
     res.render('storeorderedit', { error: false, shopifyData: { order: shopifyOrderResponse.order, designs: designData } });
   } catch (error) {
     console.log("🚀 ~ exports.storeorderedit= ~ error:", error)
@@ -1901,7 +1904,8 @@ exports.woostoreorderedit = async (req, res) => {
 
 // endpoint for creating order from shopify & woo
 exports.createordershopify = async (req, res) => {
-  const { shopifyId, items } = req.body;
+  const { shopifyId, items: unfilteredItems } = req.body;
+  const items = unfilteredItems.filter(item => item);
   try {
     let totalAmount = items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)
     const orderData = await OrderModel.findOneAndUpdate(

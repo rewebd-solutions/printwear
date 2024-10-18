@@ -31,7 +31,8 @@
     <div class="stock">
         <div class="head-search">
             <h2>Stock inventory</h2>
-            <input type="search" oninput="searchProducts(event.target.value)" placeholder="Search for SKU, product name, etc." />
+            <input type="search" oninput="searchProducts(event.target.value)"
+                placeholder="Search for SKU, product name, etc." />
         </div>
         <!-- <div class="stock-choice-container">
             Summa oru description
@@ -47,7 +48,7 @@
                     </tr>
                 </thead>
                 <tbody id="printwear-productTableBody">
-                    
+
                 </tbody>
             </table>
             <span class="loader"></span>
@@ -72,7 +73,7 @@
         const printwearTableBody = document.getElementById("printwear-productTableBody");
         const printwearTableContainer = document.getElementById("printwear-stock");
 
-        const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');        
+        const slugify = str => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
 
         var columnSortOrder = 0;
 
@@ -137,7 +138,7 @@
         const populateTable = (data = stockData) => {
             printwearTableBody.innerHTML = '';
             data.forEach((stock, i) => {
-                createTableRow(stock, i+1);
+                createTableRow(stock, i + 1);
             })
         }
 
