@@ -9,6 +9,9 @@ let fabricCanvas = null;
 /* Design Side */
 let designDirection = "front";
 
+/** Disabling object cache in fabric for non-pixelated preview */
+fabric.Object.prototype.objectCaching = false;
+
 /* Storing Canvas State */
 let canvasState = {
   front: null,
@@ -814,11 +817,11 @@ const downloadDesign = () => {
   const node = document.getElementById("product-design");
 
   const config = {
-    width: node.offsetWidth * 2,
-    height: node.offsetHeight * 2.5,
+    width: node.offsetWidth * 3,
+    height: node.offsetHeight * 3.75,
     style: {
       transformOrigin: "0 0",
-      transform: "scale(2)",
+      transform: "scale(3)",
     },
     copyDefaultStyles: true,
   };
@@ -886,11 +889,11 @@ const saveDesign = async () => {
     const node = document.getElementById("product-design");
 
     const config = {
-      width: node.offsetWidth * 2,
-      height: node.offsetHeight * 2.5,
+      width: node.offsetWidth * 3,
+      height: node.offsetHeight * 3.75,
       style: {
         transformOrigin: "0 0",
-        transform: "scale(2)",
+        transform: "scale(3)",
       },
       copyDefaultStyles: true,
     };
