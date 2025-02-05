@@ -297,7 +297,7 @@
     <a href="#" class="top-nav-btn" onclick="openDesignUploadModal('image', event)">
       <i style="font-size: 16px;" class="fa fa-file-upload"></i> Upload design
     </a>
-    <a href="/profile" class="top-nav-btn"><i style="font-size: 16px;" class="fa-solid fa-user"></i> Profile</a>
+    <a href="/profile" class="top-nav-btn" id="profile-page-btn"><span class="loader-w"></span> Profile</a>
   </div>
 
 </div>
@@ -522,6 +522,7 @@
       if (walletBalanceResponse.message) throw new Error(walletBalanceResponse.message);
       document.querySelector("#wall").innerHTML = `<i style="font-size: 16px;" class="fa fa-wallet"></i> ₹${walletBalanceResponse.balance.toFixed(2)}
         <i style="font-size: 14px;" class="fa fa-chevron-down"></i>`;
+      document.querySelector("#profile-page-btn").innerHTML = `<i style="font-size: 16px;" class="fa-solid fa-user"></i> ${walletBalanceResponse.name}`
     } catch (error) {
       console.log(error);
       notyf.error(error);

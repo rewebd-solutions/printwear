@@ -2569,7 +2569,7 @@ exports.walletballance = async (req, res) => {
   try {
     const walletData = await WalletModel.findOne({ userId: req.userId });
     if (!walletData) return res.status(404).json({ message: "Wallet for user not found!" });
-    return res.json({ balance: walletData.balance });
+    return res.json({ balance: walletData.balance, name: req.userName });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Couldn't fetch Wallet details!" });
