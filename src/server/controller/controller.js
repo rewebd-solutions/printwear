@@ -3131,6 +3131,7 @@ exports.getadminorders = async (req, res) => {
     const allOrderHistories = await OrderHistoryModel.aggregate([
       { $unwind: "$orderData" }, // Unwind the orderData array to get individual objects
       { $sort: { "orderData.createdAt": -1} },
+      { $limit: 300 },
       { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
       { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
     ]);
