@@ -39,6 +39,11 @@ steps:
       - 'CF_PAYOUT_SECRET_TEST=${_CF_PAYOUT_SECRET_TEST}'
       - 'CF_PAYOUT_CLIENT_PROD=${_CF_PAYOUT_CLIENT_PROD}'
       - 'CF_PAYOUT_SECRET_PROD=${_CF_PAYOUT_SECRET_PROD}'
+      - 'RZPY_TEST_KEY_ID=${_RZPY_TEST_KEY_ID}'
+      - 'RZPY_TEST_KEY_SEC=${_RZPY_TEST_KEY_SEC}'
+      - 'RZPY_LIVE_KEY_ID=${_RZPY_LIVE_KEY_ID}'
+      - 'RZPY_LIVE_KEY_SEC=${_RZPY_LIVE_KEY_SEC}'
+      - 'RZPY_WH_SEC=${_RZPY_WH_SEC}'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
