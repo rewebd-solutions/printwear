@@ -3876,7 +3876,7 @@ exports.createshiporder = async (req, res) => {
         "failed"
       )
         return console.log(
-          `[WH]: [DUPLICATE] Received webhook for ${cf_order_id} and updated already.`,
+          `[WH]: [DUPLICATE] Received webhook for ${rzpyOrderId} and updated already.`,
         );
 
       UserWallet.transactions[currentTransactionIndex].amount =
