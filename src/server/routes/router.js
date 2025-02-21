@@ -88,7 +88,7 @@ route.post("/connect-shopify", authServices.authorizeToken, controller.connectSh
 route.post("/connect-woocommerce", authServices.authorizeToken, controller.connectWooCommerce);
 
 route.get("/getzohoproducts", controller.getZohoProducts);
-// route.get("/getzohoproductgroups", controller.getZohoProductGroups);
+// route.get("/getzohoproductgroups", controller.getZohoProductsFromInventory);
 
 route.post("/createshopifyproduct", authServices.authorizeToken, controller.createshopifyproduct);
 route.post("/createwoocommerceorder", authServices.authorizeToken, controller.createwoocommerceorder);
@@ -102,6 +102,7 @@ route.get("/getmockups", controller.getmockups);
 route.post("/placeorder", authServices.authorizeToken, controller.placeorder);
 route.post("/reshiporder", authServices.authorizeToken, controller.reshiporder);
 route.post("/createshiporder", controller.createshiporder);
+route.post("/payment-success", controller.paymentSuccessCallback);
 route.post("/updateorderdetails", controller.updateorderdetails);
 route.post("/calculateshippingcharges", authServices.authorizeToken, controller.calculateshippingcharges);
 

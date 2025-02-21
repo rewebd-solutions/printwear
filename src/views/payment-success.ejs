@@ -24,8 +24,8 @@
 <body>
     <div class="wallet-box">
         <img src="/images/Logo.png" alt="Printwear logo" />
-        <% if (type==='recharge' ) { %>
-            <h3>Recharge was intiated successfully!</h3>
+        <% if (data) { %>
+            <h3>Recharge was successfully!</h3>
             <p>Your wallet will be updated shortly. Kindly refresh to see changes.</p>
             <a id="closer" href="#">Click here to go back to merchant site</a>
             <script>
@@ -34,9 +34,6 @@
                     window.close();
                 }
             </script>
-        <% } else if (type==='purchase' ) { %>
-            <h3>Your purchase was successful!</h3>
-            <a href="/manageorder">Click here to go back to orders!</a>
         <% } else { %>
             <script>
                 window.close();

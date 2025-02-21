@@ -33,6 +33,10 @@ var WalletSchema = new Schema({
             cashfreeOrderId: String,
             walletOrderId: String,
             cashfreeSessionId: String,
+            rzpyOrderId: String,
+            rzpyPaymnetId: String,
+            rzpySignature: String,
+            rzpyEventId: String,
             transactionStatus: {
                 type: String,
                 enum: ["pending", "success", "failed", "refund_init", "refunded"]

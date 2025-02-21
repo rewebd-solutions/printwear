@@ -10,6 +10,7 @@
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <title>Recharge wallet for <%= data.userName %>
     </title>
     <!-- Google tag (gtag.js) -->
@@ -78,18 +79,36 @@
                         method: "POST"
                     });
                     const rechargeResponse = await rechargeRequest.json();
-                    const cashfree = Cashfree({
-                        // mode: "production" //or production
-                        mode: "<%= data.mode == 'test'? 'sandbox': 'production' %>" //or production
-                    });
+                    console.log("🚀 ~ document.querySelector ~ rechargeResponse:", rechargeResponse)
                     if (!rechargeRequest.ok) {
-                        return notyf.error("There was an error creating the payment link");
+                        return notyf.error(rechargeResponse.message);
                     }
-                    cashfree.checkout({ paymentSessionId: rechargeResponse.paymentLink }).then(check => console.log(check)).catch(err => alert(error));
-                    notyf.success("Redirecting to payment page")
+                    var options = {
+                        "key": "rzp_test_axcWYsHbTy8NGa", // Enter the Key ID generated from the Dashboard
+                        "amount": rechargeResponse.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                        "currency": "INR",
+                        "name": "Printwear", //your business name
+                        "description": "Recharge Wallet",
+                        "image": "https://printwear.in/images/Logo.png",
+                        "order_id": rechargeResponse.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+                        "callback_url": "https://printwear.in/payment-success",
+                        "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information especially their phone number
+                            "name": rechargeResponse.name, //your customer's name
+                            "email": rechargeResponse.email,
+                            "contact": rechargeResponse.phone //Provide the customer's phone number for better conversion rates 
+                        },
+                        "notes": {
+                            "reason": rechargeResponse.notes.message
+                        },
+                        "theme": {
+                            "color": "#3399cc"
+                        }
+                    };
+                    var rzp1 = new Razorpay(options);
+                    rzp1.open();
                 } catch (error) {
                     console.log(error);
-                    notyf.error("Redirecting to payment page")
+                    notyf.error("There was an error in creating payment")
                     // handleCancel();
                 }
             });
