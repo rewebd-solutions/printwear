@@ -84,6 +84,10 @@
 
       </div>
 
+      <div id="tracking-details">
+        <h3>Shipment tracking</h3>
+      </div>
+
       <div id="deliv-details">
         <table>
           <thead>
@@ -159,6 +163,8 @@
       const orderDesignsContainer = document.querySelector("#order-items-body")
       const deliveryDetailsContainer = document.querySelector("#delivery-details")
       const totalDetailsContainer = document.querySelector("#deliv-details")
+      const trackingDetailsContainer = document.querySelector("#tracking-details")
+
       document.querySelector("#order-id-heading").innerHTML = `Order ID: ${orderData.orderData.printwearOrderId} <h4 class="status-badge ${orderData.orderData.deliveryStatus}">${orderData.orderData.deliveryStatus}</h4> 
         <br />
         <span style="font-size: 14px">Received on: ${ new Date(orderData.orderData.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) }</span>
@@ -370,6 +376,23 @@
               </tbody>
             </table>
         `
+
+        trackingDetailsContainer.innerHTML += `
+      <div class="timeline">
+        ${orderData.orderData.deliveryTracking.map(tracking => {
+        return `
+            <div class="timeline-item">
+              <div class="timeline-content">
+                <h4>${tracking.status}</h4>
+                <p style="font-size:14px">${tracking.activity}</p>
+                <p style="font-size:14px"><i class="fa fa-map-location-dot"></i> ${tracking.location}</p>
+                <p style="font-size:14px">${new Date(tracking.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</p>
+              </div>
+            </div>
+          `;
+      }).join('')}
+      </div>
+    `;
     }
     
     fetchOrderData();

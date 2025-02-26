@@ -100,7 +100,8 @@
               <tbody>
                 <% orderData.orderData[0].items.forEach((order, i) => { %>
                   <% const design = designData.find(design => design._id.toString() === order.designId.toString()) %>
-                  <% const label = labelData && design.neckLabel? labelData.labels.find(label => label._id.toString() === design.neckLabel.toString()): null %>
+                  <% if (!design) return; %>
+                  <% const label = labelData && design.neckLabel? labelData.labels.find(label => label._id.toString() === design.neckLabel?.toString()): null %>
                   <tr>
                     <td><%= i + 1 %></td>
                     <td><a href="<%= design.designImage.front !== "false" ? design.designImage.front : design.designImage.back %>" target="_blank"><%= design.designName %></a></td>
@@ -138,6 +139,31 @@
               <a href="https://shiprocket.co/tracking/<%= orderData.orderData[0].shipRocketCourier.courierAWB %>" target="_blank"><%= orderData.orderData[0].shipRocketCourier.courierAWB %></a>
             </div>
           <% } %>
+
+          <% if (orderData.orderData[0].deliveryTracking && orderData.orderData[0].deliveryTracking.length > 0) { %>
+            <div class="timeline">
+              <% orderData.orderData.deliveryTracking.forEach(tracking=> { %>
+                <div class="timeline-item">
+                  <div class="timeline-content">
+                    <h4>
+                      <%= tracking.status %>
+                    </h4>
+                    <p style="font-size:14px">
+                      <%= tracking.activity %>
+                    </p>
+                    <p style="font-size:14px"><i class="fa fa-map-location-dot"></i>
+                      <%= tracking.location %>
+                    </p>
+                    <p style="font-size:14px">
+                      <%= new Date(tracking.date).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) %>
+                    </p>
+                  </div>
+                </div>
+                <% }) %>
+            </div>
+          <% } %>
+
+
         </div>
 
         <div class="column">

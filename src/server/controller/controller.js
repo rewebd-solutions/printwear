@@ -1461,9 +1461,8 @@ exports.createorder = async (req, res) => {
         ],
         totalAmount: currDesign.price,
         taxes: (currDesign.price * 0.05).toFixed(2),
-        printwearOrderId: otpGen.generate(6, {
+        printwearOrderId: otpGen.generate(16, {
           digits: true,
-          lowerCaseAlphabets: false,
           specialChars: false,
         }),
       });
@@ -1485,9 +1484,8 @@ exports.createorder = async (req, res) => {
       .reduce((total, item) => total + item.price, 0)
       .toFixed(2);
     orderData.totalAmount = totalCost;
-    orderData.printwearOrderId = otpGen.generate(6, {
+    orderData.printwearOrderId = otpGen.generate(16, {
       digits: true,
-      lowerCaseAlphabets: false,
       specialChars: false,
     });
     orderData.taxes = (totalCost * 0.05).toFixed(2);
@@ -1886,9 +1884,8 @@ exports.createordershopify = async (req, res) => {
           shopifyId: shopifyId,
           totalAmount,
           taxes: (totalAmount * 0.05).toFixed(2),
-          printwearOrderId: otpGen.generate(6, {
+          printwearOrderId: otpGen.generate(16, {
             digits: true,
-            lowerCaseAlphabets: false,
             specialChars: false,
           }),
         },
@@ -1930,9 +1927,8 @@ exports.createorderwoo = async (req, res) => {
           wooCommerceId: wooId,
           totalAmount,
           taxes: (totalAmount * 0.05).toFixed(2),
-          printwearOrderId: otpGen.generate(6, {
+          printwearOrderId: otpGen.generate(16, {
             digits: true,
-            lowerCaseAlphabets: false,
             specialChars: false,
           }),
         },
@@ -2561,8 +2557,10 @@ exports.paymentSuccessCallback = async (req, res) => {
       "transactions.rzpyOrderId": req.body.razorpay_order_id,
     });
     // check for status and all
-    
-    res.render("payment-success", { data: { orderId: req.body.razorpay_order_id, status: "success" } });
+
+    res.render("payment-success", {
+      data: { orderId: req.body.razorpay_order_id, status: "success" },
+    });
   } catch (err) {
     console.log(err);
     res.send("not ok");
@@ -3785,14 +3783,14 @@ exports.getinvoices = async (req, res) => {
 
 exports.createshiporder = async (req, res) => {
   let errorMessage;
-  
+
   const rzpyIdempotency = req.headers["x-razorpay-event-id"];
   const rzpyWHSignature = req.headers["x-razorpay-signature"];
   console.log(`Payload for Event ID: ${rzpyIdempotency}`);
   console.dir(req.body, { depth: 6 });
-  
+
   const rawData = req.body;
-  
+
   if (!rzpyWHSignature || !rzpyIdempotency) {
     errorMessage = "Invalid request - No signature found";
     console.log("[WH]: errorMessage:", errorMessage);
@@ -3826,18 +3824,20 @@ exports.createshiporder = async (req, res) => {
   }
   const userid = userProfile._id;
   const UserWallet = await WalletModel.findOne({ userId: userid });
-  if (!UserWallet) return console.log(`[WH]: Couldn't find wallet for ${userid}`);
+  if (!UserWallet)
+    return console.log(`[WH]: Couldn't find wallet for ${userid}`);
 
   const currentTransactionIndex = UserWallet.transactions.findIndex(
     (transaction) => transaction.rzpyOrderId == rzpyOrderId,
   );
   console.log(currentTransactionIndex);
   if (currentTransactionIndex == -1)
-    return console.log(`[WH]: Couldn't find transaction with ID: ${rzpyOrderId}`);
+    return console.log(
+      `[WH]: Couldn't find transaction with ID: ${rzpyOrderId}`,
+    );
 
   if (rawData.event === "payment.captured") {
     try {
-
       // check if that wallet already has been updated because 2nd duplicate webhook take time and pass the idempotency check
       if (
         UserWallet.transactions[currentTransactionIndex].transactionStatus ===
@@ -3853,7 +3853,8 @@ exports.createshiporder = async (req, res) => {
         "success";
       UserWallet.transactions[currentTransactionIndex].rzpyPaymnetId =
         rzpyPaymentId;
-      UserWallet.transactions[currentTransactionIndex].rzpyEventId = rzpyIdempotency;
+      UserWallet.transactions[currentTransactionIndex].rzpyEventId =
+        rzpyIdempotency;
       UserWallet.balance += rawData.payload.payment.entity.amount / 100;
       console.log("[WH]: Updated SUCCESS transaction!");
       await UserWallet.save();
@@ -3881,8 +3882,8 @@ exports.createshiporder = async (req, res) => {
 
       UserWallet.transactions[currentTransactionIndex].amount =
         rawData.payload.payment.entity.amount / 100;
-        UserWallet.transactions[currentTransactionIndex].rzpyEventId =
-          rzpyIdempotency;
+      UserWallet.transactions[currentTransactionIndex].rzpyEventId =
+        rzpyIdempotency;
       UserWallet.transactions[currentTransactionIndex].transactionStatus =
         "failed";
       // UserWallet.balance += req.body.data.payment.payment_amount;
@@ -3898,6 +3899,22 @@ exports.createshiporder = async (req, res) => {
 exports.updateorderdetails = async (req, res) => {
   console.log("Shiprocket webhook:");
   console.log(req.body);
+
+  const currentTracking = req.body.scans.at(-1)
+
+  await OrderHistoryModel.findOneAndUpdate(
+    { "orderData.shipRocketOrderId": req.body.sr_order_id },
+    {
+      $push: {
+        "orderData.$.deliveryTracking": {
+          location: currentTracking.location,
+          date: new Date(currentTracking.date),
+          activity: currentTracking.activity,
+          status: currentTracking['sr-status-label'],
+        },
+      },
+    },
+  );
   res.send("OK");
 };
 
