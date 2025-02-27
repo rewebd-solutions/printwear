@@ -209,7 +209,7 @@ p {
   }
 
   .timeline-item:nth-child(even) {
-    left: 50%;
+    left: 0%;
   }
 
   .timeline-content {
