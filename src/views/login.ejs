@@ -66,11 +66,13 @@
                 console.log("<%= data -%>");
                 </script>
         <% } else { %>
-            <script>
-                var notyf = new Notyf();
-                notyf.success({ message: "<%= data.status %>", duration: 20000 });
-                console.log("<%= data -%>");
+            <% if (data.status) { %>
+                <script>
+                    var notyf = new Notyf();
+                    notyf.success({ message: "<%= data.status %>", duration: 20000 });
+                    console.log("<%= data -%>");
                 </script>
+            <% }  %>
         <% }  %>
     <% } else { %>
         <script>
