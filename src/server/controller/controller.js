@@ -22,7 +22,7 @@ const zohoClientID = process.env.ZOHO_CLIENT_ID;
 const zohoClientSecret = process.env.ZOHO_CLIENT_SECRET;
 
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
-const ZOHO_INVOICE_TEMPLATE_ID = "650580000000013130";
+const ZOHO_INVOICE_TEMPLATE_ID = "2198251000000029496";
 // const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
 const RZPY_WH_SECRET = process.env.RZPY_WH_SEC;
 
@@ -68,7 +68,7 @@ const CASHFREE_BASE_URL =
     ? process.env.CASHFREE_BASE_URL_TEST
     : process.env.CASHFREE_BASE_URL;
 /** check old commit to see removed key from .env */
-const ZOHO_INVOICE_ORGANIZATION_ID = "60010804173";
+const ZOHO_INVOICE_ORGANIZATION_ID = "60035071106";
 
 exports.register = async (req, res) => {
   // validate request
@@ -2994,8 +2994,8 @@ exports.placeorder = async (req, res) => {
     const zohoCustomerId = userData.zohoCustomerID;
     const zohoContactId = userData.zohoContactID;
     const invoiceData = {
-      branch_id: "650580000000098357",
-      autonumbergenerationgroup_id: "650580000004188098",
+      // branch_id: "650580000000098357",
+      // autonumbergenerationgroup_id: "650580000004188098",
       reference_number: orderDetails.orderData[0].printwearOrderId,
       payment_terms: 0,
       payment_terms_label: "Due on Receipt",
@@ -3004,9 +3004,9 @@ exports.placeorder = async (req, res) => {
       date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
       due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
       notes:
-        "Thanks for your business with Printwear.\npls write us for additional information accounts@printwear.in",
+        "We thank you for your business\npls write us for additional information accounts@printwear.in\nMSME REGISTERED NO - UDYAM-TN-02-0351728\n\n",
       terms:
-        "subject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
+        "Terms & Conditions\nsubject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\n21% INTEREST APPLICABLE FOR THE INVOICES AFTER DUE DATE\n\n",
       is_inclusive_tax: false,
       line_items: orderDetails.orderData[0].items.map((item, i) => {
         let currentDesignItem = designData.designs.find(
@@ -3020,16 +3020,16 @@ exports.placeorder = async (req, res) => {
           description: currentDesignItem.designName,
           quantity: item.quantity.toFixed(2),
           discount: "0%",
-          tax_id:
-            stateToCode[orderDetails.orderData[0].shippingAddress.state] == "TN"
-              ? TN_TAX_ID
-              : INTERSTATE_TAX_ID,
+          // tax_id:
+          //   stateToCode[orderDetails.orderData[0].shippingAddress.state] == "TN"
+          //     ? TN_TAX_ID
+          //     : INTERSTATE_TAX_ID,
           project_id: "",
           tags: [],
           tax_exemption_code: "",
-          account_id: "650580000000000486",
+          account_id: "2198251000000029361",
           item_custom_fields: [],
-          hsn_or_sac: "61091000",
+          hsn_or_sac: "61130000",
           gst_treatment_code: "",
           unit: "PCS",
         };
@@ -3040,7 +3040,7 @@ exports.placeorder = async (req, res) => {
           value: Object.keys(orderDetails.orderData[0].billingAddress)
             .map((key) => orderDetails.orderData[0].billingAddress[key])
             .join(", "),
-          customfield_id: "650580000000103311",
+          customfield_id: "2198251000000029540",
         },
       ],
       is_discount_before_tax: "",
@@ -3066,7 +3066,7 @@ exports.placeorder = async (req, res) => {
       place_of_supply:
         stateToCode[orderDetails.orderData[0].shippingAddress.state],
       quick_create_payment: {
-        account_id: "650580000000000459",
+        account_id: "2198251000000092239",
         payment_mode: "Bank Transfer",
       },
       tcs_tax_id: "",
@@ -3099,6 +3099,7 @@ exports.placeorder = async (req, res) => {
     console.log(zohoInvoiceCreateResponse);
     if (zohoInvoiceCreateResponse.code != 0 || !zohoInvoiceCreateRequest.ok) {
       console.log(`Couldn't create invoice for ${orderData.printwearOrderId}`);
+      console.log(zohoInvoiceCreateResponse);
     } else {
       let purchaseTransactionIndex = walletData.transactions.findIndex(
         (transaction) =>
@@ -3580,191 +3581,191 @@ exports.getinvoices = async (req, res) => {
 /** zoho books invoice testing endpoint, before making edits, copy current invoicing logic with states selections anol and paste it here
  * and conitnue
  */
-exports.generateZohoBooksInvoice = async (req, res) => {
-  try {
-    const zohoToken = await generateZohoToken();
-    console.log(zohoToken)
-    // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
-    let userid = '665352ff1b7a6080ec15ab9b';
-    let testorderid = '6L3J5M';
-    const userData = await UserModel.findById(userid);
-    if (!userData.isZohoCustomer) {
-      // write endpoint to create zoho customer
-      let customerData = {
-        "contact_name": userData.name,
-        "company_name": userData.brandName ?? 'N/A',
-        "contact_persons": [
-          {
-            "salutation": userData.name,
-            "first_name": userData.firstName,
-            "last_name": userData.lastName,
-            "email": userData.email,
-            "phone": userData.phone,
-            "mobile": userData.phone,
-            "is_primary_contact": true
-          }
-        ],
-        "billing_address": {
-          "address": userData.billingAddress.landmark,
-          "street2": "",
-          "city": userData.billingAddress.city,
-          "state": userData.billingAddress.state,
-          "zipcode": userData.billingAddress.pincode,
-          "country": "India",
-          "phone": userData.phone,
-          "fax": "",
-          "attention": ""
-        },
-        "language_code": "en",
-        "country_code": "IN",
-        "place_of_contact": "TN",
-      }
-      const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
-        method: "POST",
-        headers: {
-          Authorization: 'Zoho-oauthtoken ' + zohoToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(customerData)
-      });
-      const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
-      res.json(zohoCustomerCreateResponse); // remove
-      if (zohoCustomerCreateResponse.code == 0) {
-        console.log(`zohoCustomer for ${userid} created!`)
-        userData.isZohoCustomer = true;
-        userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
-        userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
-        await userData.save();
-      }
-    }
+// exports.generateZohoBooksInvoice = async (req, res) => {
+//   try {
+//     const zohoToken = await generateZohoToken();
+//     console.log(zohoToken)
+//     // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
+//     let userid = "64f175edd683cd124e440f23";
+//     let testorderid = "XHDAYP";
+//     const userData = await UserModel.findById(userid);
+//     if (!userData.isZohoCustomer) {
+//       // write endpoint to create zoho customer
+//       let customerData = {
+//         "contact_name": userData.name,
+//         "company_name": userData.brandName ?? 'N/A',
+//         "contact_persons": [
+//           {
+//             "salutation": userData.name,
+//             "first_name": userData.firstName,
+//             "last_name": userData.lastName,
+//             "email": userData.email,
+//             "phone": userData.phone,
+//             "mobile": userData.phone,
+//             "is_primary_contact": true
+//           }
+//         ],
+//         "billing_address": {
+//           "address": userData.billingAddress.landmark,
+//           "street2": "",
+//           "city": userData.billingAddress.city,
+//           "state": userData.billingAddress.state,
+//           "zipcode": userData.billingAddress.pincode,
+//           "country": "India",
+//           "phone": userData.phone,
+//           "fax": "",
+//           "attention": ""
+//         },
+//         "language_code": "en",
+//         "country_code": "IN",
+//         "place_of_contact": "TN",
+//       }
+//       const zohoCustomerCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/contacts?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}`, {
+//         method: "POST",
+//         headers: {
+//           Authorization: 'Zoho-oauthtoken ' + zohoToken,
+//           'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(customerData)
+//       });
+//       const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
+//       //res.json(zohoCustomerCreateResponse); // remove
+//       if (zohoCustomerCreateResponse.code == 0) {
+//         console.log(`zohoCustomer for ${userid} created!`)
+//         userData.isZohoCustomer = true;
+//         userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
+//         userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
+//         await userData.save();
+//       }
+//     }
 
-    // create item
-    // not necessary because when taking data from zoho inventory i got the product id which was saved in newdesigns itself!
-    // so for now, just query the designs, and for each of them simply fetch their id and use it for invoice
-    // following query is for testing only, take actual data from the createshiporder data
-    const orderDetails = await OrderHistoryModel.findOne(
-      {
-        "userId": userid,
-        "orderData": { $elemMatch: { "printwearOrderId": testorderid } }
-      },
-      { "orderData.$": 1 });
-    const designIds = orderDetails.orderData[0].items.map(item => item.designId + '');
-    const designsData = await NewDesignModel.findOne({ userId: userid });
-    let productIds = designsData.designs.filter(design => designIds.includes(design._id + '')).map(design => design.product.id);
-    console.log(designIds, productIds)
-    // create invoice request
-    const zohoCustomerId = userData.zohoCustomerID;
-    const zohoContactId = userData.zohoContactID;
+//     // create item
+//     // not necessary because when taking data from zoho inventory i got the product id which was saved in newdesigns itself!
+//     // so for now, just query the designs, and for each of them simply fetch their id and use it for invoice
+//     // following query is for testing only, take actual data from the createshiporder data
+//     const orderDetails = await OrderHistoryModel.findOne(
+//       {
+//         "userId": userid,
+//         "orderData": { $elemMatch: { "printwearOrderId": testorderid } }
+//       },
+//       { "orderData.$": 1 });
+//     const designIds = orderDetails.orderData[0].items.map(item => item.designId + '');
+//     const designsData = await NewDesignModel.findOne({ userId: userid });
+//     let productIds = designsData.designs.filter(design => designIds.includes(design._id + '')).map(design => design.product.id);
+//     console.log(designIds, productIds)
+//     // create invoice request
+//     const zohoCustomerId = userData.zohoCustomerID;
+//     const zohoContactId = userData.zohoContactID;
 
-    const invoiceData = {
-      branch_id: "650580000000098357",
-      autonumbergenerationgroup_id: "650580000004188098",
-      reference_number: orderDetails.orderData[0].printwearOrderId,
-      payment_terms: 0,
-      payment_terms_label: "Due on Receipt",
-      customer_id: zohoCustomerId,
-      contact_persons: zohoContactId ? [zohoContactId] : [],
-      date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      notes:
-        "Thanks for your business with Printwear.\npls write us for additional information accounts@printwear.in",
-      terms:
-        "subject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\nAXIS BANK\nCOMPANY NAME- SASA PRINTWEAR PVT LTD\nACCOUNT NO - 921020008203409\nIFSC- UTIB0000211\nBRANCH - VALASARAVAKKAM CHENNAI",
-      is_inclusive_tax: false,
-      line_items: orderDetails.orderData[0].items.map((item, i) => {
-        let currentDesignItem = designData.designs.find(
-          (design) => design._id + "" == item.designId,
-        );
-        return {
-          item_order: i + 1,
-          item_id: currentDesignItem.product.id,
-          rate: currentDesignItem.price,
-          name: currentDesignItem.product.name,
-          description: currentDesignItem.designName,
-          quantity: item.quantity.toFixed(2),
-          discount: "0%",
-          tax_id:
-            stateToCode[orderDetails.orderData[0].shippingAddress.state] == "TN"
-              ? TN_TAX_ID
-              : INTERSTATE_TAX_ID,
-          project_id: "",
-          tags: [],
-          tax_exemption_code: "",
-          account_id: "650580000000000486",
-          item_custom_fields: [],
-          hsn_or_sac: "61091000",
-          gst_treatment_code: "",
-          unit: "PCS",
-        };
-      }),
-      allow_partial_payments: false,
-      custom_fields: [
-        {
-          value: Object.keys(orderDetails.orderData[0].billingAddress)
-            .map((key) => orderDetails.orderData[0].billingAddress[key])
-            .join(", "),
-          customfield_id: "650580000000103311",
-        },
-      ],
-      is_discount_before_tax: "",
-      discount: 0,
-      discount_type: "",
-      adjustment:
-        (orderDetails.orderData[0].deliveryCharges +
-          (orderDetails.orderData[0].cashOnDelivery ? 50 : 0)) *
-        1.05,
-      adjustment_description: "Standard Shipping",
-      shipping_charge: 0,
-      tax_exemption_code: "",
-      tax_authority_name: "",
-      pricebook_id: "",
-      template_id: ZOHO_INVOICE_TEMPLATE_ID,
-      project_id: "",
-      documents: [],
-      mail_attachments: [],
-      // billing_address_id: "650580000004548004",
-      // shipping_address_id: "650580000004548006",
-      gst_treatment: "consumer",
-      gst_no: "",
-      place_of_supply:
-        stateToCode[orderDetails.orderData[0].shippingAddress.state],
-      quick_create_payment: {
-        account_id: "650580000000000459",
-        payment_mode: "Bank Transfer",
-      },
-      tcs_tax_id: "",
-      is_tcs_amount_in_percent: true,
-      tds_tax_id: "",
-      is_tds_amount_in_percent: true,
-      tax_total: orderDetails.orderData[0].totalAmount * 0.05,
-      payment_made: orderDetails.orderData[0].amountPaid,
-    };
-    console.log(invoiceData)
+//     const invoiceData = {
+//       // branch_id: "650580000000098357",
+//       // autonumbergenerationgroup_id: "650580000004188098",
+//       reference_number: orderDetails.orderData[0].printwearOrderId,
+//       payment_terms: 0,
+//       payment_terms_label: "Due on Receipt",
+//       customer_id: zohoCustomerId,
+//       contact_persons: zohoContactId ? [zohoContactId] : [],
+//       date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+//       due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+//       notes:
+//         "We thank you for your business\npls write us for additional information accounts@printwear.in\nMSME REGISTERED NO - UDYAM-TN-02-0351728\n\n",
+//       terms:
+//         "Terms & Conditions\nsubject to chennai jurisdiction\nNon refundable transaction\nAll grievences to be addressed within 2days of receiving invoice\n21% INTEREST APPLICABLE FOR THE INVOICES AFTER DUE DATE\n\n",
+//       is_inclusive_tax: false,
+//       line_items: orderDetails.orderData[0].items.map((item, i) => {
+//         let currentDesignItem = designsData.designs.find(
+//           (design) => design._id + "" == item.designId,
+//         );
+//         return {
+//           item_order: i + 1,
+//           item_id: currentDesignItem.product.id,
+//           rate: currentDesignItem.price,
+//           name: currentDesignItem.product.name,
+//           description: currentDesignItem.designName,
+//           quantity: item.quantity.toFixed(2),
+//           discount: "0%",
+//           // tax_id:
+//           //   stateToCode[orderDetails.orderData[0].shippingAddress.state] == "TN"
+//           //     ? TN_TAX_ID
+//           //     : INTERSTATE_TAX_ID,
+//           project_id: "",
+//           tags: [],
+//           tax_exemption_code: "",
+//           account_id: "2198251000000029361",
+//           item_custom_fields: [],
+//           hsn_or_sac: "61130000",
+//           gst_treatment_code: "",
+//           unit: "PCS",
+//         };
+//       }),
+//       allow_partial_payments: false,
+//       custom_fields: [
+//         {
+//           value: Object.keys(orderDetails.orderData[0].billingAddress)
+//             .map((key) => orderDetails.orderData[0].billingAddress[key])
+//             .join(", "),
+//           customfield_id: "2198251000000029540",
+//         },
+//       ],
+//       is_discount_before_tax: "",
+//       discount: 0,
+//       discount_type: "",
+//       adjustment:
+//         (orderDetails.orderData[0].deliveryCharges +
+//           (orderDetails.orderData[0].cashOnDelivery ? 50 : 0)) *
+//         1.05,
+//       adjustment_description: "Standard Shipping",
+//       shipping_charge: 0,
+//       tax_exemption_code: "",
+//       tax_authority_name: "",
+//       pricebook_id: "",
+//       template_id: ZOHO_INVOICE_TEMPLATE_ID,
+//       project_id: "",
+//       documents: [],
+//       mail_attachments: [],
+//       // billing_address_id: "650580000004548004",
+//       // shipping_address_id: "650580000004548006",
+//       gst_treatment: "consumer",
+//       gst_no: "",
+//       place_of_supply:
+//         stateToCode[orderDetails.orderData[0].shippingAddress.state],
+//       quick_create_payment: {
+//         account_id: "2198251000000092239",
+//         payment_mode: "Bank Transfer",
+//       },
+//       tcs_tax_id: "",
+//       is_tcs_amount_in_percent: true,
+//       tds_tax_id: "",
+//       is_tds_amount_in_percent: true,
+//       tax_total: orderDetails.orderData[0].totalAmount * 0.05,
+//       payment_made: orderDetails.orderData[0].amountPaid,
+//     };
+//     console.log(invoiceData)
 
-    const zohoInvoiceFormData = new FormData();
-    zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
-    zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
-    zohoInvoiceFormData.append('is_quick_create', 'true');
-    console.log(zohoInvoiceFormData);
+//     const zohoInvoiceFormData = new FormData();
+//     zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
+//     zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
+//     zohoInvoiceFormData.append('is_quick_create', 'true');
+//     console.log(zohoInvoiceFormData);
 
-    const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
-      // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
-      method: "POST",
-      headers: {
-        Authorization: 'Zoho-oauthtoken ' + zohoToken,
-        // "Content-Type": "application/json"
-      },
-      body: zohoInvoiceFormData
-    });
-    const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
-    res.json(zohoInvoiceCreateResponse);
-    // console.log(zohoInvoiceCreateResponse);
+//     const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
+//       // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
+//       method: "POST",
+//       headers: {
+//         Authorization: 'Zoho-oauthtoken ' + zohoToken,
+//         // "Content-Type": "application/json"
+//       },
+//       body: zohoInvoiceFormData
+//     });
+//     const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
+//     res.json(zohoInvoiceCreateResponse);
+//     // console.log(zohoInvoiceCreateResponse);
 
-  } catch (error) {
-    console.log(error);
-    res.send(error);
-  }
-}
+//   } catch (error) {
+//     console.log(error);
+//     res.send(error);
+//   }
+// }
 
 // dummy testing endpoint for testing santo woocomms order creation
 // testing done. so probably remove
