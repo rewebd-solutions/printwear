@@ -92,7 +92,7 @@ exports.register = async (req, res) => {
     return res.render("login", { data: { error: "Passwords don't match" } });
 
   try {
-    const user = await UserModel.create({
+    await UserModel.create({
       name: req.body.name,
       email: req.body.email,
       password: crypto
@@ -108,7 +108,15 @@ exports.register = async (req, res) => {
     res.render("login", { data: { status: "Account created, please log in" } });
   } catch (error) {
     console.log(error);
-    res.render("login", { error: "Error saving data, try again" });
+    // check for mongodb error
+    if (error instanceof mongoose.mongo.MongoServerError) {
+      if (error.code === 11000) {
+        return res.render("login", {
+          data: { warning: "Account already exists, please login!" },
+        });
+      }
+    }
+    res.render("login", {  error: "Server Error in saving data, try again"} );
   }
 };
 
@@ -119,7 +127,7 @@ exports.login = async (req, res) => {
 
     if (check === null) {
       return res.render("login", {
-        data: { error: "Invalid email or password" },
+        data: { error: "Account does not exist. Please register!" },
       });
     }
 
@@ -157,7 +165,7 @@ exports.login = async (req, res) => {
       return res.render("login", {
         data: {
           error:
-            "Invalid email or password. If you are an existing customer, please contact +91 9345496725",
+            "Invalid email or password!",
         },
       });
     }

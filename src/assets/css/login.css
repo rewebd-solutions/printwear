@@ -158,14 +158,14 @@ span {
     align-items: flex-end;
     cursor: pointer;
 }
-#login a{
+a{
     color:#EEEEEE;
     text-decoration: none;
     top: 20px;
     font-size: 13px;
     cursor: pointer;
 }
-#login a:hover{
+a:hover{
     text-decoration: underline;
 }
 .frgt{
