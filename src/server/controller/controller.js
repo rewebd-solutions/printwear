@@ -2302,135 +2302,7 @@ exports.recharge = async (req, res) => {
 };
 
 // endpoint for creating cashfree link
-exports.getpaymentlink = async (req, res) => {
-  try {
-    const {
-      firstName,
-      lastName,
-      mobile,
-      email,
-      streetLandmark,
-      city,
-      pincode,
-      state,
-      country,
-      retailPrice,
-      customerOrderId,
-      shippingCharge,
-      courierId,
-      courierData,
-      cashOnDelivery,
-    } = req.body;
-
-    const orderData = await OrderModel.findOne({ userId: req.userId });
-    // console.log(req.body);
-    // this is only for testing where i need to check multiple times if i can process a payment and cashfree demands
-    // unique ID everytime i request a payment like
-    // hence this is for testing only, once the logic is stable, remove it the extraId
-    // let extraId = otpGen.generate(6, { digits: true, lowerCaseAlphabets: false, specialChars: false });
-
-    let expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 2);
-    expiryDate = expiryDate.toISOString();
-
-    const paymentLinkRequest = await fetch(CASHFREE_BASE_URL + "/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-client-id": cashfreeAppID,
-        "x-client-secret": cashfreeSecretKey,
-        "x-api-version": "2022-09-01",
-      },
-      body: JSON.stringify({
-        order_id: orderData.printwearOrderId,
-        // order_id: orderData.printwearOrderId + '-' + extraId,
-        order_amount: parseFloat(
-          (
-            (orderData.totalAmount +
-              shippingCharge +
-              (cashOnDelivery ? 50 : 0)) *
-            1.05
-          ).toFixed(2),
-        ),
-        order_currency: "INR",
-        order_note: `Payment for Order: ${orderData.printwearOrderId}`,
-        // order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
-        customer_details: {
-          customer_id: req.userId,
-          customer_name: firstName + " " + lastName,
-          customer_phone: mobile,
-          customer_email: email,
-        },
-        order_expiry_time: expiryDate,
-        order_meta: {
-          notify_url: `${WEBHOOK_URL}createshiporder`,
-          return_url: WEBHOOK_URL + "payment-success?type=purchase",
-        },
-      }),
-    });
-
-    const paymentLinkResponse = await paymentLinkRequest.json();
-    // console.log(paymentLinkResponse)
-
-    if (paymentLinkResponse.code)
-      return res.status(400).json({
-        message: "Error creating payment link!",
-        error: paymentLinkResponse.message,
-      });
-
-    await OrderModel.findOneAndUpdate(
-      { userId: req.userId },
-      {
-        $set: {
-          billingAddress: {
-            firstName,
-            lastName,
-            mobile,
-            email,
-            streetLandmark,
-            city,
-            pincode,
-            state,
-            country,
-          },
-          shippingAddress: {
-            firstName,
-            lastName,
-            mobile,
-            email,
-            streetLandmark,
-            city,
-            pincode,
-            state,
-            country,
-          },
-          CashfreeOrderId: paymentLinkResponse.cf_order_id,
-          paymentLinkId: paymentLinkResponse.payment_session_id,
-          paymentLink: paymentLinkResponse.payments.url,
-          retailPrice: retailPrice,
-          deliveryCharges: shippingCharge,
-          customerOrderId: customerOrderId,
-          shipRocketCourier: {
-            courierId: courierId ?? -1,
-            courierName: courierData?.courier_name ?? "SELF PICKUP",
-            estimatedDelivery: courierData?.etd ?? "N/A",
-          },
-          cashOnDelivery: cashOnDelivery,
-          totalAmount:
-            (orderData.totalAmount +
-              shippingCharge +
-              (cashOnDelivery ? 50 : 0)) *
-            1.05,
-        },
-      },
-    );
-
-    res.status(200).json({ link: paymentLinkResponse.payment_session_id });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Failed to create payment link!" });
-  }
-};
+// deleted cashfree thing
 
 //endpoint for creating payment link for recharge
 exports.rechargewallet = async (req, res) => {
@@ -2449,56 +2321,6 @@ exports.rechargewallet = async (req, res) => {
         specialChars: false,
       });
 
-    // let expiryDate = new Date();
-    // expiryDate.setDate(expiryDate.getDate() + 2);
-    // expiryDate = expiryDate.toISOString();
-
-    // const createRechargePaymentlinkRequest = await fetch(
-    //   CASHFREE_BASE_URL + "/orders",
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       "x-client-id": cashfreeAppID,
-    //       "x-client-secret": cashfreeSecretKey,
-    //       "x-api-version": "2022-09-01",
-    //     },
-    //     body: JSON.stringify({
-    //       order_id: walletRechargeOrderId,
-    //       // order_id: orderData.printwearOrderId + '-' + extraId,
-    //       order_amount: parseFloat(amount).toFixed(2),
-    //       order_currency: "INR",
-    //       order_note: `Recharge for ${req.userName} WalletOrderId: ${walletRechargeOrderId}`,
-    //       // order_note: `Payment for Order: ${orderData.printwearOrderId + '-' + extraId}`,
-    //       customer_details: {
-    //         customer_id: req.userId,
-    //         customer_name: req.userName,
-    //         customer_phone: UserData.phone,
-    //         customer_email: UserData.email,
-    //       },
-    //       order_expiry_time: expiryDate,
-    //       order_meta: {
-    //         notify_url: `${WEBHOOK_URL}createshiporder`,
-    //         return_url: WEBHOOK_URL + "payment-success?type=recharge",
-    //       },
-    //     }),
-    //   },
-    // );
-
-    // const createRechargePaymentlinkResponse =
-    //   await createRechargePaymentlinkRequest.json();
-    // console.log(
-    //   "🚀 ~ exports.rechargewal ~ createRechargePaymentlinkResponse:",
-    //   createRechargePaymentlinkResponse,
-    // );
-
-    // if (createRechargePaymentlinkResponse.code)
-    //   return res
-    //     .status(400)
-    //     .json({
-    //       message: "Error creating payment link!",
-    //       error: createRechargePaymentlinkResponse.message,
-    //     });
     const rechargeOrder = await razorpay.orders.create({
       amount: amount * 100,
       currency: "INR",
@@ -2615,8 +2437,6 @@ const stateToCode = {
   Telangana: "TG",
 };
 
-const INTERSTATE_TAX_ID = "650580000000013309";
-const TN_TAX_ID = "650580000000013321";
 // the brand new endpoint for creating orders
 exports.placeorder = async (req, res) => {
   try {
