@@ -7,8 +7,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Login to Printwear and start your journey from Design to T-Shirt.">
+    <meta name="description" content="Login to Printwear and start your journey from Design to T-Shirt.">
     <link href='https://fonts.googleapis.com/css?family=Nunito' rel='stylesheet'>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
@@ -41,24 +40,47 @@
             <form id="login" class="input-group" action="/login" method="post">
                 <input type="email" name="email" class="input-field" placeholder="Email" required />
                 <div style="position: relative;">
-                    <input type="password" name="password" title="Password should have atleast 8 characters" class="input-field" id="pwd-field" placeholder="Enter Password" />
-                    <i class="fa fa-eye-slash" style="position: absolute; right: 1rem; top: 50%; transform: translateX(50%) translateY(-50%);" onclick="togglePwdVisibility(event)"></i>
+                    <input type="password" name="password" title="Password should have atleast 8 characters"
+                        class="input-field" id="pwd-field" placeholder="Enter Password" />
+                    <i class="fa fa-eye-slash"
+                        style="position: absolute; right: 1rem; top: 50%; transform: translateX(50%) translateY(-50%);"
+                        onclick="togglePwdVisibility(event, 'pwd-field')"></i>
                 </div>
                 <span><a href="/resetpassword">Forgot Password?</a></span>
                 <button class="submit-btnx">Log In</button>
-                <p style="color: white; font-size: 13px; margin-top: 10px; text-align: center; margin-left: auto; margin-right: auto; width: 100%;">Need help? Contact
-                    <a href="tel:+91 9345496725">+91 9345496725</a></p>
+                <p
+                    style="color: white; font-size: 13px; margin-top: 10px; text-align: center; margin-left: auto; margin-right: auto; width: 100%;">
+                    Need help? Contact
+                    <a href="tel:+91 9884569898">+91 9884569898</a>
+                </p>
             </form>
             <form id="register" class="input-group" action="/register" method="post">
                 <input type="text" name="name" class="input-field" placeholder="User Name" required>
-                <input type="text" name="number" pattern="^[0-9]{10}" class="input-field" inputmode="numeric" placeholder="Phone Number" required>
+                <input type="text" name="number" pattern="^[0-9]{10}" class="input-field" inputmode="numeric"
+                    placeholder="Phone Number" required>
                 <input type="email" name="email" class="input-field" placeholder="Email ID" required>
-                <input type="password" pattern=".{8,}" title="Password should have atleast 8 characters" name="password" class="input-field" placeholder="Enter Password" required>
-                <input type="password" pattern=".{8,}" title="Password should have atleast 8 characters" name="register_repass" class="input-field" placeholder="Re-Enter password" required>
-                <input type="checkbox" class="check-box" required><span>I agree to the <a href="/termsandconditions">terms and conditions</a></span>
+                <div style="position: relative;">
+                    <input type="password" pattern=".{8,}" id="reg-pwd" title="Password should have atleast 8 characters"
+                        name="password" class="input-field" placeholder="Enter Password" required>
+                    <i class="fa fa-eye-slash"
+                        style="position: absolute; right: 1rem; top: 50%; transform: translateX(50%) translateY(-50%);"
+                        onclick="togglePwdVisibility(event, 'reg-pwd')"></i>
+                </div>
+                <div style="position: relative;">
+                    <input type="password" pattern=".{8,}" id="reg-cnfm-pwd" title="Password should have atleast 8 characters"
+                        name="register_repass" class="input-field" placeholder="Re-Enter password" required>
+                    <i class="fa fa-eye-slash"
+                        style="position: absolute; right: 1rem; top: 50%; transform: translateX(50%) translateY(-50%);"
+                        onclick="togglePwdVisibility(event, 'reg-cnfm-pwd')"></i>
+                </div>
+                <input type="checkbox" class="check-box" required><span>I agree to the <a
+                        href="/termsandconditions">terms and conditions</a></span>
                 <button class="submit-btn">Register</button>
-                <p style="color: white; text-align: center; margin-top: 10px; font-size: 13px; margin-left: auto; margin-right: auto; width: 100%;">Need help? Contact
-                    <a href="tel:+91 9345496725">+91 9884569898</a></p>
+                <p
+                    style="color: white; text-align: center; margin-top: 10px; font-size: 13px; margin-left: auto; margin-right: auto; width: 100%;">
+                    Need help? Contact
+                    <a href="tel:+91 9884569898">+91 9884569898</a>
+                </p>
             </form>
         </div>
     </div>
@@ -67,56 +89,56 @@
             <script>
                 var notyf = new Notyf();
                 notyf.error({ message: "<%= data.error %>", duration: 20000 });
-                </script>
-        <% } else if (data.warning) { %>
-            <script>
-                var notyf = new Notyf();
-                notyf.success({ message: "<%= data.warning %>", duration: 20000 });
-                </script>
-        <% } else { %>
-            <% if (data.status) { %>
+            </script>
+            <% } else if (data.warning) { %>
                 <script>
                     var notyf = new Notyf();
-                    notyf.success({ message: "<%= data.status %>", duration: 20000 });
+                    notyf.success({ message: "<%= data.warning %>", duration: 20000 });
                 </script>
-            <% }  %>
-        <% }  %>
-    <% } else { %>
-        <script>
-            var notyf = new Notyf();
-            notyf.error({ message: "Something went wrong! Please try later", duration: 20000 });
-        </script>
-    <% } %>
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script>
-        AOS.init();
+                <% } else { %>
+                    <% if (data.status) { %>
+                        <script>
+                            var notyf = new Notyf();
+                            notyf.success({ message: "<%= data.status %>", duration: 20000 });
+                        </script>
+                        <% } %>
+                            <% } %>
+                                <% } else { %>
+                                    <script>
+                                        var notyf = new Notyf();
+                                        notyf.error({ message: "Something went wrong! Please try later", duration: 20000 });
+                                    </script>
+                                    <% } %>
+                                        <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+                                        <script>
+                                            AOS.init();
 
-        var x = document.getElementById("login");
-        var y = document.getElementById("register");
-        var z = document.getElementById("btn");
+                                            var x = document.getElementById("login");
+                                            var y = document.getElementById("register");
+                                            var z = document.getElementById("btn");
 
-        function register() {
-            x.style.left = "-400px";
-            y.style.left = "50px";
-            z.style.left = "110px"
-        }
-        function login() {
-            x.style.left = "50px";
-            y.style.left = "450px";
-            z.style.left = "0"
-        }
+                                            function register() {
+                                                x.style.left = "-400px";
+                                                y.style.left = "50px";
+                                                z.style.left = "110px"
+                                            }
+                                            function login() {
+                                                x.style.left = "50px";
+                                                y.style.left = "450px";
+                                                z.style.left = "0"
+                                            }
 
-        function togglePwdVisibility(e) {
-            const currentBtnClass = e.target.classList;
-            if (currentBtnClass.contains("fa-eye-slash")) {
-                e.target.classList.replace("fa-eye-slash", "fa-eye");
-                document.querySelector("#pwd-field").setAttribute("type", "text")
-                return;
-            }
-            e.target.classList.replace("fa-eye", "fa-eye-slash");
-            document.querySelector("#pwd-field").setAttribute("type", "password")
-        }
-    </script>
+                                            function togglePwdVisibility(e, id) {
+                                                const currentBtnClass = e.target.classList;
+                                                if (currentBtnClass.contains("fa-eye-slash")) {
+                                                    e.target.classList.replace("fa-eye-slash", "fa-eye");
+                                                    document.getElementById(id).setAttribute("type", "text")
+                                                    return;
+                                                }
+                                                e.target.classList.replace("fa-eye", "fa-eye-slash");
+                                                document.getElementById(id).setAttribute("type", "password")
+                                            }
+                                        </script>
 
 </body>
 
