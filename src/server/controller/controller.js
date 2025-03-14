@@ -3341,7 +3341,7 @@ exports.deletelabel = async (req, res) => {
       { "labels.$": 1 },
     );
     // const imageToDelete = await LabelModel.findOne({ userId: req.userId, 'labels.' })
-    const fileNameFromURL = imageToDelete.labels[0].url
+    const fileNameFromURL = imageToDelete.labels?.[0].url
       .split("?alt")[0]
       .split("labels%2F")[1];
     const fileReference = storageReference.child(`labels/${fileNameFromURL}`);
