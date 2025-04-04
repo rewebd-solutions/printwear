@@ -29,6 +29,9 @@
     background-blend-mode: multiply;
     opacity: 0.7;
     border-radius: 18px;
+    /* display: flex;
+    justify-content: center;
+    align-items: center; */
 }
 .button-box {
     width: 220px;

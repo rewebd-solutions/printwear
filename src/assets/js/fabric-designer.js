@@ -793,7 +793,7 @@ const addToOrder = async () => {
     
   } catch (error) {
     console.log("🚀 ~ addToOrder ~ error:", error)
-    notyf.error(error);
+    notyf.error(error.message);
   }
 }
 
@@ -1059,7 +1059,7 @@ const saveDesign = async () => {
     });
   } catch (error) {
     console.log(error);
-    notyf.error(error.error ?? error);
+    notyf.error(error.error ?? error.message ?? error);
     disableButton(false);
     disableSideSwitch(false);
     if (canvasContainer)

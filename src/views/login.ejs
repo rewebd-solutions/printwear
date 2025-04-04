@@ -95,50 +95,58 @@
                     var notyf = new Notyf();
                     notyf.success({ message: "<%= data.warning %>", duration: 20000 });
                 </script>
-                <% } else { %>
-                    <% if (data.status) { %>
-                        <script>
-                            var notyf = new Notyf();
-                            notyf.success({ message: "<%= data.status %>", duration: 20000 });
-                        </script>
-                        <% } %>
-                            <% } %>
-                                <% } else { %>
-                                    <script>
-                                        var notyf = new Notyf();
-                                        notyf.error({ message: "Something went wrong! Please try later", duration: 20000 });
-                                    </script>
-                                    <% } %>
-                                        <script src="/js/vendor/aos.min.js"></script>
-                                        <script>
-                                            AOS.init();
+            <% } else { %>
+                <% if (data.status) { %>
+                    <script>
+                    var notyf = new Notyf();
+                    notyf.success({ message: "<%= data.status %>", duration: 20000 });
+                    </script>
+                <% } %>
+            <% } %>
+    <% } else { %>
+        <script>
+            var notyf = new Notyf();
+            notyf.error({ message: "Something went wrong! Please try later", duration: 20000 });
+        </script>
+    <% } %>
+    <script src="/js/vendor/aos.min.js"></script>
+    <script>
+        AOS.init();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("pwdreset") === "true") {
+            var notyf = new Notyf();
+            notyf.success({ message: "Password reset was successful!", duration: 20000 });
+            urlParams.delete("pwdreset");
+            const newUrl = window.location.pathname + "?" + urlParams.toString();
+            window.history.replaceState({}, document.title, newUrl.endsWith("?") ? newUrl.slice(0, -1) : newUrl);
+        }
 
-                                            var x = document.getElementById("login");
-                                            var y = document.getElementById("register");
-                                            var z = document.getElementById("btn");
+        var x = document.getElementById("login");
+        var y = document.getElementById("register");
+        var z = document.getElementById("btn");
 
-                                            function register() {
-                                                x.style.left = "-400px";
-                                                y.style.left = "50px";
-                                                z.style.left = "110px"
-                                            }
-                                            function login() {
-                                                x.style.left = "50px";
-                                                y.style.left = "450px";
-                                                z.style.left = "0"
-                                            }
+        function register() {
+            x.style.left = "-400px";
+            y.style.left = "50px";
+            z.style.left = "110px"
+        }
+        function login() {
+            x.style.left = "50px";
+            y.style.left = "450px";
+            z.style.left = "0"
+        }
 
-                                            function togglePwdVisibility(e, id) {
-                                                const currentBtnClass = e.target.classList;
-                                                if (currentBtnClass.contains("fa-eye-slash")) {
-                                                    e.target.classList.replace("fa-eye-slash", "fa-eye");
-                                                    document.getElementById(id).setAttribute("type", "text")
-                                                    return;
-                                                }
-                                                e.target.classList.replace("fa-eye", "fa-eye-slash");
-                                                document.getElementById(id).setAttribute("type", "password")
-                                            }
-                                        </script>
+        function togglePwdVisibility(e, id) {
+            const currentBtnClass = e.target.classList;
+            if (currentBtnClass.contains("fa-eye-slash")) {
+                e.target.classList.replace("fa-eye-slash", "fa-eye");
+                document.getElementById(id).setAttribute("type", "text")
+                return;
+            }
+            e.target.classList.replace("fa-eye", "fa-eye-slash");
+            document.getElementById(id).setAttribute("type", "password")
+        }
+    </script>
 
 </body>
 

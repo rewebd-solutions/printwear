@@ -44,6 +44,8 @@ steps:
       - 'RZPY_LIVE_KEY_ID=${_RZPY_LIVE_KEY_ID}'
       - 'RZPY_LIVE_KEY_SEC=${_RZPY_LIVE_KEY_SEC}'
       - 'RZPY_WH_SEC=${_RZPY_WH_SEC}'
+      - 'EMAIL_USER=${_EMAIL_USER}'
+      - 'EMAIL_APP_PASSWORD=${_EMAIL_APP_PASSWORD}'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'

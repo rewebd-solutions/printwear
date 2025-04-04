@@ -23,8 +23,10 @@ route.post('/login', controller.login);
 route.get('/login', authServices.authorizeLogin, services.loginpage);
 route.get("/logout", authServices.decryptToken, controller.logout);
 route.post("/changepassword", authServices.authorizeToken, controller.changepassword);
-route.post("/resetpassword", controller.resetpassword);
-route.get("/resetpassword", authServices.authorizeLogin, services.resetpassword);
+route.get("/resetpassword", services.resetpassword);
+route.post("/initiate-reset", controller.initiateResetPassword);
+route.get("/reset-password/:token", controller.validateResetToken);
+route.post("/reset-password", controller.resetPassword);
 route.post("/updateinfo", authServices.authorizeToken, controller.updateinfo);
 // route.post("/savebank", authServices.authorizeToken, controller.savebankdetails); --> no need for COD bank transfer, no need for beneId check
 

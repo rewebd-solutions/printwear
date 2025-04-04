@@ -29,6 +29,7 @@ const RZPY_WH_SECRET = process.env.RZPY_WH_SEC;
 /** this library was used for old data migration for finding img file size, but i dont need it now, so commented it out */
 // const imageFileSize = require("url-file-size");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const algorithm = "sha256";
 const authServices = require("../services/auth");
 
@@ -252,29 +253,128 @@ exports.changepassword = async (req, res) => {
   }
 };
 
-exports.resetpassword = async (req, res) => {
+exports.initiateResetPassword = async (req, res) => {
   try {
-    const { email, pwd, newPwd } = req.body;
-    // console.log("🚀 ~ exports.resetpassword= ~ email, pwd, newPwd:", email, pwd, newPwd)
-    if (pwd !== newPwd)
-      return res.render("resetpassword", { data: { error: "Passwords don't match" }});
-    const passwordHash = crypto.createHash(algorithm).update(pwd).digest("hex");
-    const userData = await UserModel.findOneAndUpdate(
-      { email: email },
-      { $set: { password: passwordHash } },
-      { new: true },
-    );
-    if (!userData)
-      return res.render("resetpassword", {
-        data: {
-          error:
-            "Cannot find user with the provided email. Please create an account.",
-        },
+      const { email } = req.body;
+      
+      const user = await UserModel.findOne({ email });
+      if (!user) {
+          return res.render('resetpassword', { 
+              data: { error: 'No account found with this email' }
+          });
+      }
+
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+      await user.save();
+
+      const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+
+      const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_APP_PASSWORD
+          }
       });
-    res.redirect("login");
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: `Printwear Password Reset Request for ${user.name}`,
+        html: `
+              <h2>Password Reset for ${user.name}</h2>
+              <p>Click the link below to reset your printwear password. This link is valid for 10 minutes.</p>
+              <a href="${resetUrl}">Reset Password</a>
+              <p>If you did not request this, please ignore this email.</p>
+              <p>Thank you,</p>
+              <p>Team Printwear</p>
+              <img src="https://printwear.in/images/Logo.png" alt="Printwear Logo" style="width: 100px; height: auto;" />
+          `,
+      });
+
+      res.render('resetpassword', {
+          data: { message: 'Reset link sent to your email' }
+      });
+
   } catch (error) {
-    console.log("🚀 ~ exports.resetpassword= ~ error:", error);
-    res.status(500).json({ error: "Server error in setting password!" });
+      console.error('Reset password error:', error);
+      res.render('resetpassword', {
+          data: { error: 'Error sending reset email' }
+      });
+  }
+};
+
+exports.validateResetToken = async (req, res) => {
+  try {
+      const { token } = req.params;
+      
+      const user = await UserModel.findOne({
+          resetPasswordToken: token,
+          resetPasswordExpires: { $gt: Date.now() }
+      });
+
+      if (!user) {
+          return res.render('resetpassword', {
+              data: { error: 'Password reset link is invalid or has expired' }
+          });
+      }
+
+      // Show password reset form if token is valid
+      res.render('resetpassword', {
+          data: { 
+              validToken: true,
+              token: token
+          }
+      });
+
+  } catch (error) {
+      console.error('Token validation error:', error);
+      res.render('resetpassword', {
+          data: { error: 'Error validating reset token' }
+      });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+      const { token, password, confirmPassword } = req.body;
+
+      if (password !== confirmPassword) {
+          return res.render('resetpassword', {
+              data: { 
+                  validToken: true,
+                  token: token,
+                  error: 'Passwords do not match' 
+              }
+          });
+      }
+
+      const user = await UserModel.findOne({
+          resetPasswordToken: token,
+          resetPasswordExpires: { $gt: Date.now() }
+      });
+
+      if (!user) {
+          return res.render('resetpassword', {
+              data: { error: 'Password reset link expired or invalid' }
+          });
+      }
+
+      // Update password with hashed value
+      user.password = crypto.createHash(algorithm).update(password).digest('hex');
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+
+      res.redirect('/login?pwdreset=true');
+
+  } catch (error) {
+      console.error('Password reset error:', error);
+      res.render('resetpassword', {
+          data: { error: 'Error resetting password' }
+      });
   }
 };
 
@@ -756,7 +856,7 @@ exports.getshopifystock = async (req, res) => {
     res.json(shopifyShopStockData);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in fetching stock data" });
   }
 };
 
@@ -1180,7 +1280,7 @@ exports.getdesigns = async (req, res) => {
     res.json(userDesigns);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in obtaining designs" });
   }
 };
 
@@ -1269,7 +1369,7 @@ exports.createshopifyproduct = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Server error in creating shopify product" });
   }
 };
 //create woo commerce product
@@ -1398,7 +1498,7 @@ exports.getZohoProducts = async (req, res) => {
     res.json(zohoProductObjects);
   } catch (error) {
     console.log(error);
-    res.json({ error });
+    res.json({ error: "Server error in fetching products" });
   }
 };
 
@@ -1599,9 +1699,16 @@ exports.updateorder = async (req, res) => {
     if (currentItem === -1)
       return res.status(400).json({ error: "Coulnd't find item" });
 
-    orderData.items[currentItem].quantity = parseInt(req.body.quantity);
+    const qty = parseInt(req.body.quantity)
+    const price = parseFloat(req.body.price)
+    
+    if (isNaN(qty) || isNaN(price)) {
+      throw new Error("Quantity is invalid!");
+    }
+
+    orderData.items[currentItem].quantity = qty;
     orderData.items[currentItem].price = (
-      parseFloat(req.body.price) * parseInt(req.body.quantity)
+      price * qty
     ).toFixed(2);
 
     orderData.totalAmount = orderData.items
