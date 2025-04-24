@@ -112,10 +112,6 @@ var OrderSchema = new mongoose.Schema({
   customerOrderId: String,
   retailPrice: Number,
   shipmentId: String,
-  createdAt: {
-    type: mongoose.Schema.Types.Date,
-    default: Date.now,
-  },
   deliveredOn: {
     type: mongoose.Schema.Types.Date,
   },
@@ -125,7 +121,7 @@ var OrderSchema = new mongoose.Schema({
   },
   shopifyId: String,
   wooCommerceId: String,
-});
+}, { timestamps: true });
 
 const orderModel = mongoose.model("Order", OrderSchema);
 

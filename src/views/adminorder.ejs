@@ -204,7 +204,8 @@
               <p>Self-Pickup: ${orderData.orderData.shipRocketCourier.courierId == "-1" ? "Yes" : "No"}</p>
               <p>Retail Price: ₹ ${orderData.orderData.retailPrice}</p>
               <p>Cash On Delivery: ${orderData.orderData.cashOnDelivery ? "Yes" : "No"}</p>
-              <p>Paid on: ${formatDate(orderData.orderData.createdAt)} via Wallet Payment (Transaction ID: ${orderData.orderData.walletOrderId})</p>
+              <p>Order created on: ${formatDate(orderData.orderData.createdAt)} via Wallet Payment (Transaction ID: ${orderData.orderData.walletOrderId})</p>
+              <p>Order paid on: ${orderData.walletData?.transactions && orderData.walletData.transactions?.[0]?.transactionDate ? formatDate(orderData.walletData.transactions[0].transactionDate) : 'N/A'} </p>
             </div>
             
             <div id="contact-details">

@@ -3906,7 +3906,10 @@ exports.getadminorder = async (req, res) => {
         },
       ]),
       await UserModel.findById(orderData.userId),
-      await WalletModel.findOne({ userId: orderData.userId }, { _id: 1 }),
+      await WalletModel.findOne({
+        userId: orderData.userId,
+        "transactions.walletOrderId": `PAYMENT_${orderData.orderData?.[0]?.walletOrderId}`,
+      }, { _id: 1, "transactions.$": 1 }),
       await LabelModel.findOne({ userId: orderData.userId }),
     ]);
     // console.log("🚀 ~ exports.getadminorder= ~ designsData:", designsData)
