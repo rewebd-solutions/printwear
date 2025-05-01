@@ -1,18 +1,12 @@
-var cashfreeAppID = "";
-var cashfreeSecretKey = "";
 var razorpayKeyID = "";
 var razorpayKeySecret = "";
 
 const paymentMode = process.env.CASH_MODE;
 
 if (paymentMode != "test") {
-  cashfreeAppID = process.env.CASH_APP_ID;
-  cashfreeSecretKey = process.env.CASH_SECRET_KEY;
   razorpayKeyID = process.env.RZPY_LIVE_KEY_ID;
   razorpayKeySecret = process.env.RZPY_LIVE_KEY_SEC;
 } else {
-  cashfreeAppID = process.env.CASH_TEST_APP_ID;
-  cashfreeSecretKey = process.env.CASH_TEST_SECRET_KEY;
   razorpayKeyID = process.env.RZPY_TEST_KEY_ID;
   razorpayKeySecret = process.env.RZPY_TEST_KEY_SEC;
 }
@@ -3745,16 +3739,7 @@ exports.createshiporder = async (req, res) => {
   const rzpyOrderId = rawData.payload.payment.entity.order_id;
   const rzpyPaymentId = rawData.payload.payment.entity.id;
 
-  const userProfile = await UserModel.findOne({
-    email: rawData.payload.payment.entity.email,
-  });
-  if (!userProfile) {
-    return console.log(
-      `[WH]: Couldn't find user with email: ${rawData.payload.payment.entity.email}`,
-    );
-  }
-  const userid = userProfile._id;
-  const UserWallet = await WalletModel.findOne({ userId: userid });
+  const UserWallet = await WalletModel.findOne({ "transactions.rzpyOrderId": rzpyOrderId });
   if (!UserWallet)
     return console.log(`[WH]: Couldn't find wallet for ${userid}`);
 
