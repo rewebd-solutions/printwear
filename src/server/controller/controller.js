@@ -20,6 +20,27 @@ const ZOHO_INVOICE_TEMPLATE_ID = "2198251000000029496";
 // const ZOHO_INVOICE_TEMPLATE_ID = "650580000000000231";
 const RZPY_WH_SECRET = process.env.RZPY_WH_SEC;
 
+const validStatusEnum = [
+  "pending",
+  "received",
+  "ready-to-ship", // -> ready to ship
+  "on-hold",
+  "processing",
+  "shipped",
+  "in-transit",
+  "delivered",
+  "completed",
+  "shipment-cancel",
+  "pickup-scheduled",
+  "out-for-pickup",
+  "return-init",
+  "return-to-origin", // -> return to origin
+  "rto-delivered", // -> rto delivered
+  "cancelled",
+  "undelivered",
+  "invoiced",
+];
+
 /** this library was used for old data migration for finding img file size, but i dont need it now, so commented it out */
 // const imageFileSize = require("url-file-size");
 const crypto = require("crypto");
@@ -3842,7 +3863,20 @@ exports.getadminorders = async (req, res) => {
   try {
     const allOrderHistories = await OrderHistoryModel.aggregate([
       { $unwind: "$orderData" }, // Unwind the orderData array to get individual objects
-      { $sort: { "orderData.createdAt": -1 } },
+      {
+        $addFields: {
+          "orderData.statusSortIndex": {
+            $indexOfArray: [validStatusEnum, "$orderData.deliveryStatus"],
+          },
+        },
+      },
+      {
+        $sort: {
+          "orderData.updatedAt": -1,
+          "orderData.createdAt": -1,
+          "orderData.statusSortIndex": 1,
+        },
+      },
       { $limit: 300 },
       { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
       { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
@@ -3916,29 +3950,10 @@ exports.getadminorder = async (req, res) => {
 // webhook for woocommerce to hit when order is updated
 exports.updateadminorder = async (req, res) => {
   try {
-    const IDsToUpdate = req.body.ids;
+    const IDsToUpdate = Array.from(new Set(...req.body.ids));
     const statusToUpdate = req.body.status;
     console.log(IDsToUpdate, statusToUpdate);
-    const validStatusEnum = [
-      "received",
-      "ready-to-ship", // -> ready to ship
-      "on-hold",
-      "processing",
-      "rto-delivered", // -> rto delivered
-      "shipment-cancel",
-      "pickup-scheduled",
-      "out-for-pickup",
-      "in-transit",
-      "return-to-origin", // -> return to origin
-      "return-init",
-      "cancelled",
-      "undelivered",
-      "invoiced",
-      "shipped",
-      "delivered",
-      "completed",
-      "pending",
-    ];
+    
     if (!validStatusEnum.includes(statusToUpdate))
       return res.status(400).json({ error: "Invalid status string" });
     if (IDsToUpdate.length < 1)

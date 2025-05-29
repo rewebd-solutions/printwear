@@ -167,7 +167,9 @@
 
       document.querySelector("#order-id-heading").innerHTML = `Order ID: ${orderData.orderData.printwearOrderId} <h4 class="status-badge ${orderData.orderData.deliveryStatus}">${orderData.orderData.deliveryStatus}</h4> 
         <br />
-        <span style="font-size: 14px">Received on: ${ new Date(orderData.orderData.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) }</span>
+        <span style="font-size: 14px;"><i class="fa fa-calendar" style="color: red; font-size: 13px; margin-right: 3px;"></i>Order created at: ${ new Date(orderData.orderData.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) }</span>
+        <br />
+        <span style="font-size: 14px;"><i class="fa fa-calendar" style="color: red; font-size: 13px; margin-right: 3px;"></i>Order paid at: ${ new Date(orderData.orderData.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) }</span>
         `;
       document.querySelector("#order-status-filter").value = orderData.orderData.deliveryStatus;
 

@@ -53,7 +53,7 @@
         #order-table {
             margin-top: 1.2rem;
         }
-        
+
         .order-id a {
             text-decoration: underline;
         }
@@ -118,31 +118,38 @@
     <div class="manageorder">
         <div class="order-table">
             <div class="filter-options">
-                <select id="order-status-filter" class="table-filter">
-                    <option value="all" disabled selected>Status</option>
-                    <option value="none">None</option>
-                    <option value="received">Received</option>
-                    <option value="ready-to-ship">Ready to Ship</option>
-                    <option value="on-hold">On Hold</option>
-                    <option value="processing">Processing</option>
-                    <option value="rto-delivered">RTO Delivered</option>
-                    <option value="shipment-cancel">Shipment cancelled</option>
-                    <option value="pickup-scheduled">Pickup scheduled</option>
-                    <option value="out-for-pickup">Out for pickup</option>
-                    <option value="in-transit">In transit</option>
-                    <option value="return-to-origin">Return to origin</option>
-                    <option value="return-init">Return initiated</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="undelivered">Undelivered</option>
-                    <option value="invoiced">Invoiced</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Deliverd</option>
-                    <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
-                </select>
-                <button class="filter-button filter-button-active">
-                    Apply
-                </button>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <select id="order-status-filter" class="table-filter">
+                        <option value="all" disabled selected>Status</option>
+                        <option value="none">None</option>
+                        <option value="received">Received</option>
+                        <option value="ready-to-ship">Ready to Ship</option>
+                        <option value="on-hold">On Hold</option>
+                        <option value="processing">Processing</option>
+                        <option value="rto-delivered">RTO Delivered</option>
+                        <option value="shipment-cancel">Shipment cancelled</option>
+                        <option value="pickup-scheduled">Pickup scheduled</option>
+                        <option value="out-for-pickup">Out for pickup</option>
+                        <option value="in-transit">In transit</option>
+                        <option value="return-to-origin">Return to origin</option>
+                        <option value="return-init">Return initiated</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="undelivered">Undelivered</option>
+                        <option value="invoiced">Invoiced</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Deliverd</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                    <button class="filter-button filter-button-active">
+                        Apply
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <input type="checkbox" id="show-new" />
+                    <label for="show-new">Show new orders</label>
+                </div>
             </div>
 
             <table id="order-table" class="data-table">
@@ -151,7 +158,8 @@
                     <th>Order ID</th>
                     <th>Order By</th>
                     <th>Deliver To</th>
-                    <th>Date</th>
+                    <th>Order created</th>
+                    <th>Order paid</th>
                     <th>Total</th>
                     <th>Status</th>
                 </thead>
@@ -166,47 +174,57 @@
         AOS.init();
         var notyf = new Notyf();
         var orderHistoryData = [];
-        const deliveryStatuses =  [
-                "received",
-                "ready-to-ship", // -> ready to ship
-                "on-hold",
-                "processing",
-                "rto-delivered", // -> rto delivered
-                "shipment-cancel",
-                "pickup-scheduled",
-                "out-for-pickup",
-                "in-transit",
-                "return-to-origin", // -> return to origin
-                "return-init",
-                "cancelled",
-                "undelivered",
-                "invoiced",
-                "shipped",
-                "delivered",
-                "completed",
-                "pending",
-            ];
+        const deliveryStatuses = [
+            "received",
+            "ready-to-ship", // -> ready to ship
+            "on-hold",
+            "processing",
+            "rto-delivered", // -> rto delivered
+            "shipment-cancel",
+            "pickup-scheduled",
+            "out-for-pickup",
+            "in-transit",
+            "return-to-origin", // -> return to origin
+            "return-init",
+            "cancelled",
+            "undelivered",
+            "invoiced",
+            "shipped",
+            "delivered",
+            "completed",
+            "pending",
+        ];
 
         let orderData = [];
 
         $(document).ready(async function () {
 
             // fetchOrderData();
-            const adminOrdersRequest = await fetch("/admin/recentorders");
-            const adminOrdersResponse = await adminOrdersRequest.json();
-            console.log("🚀 ~ adminOrdersResponse:", adminOrdersResponse)
+            async function fetchOrderData() {
+                try {
+                    const adminOrdersRequest = await fetch("/admin/recentorders");
+                    const adminOrdersResponse = await adminOrdersRequest.json();
+                    console.log("🚀 ~ adminOrdersResponse:", adminOrdersResponse)
 
-            if (adminOrdersRequest.status != 200) {
-                return notyf.error(adminOrdersResponse.error);
+                    if (adminOrdersRequest.status != 200) {
+                        return notyf.error(adminOrdersResponse.error);
+                    }
+                    document.querySelector(".loader")?.remove();
+                    orderData = adminOrdersResponse;
+                    populateData()
+                } catch (error) {
+                    console.error("Error fetching order data:", error);
+                    notyf.error("Failed to fetch order data.");
+                }
             }
-            document.querySelector(".loader").remove();
-            orderData = adminOrdersResponse;
 
             function formatDate(date) {
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                 const dat = new Date(date);
-                return `<i class="fa fa-calendar" style="color: red; font-size: 13px"></i> ${dat.getDate()} ${months[dat.getMonth()]}, ${dat.getFullYear()} <br /> <i class="fa fa-clock" style="color: red; font-size: 13px"></i> ${dat.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" })}`;
+                return `<i class="fa fa-calendar" style="color: red; font-size: 13px;"></i> ${dat.getDate()} ${months[dat.getMonth()]}, ${dat.getFullYear()} <br /> <i class="fa fa-clock" style="color: red; font-size: 13px"></i> ${dat.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" })}`;
             }
+
+            var toupdate = [];
 
             const changeStatus = async (el) => {
                 try {
@@ -229,8 +247,15 @@
                         return notyf.error(changeStatusResponse.error);
                     }
                     notyf.success(changeStatusResponse.message);
-                    // for now reload, adhukapro nee filter panni update panniko
-                    location.reload();
+                    toupdate = [];
+                    document.querySelector("#select-all").checked = false;
+                    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    document.querySelector("#order-status-filter").value = "all";
+                    $("#order-table tbody").empty();
+                    $("#order-table tbody").after(`<span class="loader"></span>`);
+                    fetchOrderData()
                 } catch (error) {
                     console.log("🚀 ~ changeStatus ~ error:", error)
                     notyf.error(error);
@@ -239,13 +264,14 @@
                 }
             }
 
-            orderData.forEach(function (order) {
-                $("#order-table tbody").append(`
+            function populateData(data = orderData) {
+                orderData.forEach(function (order) {
+                    $("#order-table tbody").append(`
                     <tr>
                         <td><input type="checkbox"/></td> <!-- Checkbox -->
                         <td class="order-id clickable"><div style="display: flex; gap: 0.5rem;"><a href="/admin/orders/${order.printwearOrderId}">${order.printwearOrderId}</a>
-                            ${order.wooCommerceId ? '<img src="/images/WooCommerce_logo.svg" width="30" alt="" />' : ''}${order.shopifyId ? '<i class="fa-brands fa-shopify" style="color: #3cd03c"></i>': ''}
-                            ${order.cashOnDelivery? `<p class="badge-cod">COD</p>`: ''}
+                            ${order.wooCommerceId ? '<img src="/images/WooCommerce_logo.svg" width="30" alt="" />' : ''}${order.shopifyId ? '<i class="fa-brands fa-shopify" style="color: #3cd03c"></i>' : ''}
+                            ${order.cashOnDelivery ? `<p class="badge-cod">COD</p>` : ''}
                             </div>
                             (${order.customerOrderId})
                         </td>
@@ -254,116 +280,152 @@
                             <br />
                             <p style="font-size:13px; max-width: 300px;">
                                 ${[
-                        order.shippingAddress?.streetLandmark,
-                        order.shippingAddress?.city,
-                        order.shippingAddress?.pincode,
-                        order.shippingAddress?.state,
-                    ].join(", ")}
+                            order.shippingAddress?.streetLandmark,
+                            order.shippingAddress?.city,
+                            order.shippingAddress?.pincode,
+                            order.shippingAddress?.state,
+                        ].join(", ")}
                             </p>
                         </td>
                         <td>${formatDate(order.createdAt)}</td>
+                        <td>${formatDate(order.updatedAt)}</td>
                         <td>₹ ${order.amountPaid}</td>
                         <td><h4 class="status-badge ${order.deliveryStatus}">${order.deliveryStatus}</h4></td>
                     </tr>
                     `);
-            });
+                });
 
-            var table = $("#order-table").DataTable({
-                select: {
-                    style: "multi",
-                    selector: "td:first-child",
-                },
-                ordering: false,
-                paging: true,
-                searching: true,
-                language: {
-                    paginate: {
-                        next: "›",
-                        previous: "‹",
+                var table = $("#order-table").DataTable({
+                    select: {
+                        style: "multi",
+                        selector: "td:first-child",
                     },
-                },
-                dom: '<"top"pfl<"clear">>rt<"bottom"ip<"clear">>'
-            });
+                    ordering: false,
+                    paging: true,
+                    searching: true,
+                    destroy: true,
+                    language: {
+                        paginate: {
+                            next: "›",
+                            previous: "‹",
+                        },
+                    },
+                    columnDefs: [
+                        {
+                            targets: -3,
+                            className: 'dt-nowrap'
+                        },
+                        {
+                            targets: -2,
+                            className: 'dt-nowrap'
+                        },
+                        {
+                            targets: -4,
+                            className: 'dt-nowrap'
+                        },
+                    ],
+                    dom: '<"top"pfl<"clear">>rt<"bottom"ip<"clear">>'
+                });
 
-            $("#select-all").on("click", function () {
-                var currentPageRows = table.rows({ page: "current" }).nodes();
-                $('input[type="checkbox"]', currentPageRows).prop(
-                    "checked",
-                    this.checked
-                );
-                if (this.checked) {
-                    table.rows({ page: "current" }).select();
-                } else {
-                    table.rows({ page: "current" }).deselect();
-                }
-            });
-
-            var toupdate = [];
-
-            function updateToUpdateArray(orderId, isChecked) {
-                if (isChecked && orderId != "") {
-                    toupdate.push(orderId.trim());
-                } else {
-                    var index = toupdate.indexOf(orderId);
-                    if (index !== -1) {
-                        toupdate.splice(index, 1);
+                $("#select-all").on("click", function () {
+                    var currentPageRows = table.rows({ page: "current" }).nodes();
+                    $('input[type="checkbox"]', currentPageRows).prop(
+                        "checked",
+                        this.checked
+                    );
+                    if (this.checked) {
+                        table.rows({ page: "current" }).select();
+                    } else {
+                        table.rows({ page: "current" }).deselect();
                     }
+                });
+
+                function updateToUpdateArray(orderId, isChecked) {
+                    if (isChecked && orderId != "") {
+                        toupdate.push(orderId.trim());
+                    } else {
+                        var index = toupdate.indexOf(orderId);
+                        if (index !== -1) {
+                            toupdate.splice(index, 1);
+                        }
+                    }
+                    console.log(toupdate);
                 }
-                console.log(toupdate);
-            }
 
-            $("#order-table").on("change", 'input[type="checkbox"]', function () {
-                var orderId = $(this).closest("tr").find(".order-id a").text();
-                console.log("🚀 ~ orderId:", orderId)
-                var isChecked = $(this).prop("checked");
-                updateToUpdateArray(orderId, isChecked);
-            });
+                $("#order-table").on("change", 'input[type="checkbox"]', function () {
+                    var orderId = $(this).closest("tr").find(".order-id a").text();
+                    console.log("🚀 ~ orderId:", orderId)
+                    var isChecked = $(this).prop("checked");
+                    updateToUpdateArray(orderId, isChecked);
+                });
 
-            var selectedValue;
-            $("#select-all").on("click", function () {
-                console.log("sel");
-                var currentPageRows = table.rows({ page: "current" }).nodes();
-                var $checkboxes = $('input[type="checkbox"]', currentPageRows);
+                var selectedValue;
+                $("#select-all").on("click", function () {
+                    console.log("sel");
+                    var currentPageRows = table.rows({ page: "current" }).nodes();
+                    var $checkboxes = $('input[type="checkbox"]', currentPageRows);
 
-                $checkboxes.prop("checked", this.checked);
+                    $checkboxes.prop("checked", this.checked);
 
-                if (this.checked) {
-                    $('input[type="checkbox"]:checked', currentPageRows).each(
-                        function () {
+                    if (this.checked) {
+                        $('input[type="checkbox"]:checked', currentPageRows).each(
+                            function () {
+                                var orderId = $(this)
+                                    .closest("tr")
+                                    .find(".order-id .clickable a")
+                                    .text();
+                                toupdate.push(orderId);
+                            }
+                        );
+                        toupdate = [...new Set(toupdate)];
+                    } else {
+                        var uncheckedOrderIds = [];
+                        $checkboxes.filter(":not(:checked)").each(function () {
                             var orderId = $(this)
                                 .closest("tr")
                                 .find(".order-id .clickable a")
                                 .text();
-                            toupdate.push(orderId);
-                        }
-                    );
-                    toupdate = [...new Set(toupdate)];
-                } else {
-                    var uncheckedOrderIds = [];
-                    $checkboxes.filter(":not(:checked)").each(function () {
-                        var orderId = $(this)
-                            .closest("tr")
-                            .find(".order-id .clickable a")
-                            .text();
-                        uncheckedOrderIds.push(orderId);
-                    });
-                    toupdate = toupdate.filter(
-                        (orderId) => !uncheckedOrderIds.includes(orderId)
-                    );
-                }
-                console.log(toupdate);
-            });
+                            uncheckedOrderIds.push(orderId);
+                        });
+                        toupdate = toupdate.filter(
+                            (orderId) => !uncheckedOrderIds.includes(orderId)
+                        );
+                    }
+                    console.log(toupdate);
+                });
 
-            $("#order-status-filter").change(function () {
-                selectedValue = $(this).val();
+                $("#order-status-filter").change(function () {
+                    selectedValue = $(this).val();
 
-                console.log(selectedValue);
-            });
+                    console.log(selectedValue);
+                });
 
-            $(".filter-options button").click(function () {
-                console.log("apply button clicked by sachin");
-                changeStatus(this)
-            });
+                $(".filter-options button").click(function () {
+                    changeStatus(this)
+                });
+
+                $("#show-new").on("change", function () {
+                    if ($(this).is(":checked")) {
+                        // Show only new orders
+                        table.rows().every(function (row) {
+                            var rowData = this.data();
+                            // console.log("🚀 ~ rowData:", this.node(), rowData.at(-1), row, orderData[row].deliveryStatus)
+                            if (orderData[row].deliveryStatus === "received") {
+                                $(this.node()).show();
+                            } else {
+                                $(this.node()).hide();
+                            }
+                        });
+                    } else {
+                        // Show all orders
+                        table.rows().every(function () {
+                            $(this.node()).show();
+                        });
+                    }
+                });
+            }
+
+            fetchOrderData();
         });
 
     </script>
