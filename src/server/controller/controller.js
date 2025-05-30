@@ -3950,7 +3950,7 @@ exports.getadminorder = async (req, res) => {
 // webhook for woocommerce to hit when order is updated
 exports.updateadminorder = async (req, res) => {
   try {
-    const IDsToUpdate = Array.from(new Set(...req.body.ids));
+    const IDsToUpdate = Array.from(new Set(req.body.ids));
     const statusToUpdate = req.body.status;
     console.log(IDsToUpdate, statusToUpdate);
     

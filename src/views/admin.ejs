@@ -247,15 +247,9 @@
                         return notyf.error(changeStatusResponse.error);
                     }
                     notyf.success(changeStatusResponse.message);
-                    toupdate = [];
-                    document.querySelector("#select-all").checked = false;
-                    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                        checkbox.checked = false;
-                    });
-                    document.querySelector("#order-status-filter").value = "all";
-                    $("#order-table tbody").empty();
-                    $("#order-table tbody").after(`<span class="loader"></span>`);
-                    fetchOrderData()
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
                 } catch (error) {
                     console.log("🚀 ~ changeStatus ~ error:", error)
                     notyf.error(error);
