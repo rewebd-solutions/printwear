@@ -2951,8 +2951,8 @@ exports.placeorder = async (req, res) => {
       payment_terms_label: "Due on Receipt",
       customer_id: zohoCustomerId,
       contact_persons: zohoContactId ? [zohoContactId] : [],
-      date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
-      due_date: formatDate(new Date(orderDetails.orderData[0].createdAt), true),
+      date: formatDate(new Date(orderDetails.orderData[0].updatedAt), true),
+      due_date: formatDate(new Date(orderDetails.orderData[0].updatedAt), true),
       notes:
         "We thank you for your business\npls write us for additional information accounts@printwear.in\nMSME REGISTERED NO - UDYAM-TN-02-0351728\n\n",
       terms:
