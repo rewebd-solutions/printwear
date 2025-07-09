@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/adminorder.css">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <title>Admin Order details - Printwear</title>
     <style>
         .message-box {
@@ -50,7 +52,15 @@
                         <p>
                             <%= item.message %>
                         </p>
-                        <a href="mailto:<%= item.email %>" target="_blank" class="filter-button filter-button-active" style="margin-top: 1rem; width: fit-content; text-decoration: none">Respond</a>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <a href="mailto:<%= item.email %>" target="_blank" class="filter-button filter-button-active" style="margin-top: 1rem; width: fit-content; text-decoration: none">Respond</a>
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <% if (item.respondedOn) { %>
+                                    <p style="font-size: 11px; font-weight: 400;">Responded on <%- new Date(item.respondedOn).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) -%></p>
+                                <% } %>
+                                <button onclick="markResponse(this, '<%= item._id %>', <%= item.respondedOn? false: true %>)" style="cursor: pointer; font-size: 12px; font-weight: 400;" class="filter-button"><%= item.respondedOn? "❌ Mark as not responded": "✅ Mark as responded" %> </button>
+                            </div>
+                        </div>
                     </div>
                     <% }) %>
                         <% } else { %>
@@ -58,6 +68,32 @@
                             <h2>No data available</h2>
                             <% } %>
     </div>
+
+    <script>
+        var notyf = new Notyf();
+        async function markResponse(button, queryId, isResponded) {
+            button.classList.add("disabled");
+            try {
+                const markReq = await fetch("/admin/markquery", { 
+                    method: "POST",
+                    body: JSON.stringify({ queryId, isResponded }),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                })
+                if(markReq.ok) {
+                    const markRes = await markReq.json();
+                    notyf.success("Marked query successfully!");
+                    location.reload();
+                }
+            } catch (error) {
+                console.log("🚀 ~ markResponse ~ error:", error)
+                notyf.error("Error in marking response");
+            } finally {
+                button.classList.remove("disabled");
+            }
+        }
+    </script>
 </body>
 
 </html>

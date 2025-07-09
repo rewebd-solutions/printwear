@@ -4043,6 +4043,17 @@ exports.renderadminqueries = async (req, res) => {
   }
 };
 
+exports.markadminqueryresponse = async (req, res) => {
+  try {
+    const { queryId, isResponded } = req.body;
+    await QueryModel.findByIdAndUpdate(queryId, { $set: { respondedOn: isResponded? new Date(): null } })
+    res.json({ message: "Response successful" })
+  } catch (error) {
+    console.log("🚀 ~ exports.markadminqueryresponse= ~ error:", error);
+    res.status(500).json({ error: "Server error in marking response!" });
+  }
+}
+
 exports.adminrefund = async (req, res) => {
   try {
     const refundData = req.body;

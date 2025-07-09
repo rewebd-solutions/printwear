@@ -5,6 +5,7 @@ const QuerySchema = new Schema({
     email: String,
     mobile: String,
     message: String,
+    respondedOn: Schema.Types.Date
 }, { timestamps: true });
 
 const QueryModel = model("query", QuerySchema);
