@@ -219,7 +219,7 @@ const setMockupSize = () => {
     const mockupContainer = document.querySelector(".mockup-image");
     const mockupImageHeight = document.querySelector(".mockup-image-container img").clientHeight;
     mockupContainer.setAttribute("style", `height: ${mockupImageHeight}px`);
-    // console.log(mockupImageHeight, "1")
+    
 }
 
 const renderColors = () => {
@@ -284,7 +284,7 @@ const addColorToRender = (el) => {
     el.querySelector(".color-tick").style.display = "block"
     el.children[0].classList.add('selected-color');
     mockupImageContainer.style.background = hex;
-    // console.log(colorsToRender);
+    
 }
 
 fetchMockupsData();

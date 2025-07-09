@@ -12,6 +12,8 @@
         .message-box {
             padding: 1rem;
             width: 98%;
+            display: flex;
+            flex-direction: column;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 4px;
             margin-bottom: 1rem;
@@ -35,17 +37,20 @@
                 <!-- Loop through data array and create message-box div for each object -->
                 <% data.queries.forEach(item=> { %>
                     <div class="message-box">
-                        <h4>Name: <%= item.name %>
+                        <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                            <h4>Name: <%= item.name %> </h4>
+                            <i style="font-weight: 300;"><%= new Date(item.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) %></i>
+                        </div>
                         </h4>
                         <h4>Email: <%= item.email %>
                         </h4>
-                        <h4>Contact: <%= item.contact %>
+                        <h4>Contact: <%= item.mobile %>
                         </h4>
                         <h4>Query:</h4>
                         <p>
                             <%= item.message %>
                         </p>
-                        <a href="mailto:<%= item.email %>" target="_blank" class="filter-button filter-button-active" style="margin-top: 1rem; text-decoration: none">Respond</a>
+                        <a href="mailto:<%= item.email %>" target="_blank" class="filter-button filter-button-active" style="margin-top: 1rem; width: fit-content; text-decoration: none">Respond</a>
                     </div>
                     <% }) %>
                         <% } else { %>

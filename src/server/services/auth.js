@@ -11,15 +11,15 @@ exports.createToken = (userId, userName) => {
 }
 
 exports.authorizeToken = (req, res, next) => {
-    // console.log("cooks", req.cookies);
+    
     const token = req.cookies.actk;
-    // console.log(token);
+    
     if (!token) {
       return res.redirect("/login");
     }
     try {
       const data = jwt.verify(token, secret);
-      // console.log(data);
+      
       req.userId = data.id;
       req.userName = data.name;
       return next();

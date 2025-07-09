@@ -69,6 +69,7 @@ const WalletModel = require("../model/walletModel");
 const CODModel = require("../model/codDetailsModel");
 const QueryModel = require("../model/queryModel");
 const Razorpay = require("razorpay");
+const { escapeHtml, slugify, formatDate } = require("../services/utils");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 /** I've not put CASHFREE_BASE_URL_TEST in yaml because mode should never be in test during production..
@@ -96,8 +97,8 @@ exports.register = async (req, res) => {
   let num = req.body.number;
 
   const existingUser = await UserModel.findOne({
-    name: req.body.name,
-    email: req.body.email,
+    name: escapeHtml(req.body.name),
+    email: escapeHtml(req.body.email),
     phone: num,
   });
   console.log("🚀 ~ exports.register= ~ existingUser:", existingUser);
@@ -109,13 +110,13 @@ exports.register = async (req, res) => {
 
   try {
     await UserModel.create({
-      name: req.body.name,
-      email: req.body.email,
+      name: escapeHtml(req.body.name),
+      email: escapeHtml(req.body.email),
       password: crypto
         .createHash(algorithm)
         .update(req.body.password)
         .digest("hex"),
-      phone: "+91" + num,
+      phone: "+91" + escapeHtml(num),
       emailVerified: false,
       phoneVerified: false,
       profileImage: "https://cdn-icons-png.flaticon.com/512/1077/1077114.png",
@@ -137,9 +138,9 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  // console.log(req.body);
+  
   try {
-    const check = await UserModel.findOne({ email: req.body.email });
+    const check = await UserModel.findOne({ email: escapeHtml(req.body.email) });
 
     if (check === null) {
       return res.render("login", {
@@ -236,7 +237,7 @@ exports.logout = async (req, res) => {
 
 exports.changepassword = async (req, res) => {
   try {
-    // console.log(req.userId)
+    
     if (req.body.newPwd !== req.body.confirmPwd)
       return res.status(400).json({ message: "Passwords dont match" });
     const userProfile = await UserModel.findOneAndUpdate(
@@ -257,8 +258,8 @@ exports.changepassword = async (req, res) => {
       },
       { new: true },
     );
-    // console.log(req.body);
-    // console.log(userProfile)
+    
+    
     if (!userProfile)
       return res.status(400).json({ message: "Incorrect password" });
     return res.json(userProfile);
@@ -402,9 +403,9 @@ exports.updateinfo = async (req, res) => {
         { _id: req.userId },
         {
           $set: {
-            firstName: firstName,
-            lastName: lastName,
-            brandName: brandName,
+            firstName: escapeHtml(firstName),
+            lastName: escapeHtml(lastName),
+            brandName: escapeHtml(brandName),
           },
         },
         { new: true },
@@ -428,15 +429,15 @@ exports.updateinfo = async (req, res) => {
         {
           $set: {
             billingAddress: {
-              firstName: firstName,
-              lastName: lastName,
-              email: email,
-              streetLandmark: address,
-              city: city,
-              state: state,
+              firstName: escapeHtml(firstName),
+              lastName: escapeHtml(lastName),
+              email: escapeHtml(email),
+              streetLandmark: escapeHtml(address),
+              city: escapeHtml(city),
+              state: escapeHtml(state),
               country: country || "India",
-              pincode: pincode,
-              phone: phone,
+              pincode: escapeHtml(pincode),
+              phone: escapeHtml(phone),
             },
           },
         },
@@ -447,7 +448,7 @@ exports.updateinfo = async (req, res) => {
     } else if (type == "gst") {
       const userInfo = await UserModel.findOneAndUpdate(
         { _id: req.userId },
-        { $set: { gstNo: req.body.gst } },
+        { $set: { gstNo: escapeHtml(req.body.gst) } },
         { new: true },
       );
       if (!userInfo)
@@ -494,7 +495,7 @@ exports.profilepage = async (req, res) => {
   // write code to get req.userId and findOne and SSR the page
   const userData = await UserModel.findOne({ _id: req.userId });
   const storeData = await StoreModel.findOne({ userid: req.userId });
-  // console.log(userData, storeData)
+  
   const data = {
     userData: userData,
     storeData: storeData,
@@ -545,7 +546,7 @@ exports.dashboard = async (req, res) => {
         orders: orders,
       });
     }
-    // console.log("🚀 ~ exports.dashboard= ~ graphData:", graphData);
+    
 
     const userDataToSend = {
       name: userData.name,
@@ -599,12 +600,11 @@ exports.dashboard = async (req, res) => {
 // for CRD on designgallery images
 exports.uploadimage = async (req, res) => {
   try {
-    // console.log(req.file);
+    
     const fileBuffer = req.file.buffer;
     const fileName = req.file.originalname
       .replace(/ /g, "-")
       .replace(/[^a-zA-Z0-9-_.]/g, "");
-    console.log("🚀 ~ exports.uploadimage= ~ fileName:", fileName);
     const fileReference = storageReference.child(
       `images/${req.userId + "_" + otpGen.generate(4, { specialChars: false }) + "_" + fileName}`,
     );
@@ -649,7 +649,7 @@ exports.obtainimages = async (req, res) => {
 
 exports.deleteimage = async (req, res) => {
   const imageId = req.body.imageId;
-  // console.log(imageId);
+  
   try {
     const imageToDelete = await ImageModel.findOne(
       { userId: req.userId, "images._id": imageId },
@@ -700,7 +700,7 @@ exports.getproducts = async (req, res) => {
         productId: products._id,
       });
     }
-    // console.log(productData, colorsData);
+    
     res.status(200).json({
       productData,
       colorsData,
@@ -731,24 +731,7 @@ exports.getproduct = async (req, res) => {
 
 // deleted old commented code for old schema
 // utils
-const formatDate = (date, removeLast = false) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // Adding 1 to month since it's zero-based
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
 
-  return removeLast
-    ? `${year}-${month}-${day}`
-    : `${year}-${month}-${day} ${hours}:${minutes}`;
-};
-const slugify = (str) =>
-  str
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 const generateShiprocketToken = async () => {
   try {
     const shiprocketTokenRequest = await fetch(
@@ -778,7 +761,7 @@ const generateZohoToken = async () => {
       { method: "POST" },
     );
     const zohoAccResponse = await zohoAccRequest.json();
-    // console.log(zohoAccResponse);
+    
     const zohoAPIAccessToken = zohoAccResponse.access_token;
     return zohoAPIAccessToken;
   } catch (error) {
@@ -786,18 +769,6 @@ const generateZohoToken = async () => {
     return false;
   }
 };
-//implement idempotency:
-var idempotencyKeys = new Set();
-function clearIdempotencyKeys() {
-  setTimeout(
-    () => {
-      console.log(idempotencyKeys);
-      idempotencyKeys.clear();
-      console.log(idempotencyKeys);
-    },
-    1000 * 60 * 2,
-  );
-}
 
 // endpoints for querying shopify stores
 exports.getstoredetails = async (req, res) => {
@@ -906,7 +877,7 @@ exports.getshopifyorders = async (req, res) => {
       },
     });
     const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
-    // console.log("🚀 ~ exports.getshopifyorders= ~ shopifyStoreOrderResponse:", shopifyStoreOrderResponse)
+    
     const dataToSend = shopifyStoreOrderResponse.orders.filter(
       (order) =>
         order.line_items.filter((item) => allSKUs.includes(item.sku)).length >
@@ -930,7 +901,7 @@ exports.getshopifyorders = async (req, res) => {
         }
       });
     }
-    // console.log(dataToSend);
+    
     res.json({ shopify: dataToSend });
   } catch (error) {
     console.log(error);
@@ -957,7 +928,7 @@ exports.getwooorders = async (req, res) => {
     if (!designDetails || designDetails?.designs?.length < 1)
       return res.status(404).json({ error: "No designs created yet!" });
     const allSKUs = designDetails.designs.map((design) => design.designSKU);
-    // console.log("🚀 ~ exports.getwooorders= ~ allSKUs:", allSKUs)
+    
 
     const wooCommerceStoreData = storeDetails.wooCommerceStore;
     if (!wooCommerceStoreData)
@@ -978,14 +949,14 @@ exports.getwooorders = async (req, res) => {
         },
       });
       const wooOrderResponse = await wooOrderRequest.json();
-      // console.log("🚀 ~ exports.getwooorders= ~ wooOrderResponse:", wooOrderResponse)
+      
 
       const dataToSend = wooOrderResponse.filter(
         (order) =>
           order.line_items.filter((item) => allSKUs.includes(item.sku)).length >
           0,
       );
-      // console.log("🚀 ~ exports.getwooorders= ~ dataToSend:", dataToSend)
+      
       if (orderHistoryData && orderHistoryData.orderData?.length > 0) {
         const orderIDsFromHistory = orderHistoryData.orderData.map((order) => ({
           wooCommerceId: order.wooCommerceId,
@@ -1022,9 +993,9 @@ exports.getwooorders = async (req, res) => {
 // endpoints for uploading design images
 exports.createdesign = async (req, res) => {
   try {
-    // console.log(req.file);
+    
     const fileBuffer = req.files[0].buffer;
-    // console.log(fileBuffer);
+    
 
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData);
@@ -1039,8 +1010,8 @@ exports.createdesign = async (req, res) => {
             lowerCaseAlphabets: false,
             specialChars: false,
           }));
-    // console.log(uniqueSKU);
-    // console.log(req.body.designImageURL)
+    
+    
 
     // this is the old method where all the client images get sent to the server and everything is uploaded
     // but since, they changed it to have only one image, that too from already uploaded ones, i need not upload it again
@@ -1087,7 +1058,6 @@ exports.createdesign = async (req, res) => {
           : req.body.productData.price * 1 < 70.0
             ? 70.0
             : req.body.productData.price * 1;
-      console.log("🚀 ~ exports.createdesign= ~ printCharges:", printCharges);
       // already necklabel = 0, if necklabel now, then 10
       const neckLabelCharges = currentDesign.designs.at(currentDesignIndex)
         .neckLabel
@@ -1095,10 +1065,6 @@ exports.createdesign = async (req, res) => {
         : req.body.neckLabel != "null"
           ? 10
           : 0;
-      console.log(
-        "🚀 ~ exports.createdesign= ~ neckLabelCharges:",
-        neckLabelCharges,
-      );
       currentDesign.designs.at(currentDesignIndex).neckLabel =
         req.body.neckLabel != "null" ? req.body.neckLabel : undefined;
       currentDesign.designs.at(currentDesignIndex).designImage[
@@ -1221,7 +1187,7 @@ exports.createdesign = async (req, res) => {
       };
     }
 
-    // console.log("🚀 ~ exports.createdesign= ~ designsDataObject:", designsDataObject)
+    
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
       {
@@ -1313,7 +1279,7 @@ exports.createshopifyproduct = async (req, res) => {
       shopifyStoreData.shopifyStore?.shopifyAccessToken;
     const SHOPIFY_SHOP_URL = shopifyStoreData.shopifyStore?.shopifyStoreURL;
     const SHOPIFY_SHOP_NAME = shopifyStoreData.shopifyStore?.shopName;
-    // console.log(SHOPIFY_ACCESS_TOKEN + SHOPIFY_SHOP_URL)
+    
 
     const productData = {
       title: designData.designName,
@@ -1390,7 +1356,7 @@ exports.createshopifyproduct = async (req, res) => {
 //create woo commerce product
 exports.createwoocommerceorder = async (req, res) => {
   const storeData = await StoreModel.findOne({ userid: req.userId });
-  // console.log(storeData.wooCommerceStore);
+  
   if (!storeData?.wooCommerceStore?.url)
     return res.status(404).json({ error: "WooCommerce store not connected!" });
   const designData = (
@@ -1545,9 +1511,9 @@ exports.getmockups = async (req, res) => {
   try {
     const mockupsData = await MockupModel.find({});
     const productData = await ZohoProductModel.find({});
-    // console.log(productData)
+    
     mockupsData.forEach((mockup) => {
-      // console.log(productData.find(product => product._id + "" === mockup.product + ""))
+      
       mockup.product = productData.find(
         (product) => product._id + "" === mockup.product + "",
       );
@@ -1623,10 +1589,10 @@ exports.createorder = async (req, res) => {
 exports.getorders = async (req, res) => {
   try {
     const orderData = await OrderModel.findOne({ userId: req.userId });
-    // console.log(req.userId, orderData)
+    
     if (!orderData) return res.status(404).json({ message: "No orders yet!" });
     const designsFromOrders = orderData.items.map((item) => item.designId);
-    // console.log(designsFromOrders);
+    
     const designsData = await NewDesignModel.aggregate([
       {
         $match: {
@@ -1652,7 +1618,7 @@ exports.getorders = async (req, res) => {
         },
       },
     ]);
-    // console.log(designsData)
+    
     res.json({ orderData, designsData });
   } catch (error) {
     console.log(error);
@@ -1662,7 +1628,7 @@ exports.getorders = async (req, res) => {
 
 exports.deleteorderitem = async (req, res) => {
   try {
-    // console.log(req.body.designId)
+    
     const orderData = await OrderModel.findOne({ userId: req.userId });
     if (!orderData)
       return res.status(404).json({ message: "Couldn't find item" });
@@ -1699,7 +1665,7 @@ exports.updateorder = async (req, res) => {
     //     }
     //   }
     // }, { new: true });
-    // console.log(req.body)
+    
     const orderData = await OrderModel.findOne({
       userId: req.userId,
       "items.designId": req.body.designId,
@@ -1751,15 +1717,15 @@ const SHOPIFY_ACCESS_SCOPES = [
 ];
 exports.connectShopify = async (req, res) => {
   const reqBody = req.body;
-  // console.log(req.userId);
+  
   const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
   const SHOPIFY_SHOP_URL = reqBody.store_url;
-  const SHOPIFY_SHOP_NAME = reqBody.store_name;
-  // console.log(SHOPIFY_ACCESS_TOKEN, SHOPIFY_SHOP_URL)
+  const SHOPIFY_SHOP_NAME = escapeHtml(reqBody.store_name);
+  
 
   const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
 
-  // console.log("🚀 ~ exports.connectShopify= ~ shopifyEndpoint:", shopifyEndpoint)
+  
   try {
     const fetchReq = await fetch(shopifyEndpoint, {
       headers: {
@@ -1767,7 +1733,7 @@ exports.connectShopify = async (req, res) => {
       },
     });
     const fetchData = await fetchReq.json();
-    // console.log("🚀 ~ exports.connectShopify= ~ fetchData:", fetchData)
+    
     if (fetchReq.status != 200)
       return res.status(fetchReq.status).json({ error: fetchData.errors });
     // if (fetchReq.status.toString().startsWith('5')) return res.status(fetchReq.status).json({ error: "Shopify Server Error" });
@@ -1845,7 +1811,7 @@ exports.shopifystoreorderedit = async (req, res) => {
       },
     });
     const shopifyOrderResponse = await shopifyOrderRequest.json();
-    // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
+    
 
     if (shopifyOrderResponse.errors)
       return res.render("storeorderedit", {
@@ -1965,23 +1931,17 @@ exports.woostoreorderedit = async (req, res) => {
       },
     });
     const wooCommerceOrderRes = await wooCommerceOrderReq.json();
-    // console.log("🚀 ~ exports.woostoreorderedit= ~ wooCommerceOrderRes:", wooCommerceOrderRes)
 
     if (!wooCommerceOrderReq.ok)
       return res.render("storeorderedit", {
         error: "There was an error trying to fetch WooCommerce order data",
       });
     const SKUs = wooCommerceOrderRes.line_items.map((item) => item.sku);
-    // console.log("🚀 ~ exports.woostoreorderedit= ~ SKUs:", SKUs)
 
     const designData = designsData.designs.filter((design) =>
       SKUs.includes(design.designSKU),
     );
-    // console.log("🚀 ~ exports.woostoreorderedit= ~ designData:", designData)
-    console.log(
-      "🚀 ~ exports.woostoreorderedit= ~ wooCommerceOrderRes:",
-      wooCommerceOrderRes,
-    );
+
     res.render("storeorderedit", {
       error: false,
       shopifyData: null,
@@ -2025,7 +1985,6 @@ exports.createordershopify = async (req, res) => {
       },
       { new: true, upsert: true },
     );
-    console.log("🚀 ~ exports.createordershopify= ~ orderData:", orderData);
     if (!orderData)
       return res
         .status(402)
@@ -2041,7 +2000,6 @@ exports.createordershopify = async (req, res) => {
 
 exports.createorderwoo = async (req, res) => {
   const { wooId, items } = req.body;
-  // console.log("🚀 ~ exports.createorderwoo= ~ items:", items)
   try {
     let totalAmount = items
       .reduce((total, item) => total + item.price * item.quantity, 0)
@@ -2068,7 +2026,6 @@ exports.createorderwoo = async (req, res) => {
       },
       { new: true, upsert: true },
     );
-    // console.log("🚀 ~ exports.createorderwoo= ~ orderData:", orderData)
     return res.json({ message: "Created order successfully!" });
   } catch (error) {
     console.log("🚀 ~ exports.createorderwoo= ~ error:", error);
@@ -2081,7 +2038,6 @@ exports.createorderwoo = async (req, res) => {
 exports.payshoporder = async (req, res) => {
   try {
     const shopType = req.path.split("/")[2];
-    // console.log("🚀 ~ exports.payshoporder= ~ shopType:", shopType)
 
     if (!["shopify", "woo"].includes(shopType))
       return res.render("storeorderpay", { error: "Invalid URL!" });
@@ -2119,7 +2075,7 @@ exports.payshoporder = async (req, res) => {
         },
       });
       const { order: shopifyOrderResponse } = await shopifyOrderRequest.json();
-      // console.log("🚀 ~ exports.shopifystoreorderedit= ~ shopifyOrderResponse:", shopifyOrderResponse)
+      
       // const shopifyOrderResponse = /// --> SIMPLY FOR TESTING, if needed, copy from test_assets/shopifyorderreference.json
       if (shopifyOrderResponse.errors)
         return res.render("storeorderedit", {
@@ -2156,7 +2112,7 @@ exports.payshoporder = async (req, res) => {
         StoreModel.findOne({ userid: req.userId }),
         UserModel.findById(req.userId),
       ]);
-      // console.log("🚀 ~ exports.payshoporder= ~ orderData:", orderData)
+      
       if (!orderData)
         return res.render("storeorderpay", {
           error: "Could not find such order!",
@@ -2185,7 +2141,7 @@ exports.payshoporder = async (req, res) => {
         },
       });
       const wooCommerceOrderRes = await wooCommerceOrderReq.json();
-      // console.log("🚀 ~ exports.woostoreorderedit= ~ wooCommerceOrderRes:", wooCommerceOrderRes)
+      
 
       if (!wooCommerceOrderReq.ok)
         return res.render("storeorderpay", {
@@ -2243,7 +2199,7 @@ exports.payshoporder = async (req, res) => {
         shopSlug: "woo",
         billingAddress: userData.billingAddress,
       };
-      // console.log("🚀 ~ exports.payshoporder= ~ payOrderPageData:", payOrderPageData)
+      
 
       return res.render("storeorderpay", {
         error: false,
@@ -2268,7 +2224,7 @@ exports.billing = async (req, res) => {
     ]);
     if (!orderData) return res.render("billing", { orderData: { items: [] } });
     const designsFromOrders = orderData.items.map((item) => item.designId);
-    // console.log(designsFromOrders);
+    
     const designsData = await NewDesignModel.aggregate([
       {
         $match: {
@@ -2333,7 +2289,7 @@ exports.reship = async (req, res) => {
     const designsFromOrders = orderData.orderData[0].items.map(
       (item) => item.designId,
     );
-    // console.log(designsFromOrders);
+    
     const designsData = await NewDesignModel.aggregate([
       {
         $match: {
@@ -2730,7 +2686,6 @@ exports.placeorder = async (req, res) => {
       /** previously debited walelt only when not self pickup, changed it to debit wallet always */
       const shiprocketToken = await generateShiprocketToken();
 
-      const SHIPROCKET_COMPANY_ID = shiprocketToken.company_id;
       const SHIPROCKET_ACC_TKN = shiprocketToken.token;
 
       const shiprocketOrderData = {
@@ -3115,7 +3070,7 @@ exports.reshiporder = async (req, res) => {
     const orderToRefund = orderHistory.orderData.find(
       (order) => order.printwearOrderId == pwOrderId,
     );
-    // console.log("🚀 ~ exports.reshiporder= ~ orderToRefund:", orderToRefund,  orderToRefund.items.reduce((curr, item) => curr + item.price, 0))
+    
 
     const orderToRefundIndex = orderHistory.orderData.findIndex(
       (order) => order.printwearOrderId == pwOrderId,
@@ -3166,7 +3121,7 @@ exports.reshiporder = async (req, res) => {
     const totalCharges =
       shippingCharge + (cashOnDelivery ? 50 : 0) + oldCharges;
     console.log("🚀 ~ exports.reshiporder= ~ totalCharges:", totalCharges);
-    // console.log("🚀 ~ exports.reshiporder= ~ totalCharges:", totalCharges)
+    
 
     /** wallet deduct charges */
     const walletOrderId = otpGen.generate(6, {
@@ -3235,7 +3190,7 @@ exports.reshiporder = async (req, res) => {
       orderHistory.orderData.at(orderToRefundIndex).totalAmount
     ).toFixed(2);
 
-    // console.log("🚀 ~ exports.reshiporder= ~ orderHistory:", orderHistory.orderData.at(orderToRefundIndex))
+    
     await orderHistory.save({ validateBeforeSave: false });
 
     return res.json({ message: "Reship was successfully initiated!" });
@@ -3290,7 +3245,7 @@ exports.calculateshippingcharges = async (req, res) => {
     // const recommendedCourierID = shippingChargeResponse.data.recommended_courier_company_id;
     // const charges = shippingChargeResponse.data.available_courier_companies.find(courier => courier.courier_company_id == recommendedCourierID)["freight_charge"];
     // const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, { $set: { deliveryCharges: charges } });
-    // console.log(charges);
+    
     res.status(200).json(shippingChargeResponse);
   } catch (error) {
     console.log(error);
@@ -3410,7 +3365,7 @@ exports.getorderhistory = async (req, res) => {
 // new endpoint to upload new label
 exports.uploadlabel = async (req, res) => {
   try {
-    // console.log(req.file);
+    
     const fileBuffer = req.file.buffer;
     const fileName = req.file.originalname
       .replace(/ /g, "-")
@@ -3456,7 +3411,7 @@ exports.obtainlabels = async (req, res) => {
 
 exports.deletelabel = async (req, res) => {
   const imageId = req.body.imageId;
-  // console.log(imageId);
+  
   try {
     const imageToDelete = await LabelModel.findOne(
       { userId: req.userId, "labels._id": imageId },
@@ -3534,7 +3489,7 @@ exports.getinvoices = async (req, res) => {
 // exports.generateZohoBooksInvoice = async (req, res) => {
 //   try {
 //     const zohoToken = await generateZohoToken();
-//     console.log(zohoToken)
+
 //     // for now testing, actually obtain userid from the createshiporder userid thing, this endpoint itself is just for test
 //     let userid = "64f175edd683cd124e440f23";
 //     let testorderid = "XHDAYP";
@@ -3581,7 +3536,7 @@ exports.getinvoices = async (req, res) => {
 //       const zohoCustomerCreateResponse = await zohoCustomerCreateRequest.json();
 //       //res.json(zohoCustomerCreateResponse); // remove
 //       if (zohoCustomerCreateResponse.code == 0) {
-//         console.log(`zohoCustomer for ${userid} created!`)
+
 //         userData.isZohoCustomer = true;
 //         userData.zohoCustomerID = zohoCustomerCreateResponse.contact.contact_id;
 //         userData.zohoContactID = zohoCustomerCreateResponse.contact.primary_contact_id;
@@ -3602,7 +3557,7 @@ exports.getinvoices = async (req, res) => {
 //     const designIds = orderDetails.orderData[0].items.map(item => item.designId + '');
 //     const designsData = await NewDesignModel.findOne({ userId: userid });
 //     let productIds = designsData.designs.filter(design => designIds.includes(design._id + '')).map(design => design.product.id);
-//     console.log(designIds, productIds)
+
 //     // create invoice request
 //     const zohoCustomerId = userData.zohoCustomerID;
 //     const zohoContactId = userData.zohoContactID;
@@ -3690,13 +3645,13 @@ exports.getinvoices = async (req, res) => {
 //       tax_total: orderDetails.orderData[0].totalAmount * 0.05,
 //       payment_made: orderDetails.orderData[0].amountPaid,
 //     };
-//     console.log(invoiceData)
+
 
 //     const zohoInvoiceFormData = new FormData();
 //     zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
 //     zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
 //     zohoInvoiceFormData.append('is_quick_create', 'true');
-//     console.log(zohoInvoiceFormData);
+
 
 //     const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
 //       // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
@@ -3709,10 +3664,10 @@ exports.getinvoices = async (req, res) => {
 //     });
 //     const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
 //     res.json(zohoInvoiceCreateResponse);
-//     // console.log(zohoInvoiceCreateResponse);
+//     
 
 //   } catch (error) {
-//     console.log(error);
+
 //     res.send(error);
 //   }
 // }
@@ -3881,7 +3836,7 @@ exports.getadminorders = async (req, res) => {
       { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
       { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
     ]);
-    // console.log("🚀 ~ exports.getadminorders= ~ allOrderHistories:", allOrderHistories)
+    
     // const data = allOrderHistories[0].allOrderData.sort(order => )
     res.json(allOrderHistories[0].allOrderData);
   } catch (error) {
@@ -3902,7 +3857,7 @@ exports.getadminorder = async (req, res) => {
         .status(404)
         .json({ error: `Order data for ${pwOrder} not found!` });
     const designIds = orderData.orderData[0].items.map((item) => item.designId);
-    // console.log("🚀 ~ exports.getadminorder= ~ designIds:", designIds)
+    
     const [designsData, userData, walletData, labelData] = await Promise.all([
       await NewDesignModel.aggregate([
         {
@@ -3931,7 +3886,7 @@ exports.getadminorder = async (req, res) => {
       }, { _id: 1, "transactions.$": 1 }),
       await LabelModel.findOne({ userId: orderData.userId }),
     ]);
-    // console.log("🚀 ~ exports.getadminorder= ~ designsData:", designsData)
+    
     res.json({
       orderData: orderData.orderData[0],
       designsData: JSON.stringify(designsData),
@@ -4078,7 +4033,7 @@ exports.renderadminwallet = async (req, res) => {
 
 exports.renderadminqueries = async (req, res) => {
   try {
-    const userQueries = await QueryModel.find();
+    const userQueries = await QueryModel.find({  }, {}, {sort: { createdAt: -1 }});
     res.render("adminqueries", { data: { queries: userQueries, error: null } });
   } catch (error) {
     console.log("🚀 ~ exports.renderadminqueries= ~ error:", error);
@@ -4176,7 +4131,7 @@ exports.adminrefund = async (req, res) => {
     }
 
     await walletData.save({ validateBeforeSave: false });
-    // console.log("🚀 ~ exports.adminrefund= ~ walletData:", walletData)
+    
 
     res.json(walletData);
   } catch (error) {

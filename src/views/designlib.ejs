@@ -72,7 +72,7 @@
       if (searchKey === '') return createDesignCards();
       const designsData = designsResponseData.designs.filter(design => (design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim()) || design["designSKU"].toLowerCase().trim().includes(searchKey.toLowerCase().trim())));
       if (designsData.length < 1) return designsContainer.innerHTML = 'Invalid search key';
-      // console.log(designsData);
+      
       createDesignCards({designs: designsData})
     }
 
@@ -333,7 +333,7 @@
     }
 
     const filterProductsByGender = (e, category) => {
-      // console.log(category)
+      
       const filterByGenderButtons = document.querySelectorAll(".filter-button");
       filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
 

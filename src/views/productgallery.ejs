@@ -205,7 +205,7 @@
         }
 
         const filterProductsByGender = (e, category) => {
-            // console.log(category)
+            
             const filterByGenderButtons = document.querySelectorAll(".filter-button");
             filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
 
@@ -218,7 +218,7 @@
                     filteredData[styleName] = productsData[styleName];
                 }
             }
-            // console.log(filteredData)
+            
             populateData(filteredData)
         }
 

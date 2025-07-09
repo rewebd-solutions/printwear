@@ -242,7 +242,7 @@
                         })
                     });
                     const changeStatusResponse = await changeStatusRequest.json();
-                    // console.log("🚀 ~ changeStatus ~ changeStatusResponse:", changeStatusResponse)
+                    
                     if (changeStatusRequest.status != 200) {
                         return notyf.error(changeStatusResponse.error);
                     }
@@ -403,7 +403,7 @@
                         // Show only new orders
                         table.rows().every(function (row) {
                             var rowData = this.data();
-                            // console.log("🚀 ~ rowData:", this.node(), rowData.at(-1), row, orderData[row].deliveryStatus)
+                            
                             if (orderData[row].deliveryStatus === "received") {
                                 $(this.node()).show();
                             } else {

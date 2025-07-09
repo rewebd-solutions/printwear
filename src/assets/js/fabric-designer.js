@@ -101,7 +101,7 @@ const fetchProductData = async () => {
     const productDataRequest = await fetch("/getzohoproducts");
     const productDataResponse = await productDataRequest.json();
     productData = productDataResponse[productStyle];
-    // console.log(productData);
+    
     productData.name = productStyle;
 
     const sizeOrder = {
@@ -159,7 +159,7 @@ const fetchProductData = async () => {
     loadMockupImage();
     displaySizes();
   } catch (error) {
-    // console.log(error);
+    
     notyf.error({
       message: "There was an error trying to fetch product details!",
       dismissible: true,
@@ -218,7 +218,7 @@ const changeMockup = (e, color, id) => {
   let selectedMockup = Product.colors.find((color) => color._id === id);
   const element = document.getElementById(`${color}-${id}`);
 
-  // console.log(e.target);
+  
 
   renderColorBorder(color, id);
   globalProductID = null;
@@ -322,7 +322,7 @@ const calculateTotalWidth = () => {
   let totalWidth = object
     ? object.getScaledWidth() * Product.pixelToInchRatio
     : 0;
-  // console.log(totalWidth);
+  
   return totalWidth;
 };
 
@@ -387,7 +387,7 @@ const changeStatName = () => {
 };
 
 const updateStats = (shouldUpdateInput = true) => {
-  // console.log("update stats called");
+  
   changeStatName();
 
   if (!designImg && !canvasState.front && !canvasState.back) {
@@ -489,7 +489,7 @@ const changeSize = (e, size, id) => {
   e.target.style.background = "red";
   e.target.style.color = "white";
   e.target.style.transform = "scale(1.1)";
-  // console.log(id, size);
+  
   globalProductID = id; // check b4 downloading or saving if this is checked
 
   variantPrice = Product.colors
@@ -530,7 +530,7 @@ const setPixelRatio = (productID) => {
   currentProductVariant = Product.colors
     .find((color) => color._id === currentColor)
     .sizes.find((size) => size.id === productID);
-  // console.log(currentProductVariant);
+  
   Product.pixelToInchRatio = currentProductVariant.dimensions.length / 500;
   Product.inchToPixelRatio = 500 / currentProductVariant.dimensions.length;
   addFabricCanvasToTemplateDiv();
@@ -601,7 +601,7 @@ const loadState = () => {
     ml: false,
   }));
   updateStats();
-  // console.log("updateStatsCalled");
+  
 };
 
 /** remove design image function */
@@ -741,7 +741,7 @@ const changeSide = (e, side) => {
         .addEventListener("click", handleImageRemove);
   }
 
-  // console.log("direction: " + designDirection);
+  
   loadState();
   // changeStatName();
 };
@@ -780,7 +780,7 @@ const addToOrder = async () => {
       }),
     });
     const addToOrderRes = await addToOrderReq.json();
-    // console.log(addToOrderRes);
+    
   
     if (!addToOrderReq.ok) {
       throw new Error("Couldn't add design to order");
@@ -828,14 +828,14 @@ const downloadDesign = () => {
 
   // Use a short delay to ensure the browser has updated the DOM with the transform
   setTimeout(() => {
-    // console.log(fabricCanvas.getObjects());
+    
 
     /* tried html2canvas, which yeets a canvas again.. no use */
     html2canvas(node, { userCORS: true, allowTaint: true, scale: 1.0 }).then(x => console.log(x)).catch(x => console.log(x))
 
     domtoimage.toBlob(node, config).then(function (blob) {
       // Restore original transformation
-      // console.log(`yeppa aavdhaa ${blob}`);
+      
       window.saveAs(
         blob,
         userName +
@@ -966,8 +966,8 @@ const saveDesign = async () => {
         ),
       }
     }
-    // console.log(submitProduct);
-    // console.log(designModelObject);
+    
+    
     //console.log(filesFromBlobs)
 
     domtoimage.toBlob(node, config).then(async (blob) => {
@@ -1005,7 +1005,7 @@ const saveDesign = async () => {
       });
 
       saveDesignResponse = await saveDesignRequest.json();
-      // console.log(saveDesignResponse);
+      
 
       if (!saveDesignRequest.ok) {
         throw new Error({ reason: "Save failed!", error: saveDesignResponse.message });
@@ -1049,7 +1049,7 @@ const saveDesign = async () => {
         (item) => (item.style.border = "2px dashed black")
       );
     }).catch(error => {
-      // console.log(error);
+      
       notyf.error(error.message);
       disableButton(false);
       disableSideSwitch(false);
@@ -1157,14 +1157,14 @@ const fetchUserDesigns = async () => {
       populateUserDesigns();
     }
   } catch (error) {
-    // console.log(error);
+    
     notyf.error("Something went wrong!");
   }
 };
 
 const populateUserLabels = (data = userLabelsResponse) => {
   userLabelsWrapper.innerHTML = "";
-  // console.log(data);
+  
   if (!data || data.labels.length == 0)
     return (userLabelsWrapper.innerHTML = "No labels yet!");
   userLabelsWrapper.innerHTML = data.labels.map((imageItem) => {
@@ -1187,7 +1187,7 @@ const fetchUserLabels = async () => {
       populateUserLabels();
     }
   } catch (error) {
-    // console.log(error);
+    
     notyf.error("Something went wrong in fetching labels!");
   }
 };
@@ -1243,7 +1243,7 @@ document.querySelector("#design-search").addEventListener("input", (e) => {
   const searchDesigns = userDesignResponse.images.filter((design) =>
     design.name.toLowerCase().includes(searchKey.toLowerCase())
   );
-  // console.log(searchDesigns);
+  
   if (searchDesigns.length == 0)
     return (userDesignsWrapper.innerHTML = "Invalid Search");
   populateUserDesigns({ images: searchDesigns });
