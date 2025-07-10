@@ -142,7 +142,7 @@
 
           <% if (orderData.orderData[0].deliveryTracking && orderData.orderData[0].deliveryTracking.length > 0) { %>
             <div class="timeline">
-              <% orderData.orderData[0].deliveryTracking.forEach(tracking=> { %>
+              <% orderData.orderData[0].deliveryTracking.reverse().forEach(tracking=> { %>
                 <div class="timeline-item">
                   <div class="timeline-content">
                     <h4>
