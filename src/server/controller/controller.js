@@ -133,14 +133,17 @@ exports.register = async (req, res) => {
         });
       }
     }
-    res.render("login", {  data: {error: "Server Error in saving data, try again"}});
+    res.render("login", {
+      data: { error: "Server Error in saving data, try again" },
+    });
   }
 };
 
 exports.login = async (req, res) => {
-  
   try {
-    const check = await UserModel.findOne({ email: escapeHtml(req.body.email) });
+    const check = await UserModel.findOne({
+      email: escapeHtml(req.body.email),
+    });
 
     if (check === null) {
       return res.render("login", {
@@ -181,8 +184,7 @@ exports.login = async (req, res) => {
     if (!doPwdsMatch) {
       return res.render("login", {
         data: {
-          error:
-            "Invalid email or password!",
+          error: "Invalid email or password!",
         },
       });
     }
@@ -237,7 +239,6 @@ exports.logout = async (req, res) => {
 
 exports.changepassword = async (req, res) => {
   try {
-    
     if (req.body.newPwd !== req.body.confirmPwd)
       return res.status(400).json({ message: "Passwords dont match" });
     const userProfile = await UserModel.findOneAndUpdate(
@@ -258,8 +259,7 @@ exports.changepassword = async (req, res) => {
       },
       { new: true },
     );
-    
-    
+
     if (!userProfile)
       return res.status(400).json({ message: "Incorrect password" });
     return res.json(userProfile);
@@ -271,35 +271,35 @@ exports.changepassword = async (req, res) => {
 
 exports.initiateResetPassword = async (req, res) => {
   try {
-      const { email } = req.body;
-      
-      const user = await UserModel.findOne({ email });
-      if (!user) {
-          return res.render('resetpassword', { 
-              data: { error: 'No account found with this email' }
-          });
-      }
+    const { email } = req.body;
 
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      user.resetPasswordToken = resetToken;
-      user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-      await user.save();
-
-      const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
-
-      const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-              user: process.env.EMAIL_USER,
-              pass: process.env.EMAIL_APP_PASSWORD
-          }
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.render("resetpassword", {
+        data: { error: "No account found with this email" },
       });
+    }
 
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: `Printwear Password Reset Request for ${user.name}`,
-        html: `
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    const resetUrl = `${req.protocol}://${req.get("host")}/reset-password/${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: `Printwear Password Reset Request for ${user.name}`,
+      html: `
               <h2>Password Reset for ${user.name}</h2>
               <p>Click the link below to reset your printwear password. This link is valid for 10 minutes.</p>
               <a href="${resetUrl}">Reset Password</a>
@@ -308,89 +308,86 @@ exports.initiateResetPassword = async (req, res) => {
               <p>Team Printwear</p>
               <img src="https://printwear.in/images/Logo.png" alt="Printwear Logo" style="width: 100px; height: auto;" />
           `,
-      });
+    });
 
-      res.render('resetpassword', {
-          data: { message: 'Reset link sent to your email' }
-      });
-
+    res.render("resetpassword", {
+      data: { message: "Reset link sent to your email" },
+    });
   } catch (error) {
-      console.error('Reset password error:', error);
-      res.render('resetpassword', {
-          data: { error: 'Error sending reset email' }
-      });
+    console.error("Reset password error:", error);
+    res.render("resetpassword", {
+      data: { error: "Error sending reset email" },
+    });
   }
 };
 
 exports.validateResetToken = async (req, res) => {
   try {
-      const { token } = req.params;
-      
-      const user = await UserModel.findOne({
-          resetPasswordToken: token,
-          resetPasswordExpires: { $gt: Date.now() }
+    const { token } = req.params;
+
+    const user = await UserModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.render("resetpassword", {
+        data: { error: "Password reset link is invalid or has expired" },
       });
+    }
 
-      if (!user) {
-          return res.render('resetpassword', {
-              data: { error: 'Password reset link is invalid or has expired' }
-          });
-      }
-
-      // Show password reset form if token is valid
-      res.render('resetpassword', {
-          data: { 
-              validToken: true,
-              token: token
-          }
-      });
-
+    // Show password reset form if token is valid
+    res.render("resetpassword", {
+      data: {
+        validToken: true,
+        token: token,
+      },
+    });
   } catch (error) {
-      console.error('Token validation error:', error);
-      res.render('resetpassword', {
-          data: { error: 'Error validating reset token' }
-      });
+    console.error("Token validation error:", error);
+    res.render("resetpassword", {
+      data: { error: "Error validating reset token" },
+    });
   }
 };
 
 exports.resetPassword = async (req, res) => {
   try {
-      const { token, password, confirmPassword } = req.body;
+    const { token, password, confirmPassword } = req.body;
 
-      if (password !== confirmPassword) {
-          return res.render('resetpassword', {
-              data: { 
-                  validToken: true,
-                  token: token,
-                  error: 'Passwords do not match' 
-              }
-          });
-      }
-
-      const user = await UserModel.findOne({
-          resetPasswordToken: token,
-          resetPasswordExpires: { $gt: Date.now() }
+    if (password !== confirmPassword) {
+      return res.render("resetpassword", {
+        data: {
+          validToken: true,
+          token: token,
+          error: "Passwords do not match",
+        },
       });
+    }
 
-      if (!user) {
-          return res.render('resetpassword', {
-              data: { error: 'Password reset link expired or invalid' }
-          });
-      }
+    const user = await UserModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
 
-      // Update password with hashed value
-      user.password = crypto.createHash(algorithm).update(password).digest('hex');
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
-      await user.save();
+    if (!user) {
+      return res.render("resetpassword", {
+        data: { error: "Password reset link expired or invalid" },
+      });
+    }
 
-      res.redirect('/login?pwdreset=true');
+    // Update password with hashed value
+    user.password = crypto.createHash(algorithm).update(password).digest("hex");
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
 
+    res.redirect("/login?pwdreset=true");
   } catch (error) {
-      console.error('Password reset error:', error);
-      res.render('resetpassword', {
-          data: { error: 'Error resetting password' }
-      });
+    console.error("Password reset error:", error);
+    res.render("resetpassword", {
+      data: { error: "Error resetting password" },
+    });
   }
 };
 
@@ -495,7 +492,7 @@ exports.profilepage = async (req, res) => {
   // write code to get req.userId and findOne and SSR the page
   const userData = await UserModel.findOne({ _id: req.userId });
   const storeData = await StoreModel.findOne({ userid: req.userId });
-  
+
   const data = {
     userData: userData,
     storeData: storeData,
@@ -546,7 +543,6 @@ exports.dashboard = async (req, res) => {
         orders: orders,
       });
     }
-    
 
     const userDataToSend = {
       name: userData.name,
@@ -600,7 +596,6 @@ exports.dashboard = async (req, res) => {
 // for CRD on designgallery images
 exports.uploadimage = async (req, res) => {
   try {
-    
     const fileBuffer = req.file.buffer;
     const fileName = req.file.originalname
       .replace(/ /g, "-")
@@ -649,7 +644,7 @@ exports.obtainimages = async (req, res) => {
 
 exports.deleteimage = async (req, res) => {
   const imageId = req.body.imageId;
-  
+
   try {
     const imageToDelete = await ImageModel.findOne(
       { userId: req.userId, "images._id": imageId },
@@ -700,7 +695,7 @@ exports.getproducts = async (req, res) => {
         productId: products._id,
       });
     }
-    
+
     res.status(200).json({
       productData,
       colorsData,
@@ -761,7 +756,7 @@ const generateZohoToken = async () => {
       { method: "POST" },
     );
     const zohoAccResponse = await zohoAccRequest.json();
-    
+
     const zohoAPIAccessToken = zohoAccResponse.access_token;
     return zohoAPIAccessToken;
   } catch (error) {
@@ -808,7 +803,7 @@ exports.getshopifystock = async (req, res) => {
       const SHOPIFY_SHOP_URL = store.shopifyStoreURL;
       const SHOPIFY_SHOP_NAME = store.shopName;
 
-      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/products.json?fields=id,title,vendor,product_type,tags,variants,options`;
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2025-07/products.json?fields=id,title,vendor,product_type,tags,variants,options`;
 
       try {
         const shopifyStoreStockRequest = await fetch(shopifyEndpoint, {
@@ -869,7 +864,7 @@ exports.getshopifyorders = async (req, res) => {
     const SHOPIFY_SHOP_URL = shopifyStoreData.shopifyStoreURL;
     const SHOPIFY_SHOP_NAME = shopifyStoreData.shopName;
 
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/orders.json`;
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2025-07/orders.json`;
 
     const shopifyStoreOrderRequest = await fetch(shopifyEndpoint, {
       headers: {
@@ -877,7 +872,7 @@ exports.getshopifyorders = async (req, res) => {
       },
     });
     const shopifyStoreOrderResponse = await shopifyStoreOrderRequest.json();
-    
+
     const dataToSend = shopifyStoreOrderResponse.orders.filter(
       (order) =>
         order.line_items.filter((item) => allSKUs.includes(item.sku)).length >
@@ -901,7 +896,7 @@ exports.getshopifyorders = async (req, res) => {
         }
       });
     }
-    
+
     res.json({ shopify: dataToSend });
   } catch (error) {
     console.log(error);
@@ -928,7 +923,6 @@ exports.getwooorders = async (req, res) => {
     if (!designDetails || designDetails?.designs?.length < 1)
       return res.status(404).json({ error: "No designs created yet!" });
     const allSKUs = designDetails.designs.map((design) => design.designSKU);
-    
 
     const wooCommerceStoreData = storeDetails.wooCommerceStore;
     if (!wooCommerceStoreData)
@@ -949,14 +943,13 @@ exports.getwooorders = async (req, res) => {
         },
       });
       const wooOrderResponse = await wooOrderRequest.json();
-      
 
       const dataToSend = wooOrderResponse.filter(
         (order) =>
           order.line_items.filter((item) => allSKUs.includes(item.sku)).length >
           0,
       );
-      
+
       if (orderHistoryData && orderHistoryData.orderData?.length > 0) {
         const orderIDsFromHistory = orderHistoryData.orderData.map((order) => ({
           wooCommerceId: order.wooCommerceId,
@@ -993,9 +986,7 @@ exports.getwooorders = async (req, res) => {
 // endpoints for uploading design images
 exports.createdesign = async (req, res) => {
   try {
-    
     const fileBuffer = req.files[0].buffer;
-    
 
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData);
@@ -1010,8 +1001,6 @@ exports.createdesign = async (req, res) => {
             lowerCaseAlphabets: false,
             specialChars: false,
           }));
-    
-    
 
     // this is the old method where all the client images get sent to the server and everything is uploaded
     // but since, they changed it to have only one image, that too from already uploaded ones, i need not upload it again
@@ -1187,7 +1176,6 @@ exports.createdesign = async (req, res) => {
       };
     }
 
-    
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
       {
@@ -1279,7 +1267,6 @@ exports.createshopifyproduct = async (req, res) => {
       shopifyStoreData.shopifyStore?.shopifyAccessToken;
     const SHOPIFY_SHOP_URL = shopifyStoreData.shopifyStore?.shopifyStoreURL;
     const SHOPIFY_SHOP_NAME = shopifyStoreData.shopifyStore?.shopName;
-    
 
     const productData = {
       title: designData.designName,
@@ -1320,10 +1307,7 @@ exports.createshopifyproduct = async (req, res) => {
       ],
     };
 
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/products.json`;
-
-    console.log("🚀 ~ exports.createshopifyproduct= ~ productData:");
-    console.dir(productData, { depth: 4 });
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2025-07/products.json`;
     const shopifyProductCreateRequest = await fetch(shopifyEndpoint, {
       headers: {
         "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
@@ -1340,6 +1324,37 @@ exports.createshopifyproduct = async (req, res) => {
       "🚀 ~ exports.createshopifyproduct= ~ shopifyProductCreateResponse:",
     );
     console.dir(shopifyProductCreateResponse, { depth: 4 });
+    // add images if images field is null or empty in product response
+    if (
+      !shopifyProductCreateResponse.product.images.length ||
+      !shopifyProductCreateResponse.product.image
+    ) {
+      const shopifyImagesEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2025-07/products/${shopifyProductCreateResponse.product.id}/images.json`;
+      await fetch(shopifyImagesEndpoint, {
+        headers: {
+          "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({
+          image: {
+            src:
+              designData.designImage.front == "false"
+                ? designData.designImage.back
+                : designData.designImage.front,
+          },
+        }),
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          console.log(
+            "🚀 ~ shopifyProductImageResponse:",
+            res,
+          );
+        }).catch(err => {
+          console.log("Shopify product image creation error:", err);
+        });
+    }
 
     if (shopifyProductCreateRequest.ok) {
       await NewDesignModel.findOneAndUpdate(
@@ -1347,6 +1362,10 @@ exports.createshopifyproduct = async (req, res) => {
         { $set: { "designs.$.isAddedToShopify": true } },
       );
       res.status(200).json({ message: "Added to shopify" });
+    } else {
+      res
+        .status(500)
+        .json({ message: "Something went wrong in adding product!" });
     }
   } catch (error) {
     console.log(error);
@@ -1356,7 +1375,7 @@ exports.createshopifyproduct = async (req, res) => {
 //create woo commerce product
 exports.createwoocommerceorder = async (req, res) => {
   const storeData = await StoreModel.findOne({ userid: req.userId });
-  
+
   if (!storeData?.wooCommerceStore?.url)
     return res.status(404).json({ error: "WooCommerce store not connected!" });
   const designData = (
@@ -1511,9 +1530,8 @@ exports.getmockups = async (req, res) => {
   try {
     const mockupsData = await MockupModel.find({});
     const productData = await ZohoProductModel.find({});
-    
+
     mockupsData.forEach((mockup) => {
-      
       mockup.product = productData.find(
         (product) => product._id + "" === mockup.product + "",
       );
@@ -1589,10 +1607,10 @@ exports.createorder = async (req, res) => {
 exports.getorders = async (req, res) => {
   try {
     const orderData = await OrderModel.findOne({ userId: req.userId });
-    
+
     if (!orderData) return res.status(404).json({ message: "No orders yet!" });
     const designsFromOrders = orderData.items.map((item) => item.designId);
-    
+
     const designsData = await NewDesignModel.aggregate([
       {
         $match: {
@@ -1618,7 +1636,7 @@ exports.getorders = async (req, res) => {
         },
       },
     ]);
-    
+
     res.json({ orderData, designsData });
   } catch (error) {
     console.log(error);
@@ -1628,7 +1646,6 @@ exports.getorders = async (req, res) => {
 
 exports.deleteorderitem = async (req, res) => {
   try {
-    
     const orderData = await OrderModel.findOne({ userId: req.userId });
     if (!orderData)
       return res.status(404).json({ message: "Couldn't find item" });
@@ -1665,7 +1682,7 @@ exports.updateorder = async (req, res) => {
     //     }
     //   }
     // }, { new: true });
-    
+
     const orderData = await OrderModel.findOne({
       userId: req.userId,
       "items.designId": req.body.designId,
@@ -1680,17 +1697,15 @@ exports.updateorder = async (req, res) => {
     if (currentItem === -1)
       return res.status(400).json({ error: "Coulnd't find item" });
 
-    const qty = parseInt(req.body.quantity)
-    const price = parseFloat(req.body.price)
-    
+    const qty = parseInt(req.body.quantity);
+    const price = parseFloat(req.body.price);
+
     if (isNaN(qty) || isNaN(price)) {
       throw new Error("Quantity is invalid!");
     }
 
     orderData.items[currentItem].quantity = qty;
-    orderData.items[currentItem].price = (
-      price * qty
-    ).toFixed(2);
+    orderData.items[currentItem].price = (price * qty).toFixed(2);
 
     orderData.totalAmount = orderData.items
       .reduce((total, item) => total + item.price, 0)
@@ -1717,15 +1732,13 @@ const SHOPIFY_ACCESS_SCOPES = [
 ];
 exports.connectShopify = async (req, res) => {
   const reqBody = req.body;
-  
+
   const SHOPIFY_ACCESS_TOKEN = reqBody.access_token;
   const SHOPIFY_SHOP_URL = reqBody.store_url;
   const SHOPIFY_SHOP_NAME = escapeHtml(reqBody.store_name);
-  
 
   const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/oauth/access_scopes.json`;
 
-  
   try {
     const fetchReq = await fetch(shopifyEndpoint, {
       headers: {
@@ -1733,7 +1746,7 @@ exports.connectShopify = async (req, res) => {
       },
     });
     const fetchData = await fetchReq.json();
-    
+
     if (fetchReq.status != 200)
       return res.status(fetchReq.status).json({ error: fetchData.errors });
     // if (fetchReq.status.toString().startsWith('5')) return res.status(fetchReq.status).json({ error: "Shopify Server Error" });
@@ -1803,7 +1816,7 @@ exports.shopifystoreorderedit = async (req, res) => {
     const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
     const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
 
-    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/orders/${shopOrderId}.json`;
+    const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2025-07/orders/${shopOrderId}.json`;
 
     const shopifyOrderRequest = await fetch(shopifyEndpoint, {
       headers: {
@@ -1811,7 +1824,6 @@ exports.shopifystoreorderedit = async (req, res) => {
       },
     });
     const shopifyOrderResponse = await shopifyOrderRequest.json();
-    
 
     if (shopifyOrderResponse.errors)
       return res.render("storeorderedit", {
@@ -2067,7 +2079,7 @@ exports.payshoporder = async (req, res) => {
       const SHOPIFY_SHOP_URL = storeData.shopifyStore.shopifyStoreURL;
       const SHOPIFY_ACCESS_TOKEN = storeData.shopifyStore.shopifyAccessToken;
 
-      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2024-04/orders/${orderId}.json`;
+      const shopifyEndpoint = `https://${SHOPIFY_SHOP_URL}/admin/api/2025-07/orders/${orderId}.json`;
 
       const shopifyOrderRequest = await fetch(shopifyEndpoint, {
         headers: {
@@ -2075,7 +2087,7 @@ exports.payshoporder = async (req, res) => {
         },
       });
       const { order: shopifyOrderResponse } = await shopifyOrderRequest.json();
-      
+
       // const shopifyOrderResponse = /// --> SIMPLY FOR TESTING, if needed, copy from test_assets/shopifyorderreference.json
       if (shopifyOrderResponse.errors)
         return res.render("storeorderedit", {
@@ -2112,7 +2124,7 @@ exports.payshoporder = async (req, res) => {
         StoreModel.findOne({ userid: req.userId }),
         UserModel.findById(req.userId),
       ]);
-      
+
       if (!orderData)
         return res.render("storeorderpay", {
           error: "Could not find such order!",
@@ -2141,7 +2153,6 @@ exports.payshoporder = async (req, res) => {
         },
       });
       const wooCommerceOrderRes = await wooCommerceOrderReq.json();
-      
 
       if (!wooCommerceOrderReq.ok)
         return res.render("storeorderpay", {
@@ -2199,7 +2210,6 @@ exports.payshoporder = async (req, res) => {
         shopSlug: "woo",
         billingAddress: userData.billingAddress,
       };
-      
 
       return res.render("storeorderpay", {
         error: false,
@@ -2224,7 +2234,7 @@ exports.billing = async (req, res) => {
     ]);
     if (!orderData) return res.render("billing", { orderData: { items: [] } });
     const designsFromOrders = orderData.items.map((item) => item.designId);
-    
+
     const designsData = await NewDesignModel.aggregate([
       {
         $match: {
@@ -2289,7 +2299,7 @@ exports.reship = async (req, res) => {
     const designsFromOrders = orderData.orderData[0].items.map(
       (item) => item.designId,
     );
-    
+
     const designsData = await NewDesignModel.aggregate([
       {
         $match: {
@@ -3070,7 +3080,6 @@ exports.reshiporder = async (req, res) => {
     const orderToRefund = orderHistory.orderData.find(
       (order) => order.printwearOrderId == pwOrderId,
     );
-    
 
     const orderToRefundIndex = orderHistory.orderData.findIndex(
       (order) => order.printwearOrderId == pwOrderId,
@@ -3121,7 +3130,6 @@ exports.reshiporder = async (req, res) => {
     const totalCharges =
       shippingCharge + (cashOnDelivery ? 50 : 0) + oldCharges;
     console.log("🚀 ~ exports.reshiporder= ~ totalCharges:", totalCharges);
-    
 
     /** wallet deduct charges */
     const walletOrderId = otpGen.generate(6, {
@@ -3190,7 +3198,6 @@ exports.reshiporder = async (req, res) => {
       orderHistory.orderData.at(orderToRefundIndex).totalAmount
     ).toFixed(2);
 
-    
     await orderHistory.save({ validateBeforeSave: false });
 
     return res.json({ message: "Reship was successfully initiated!" });
@@ -3245,7 +3252,7 @@ exports.calculateshippingcharges = async (req, res) => {
     // const recommendedCourierID = shippingChargeResponse.data.recommended_courier_company_id;
     // const charges = shippingChargeResponse.data.available_courier_companies.find(courier => courier.courier_company_id == recommendedCourierID)["freight_charge"];
     // const orderData = await OrderModel.findOneAndUpdate({ userId: req.userId }, { $set: { deliveryCharges: charges } });
-    
+
     res.status(200).json(shippingChargeResponse);
   } catch (error) {
     console.log(error);
@@ -3365,7 +3372,6 @@ exports.getorderhistory = async (req, res) => {
 // new endpoint to upload new label
 exports.uploadlabel = async (req, res) => {
   try {
-    
     const fileBuffer = req.file.buffer;
     const fileName = req.file.originalname
       .replace(/ /g, "-")
@@ -3411,7 +3417,7 @@ exports.obtainlabels = async (req, res) => {
 
 exports.deletelabel = async (req, res) => {
   const imageId = req.body.imageId;
-  
+
   try {
     const imageToDelete = await LabelModel.findOne(
       { userId: req.userId, "labels._id": imageId },
@@ -3646,12 +3652,10 @@ exports.getinvoices = async (req, res) => {
 //       payment_made: orderDetails.orderData[0].amountPaid,
 //     };
 
-
 //     const zohoInvoiceFormData = new FormData();
 //     zohoInvoiceFormData.append('JSONString', JSON.stringify(invoiceData));
 //     zohoInvoiceFormData.append('organization_id', ZOHO_INVOICE_ORGANIZATION_ID);
 //     zohoInvoiceFormData.append('is_quick_create', 'true');
-
 
 //     const zohoInvoiceCreateRequest = await fetch(`https://www.zohoapis.in/books/v3/invoices?organization_id=${ZOHO_INVOICE_ORGANIZATION_ID}&send=false`, {
 //       // const zohoInvoiceCreateRequest = await fetch(`https://books.zoho.in/api/v3/invoices`, {
@@ -3664,7 +3668,7 @@ exports.getinvoices = async (req, res) => {
 //     });
 //     const zohoInvoiceCreateResponse = await zohoInvoiceCreateRequest.json();
 //     res.json(zohoInvoiceCreateResponse);
-//     
+//
 
 //   } catch (error) {
 
@@ -3715,7 +3719,9 @@ exports.createshiporder = async (req, res) => {
   const rzpyOrderId = rawData.payload.payment.entity.order_id;
   const rzpyPaymentId = rawData.payload.payment.entity.id;
 
-  const UserWallet = await WalletModel.findOne({ "transactions.rzpyOrderId": rzpyOrderId });
+  const UserWallet = await WalletModel.findOne({
+    "transactions.rzpyOrderId": rzpyOrderId,
+  });
   if (!UserWallet)
     return console.log(`[WH]: Couldn't find wallet for ${userid}`);
 
@@ -3791,9 +3797,9 @@ exports.createshiporder = async (req, res) => {
 exports.updateorderdetails = async (req, res) => {
   console.log("Shiprocket webhook:");
   console.log(req.body);
-  
+
   res.send("OK");
-  const currentTracking = req.body.scans.at(-1)
+  const currentTracking = req.body.scans.at(-1);
   if (!currentTracking) return;
 
   await OrderHistoryModel.findOneAndUpdate(
@@ -3836,7 +3842,7 @@ exports.getadminorders = async (req, res) => {
       { $group: { _id: null, allOrderData: { $push: "$orderData" } } }, // Group all orderData arrays into a single array
       { $project: { _id: 0, allOrderData: 1 } }, // Project the result to include only the allOrderData array
     ]);
-    
+
     // const data = allOrderHistories[0].allOrderData.sort(order => )
     res.json(allOrderHistories[0].allOrderData);
   } catch (error) {
@@ -3857,7 +3863,7 @@ exports.getadminorder = async (req, res) => {
         .status(404)
         .json({ error: `Order data for ${pwOrder} not found!` });
     const designIds = orderData.orderData[0].items.map((item) => item.designId);
-    
+
     const [designsData, userData, walletData, labelData] = await Promise.all([
       await NewDesignModel.aggregate([
         {
@@ -3880,13 +3886,16 @@ exports.getadminorder = async (req, res) => {
         },
       ]),
       await UserModel.findById(orderData.userId),
-      await WalletModel.findOne({
-        userId: orderData.userId,
-        "transactions.walletOrderId": `PAYMENT_${orderData.orderData?.[0]?.walletOrderId}`,
-      }, { _id: 1, "transactions.$": 1 }),
+      await WalletModel.findOne(
+        {
+          userId: orderData.userId,
+          "transactions.walletOrderId": `PAYMENT_${orderData.orderData?.[0]?.walletOrderId}`,
+        },
+        { _id: 1, "transactions.$": 1 },
+      ),
       await LabelModel.findOne({ userId: orderData.userId }),
     ]);
-    
+
     res.json({
       orderData: orderData.orderData[0],
       designsData: JSON.stringify(designsData),
@@ -3908,7 +3917,7 @@ exports.updateadminorder = async (req, res) => {
     const IDsToUpdate = Array.from(new Set(req.body.ids));
     const statusToUpdate = req.body.status;
     console.log(IDsToUpdate, statusToUpdate);
-    
+
     if (!validStatusEnum.includes(statusToUpdate))
       return res.status(400).json({ error: "Invalid status string" });
     if (IDsToUpdate.length < 1)
@@ -4033,7 +4042,11 @@ exports.renderadminwallet = async (req, res) => {
 
 exports.renderadminqueries = async (req, res) => {
   try {
-    const userQueries = await QueryModel.find({  }, {}, {sort: { createdAt: -1 }});
+    const userQueries = await QueryModel.find(
+      {},
+      {},
+      { sort: { createdAt: -1 } },
+    );
     res.render("adminqueries", { data: { queries: userQueries, error: null } });
   } catch (error) {
     console.log("🚀 ~ exports.renderadminqueries= ~ error:", error);
@@ -4046,13 +4059,15 @@ exports.renderadminqueries = async (req, res) => {
 exports.markadminqueryresponse = async (req, res) => {
   try {
     const { queryId, isResponded } = req.body;
-    await QueryModel.findByIdAndUpdate(queryId, { $set: { respondedOn: isResponded? new Date(): null } })
-    res.json({ message: "Response successful" })
+    await QueryModel.findByIdAndUpdate(queryId, {
+      $set: { respondedOn: isResponded ? new Date() : null },
+    });
+    res.json({ message: "Response successful" });
   } catch (error) {
     console.log("🚀 ~ exports.markadminqueryresponse= ~ error:", error);
     res.status(500).json({ error: "Server error in marking response!" });
   }
-}
+};
 
 exports.adminrefund = async (req, res) => {
   try {
@@ -4142,7 +4157,6 @@ exports.adminrefund = async (req, res) => {
     }
 
     await walletData.save({ validateBeforeSave: false });
-    
 
     res.json(walletData);
   } catch (error) {
