@@ -216,7 +216,7 @@
               <p>Merchant phone: ${orderData.userData.phone}</p>
               <p>Merchant email: ${orderData.userData.email}</p>
               <p>Merchant brand: ${orderData.userData.brandName ?? 'Not set'}</p>
-              <p>Merchant wallet: <a href='/admin/wallets/${orderData.walletData._id}'>Click here</a></p>
+              <p>Merchant wallet: <a href='/admin/wallets/${orderData.walletData?._id}'>Click here</a></p>
               ${orderData.orderData.cashOnDelivery ? `<p>Merchant beneficiary id: ${orderData.userData.beneId}</p>`: ''}
             </div>
         `;

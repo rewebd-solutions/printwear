@@ -3889,7 +3889,14 @@ exports.getadminorder = async (req, res) => {
       await WalletModel.findOne(
         {
           userId: orderData.userId,
-          "transactions.walletOrderId": `PAYMENT_${orderData.orderData?.[0]?.walletOrderId}`,
+          $or: [
+            {
+              "transactions.walletOrderId": `PAYMENT_${orderData.orderData?.[0]?.walletOrderId}`,
+            },
+            {
+              "transactions.walletOrderId": `RESHIP_${orderData.orderData?.[0]?.printwearOrderId}_${orderData.orderData?.[0]?.walletOrderId}`,
+            },
+          ],
         },
         { _id: 1, "transactions.$": 1 },
       ),
