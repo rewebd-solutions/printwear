@@ -70,6 +70,7 @@ const CODModel = require("../model/codDetailsModel");
 const QueryModel = require("../model/queryModel");
 const Razorpay = require("razorpay");
 const { escapeHtml, slugify, formatDate } = require("../services/utils");
+const { publishJob } = require("../services/pubsub");
 
 const SHIPROCKET_BASE_URL = process.env.SHIPROCKET_URL;
 /** I've not put CASHFREE_BASE_URL_TEST in yaml because mode should never be in test during production..
@@ -986,8 +987,6 @@ exports.getwooorders = async (req, res) => {
 // endpoints for uploading design images
 exports.createdesign = async (req, res) => {
   try {
-    const fileBuffer = req.files[0].buffer;
-
     // explicitly parsing JSON here because FormData() cannot accept Objects, so from client Object was stringified
     req.body.productData = JSON.parse(req.body.productData);
     // return res.json({ message: "OK" });
@@ -1002,19 +1001,6 @@ exports.createdesign = async (req, res) => {
             specialChars: false,
           }));
 
-    // this is the old method where all the client images get sent to the server and everything is uploaded
-    // but since, they changed it to have only one image, that too from already uploaded ones, i need not upload it again
-    // hence comment the below block and write logic to find the image reference from images collection and put the URL alone here
-    // no need to find reference as i can send the URL from client directly!!!
-
-    // for(let file of fileBuffer) {
-    const fileReference = storageReference.child(
-      `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
-    );
-    await fileReference.put(fileBuffer, { contentType: "image/png" });
-    const fileDownloadURL = await fileReference.getDownloadURL();
-    //   recordOfFileNames[file.originalname] = fileDownloadURL;
-    // }
     const designImageHeight =
       req.body.direction === "front"
         ? req.body.productData.designDimensions.height
@@ -1056,9 +1042,6 @@ exports.createdesign = async (req, res) => {
           : 0;
       currentDesign.designs.at(currentDesignIndex).neckLabel =
         req.body.neckLabel != "null" ? req.body.neckLabel : undefined;
-      currentDesign.designs.at(currentDesignIndex).designImage[
-        currentDirection
-      ] = fileDownloadURL;
       currentDesign.designs.at(currentDesignIndex)[
         currentDirection == "front" ? "frontPrice" : "backPrice"
       ] = parseFloat(printCharges.toFixed(2));
@@ -1080,46 +1063,17 @@ exports.createdesign = async (req, res) => {
       currentDesign.designs.at(currentDesignIndex).price += parseFloat(
         (printCharges + neckLabelCharges).toFixed(2),
       );
+      // call publishJob and save jobStatus as well
+      const jobData = {
+        userId: req.userId,
+        productData: req.body.productData,
+        direction: req.body.direction,
+        neckLabel: currentDesign.designs.at(currentDesignIndex).neckLabel ?? req.body.neckLabel,
+        designImageURL: req.body.designImageURL
+      };
+      const publishedJobId = await publishJob(jobData);
+      currentDesign.designs.at(currentDesignIndex).designImageStatus[currentDirection].jobId = publishedJobId;
       await currentDesign.save({ validateBeforeSave: false });
-      // await currentDesign.updateOne(
-      //   {
-      //     $set: {
-      //       [`designs.$.designImage.${currentDirection}`]: fileDownloadURL,
-      //       [`designs.$.${
-      //         currentDirection == "front" ? "frontPrice" : "backPrice"
-      //       }`]: parseFloat(
-      //         (
-      //           printCharges + neckLabelCharges
-      //         ).toFixed(2)
-      //       ),
-      //       [`designs.$.${
-      //         currentDirection == "front"
-      //           ? "designDimensions"
-      //           : "backDesignDimensions"
-      //       }`]: {
-      //         ...req.body.productData[
-      //           currentDirection == "front"
-      //             ? "designDimensions"
-      //             : "backDesignDimensions"
-      //         ],
-      //       },
-      //     },
-      //     $push: {
-      //       "designs.$.designItems": {
-      //         itemName: req.body.designImageName,
-      //         URL: req.body.designImageURL,
-      //       },
-      //     },
-      //     $inc: {
-      //       "designs.$.price": parseFloat(
-      //         (
-      //           printCharges + neckLabelCharges
-      //         ).toFixed(2)
-      //       ),
-      //     },
-      //   },
-      //   { new: true }
-      // );
       return res.status(200).json(currentDesign);
     }
 
@@ -1153,10 +1107,6 @@ exports.createdesign = async (req, res) => {
                 : req.body.productData.price * 1
             ).toFixed(2),
       ),
-      designImage: {
-        front: req.body.direction === "front" && fileDownloadURL,
-        back: req.body.direction === "back" && fileDownloadURL,
-      },
       designItems: [
         {
           itemName: req.body.designImageName, // saves as "undefined", check for "undefined" in the name and then NOT render it
@@ -1175,6 +1125,21 @@ exports.createdesign = async (req, res) => {
         ...req.body.productData.backDesignDimensions,
       };
     }
+
+     const jobData = {
+       userId: req.userId,
+       productData: req.body.productData,
+       direction: req.body.direction,
+       neckLabel: req.body.neckLabel,
+       designImageURL: req.body.designImageURL,
+     };
+     const publishedJobId = await publishJob(jobData);
+
+     designsDataObject.designImageStatus = {
+      [req.body.direction]: {
+        jobId: publishedJobId
+      }
+     }
 
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },

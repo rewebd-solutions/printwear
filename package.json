@@ -17,6 +17,7 @@
   "author": "Sujay-0304, RookieProgrammerSachin, harish, barath, majestymewtwo",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/pubsub": "^5.2.0",
     "cashfree-payout": "^0.0.14",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
