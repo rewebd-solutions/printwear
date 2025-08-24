@@ -142,4 +142,6 @@ route.post("/sendquery", controller.query);
 route.get("/admin/queries", authServices.authorizeAdmin, controller.renderadminqueries);
 route.post("/admin/markquery", authServices.authorizeAdmin, controller.markadminqueryresponse);
 
+route.get("/renderdesign", services.renderdesign);
+
 module.exports = route
