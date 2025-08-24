@@ -1021,10 +1021,12 @@ exports.createdesign = async (req, res) => {
       );
       if (!currentDesignIndex)
         return res.status(404).json({ message: "Design could not be found!" });
-      if (
-        currentDesign.designs.at(currentDesignIndex).designImage[
+      const currentDirectionDesign =
+        currentDesign.designs.at(currentDesignIndex).designImage?.[
           currentDirection
-        ] != "false"
+        ];
+      if (
+        currentDirectionDesign && (currentDesignIndex != "false")
       )
         return res.status(403).json({ message: "Design already saved!" });
       const printCharges =
@@ -1068,8 +1070,12 @@ exports.createdesign = async (req, res) => {
         userId: req.userId,
         productData: req.body.productData,
         direction: req.body.direction,
-        neckLabel: currentDesign.designs.at(currentDesignIndex).neckLabel ?? req.body.neckLabel,
-        designImageURL: req.body.designImageURL
+        neckLabel:
+        currentDesign.designs.at(currentDesignIndex).neckLabel ??
+        req.body.neckLabel,
+        designImageURL: req.body.designImageURL,
+        uploadFilePath: `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
+        mongoId: currentDesign.designs.at(currentDesignIndex)._id,
       };
       const publishedJobId = await publishJob(jobData);
       currentDesign.designs.at(currentDesignIndex).designImageStatus[currentDirection].jobId = publishedJobId;
@@ -1126,21 +1132,6 @@ exports.createdesign = async (req, res) => {
       };
     }
 
-     const jobData = {
-       userId: req.userId,
-       productData: req.body.productData,
-       direction: req.body.direction,
-       neckLabel: req.body.neckLabel,
-       designImageURL: req.body.designImageURL,
-     };
-     const publishedJobId = await publishJob(jobData);
-
-     designsDataObject.designImageStatus = {
-      [req.body.direction]: {
-        jobId: publishedJobId
-      }
-     }
-
     const designSave = await NewDesignModel.findOneAndUpdate(
       { userId: req.userId },
       {
@@ -1150,6 +1141,24 @@ exports.createdesign = async (req, res) => {
       },
       { upsert: true, new: true },
     );
+
+     const jobData = {
+       userId: req.userId,
+       productData: req.body.productData,
+       direction: req.body.direction,
+       neckLabel: req.body.neckLabel,
+       designImageURL: req.body.designImageURL,
+       uploadFilePath: `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
+       mongoId: designSave.designs.at(-1)._id
+     };
+
+     const publishedJobId = await publishJob(jobData);
+
+     designsDataObject.designImageStatus = {
+      [req.body.direction]: {
+        jobId: publishedJobId
+      }
+     };
 
     console.log(req.userName + " saved design");
     res.status(200).json(designSave);
