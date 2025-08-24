@@ -40,17 +40,19 @@
       <div style="display: flex; flex-direction: column;">
         <h2>Your Product Library</h2>
         <p>View your designs and check out pricing<br>
-          You can also push them to your online store once you connect your store with Printwear or place an order with them.</p>
+          You can also push them to your online store once you connect your store with Printwear or place an order with
+          them.</p>
       </div>
-      <input type="search" placeholder="Search by name or SKU..." oninput="searchDesigns('designName', event.target.value)" id="name-search" />
+      <input type="search" placeholder="Search by name or SKU..."
+        oninput="searchDesigns('designName', event.target.value)" id="name-search" />
     </div>
     <div class="filter-container">
       <h3>Filter by category</h3>
       <div class="gender-filter">
-          <button class="filter-button filter-button-active" onclick="filterProductsByGender(event, 'all')">All</button>
-          <button class="filter-button" onclick="filterProductsByGender(event,'men')">Men</button>
-          <button class="filter-button" onclick="filterProductsByGender(event, 'women')">Women</button>
-          <button class="filter-button" onclick="filterProductsByGender(event, 'unisex')">Unisex</button>
+        <button class="filter-button filter-button-active" onclick="filterProductsByGender(event, 'all')">All</button>
+        <button class="filter-button" onclick="filterProductsByGender(event,'men')">Men</button>
+        <button class="filter-button" onclick="filterProductsByGender(event, 'women')">Women</button>
+        <button class="filter-button" onclick="filterProductsByGender(event, 'unisex')">Unisex</button>
       </div>
     </div>
 
@@ -72,8 +74,8 @@
       if (searchKey === '') return createDesignCards();
       const designsData = designsResponseData.designs.filter(design => (design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim()) || design["designSKU"].toLowerCase().trim().includes(searchKey.toLowerCase().trim())));
       if (designsData.length < 1) return designsContainer.innerHTML = 'Invalid search key';
-      
-      createDesignCards({designs: designsData})
+
+      createDesignCards({ designs: designsData })
     }
 
     const disableButton = (buttonElement, innerTextBefore, innerTextAfter, state) => {
@@ -205,7 +207,7 @@
       const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
       console.log(designModalData);
       const currentDesignTax = (designModalData.price + (designModalData.neckLabel ? 10 : 0)) * 0.05
-      const isDesignGenerating = designModalData.designImageStatus?.front?.status === "processing" || designModalData.designImageStatus?.back?.status === "processing";
+      const isDesignGenerating = !designModalData.designImage && (designModalData.designImageStatus?.front?.status === "processing" && designModalData.designImageStatus?.front?.jobId) || (designModalData.designImageStatus?.back?.status === "processing" && designModalData.designImageStatus?.back?.jobId);
       const designModalDOMString = `
       <div class="product-modal-wrapper">
         <div class="product-modal" data-aos="fade-up">
@@ -213,11 +215,11 @@
             <i class="fa fa-close"></i>
           </button>
           <div class="product-modal-image">
-            ${isDesignGenerating ? `<div class="image-processing-overlay"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>`: 
-            `<img
+            ${isDesignGenerating ? `<div class="image-processing-overlay"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>` :
+          `<img
               src="${designModalData.designImage.front == "false" ? designModalData.designImage.back : designModalData.designImage.front}"
               alt="Design image">`
-            }
+        }
           </div>
           <div class="product-modal-details">
             <h2 class="product-name">${designModalData.designName}</h2>
@@ -245,7 +247,7 @@
                 </tr>
                 <tr>
                   <td>Print Price</td>
-                  <td>₹${(designModalData.price - designModalData.product.price - (designModalData.neckLabel? 10: 0)).toFixed(2)}</td>
+                  <td>₹${(designModalData.price - designModalData.product.price - (designModalData.neckLabel ? 10 : 0)).toFixed(2)}</td>
                 </tr>
                 ${designModalData.neckLabel ? `
                   <tr>
@@ -264,7 +266,7 @@
               </table>
             </div>
             <div class="action-buttons">
-              <button disabled="${!isDesignGenerating}" class="${isDesignGenerating ? 'disabled' : ''}" onclick="downloadDesign('${designModalData.designImage?.front == "false" ? designModalData.designImage?.back: designModalData.designImage?.front}')"><i class="fa fa-download"></i> Download Design</button>
+              <button disabled="${!isDesignGenerating}" class="${isDesignGenerating ? 'disabled' : ''}" onclick="downloadDesign('${designModalData.designImage?.front == "false" ? designModalData.designImage?.back : designModalData.designImage?.front}')"><i class="fa fa-download"></i> Download Design</button>
               <button disabled="${!isDesignGenerating}" class="delete-design ${isDesignGenerating ? 'disabled' : ''}" onclick="openDeleteConfirmation(this,'${designModalData.designName}', '${designModalData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
             </div>
             <p>Publish:</p>
@@ -273,7 +275,7 @@
               <p style="font-size: 0.84rem">Enter retail price for your shop. <br /> You can change it later in your shop settings:</p>
             </div>
             <div class="publish-buttons">
-              <button id="add-shopify" onclick="addToShopify(this, '${designModalData.designSKU}')" ${designModalData.isAddedToShopify || isDesignGenerating? 'class="disabled" disabled="true"': ''}><i class="fa-brands fa-shopify"></i>${designModalData.isAddedToShopify ? ' Added to Shopify ✅' : ' Add to Shopify'}</button>
+              <button id="add-shopify" onclick="addToShopify(this, '${designModalData.designSKU}')" ${designModalData.isAddedToShopify || isDesignGenerating ? 'class="disabled" disabled="true"' : ''}><i class="fa-brands fa-shopify"></i>${designModalData.isAddedToShopify ? ' Added to Shopify ✅' : ' Add to Shopify'}</button>
               <button id="add-woocommerce" onclick="addToWooCommerce(this, '${designModalData.designSKU}')" ${designModalData.isAddedToWoocommerce || isDesignGenerating ? 'class="disabled" disabled="true"' : ''}><img src="images/WooCommerce_logo.svg" width="30" alt=""> ${designModalData.isAddedToWoocommerce ? 'Added to WC ☑️' : 'Add to WooCommerce'}</button>
             </div>
           </div>
@@ -304,7 +306,7 @@
             return item
           }
         })
-        const isDesignGenerating = design.designImageStatus?.front?.status === "processing" || design.designImageStatus?.back?.status === "processing";
+        const isDesignGenerating = !design.designImage && (design.designImageStatus?.front?.status === "processing" && design.designImageStatus?.front?.jobId) || (design.designImageStatus?.back?.status === "processing" && design.designImageStatus?.back?.jobId);
         return `
           <div class="design-card" data-aos="fade-up">
             <div class="card-img">
@@ -339,14 +341,14 @@
     }
 
     const filterProductsByGender = (e, category) => {
-      
+
       const filterByGenderButtons = document.querySelectorAll(".filter-button");
       filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
 
       e.target.classList.add("filter-button-active");
 
       if (category === "all") return createDesignCards();
-      
+
       const designsData = designsResponseData.designs.filter(design => design.product['gender'].toLowerCase().trim().includes(category.toLowerCase().trim()));
       if (designsData.length < 1) return designsContainer.innerHTML = `No products found for filter: "${category}"`;
       createDesignCards({ designs: designsData })
@@ -359,16 +361,16 @@
 
         const maleFilterPattern = new RegExp(/\bmen\b|\bmens\b/i);
         const femaleFilterPattern = new RegExp(/\bwomen\b|\bwomens\b/i);
-        
+
         designsResponseData.designs = designsResponseData.designs.map(design => {
           if (maleFilterPattern.test(design.product.name)) design.product['gender'] = "men";
           else if (femaleFilterPattern.test(design.product.name)) design.product['gender'] = "women";
           else design.product['gender'] = "unisex";
           return design
         }).reverse()
-        
+
         console.log(designsResponseData);
-        
+
         if (designsResponseData.designs.length > 0) {
           return createDesignCards();
         }
