@@ -1,7 +1,15 @@
 const { PubSub } = require("@google-cloud/pubsub")
 require("dotenv").config()
 
-const pubSub = new PubSub()
+const pubSub = new PubSub({
+  credentials: {
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    project_id: process.env.GOOGLE_PROJECT_ID,
+    projectId: process.env.GOOGLE_PROJECT_ID,
+  },
+  projectId: process.env.GOOGLE_PROJECT_ID,
+});
 const topicName = "generate-design"
 
 async function setup() {
