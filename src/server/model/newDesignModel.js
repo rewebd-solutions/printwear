@@ -52,6 +52,24 @@ var NewDesignSchema = new mongoose.Schema({
         front: String,
         back: String,
       },
+      designImageStatus: {
+        front: {
+          status: {
+            type: String,
+            enum: ["processing", "completed"],
+            default: "processing",
+          },
+          jobId: String,
+        },
+        back: {
+          status: {
+            type: String,
+            enum: ["processing", "completed"],
+            default: "processing",
+          },
+          jobId: String,
+        },
+      },
       designItems: [
         {
           itemName: String,

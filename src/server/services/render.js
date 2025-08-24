@@ -104,3 +104,7 @@ exports.success = (req, res) => {
 exports.mystores = (req, res) => {
     res.render("storeorder");
 }
+
+exports.renderdesign = (req, res) => {
+    res.render('renderdesign');
+}

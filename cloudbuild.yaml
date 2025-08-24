@@ -46,6 +46,9 @@ steps:
       - 'RZPY_WH_SEC=${_RZPY_WH_SEC}'
       - 'EMAIL_USER=${_EMAIL_USER}'
       - 'EMAIL_APP_PASSWORD=${_EMAIL_APP_PASSWORD}'
+      - 'GOOGLE_CLIENT_EMAIL=${_GOOGLE_CLIENT_EMAIL}'
+      - 'GOOGLE_PRIVATE_KEY=${_GOOGLE_PRIVATE_KEY}'
+      - 'GOOGLE_PROJECT_ID=${_GOOGLE_PROJECT_ID}'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'

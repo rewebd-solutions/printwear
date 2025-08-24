@@ -247,6 +247,7 @@ p {
 
 .product-category-gender {
   display: flex;
+  flex-direction: column;
   gap: 0.3rem;
 }
 
@@ -258,7 +259,14 @@ p {
 
 .product-colors, .product-sizes {
   display: flex;
+  align-items: center;
   gap: 0.2rem;
+}
+
+.product-attributes {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .product-price {
@@ -270,11 +278,13 @@ p {
 .color-circle, .size-circle {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: 100%;
   outline: 1px solid silver;
   background: #ebebeb;
-  display: grid;
-  place-items: center;
+  display: flex;
+  padding: 5px;
+  justify-content: center;
+  align-items: center;
 }
 
 table.price-breakdown {

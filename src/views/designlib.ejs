@@ -217,7 +217,7 @@
           <div class="product-modal-image">
             ${isDesignGenerating ? `<div class="image-processing-overlay"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>` :
           `<img
-              src="${designModalData.designImage.front == "false" ? designModalData.designImage.back : designModalData.designImage.front}"
+              src="${!(designModalData.designImage?.front || designModalData.designImage?.front == "false") ? designModalData.designImage?.back : designModalData.designImage?.front}"
               alt="Design image">`
         }
           </div>
@@ -230,13 +230,15 @@
             <p class="product-description">
               ${designModalData.description || "User generated design"}
             </p>
-            <div class="product-colors">
-              <p>Color: </p>
-              <div class="color-circle" style="background:${designModalData.product.hex};" title="${designModalData.product.color}"></div>
-            </div>
-            <div class="product-sizes">
-              <p>Size: </p>
-              <div class="size-circle">${designModalData.product.size}</div>
+            <div class="product-attributes">
+              <div class="product-colors">
+                <p>Color: </p>
+                <div class="color-circle" style="background:${designModalData.product.hex};" title="${designModalData.product.color}"></div>
+              </div>
+              <div class="product-sizes">
+                <p>Size: </p>
+                <div class="size-circle">${designModalData.product.size}</div>
+              </div>
             </div>
             <div class="product-price">
               <h4>Price: ₹${(parseFloat(designModalData.price.toFixed(2)) + parseFloat(currentDesignTax)).toFixed(2)}</h4>
@@ -292,9 +294,9 @@
 
     const createDesignCards = (data = designsResponseData) => {
       const designCardsDOMString = data.designs.map(design => {
-        if (design.designImage?.front.includes("printwear.in") && !design.designImage?.front.includes("admin.printwear.in")) {
-          design.designImage.front = design.designImage.front.replace("printwear.in", "admin.printwear.in");
-          design.designImage.back = design.designImage.back.replace("printwear.in", "admin.printwear.in");
+        if (design.designImage?.front?.includes("printwear.in") && !design.designImage?.front?.includes("admin.printwear.in")) {
+          design.designImage.front = design.designImage.front?.replace("printwear.in", "admin.printwear.in");
+          design.designImage.back = design.designImage.back?.replace("printwear.in", "admin.printwear.in");
         }
         design.designItems = design.designItems.map(item => {
           if (item?.URL?.includes("printwear.in") && !item?.URL?.includes("admin.printwear.in")) {
