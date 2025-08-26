@@ -1025,9 +1025,7 @@ exports.createdesign = async (req, res) => {
         currentDesign.designs.at(currentDesignIndex).designImage?.[
           currentDirection
         ];
-      if (
-        currentDirectionDesign && (currentDesignIndex != "false")
-      )
+      if (currentDirectionDesign && currentDesignIndex != "false")
         return res.status(403).json({ message: "Design already saved!" });
       const printCharges =
         designImageHeight <= 8.0 && designImageWidth <= 8.0
@@ -1071,14 +1069,16 @@ exports.createdesign = async (req, res) => {
         productData: req.body.productData,
         direction: req.body.direction,
         neckLabel:
-        currentDesign.designs.at(currentDesignIndex).neckLabel ??
-        req.body.neckLabel,
+          currentDesign.designs.at(currentDesignIndex).neckLabel ??
+          req.body.neckLabel,
         designImageURL: req.body.designImageURL,
         uploadFilePath: `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
         mongoId: currentDesign.designs.at(currentDesignIndex)._id,
       };
       const publishedJobId = await publishJob(jobData);
-      currentDesign.designs.at(currentDesignIndex).designImageStatus[currentDirection].jobId = publishedJobId;
+      currentDesign.designs.at(currentDesignIndex).designImageStatus[
+        currentDirection
+      ].jobId = publishedJobId;
       await currentDesign.save({ validateBeforeSave: false });
       return res.status(200).json(currentDesign);
     }
@@ -1142,23 +1142,30 @@ exports.createdesign = async (req, res) => {
       { upsert: true, new: true },
     );
 
-     const jobData = {
-       userId: req.userId,
-       productData: req.body.productData,
-       direction: req.body.direction,
-       neckLabel: req.body.neckLabel,
-       designImageURL: req.body.designImageURL,
-       uploadFilePath: `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
-       mongoId: designSave.designs.at(-1)._id
-     };
+    const jobData = {
+      userId: req.userId,
+      productData: req.body.productData,
+      direction: req.body.direction,
+      neckLabel: req.body.neckLabel,
+      designImageURL: req.body.designImageURL,
+      uploadFilePath: `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
+      mongoId: designSave.designs.at(-1)._id,
+    };
 
-     const publishedJobId = await publishJob(jobData);
+    const publishedJobId = await publishJob(jobData);
 
-     designsDataObject.designImageStatus = {
-      [req.body.direction]: {
-        jobId: publishedJobId
-      }
-     };
+    await NewDesignModel.findOneAndUpdate(
+      { userId: req.userId, "designs._id": designSave.designs.at(-1)._id },
+      {
+        $set: {
+          "designs.$.designImageStatus": {
+            [req.body.direction]: {
+              jobId: publishedJobId,
+            },
+          },
+        },
+      },
+    );
 
     console.log(req.userName + " saved design");
     res.status(200).json(designSave);
@@ -1321,11 +1328,9 @@ exports.createshopifyproduct = async (req, res) => {
       })
         .then((res) => res.json())
         .then((res) => {
-          console.log(
-            "🚀 ~ shopifyProductImageResponse:",
-            res,
-          );
-        }).catch(err => {
+          console.log("🚀 ~ shopifyProductImageResponse:", res);
+        })
+        .catch((err) => {
           console.log("Shopify product image creation error:", err);
         });
     }

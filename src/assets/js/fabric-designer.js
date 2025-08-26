@@ -968,63 +968,41 @@ const saveDesign = async () => {
     }
     
     
-    //console.log(filesFromBlobs)
+    const formData = new FormData();
+    formData.append("productData", JSON.stringify(designModelObject));
+    formData.append("neckLabel", neckLabelId);
+    formData.append("direction", designDirection);
+    formData.append("designImageURL", designImageURL);
+    formData.append("designImageName", designImageName);
+    formData.append("designId", dbDesignId);
+    
+    const saveDesignRequest = await fetch("/createdesign", {
+      method: "POST",
+      body: formData,
+    });
 
-    domtoimage.toBlob(node, config).then(async (blob) => {
-      const formData = new FormData();
-      formData.append(
-        "designImage",
-        new File(
-          [blob],
-          "ProductDesign-" + designName.value + "-" + designDirection + ".png",
-          { type: "image/png" }
-        )
-      );
-      // add back image to same designImage
-      // formData.append(
-      //   "designHeight",
-      //   parseFloat(calculateTotalHeight().toFixed(2))
-      // );
-      // formData.append(
-      //   "designWidth",
-      //   parseFloat(calculateTotalWidth().toFixed(2))
-      // );
-      formData.append("productData", JSON.stringify(designModelObject));
-      formData.append("neckLabel", neckLabelId);
-      formData.append("direction", designDirection);
-      formData.append("designImageURL", designImageURL);
-      formData.append("designImageName", designImageName);
-      formData.append("designId", dbDesignId);
+    saveDesignResponse = await saveDesignRequest.json();
 
-      formData.forEach((v, k) => console.log(k, v))
-      // return;
-
-      const saveDesignRequest = await fetch("/createdesign", {
-        method: "POST",
-        body: formData,
+    if (!saveDesignRequest.ok) {
+      throw new Error({
+        reason: "Save failed!",
+        error: saveDesignResponse.message,
       });
+    }
+    isSaveSuccessful = true;
 
-      saveDesignResponse = await saveDesignRequest.json();
-      
+    document.querySelector(".save-button").innerHTML = "Saved!";
+    disableOrderButton(false);
+    notyf.success("Design saved successfully!");
+    savedState[designDirection] = true;
+    disableSideSwitch(false);
 
-      if (!saveDesignRequest.ok) {
-        throw new Error({ reason: "Save failed!", error: saveDesignResponse.message });
-      }
-      isSaveSuccessful = true;
-
-      document.querySelector(".save-button").innerHTML = "Saved!";
-      disableOrderButton(false);
-      notyf.success("Design saved successfully!");
-
-      savedState[designDirection] = true;
-      disableSideSwitch(false);
-
-      if (!dbDesignId) {
-        dbDesignId = saveDesignResponse.designs.at(-1)._id;
-        scrollTo({ top: 0, left: 0, behavior: "smooth" });
-        document.querySelector(".App").insertAdjacentHTML(
-          "afterend",
-          `
+    if (!dbDesignId) {
+      dbDesignId = saveDesignResponse.designs.at(-1)._id;
+      scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      document.querySelector(".App").insertAdjacentHTML(
+        "afterend",
+        `
           <!-- modal for not asking users to pay and make orders -->
           <div class="warning-moda-wrapper">
             <div class="warning-modal">
@@ -1040,23 +1018,14 @@ const saveDesign = async () => {
                 } button as shown in the image and save it again
             </div>
           </div>
-        `
-        );
-      }
-      // disableButton(false);
-      if (canvasContainer)
-      canvasContainer.forEach(
-        (item) => (item.style.border = "2px dashed black")
+        `,
       );
-    }).catch(error => {
-      
-      notyf.error(error.message);
-      disableButton(false);
-      disableSideSwitch(false);
+    }
+    // disableButton(false);
+    if (canvasContainer)
       canvasContainer.forEach(
-        (item) => (item.style.border = "2px dashed black")
+        (item) => (item.style.border = "2px dashed black"),
       );
-    });
   } catch (error) {
     console.log(error);
     notyf.error(error.error ?? error.message ?? error);

@@ -205,9 +205,11 @@
 
     const openModal = (designSKU) => {
       const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
-      console.log(designModalData);
       const currentDesignTax = (designModalData.price + (designModalData.neckLabel ? 10 : 0)) * 0.05
       const isDesignGenerating = !designModalData.designImage && (designModalData.designImageStatus?.front?.status === "processing" && designModalData.designImageStatus?.front?.jobId) || (designModalData.designImageStatus?.back?.status === "processing" && designModalData.designImageStatus?.back?.jobId);
+      const shouldShowBackByDefault = !(designModalData.designImage?.front && designModalData.designImage?.front != "false")
+      const defaultImageDirection = shouldShowBackByDefault ? "back" : "front"
+      const otherSideImage = defaultImageDirection === "back" ? designModalData.designImage?.front : designModalData.designImage?.back
       const designModalDOMString = `
       <div class="product-modal-wrapper">
         <div class="product-modal" data-aos="fade-up">
@@ -217,8 +219,13 @@
           <div class="product-modal-image">
             ${isDesignGenerating ? `<div class="image-processing-overlay"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>` :
           `<img
-              src="${!(designModalData.designImage?.front || designModalData.designImage?.front == "false") ? designModalData.designImage?.back : designModalData.designImage?.front}"
-              alt="Design image">`
+              src="${defaultImageDirection === "back" ? designModalData.designImage?.back : designModalData.designImage?.front}"
+              alt="Design image"
+              ${(otherSideImage && otherSideImage != "false") ? `
+              onmouseover="this.src='${otherSideImage}'"
+              ` : ''}
+              onmouseout="this.src='${defaultImageDirection === "back" ? designModalData.designImage?.back : designModalData.designImage?.front}'"
+              >`
         }
           </div>
           <div class="product-modal-details">
@@ -230,6 +237,7 @@
             <p class="product-description">
               ${designModalData.description || "User generated design"}
             </p>
+            <div class="alert-info"><i class="fa fa-info-circle"></i>You can move your mouse over the image to flip sides!</div>
             <div class="product-attributes">
               <div class="product-colors">
                 <p>Color: </p>
@@ -309,11 +317,13 @@
           }
         })
         const isDesignGenerating = !design.designImage && (design.designImageStatus?.front?.status === "processing" && design.designImageStatus?.front?.jobId) || (design.designImageStatus?.back?.status === "processing" && design.designImageStatus?.back?.jobId);
+        const shouldShowBackByDefault = !(design.designImage?.front && design.designImage?.front != "false")
+        const defaultImageDirection = shouldShowBackByDefault ? "back" : "front"
         return `
           <div class="design-card" data-aos="fade-up">
             <div class="card-img">
               ${isDesignGenerating ? '<div class="image-processing-overlay" style="flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column;"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>' : `
-              <img src="${(design.designImage.front != '' && design.designImage.front != 'false') ? design.designImage.front : design.designImage.back}">
+              <img src="${(defaultImageDirection == "front") ? design.designImage.front : design.designImage.back}">
               `}
             </div>
             <div class="name-price">

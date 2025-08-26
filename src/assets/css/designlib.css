@@ -400,3 +400,15 @@ input::placeholder {
   border-radius: 6px;
   height: fit-content;
 }
+
+.alert-info {
+  padding: 6px;
+  background-color: #e7f3fe;
+  color: #31708f;
+  border: 1px solid #bce8f1;
+  border-radius: 4px;
+  display: flex;
+  font-size: 12px;
+  gap: 0.7rem;
+  align-items: center;
+}
