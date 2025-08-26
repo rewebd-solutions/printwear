@@ -48,37 +48,35 @@
             height: 770px;
         }
 
-        .canvas-container {
+        /* .canvas-container {
             border: 1px dashed white;
-        }
+        } */
     </style>
 </head>
 
 <body>
     <div class="cover">
         <div id="product-layers">
-            <img src="https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/products%2FOversize%20Red%201.webp?alt=media&token=bebc2932-0ad0-4ad4-a5fa-bc4fc5107c78"
-                alt="Image" id="product-image">
+            <img alt="Image" id="product-image">
             <canvas id="style-layer"></canvas>
         </div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const baseImage = urlParams.get("image");
-        // const overlayImage = urlParams.get("overlay");
-        const overlayImage = "https://firebasestorage.googleapis.com/v0/b/printwear-design.appspot.com/o/images%2F64f175edd683cd124e440f23_warning.png?alt=media&token=7f720da8-3331-4473-a75f-ede0584a6bff";
+        const baseImage = decodeURIComponent(urlParams.get("image"));
+        const overlayImage = decodeURIComponent(urlParams.get("overlay"));
         const imageWidth = Number(urlParams.get("width"));
         const imageHeight = Number(urlParams.get("height"));
         const imageTop = Number(urlParams.get("top"));
         const imageLeft = Number(urlParams.get("left"));
-        const pixelRatio = Number(urlParams.get("pixelRatio")) || 2;
 
         const originalHeight = 500;
         const newHeight = 770;
 
         const canvas = document.getElementById("style-layer");
         const image = document.getElementById("product-image");
+        image.setAttribute("src", baseImage);
         image.onload = () => {
             const baseImageWidth = image.clientWidth;
             const baseImageHeight = image.clientHeight;
@@ -128,15 +126,6 @@
                     left: (imageLeft / 500) * newHeight,
                     scaleX: scaleX,
                     scaleY: scaleY
-                    //     selectable: false,
-                    //     hoverCursor: "default",
-                    //     hasControls: false,
-                    //     hasBorders: false,
-                    //     lockMovementX: true,
-                    //     lockMovementY: true,
-                    //     lockScalingX: true,
-                    //     lockScalingY: true,
-                    //     lockRotation: true
                 });
                 fabricCanvas.add(img);
                 fabricCanvas.renderAll();

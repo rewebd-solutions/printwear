@@ -961,7 +961,7 @@ const saveDesign = async () => {
         ),
         left: parseFloat(
           (
-            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
+            fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
           ).toFixed(3)
         ),
       }
