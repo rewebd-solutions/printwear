@@ -196,17 +196,19 @@
     }
 
     const downloadDesign = (url) => {
-      let aLink = document.createElement("a");
+      if (!url || url === null || url === "false" || url === undefined || url === "undefined") return;
+      const aLink = document.createElement("a");
       aLink.href = url;
       aLink.target = "_blank";
+      document.body.appendChild(aLink);
       aLink.click();
-      aLink.remove();
+      document.body.removeChild(aLink);
     }
 
     const openModal = (designSKU) => {
       const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
       const currentDesignTax = (designModalData.price + (designModalData.neckLabel ? 10 : 0)) * 0.05
-      const isDesignGenerating = !designModalData.designImage && (designModalData.designImageStatus?.front?.status === "processing" && designModalData.designImageStatus?.front?.jobId) || (designModalData.designImageStatus?.back?.status === "processing" && designModalData.designImageStatus?.back?.jobId);
+      const isDesignGenerating = !designModalData.designImage && !!(designModalData.designImageStatus?.front?.status === "processing" && designModalData.designImageStatus?.front?.jobId) || !!(designModalData.designImageStatus?.back?.status === "processing" && designModalData.designImageStatus?.back?.jobId);
       const shouldShowBackByDefault = !(designModalData.designImage?.front && designModalData.designImage?.front != "false")
       const defaultImageDirection = shouldShowBackByDefault ? "back" : "front"
       const otherSideImage = defaultImageDirection === "back" ? designModalData.designImage?.front : designModalData.designImage?.back
@@ -276,8 +278,11 @@
               </table>
             </div>
             <div class="action-buttons">
-              <button disabled="${!isDesignGenerating}" class="${isDesignGenerating ? 'disabled' : ''}" onclick="downloadDesign('${designModalData.designImage?.front == "false" ? designModalData.designImage?.back : designModalData.designImage?.front}')"><i class="fa fa-download"></i> Download Design</button>
-              <button disabled="${!isDesignGenerating}" class="delete-design ${isDesignGenerating ? 'disabled' : ''}" onclick="openDeleteConfirmation(this,'${designModalData.designName}', '${designModalData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
+              <button ${isDesignGenerating ? "disabled='true'": ''} class="${isDesignGenerating ? 'disabled' : ''}" onclick="downloadDesign('${defaultImageDirection === "back" ? designModalData.designImage?.back : designModalData.designImage?.front}')"><i class="fa fa-download"></i> Download ${defaultImageDirection === "back" ? "Back" : "Front"} Design</button>
+              ${(defaultImageDirection === "back" ? designModalData.designImage?.front : designModalData.designImage?.back) ? `
+              <button ${isDesignGenerating ? "disabled='true'": ''} class="${isDesignGenerating ? 'disabled' : ''}" onclick="downloadDesign('${defaultImageDirection === "back" ? designModalData.designImage?.front : designModalData.designImage?.back}')"><i class="fa fa-download"></i> Download ${defaultImageDirection === "back" ? "Front" : "Back"} Design</button>
+              `: ''}
+              <button ${isDesignGenerating ? "disabled='true'": ''} class="delete-design ${isDesignGenerating ? 'disabled' : ''}" onclick="openDeleteConfirmation(this,'${designModalData.designName}', '${designModalData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
             </div>
             <p>Publish:</p>
             <div style="display: flex; gap: 0.4rem; align-items: center;">₹ 

@@ -46,7 +46,9 @@
             align-items: center;
             position: relative;
             height: 770px;
-        }
+            transform: scale(2);
+            transform-origin: top left;
+    }
 
         /* .canvas-container {
             border: 1px dashed white;
@@ -64,8 +66,8 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const baseImage = decodeURIComponent(urlParams.get("image"));
-        const overlayImage = decodeURIComponent(urlParams.get("overlay"));
+        const baseImage = urlParams.get("image");
+        const overlayImage = urlParams.get("overlay");
         const imageWidth = Number(urlParams.get("width"));
         const imageHeight = Number(urlParams.get("height"));
         const imageTop = Number(urlParams.get("top"));
