@@ -141,7 +141,7 @@ const fetchProductData = async () => {
         productData.description +
         `\n Available in ${productColorsForDescription.length} colors and ${Object.keys(productData.colors[productColorsForDescription[0]].sizes).length} sizes`,
       category: productData.group,
-      colors: Object.keys(productData.colors).map((color, i) => {
+      colors: Object.keys(productData.colors).filter(color => !!productData.colors[color].frontImage || !!productData.colors[color].backImage).map((color, i) => {
         return {
           _id: i,
           colorName: color,
@@ -1083,6 +1083,7 @@ const saveDesign = async () => {
     formData.append("designImageURL", designImageURL);
     formData.append("designImageName", designImageName);
     formData.append("designId", dbDesignId);
+    formData.append("angle", fabricCanvas.getObjects()?.[0]?.angle ?? 0);
 
     const saveDesignRequest = await fetch("/createdesign", {
       method: "POST",
@@ -1395,6 +1396,7 @@ const saveDesignVariants = async () => {
     formData.append("designImageName", designImageName || "");
     formData.append("direction", designDirection);
     formData.append("neckLabel", neckLabelId || "");
+    formData.append("angle", fabricCanvas.getObjects()?.[0]?.angle ?? 0);
 
     // If updating existing variants, pass the groupId
     if (isUpdatingExistingVariants) {
