@@ -1175,6 +1175,511 @@ exports.createdesign = async (req, res) => {
   }
 };
 
+exports.createdesignvariants = async (req, res) => {
+  try {
+    // Read FormData fields (will be strings)
+    let { productData, variants, designImageURL, designImageName, direction, designId, neckLabel, groupId } = req.body;
+
+    // Parse JSON-string fields (productData and variants expected as JSON strings)
+    try {
+      if (typeof productData === "string" && productData.trim() !== "") {
+        productData = JSON.parse(productData);
+      } else {
+        productData = productData || {};
+      }
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid productData JSON" });
+    }
+
+    try {
+      if (typeof variants === "string" && variants.trim() !== "") {
+        variants = JSON.parse(variants);
+      } else if (!Array.isArray(variants)) {
+        variants = [];
+      }
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid variants JSON" });
+    }
+
+    // Compute design dimensions
+    const designImageHeight = direction === "front"
+      ? (productData?.designDimensions?.height || 0)
+      : (productData?.backDesignDimensions?.height || 0);
+    const designImageWidth = direction === "front"
+      ? (productData?.designDimensions?.width || 0)
+      : (productData?.backDesignDimensions?.width || 0);
+
+    // Handle existing design update (from createdesign functionality)
+    if (designId && designId !== "null") {
+      const currentDirection = direction;
+      const currentDesign = await NewDesignModel.findOne({
+        userId: req.userId,
+        "designs._id": designId,
+      });
+
+      if (!currentDesign) {
+        return res.status(404).json({ message: "Design could not be found!" });
+      }
+
+      const currentDesignIndex = currentDesign.designs.findIndex(
+        (design) => design._id + "" == designId,
+      );
+
+      if (currentDesignIndex === -1) {
+        return res.status(404).json({ message: "Design could not be found!" });
+      }
+
+      const currentDirectionDesign = currentDesign.designs.at(currentDesignIndex).designImage?.[currentDirection];
+
+      if (currentDirectionDesign && currentDesignIndex !== -1) {
+        return res.status(403).json({ message: "Design already saved!" });
+      }
+
+      const printCharges = (designImageHeight <= 8.0 && designImageWidth <= 8.0)
+        ? 70.0
+        : ((productData?.price * 1) < 70.0 ? 70.0 : (productData?.price * 1));
+
+      // Check if neck label already exists, if so don't charge again
+      const neckLabelCharges = currentDesign.designs.at(currentDesignIndex).neckLabel
+        ? 0
+        : (neckLabel && neckLabel !== "null" ? 10 : 0);
+
+      // Update existing design
+      currentDesign.designs.at(currentDesignIndex).neckLabel = neckLabel && neckLabel !== "null" ? neckLabel : undefined;
+      currentDesign.designs.at(currentDesignIndex)[currentDirection === "front" ? "frontPrice" : "backPrice"] = parseFloat(printCharges.toFixed(2));
+      currentDesign.designs.at(currentDesignIndex)[currentDirection === "front" ? "designDimensions" : "backDesignDimensions"] = {
+        ...productData[currentDirection === "front" ? "designDimensions" : "backDesignDimensions"],
+      };
+
+      currentDesign.designs.at(currentDesignIndex).designItems.push({
+        itemName: designImageName,
+        URL: designImageURL,
+      });
+
+      currentDesign.designs.at(currentDesignIndex).price += parseFloat((printCharges + neckLabelCharges).toFixed(2));
+
+      // Call publishJob and save jobStatus
+      const jobData = {
+        userId: req.userId,
+        productData: productData,
+        direction: direction,
+        neckLabel: currentDesign.designs.at(currentDesignIndex).neckLabel ?? neckLabel,
+        designImageURL: designImageURL,
+        uploadFilePath: `designs/${req.userId}_${productData.designName}_${direction}_${uniqueSKU}.png`,
+        mongoId: currentDesign.designs.at(currentDesignIndex)._id,
+      };
+
+      try {
+        const publishedJobId = await publishJob(jobData);
+        if (!currentDesign.designs.at(currentDesignIndex).designImageStatus) {
+          currentDesign.designs.at(currentDesignIndex).designImageStatus = {};
+        }
+        currentDesign.designs.at(currentDesignIndex).designImageStatus[currentDirection] = {
+          jobId: publishedJobId,
+          status: "processing"
+        };
+      } catch (jobErr) {
+        console.error("Failed to create publishJob for existing design:", jobErr);
+        // Continue; design still updated without processed image
+      }
+
+      await currentDesign.save({ validateBeforeSave: false });
+      console.log(req.userName + " updated existing design");
+      return res.status(200).json(currentDesign);
+    }
+
+    // Handle new design creation (variants or single design)
+    const createdVariants = [];
+    const updatedVariants = [];
+    const errors = [];
+
+    // If no variants provided, create a single design
+    if (!variants || variants.length === 0) {
+      variants = [{
+        product: productData?.product || {},
+        color: productData?.product?.color,
+        size: productData?.product?.size,
+        neckLabel: neckLabel,
+        variantType: 'master'
+      }];
+    }
+
+    console.log(`Creating/Updating ${variants.length} design(s) for user ${req.userId}`);
+
+    // Get or create user's design document
+    let userDesignDocument = await NewDesignModel.findOne({ userId: req.userId });
+    if (!userDesignDocument) {
+      userDesignDocument = new NewDesignModel({ userId: req.userId, designs: [] });
+    }
+
+    // Handle groupId: use existing if provided, otherwise create new
+    let targetGroupId = groupId;
+    let existingGroupDesigns = [];
+    let isUpdatingExistingGroup = false;
+
+    if (groupId && groupId !== "null" && groupId.trim() !== "") {
+      // Check if the groupId exists in user's designs
+      existingGroupDesigns = userDesignDocument.designs.filter(design => design.groupId === groupId);
+      console.log(`Found ${existingGroupDesigns.length} existing designs for groupId ${groupId}`);
+      console.log(`Found ${existingGroupDesigns.map(design => design._id).join(", ")}`);
+
+      if (existingGroupDesigns.length === 0) {
+        console.log(`GroupId ${groupId} not found for user ${req.userId}, creating new group`);
+        targetGroupId = new mongoose.Types.ObjectId().toString();
+      } else {
+        console.log(`Working with existing group ${groupId} with ${existingGroupDesigns.length} existing designs`);
+        targetGroupId = groupId;
+        isUpdatingExistingGroup = true;
+
+        if (direction === "back") {
+          console.log(`Updating existing variants in group ${groupId} with back design`);
+
+          const printCharges =
+            designImageHeight <= 8.0 && designImageWidth <= 8.0
+              ? 70.0
+              : productData?.price < 70.0
+                ? 70.0
+                : productData?.price;
+
+          for (let existingDesign of existingGroupDesigns) {
+            try {
+              // Add back design dimensions + price
+              existingDesign.backDesignDimensions = { ...(productData?.backDesignDimensions || {}) };
+              existingDesign.backPrice = parseFloat((designImageWidth > 0 ? printCharges : 0).toFixed(2));
+              existingDesign.price += existingDesign.backPrice;
+
+              // Attach back design item
+              if (designImageURL) {
+                if (!existingDesign.designItems) existingDesign.designItems = [];
+                existingDesign.designItems.push({
+                  itemName: designImageName || "Back Design Element",
+                  URL: designImageURL,
+                });
+              }
+
+              // Publish job for back
+              if (designImageURL && designImageWidth > 0) {
+                const jobData = {
+                  userId: req.userId,
+                  productData: { ...productData, product: existingDesign.product },
+                  direction,
+                  neckLabel: existingDesign.neckLabel,
+                  designImageURL,
+                  uploadFilePath: `designs/${req.userId}_${existingDesign.designName}_${direction}_${existingDesign.designSKU}.png`,
+                  mongoId: existingDesign._id,
+                };
+
+                try {
+                  const publishedJobId = await publishJob(jobData);
+                  if (!existingDesign.designImageStatus) existingDesign.designImageStatus = {};
+                  existingDesign.designImageStatus[direction] = { jobId: publishedJobId, status: "processing" };
+                  console.log(`✓ Updated existing variant with back design: ${existingDesign.designSKU} (Job: ${publishedJobId})`);
+                } catch (jobErr) {
+                  console.error(`Failed to create publishJob for existing variant ${existingDesign.designSKU}:`, jobErr);
+                }
+              }
+
+              updatedVariants.push({
+                _id: existingDesign._id,
+                designSKU: existingDesign.designSKU,
+                designName: existingDesign.designName,
+                price: existingDesign.price,
+                color: existingDesign.product?.selectedColor || existingDesign.product?.color,
+                size: existingDesign.product?.selectedSize || existingDesign.product?.size,
+                groupId: targetGroupId,
+                hasDesignImage: !!designImageURL,
+              });
+            } catch (variantError) {
+              console.error(`Error updating existing variant ${existingDesign.designSKU}:`, variantError);
+              errors.push({ designSKU: existingDesign.designSKU, error: variantError.message });
+            }
+          }
+
+          await userDesignDocument.save();
+
+          console.log(`Successfully updated ${updatedVariants.length} existing variants with back design, ${errors.length} errors`);
+
+          return res.status(200).json({
+            message: `Successfully updated ${updatedVariants.length} existing variants with back design`,
+            variants: updatedVariants,
+            errors,
+            totalCreated: 0,
+            totalUpdated: updatedVariants.length,
+            totalErrors: errors.length,
+            groupId: targetGroupId,
+            isExistingGroup: true,
+            existingVariantsCount: existingGroupDesigns.length,
+            operation: "update",
+          });
+        } else if (direction === "front") {
+          console.log(`Updating existing variants in group ${groupId} with front design`);
+
+          const printCharges =
+            designImageHeight <= 8.0 && designImageWidth <= 8.0
+              ? 70.0
+              : productData?.price < 70.0
+                ? 70.0
+                : productData?.price;
+
+          for (let existingDesign of existingGroupDesigns) {
+            try {
+              // Add front design dimensions + price
+              existingDesign.frontDesignDimensions = { ...(productData?.designDimensions || {}) };
+              existingDesign.frontPrice = parseFloat((designImageWidth > 0 ? printCharges : 0).toFixed(2));
+              existingDesign.price += existingDesign.frontPrice;
+
+              // Attach front design item
+              if (designImageURL) {
+                if (!existingDesign.designItems) existingDesign.designItems = [];
+                existingDesign.designItems.push({
+                  itemName: designImageName || "Front Design Element",
+                  URL: designImageURL,
+                });
+              }
+
+              // Publish job for front
+              if (designImageURL && designImageWidth > 0) {
+                const jobData = {
+                  userId: req.userId,
+                  productData: { ...productData, product: existingDesign.product },
+                  direction,
+                  neckLabel: existingDesign.neckLabel,
+                  designImageURL,
+                  uploadFilePath: `designs/${req.userId}_${existingDesign.designName}_${direction}_${existingDesign.designSKU}.png`,
+                  mongoId: existingDesign._id,
+                };
+
+                try {
+                  const publishedJobId = await publishJob(jobData);
+                  if (!existingDesign.designImageStatus) existingDesign.designImageStatus = {};
+                  existingDesign.designImageStatus[direction] = { jobId: publishedJobId, status: "processing" };
+                  console.log(`✓ Updated existing variant with front design: ${existingDesign.designSKU} (Job: ${publishedJobId})`);
+                } catch (jobErr) {
+                  console.error(`Failed to create publishJob for existing variant ${existingDesign.designSKU}:`, jobErr);
+                }
+              }
+
+              updatedVariants.push({
+                _id: existingDesign._id,
+                designSKU: existingDesign.designSKU,
+                designName: existingDesign.designName,
+                price: existingDesign.price,
+                color: existingDesign.product?.selectedColor || existingDesign.product?.color,
+                size: existingDesign.product?.selectedSize || existingDesign.product?.size,
+                groupId: targetGroupId,
+                hasDesignImage: !!designImageURL,
+              });
+            } catch (variantError) {
+              console.error(`Error updating existing variant ${existingDesign.designSKU}:`, variantError);
+              errors.push({ designSKU: existingDesign.designSKU, error: variantError.message });
+            }
+          }
+
+          await userDesignDocument.save();
+
+          console.log(`Successfully updated ${updatedVariants.length} existing variants with front design, ${errors.length} errors`);
+
+          return res.status(200).json({
+            message: `Successfully updated ${updatedVariants.length} existing variants with front design`,
+            variants: updatedVariants,
+            errors,
+            totalCreated: 0,
+            totalUpdated: updatedVariants.length,
+            totalErrors: errors.length,
+            groupId: targetGroupId,
+            isExistingGroup: true,
+            existingVariantsCount: existingGroupDesigns.length,
+            operation: "update",
+          });
+        }
+
+      }
+    } else {
+      // Generate new groupId
+      targetGroupId = new mongoose.Types.ObjectId().toString();
+      console.log(`Created new groupId: ${targetGroupId}`);
+    }
+
+    // Continue with creating new variants (front design or new group creation)
+    for (let i = 0; i < variants.length; i++) {
+      const variant = variants[i];
+
+      try {
+        // Logging context
+        console.log(`Processing variant ${i + 1}/${variants.length}:`, {
+          color: variant.product?.color || variant.color?.name || variant.color,
+          size: variant.product?.size || variant.size?.size || variant.size,
+          sku: variant.product?.SKU,
+          groupId: targetGroupId
+        });
+
+        // Check if this variant combination already exists in the group
+        if (existingGroupDesigns.length > 0) {
+          const variantColor = variant.product?.color || variant.color?.name || variant.color;
+          const variantSize = variant.product?.size || variant.size?.size || variant.size;
+
+          const existingVariant = existingGroupDesigns.find(design => {
+            const designColor = design.product?.selectedColor || design.product?.color;
+            const designSize = design.product?.selectedSize || design.product?.size;
+            return designColor === variantColor && designSize === variantSize;
+          });
+
+          if (existingVariant) {
+            console.log(`Variant already exists: ${variantColor} ${variantSize}, skipping creation`);
+            errors.push({
+              index: i + 1,
+              color: variantColor,
+              size: variantSize,
+              error: `Variant combination already exists in group`
+            });
+            continue;
+          }
+        }
+
+        // Generate unique SKU for each variant
+        const variantUniqueSKU = variant.product?.SKU + "-" + (variant?.designSKU != "" ? variant.designSKU : otpGen.generate(5, { lowerCaseAlphabets: false, specialChars: false }));
+
+        const printCharges = (designImageHeight <= 8.0 && designImageWidth <= 8.0)
+          ? 70.0
+          : ((productData?.price * 1) < 70.0 ? 70.0 : (productData?.price * 1));
+
+        const neckLabelCharges = (variant.neckLabel && variant.neckLabel !== "null") ? 10 : 0;
+
+        // Resolve product info (fall back to productData where possible)
+        const resolvedProductId = variant.product?.productId || variant.productId || productData?.productId || productData?.product?.productId;
+        const resolvedProduct = variant.product || productData?.product || {};
+
+        if (!resolvedProductId) {
+          console.warn('Variant missing productId and no fallback available. Variant payload:', JSON.stringify(variant));
+          throw new Error('Missing productId for variant; cannot create variant without productId');
+        }
+
+        // Calculate price like in createdesign
+        const basePrice = (variant.product && variant.product.price) || productData?.product?.price || 0;
+        const totalPrice = parseFloat(designImageWidth) == 0
+          ? basePrice + 0 + (neckLabel == "null" ? 0 : 10)
+          : basePrice + printCharges + neckLabelCharges;
+
+        // Determine if this is a variant or master
+        // If adding to existing group, all new items are variants
+        // If creating new group, first item is master
+        const isVariant = existingGroupDesigns.length > 0 ? true : (i === 0 ? false : true);
+
+        // Build design item object
+        const variantDesignData = {
+          productId: resolvedProductId,
+          groupId: targetGroupId,
+          product: {
+            ...resolvedProduct,
+            selectedColor: variant.product?.color || variant.color,
+            selectedSize: variant.product?.size || variant.size
+          },
+          designSKU: variantUniqueSKU,
+          designName: productData?.designName || `Design - ${(variant.product?.color || variant.color?.name || variant.color)} ${(variant.product?.size || variant.size?.size || variant.size)}`,
+          price: parseFloat(totalPrice.toFixed(2)),
+          [direction === "front" ? "frontPrice" : "backPrice"]: parseFloat((designImageWidth > 0 ? printCharges : 0).toFixed(2)),
+          designItems: designImageURL ? [{
+            itemName: designImageName || "Design Element",
+            URL: designImageURL,
+          }] : [],
+          neckLabel: (variant.neckLabel && variant.neckLabel !== "null") ? variant.neckLabel : undefined,
+          isVariant: isVariant,
+          variantType: variant.variantType || 'color'
+        };
+
+        // Attach design dimensions for appropriate direction
+        if (direction === "front") {
+          variantDesignData.designDimensions = { ...(productData?.designDimensions || {}) };
+        } else {
+          variantDesignData.backDesignDimensions = { ...(productData?.backDesignDimensions || {}) };
+        }
+
+        // Push the constructed design into user's document
+        userDesignDocument.designs.push(variantDesignData);
+
+        // publishJob for designs with an image and valid dimensions
+        if (designImageURL && designImageWidth > 0) {
+          const lastDesign = userDesignDocument.designs[userDesignDocument.designs.length - 1];
+
+          const jobData = {
+            userId: req.userId,
+            productData: { ...productData, product: resolvedProduct },
+            direction,
+            neckLabel: variant.neckLabel && variant.neckLabel !== "null" ? variant.neckLabel : null,
+            designImageURL: designImageURL,
+            uploadFilePath: `designs/${req.userId}_${lastDesign.designName}_${direction}_${variantUniqueSKU}.png`,
+            mongoId: lastDesign._id
+          };
+
+          try {
+            const publishedJobId = await publishJob(jobData);
+            lastDesign.designImageStatus = { [direction]: { jobId: publishedJobId, status: "processing" } };
+            console.log(`✓ Variant ${i + 1} saved with publishJob: ${variantUniqueSKU} (Job: ${publishedJobId})`);
+          } catch (jobErr) {
+            console.error(`Failed to create publishJob for variant ${i + 1}:`, jobErr);
+            // continue; variant still created without processed image
+          }
+        } else {
+          console.log(`✓ Variant ${i + 1} saved (no design): ${variantUniqueSKU}`);
+        }
+
+        createdVariants.push({
+          _id: userDesignDocument.designs[userDesignDocument.designs.length - 1]._id,
+          designSKU: variantUniqueSKU,
+          designName: variantDesignData.designName,
+          price: variantDesignData.price,
+          color: variant.product?.color || variant.color,
+          size: variant.product?.size || variant.size,
+          groupId: targetGroupId,
+          hasDesignImage: !!((designImageURL || req._uploadedDesignStoragePath) && designImageWidth > 0)
+        });
+
+      } catch (variantError) {
+        console.error(`Error creating variant ${i + 1}:`, variantError);
+        errors.push({
+          index: i + 1,
+          color: variant.product?.color || variant.color?.name || variant.color,
+          size: variant.product?.size || variant.size?.size || variant.size,
+          error: variantError.message
+        });
+      }
+    }
+
+    // Persist all created variants
+    await userDesignDocument.save();
+
+    console.log(`Successfully created ${createdVariants.length} variants, ${errors.length} errors for group ${targetGroupId}`);
+
+    // If only one design was created (single design, not variants), return similar to createdesign
+    if (createdVariants.length === 1 && (!variants || variants.length === 1)) {
+      console.log(req.userName + " saved design");
+      return res.status(200).json(userDesignDocument);
+    }
+
+    return res.status(200).json({
+      message: existingGroupDesigns.length > 0
+        ? `Successfully added ${createdVariants.length} variants to existing group`
+        : `Successfully created ${createdVariants.length} design variants`,
+      variants: createdVariants,
+      errors,
+      totalCreated: createdVariants.length,
+      totalUpdated: 0,
+      totalErrors: errors.length,
+      groupId: targetGroupId,
+      isExistingGroup: existingGroupDesigns.length > 0,
+      existingVariantsCount: existingGroupDesigns.length,
+      operation: 'create'
+    });
+
+  } catch (error) {
+    console.error('Error in createdesignvariants:', error);
+    return res.status(500).json({
+      error: "Server error in creating design variants",
+      details: error.message
+    });
+  }
+};
+
 exports.deletedesign = async (req, res) => {
   try {
     const userDesigns = await NewDesignModel.findOne({
@@ -1225,12 +1730,43 @@ exports.deletedesign = async (req, res) => {
 
 exports.getdesigns = async (req, res) => {
   try {
-    const userDesigns = await NewDesignModel.findOne({ userId: req.userId });
-    if (!userDesigns) return res.json({ designs: [] });
-    res.json(userDesigns);
+    const userDesigns = await NewDesignModel.findOne({ userId: req.userId }).lean();
+
+    // If no document or no designs array, return empty designs array (frontend expects `designs`)
+    if (!userDesigns || !Array.isArray(userDesigns.designs) || userDesigns.designs.length === 0) {
+      return res.json({ designs: [] });
+    }
+    
+    userDesigns.designs = userDesigns.designs.map(design => {
+      const des = design;
+      des["createdAt"] = new mongoose.Types.ObjectId(design._id).getTimestamp();
+      return des;
+    });
+
+    const standaloneDesigns = [];
+    const groupedDesigns = {};
+
+    for (const design of userDesigns.designs) {
+      const groupId = design?.groupId;
+      if (groupId) {
+        if (!groupedDesigns[groupId]) groupedDesigns[groupId] = [];
+        groupedDesigns[groupId].push(design);
+      } else {
+        standaloneDesigns.push(design);
+      }
+    }
+
+    return res.json({
+      designs: userDesigns.designs,
+      standalone: standaloneDesigns,
+      grouped: groupedDesigns,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Server error in obtaining designs" });
+    console.error('Error in getdesigns:', error);
+    return res.status(500).json({
+      error: "Server error in getting designs",
+      details: error.message,
+    });
   }
 };
 

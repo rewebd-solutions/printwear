@@ -115,11 +115,14 @@
   </div>
 </div>
 <script>
-  const routeName = location.pathname.split("/")[1];
-  if (["mystores", "order"].includes(routeName)) {
+  const pathname = location.pathname;
+  if (["/mystores", "/order"].includes(pathname)) {
      document.querySelector(`a[href='/manageorder']`).classList.add("sidebar-active")
   }
-  document.querySelector(`a[href='/${routeName}']`).classList.add("sidebar-active")
+  if (pathname === "/designgenerator") {
+    document.querySelector(`a[href='/productgallery']`).classList.add("sidebar-active")
+  }
+  document.querySelector(`a[href='${pathname}']`)?.classList?.add("sidebar-active")
 
   const logoutConfirmation = (e) => {
     e.preventDefault();

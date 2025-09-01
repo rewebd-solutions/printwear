@@ -69,13 +69,52 @@
 
     const designsContainer = document.querySelector(".designs-wrapper");
     var designsResponseData = {};
+    var currentModalDesign = null; // Store current design data for downloads
 
     const searchDesigns = (dataKey, searchKey) => {
       if (searchKey === '') return createDesignCards();
-      const designsData = designsResponseData.designs.filter(design => (design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim()) || design["designSKU"].toLowerCase().trim().includes(searchKey.toLowerCase().trim())));
-      if (designsData.length < 1) return designsContainer.innerHTML = 'Invalid search key';
 
-      createDesignCards({ designs: designsData })
+      let filteredData = { standalone: [], grouped: [], designs: [] };
+
+      // Search in standalone designs
+      if (designsResponseData.standalone && Array.isArray(designsResponseData.standalone)) {
+        filteredData.standalone = designsResponseData.standalone.filter(design =>
+          (design[dataKey] && design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim())) ||
+          (design["designSKU"] && design["designSKU"].toLowerCase().trim().includes(searchKey.toLowerCase().trim()))
+        );
+      }
+
+      // Search in grouped designs
+      // Handle grouped data as an object with groupId keys
+      if (designsResponseData.grouped && typeof designsResponseData.grouped === 'object') {
+        const filteredGroups = {};
+        Object.entries(designsResponseData.grouped).forEach(([groupId, designs]) => {
+          if (designs && Array.isArray(designs)) {
+            const matchingDesigns = designs.filter(design =>
+              (design[dataKey] && design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim())) ||
+              (design["designSKU"] && design["designSKU"].toLowerCase().trim().includes(searchKey.toLowerCase().trim()))
+            );
+            if (matchingDesigns.length > 0) {
+              filteredGroups[groupId] = designs; // Include the whole group if any design matches
+            }
+          }
+        });
+        filteredData.grouped = filteredGroups;
+      }
+
+      // Search in original designs array as fallback
+      if (designsResponseData.designs && Array.isArray(designsResponseData.designs)) {
+        filteredData.designs = designsResponseData.designs.filter(design =>
+          (design[dataKey] && design[dataKey].toLowerCase().trim().includes(searchKey.toLowerCase().trim())) ||
+          (design["designSKU"] && design["designSKU"].toLowerCase().trim().includes(searchKey.toLowerCase().trim()))
+        );
+      }
+
+      if (filteredData.standalone.length === 0 && Object.keys(filteredData.grouped).length === 0 && filteredData.designs.length === 0) {
+        return designsContainer.innerHTML = 'No designs found matching your search';
+      }
+
+      createDesignCards(filteredData);
     }
 
     const disableButton = (buttonElement, innerTextBefore, innerTextAfter, state) => {
@@ -196,169 +235,530 @@
     }
 
     const downloadDesign = (url) => {
-      if (!url || url === null || url === "false" || url === undefined || url === "undefined") return;
-      const aLink = document.createElement("a");
+      let aLink = document.createElement("a");
       aLink.href = url;
       aLink.target = "_blank";
-      document.body.appendChild(aLink);
       aLink.click();
-      document.body.removeChild(aLink);
+      aLink.remove();
     }
 
-    const openModal = (designSKU) => {
-      const designModalData = designsResponseData.designs.find(designData => designData.designSKU === designSKU);
-      const currentDesignTax = (designModalData.price + (designModalData.neckLabel ? 10 : 0)) * 0.05
-      const isDesignGenerating = !designModalData.designImage && !!(designModalData.designImageStatus?.front?.status === "processing" && designModalData.designImageStatus?.front?.jobId) || !!(designModalData.designImageStatus?.back?.status === "processing" && designModalData.designImageStatus?.back?.jobId);
-      const shouldShowBackByDefault = !(designModalData.designImage?.front && designModalData.designImage?.front != "false")
-      const defaultImageDirection = shouldShowBackByDefault ? "back" : "front"
-      const otherSideImage = defaultImageDirection === "back" ? designModalData.designImage?.front : designModalData.designImage?.back
-      const designModalDOMString = `
-      <div class="product-modal-wrapper">
-        <div class="product-modal" data-aos="fade-up">
-          <button class="modal-close">
-            <i class="fa fa-close"></i>
-          </button>
-          <div class="product-modal-image">
-            ${isDesignGenerating ? `<div class="image-processing-overlay"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>` :
-          `<img
-              src="${defaultImageDirection === "back" ? designModalData.designImage?.back : designModalData.designImage?.front}"
-              alt="Design image"
-              ${(otherSideImage && otherSideImage != "false") ? `
-              onmouseover="this.src='${otherSideImage}'"
-              ` : ''}
-              onmouseout="this.src='${defaultImageDirection === "back" ? designModalData.designImage?.back : designModalData.designImage?.front}'"
-              >`
+    const downloadCurrentDesign = (side) => {
+      if (!currentModalDesign) {
+        notyf.error("No design data available for download");
+        return;
+      }
+
+      let imageUrl = null;
+      if (side === 'front' && currentModalDesign.designImage?.front && currentModalDesign.designImage.front !== 'false') {
+        imageUrl = currentModalDesign.designImage.front;
+      } else if (side === 'back' && currentModalDesign.designImage?.back && currentModalDesign.designImage.back !== 'false') {
+        imageUrl = currentModalDesign.designImage.back;
+      }
+
+      if (imageUrl) {
+        downloadDesign(imageUrl);
+      } else {
+        notyf.error(`No ${side} design image available for this variant`);
+      }
+    }
+
+    // Updated function to handle both standalone and grouped designs
+    const openModal = (designSKU, groupId = null) => {
+      let designData, allVariants = [];
+
+      if (groupId) {
+        // This is a grouped design - find all variants
+        // Handle grouped data as an object with groupId keys
+        const designs = designsResponseData.grouped && typeof designsResponseData.grouped === 'object'
+          ? designsResponseData.grouped[groupId]
+          : null;
+        if (designs && Array.isArray(designs)) {
+          allVariants = designs;
+          designData = allVariants.find(design => design.designSKU === designSKU) || allVariants[0];
         }
-          </div>
-          <div class="product-modal-details">
-            <h2 class="product-name">${designModalData.designName}</h2>
-            <div class="product-category-gender">
-              <h5>${designModalData.product.name}</h5>
-              <h5>SKU: ${designModalData.designSKU}</h5>
+      } else {
+        // Try to find in standalone first
+        if (designsResponseData.standalone && Array.isArray(designsResponseData.standalone)) {
+          designData = designsResponseData.standalone.find(design => design.designSKU === designSKU);
+        }
+        // Fallback to original designs array
+        if (!designData && designsResponseData.designs && Array.isArray(designsResponseData.designs)) {
+          designData = designsResponseData.designs.find(design => design.designSKU === designSKU);
+        }
+      }
+
+      if (!designData) {
+        console.error('Design not found:', designSKU, 'groupId:', groupId);
+        return;
+      }
+
+      // Store current design data for downloads
+      currentModalDesign = designData;
+
+      const currentDesignTax = (designData.price + (designData.neckLabel ? 10 : 0)) * 0.05;
+      const isDesignGenerating = (!(designData.designImage?.front) && designData.designImageStatus?.front?.status === "processing" && designData.designImageStatus?.front?.jobId) || 
+                                 (!(designData.designImage?.back) && designData.designImageStatus?.back?.status === "processing" && designData.designImageStatus?.back?.jobId);
+      const shouldShowBackByDefault = !(designData.designImage?.front && designData.designImage?.front != "false");
+      const defaultImageDirection = shouldShowBackByDefault ? "back" : "front";
+      const otherSideImage = defaultImageDirection === "back" ? designData.designImage?.front : designData.designImage?.back;
+
+      // Create color and size options for variants or single design
+      const createVariantOptions = () => {
+        if (allVariants.length > 1) {
+          // Group variants by color and size
+          const colorMap = new Map();
+
+          allVariants.forEach(variant => {
+            const color = variant.product.color;
+            const size = variant.product.size;
+            const hex = variant.product.hex;
+
+            if (!colorMap.has(color)) {
+              colorMap.set(color, { hex, variants: [], sizes: [] });
+            }
+            colorMap.get(color).variants.push(variant);
+            if (!colorMap.get(color).sizes.includes(size)) {
+              colorMap.get(color).sizes.push(size);
+            }
+          });
+
+          const colors = Array.from(colorMap.entries()).map(([color, data]) => ({
+            color,
+            hex: data.hex,
+            variants: data.variants,
+            sizes: data.sizes
+          }));
+
+          // Get sizes for the current selected color
+          const currentColor = designData.product.color;
+          const currentColorData = colors.find(c => c.color === currentColor);
+          const availableSizes = currentColorData ? currentColorData.sizes : [designData.product.size];
+
+          return {
+            colors: colors,
+            sizes: availableSizes, // Only sizes available for current color
+            hasVariants: true
+          };
+        } else {
+          // Single design
+          return {
+            colors: [{ color: designData.product.color, hex: designData.product.hex, variants: [designData], sizes: [designData.product.size] }],
+            sizes: [designData.product.size],
+            hasVariants: false
+          };
+        }
+      };
+
+      const variantOptions = createVariantOptions();
+
+      const designModalDOMString = `
+        <div class="product-modal-wrapper">
+          <div class="product-modal" data-aos="fade-up">
+            <button class="modal-close">
+              <i class="fa fa-close"></i>
+            </button>
+            <div class="product-modal-image">
+              ${isDesignGenerating && !designData.designImage?.front && !designData.designImage?.back ? '<div class="image-processing-overlay"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>' :
+          `<img
+                id="modal-design-image"
+                src="${defaultImageDirection === "back" ? designData.designImage?.back : designData.designImage?.front}"
+                alt="Design image"
+                ${(otherSideImage && otherSideImage != "false") ? `
+                onmouseover="this.src='${otherSideImage}'"
+                ` : ''}
+                onmouseout="this.src='${defaultImageDirection === "back" ? designData.designImage?.back : designData.designImage?.front}'"
+                >`
+        }
             </div>
-            <p class="product-description">
-              ${designModalData.description || "User generated design"}
-            </p>
-            <div class="alert-info"><i class="fa fa-info-circle"></i>You can move your mouse over the image to flip sides!</div>
-            <div class="product-attributes">
-              <div class="product-colors">
-                <p>Color: </p>
-                <div class="color-circle" style="background:${designModalData.product.hex};" title="${designModalData.product.color}"></div>
+            <div class="product-modal-details">
+              <h2 class="product-name" id="modal-design-name">${designData.designName}</h2>
+              <div class="product-category-gender">
+                <h5 id="modal-product-name">${designData.product.name}</h5>
+                <h5 id="modal-design-sku">SKU: ${designData.designSKU}</h5>
               </div>
-              <div class="product-sizes">
-                <p>Size: </p>
-                <div class="size-circle">${designModalData.product.size}</div>
+              <p class="product-description" id="modal-design-description">
+                ${designData.description || "User generated design"}
+              </p>
+              ${variantOptions.hasVariants ? '<div class="alert-info"><i class="fa fa-info-circle"></i>Select different colors and sizes to view variants. You can also move your mouse over the image to flip sides!</div>' : '<div class="alert-info"><i class="fa fa-info-circle"></i>You can move your mouse over the image to flip sides!</div>'}
+              
+              <!-- Color and Size Selection -->
+              <div class="variant-selection">
+                <div class="color-selection">
+                  <p><strong>Available Colors:</strong></p>
+                  <div class="color-options">
+                    ${variantOptions.colors.map(colorData => `
+                      <div class="color-option ${colorData.color === designData.product.color ? 'selected' : ''}" 
+                           data-color="${colorData.color}" 
+                           onclick="selectColor('${colorData.color}', '${groupId}')">
+                        <div class="color-circle" style="background: ${colorData.hex};" title="${colorData.color}"></div>
+                        <span class="color-name">${colorData.color}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+                
+                <div class="size-selection">
+                  <p><strong>Available Sizes:</strong></p>
+                  <div class="size-options">
+                    ${variantOptions.sizes.map(size => `
+                      <div class="size-option ${size === designData.product.size ? 'selected' : ''}" 
+                           data-size="${size}" 
+                           onclick="selectSize('${size}', '${groupId}')">
+                        <div class="size-circle">${size}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="product-price">
-              <h4>Price: ₹${(parseFloat(designModalData.price.toFixed(2)) + parseFloat(currentDesignTax)).toFixed(2)}</h4>
-              <table class="price-breakdown">
-                <tr>
-                  <td>Base Price</td>
-                  <td>₹${designModalData.product.price.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td>Print Price</td>
-                  <td>₹${(designModalData.price - designModalData.product.price - (designModalData.neckLabel ? 10 : 0)).toFixed(2)}</td>
-                </tr>
-                ${designModalData.neckLabel ? `
+  
+              <div class="product-price">
+                <h4 id="modal-price">Price: ₹${(parseFloat(designData.price.toFixed(2)) + parseFloat(currentDesignTax)).toFixed(2)}</h4>
+                <table class="price-breakdown" id="modal-price-breakdown">
                   <tr>
-                    <td>Neck label Price</td>
-                    <td>₹10</td>
+                    <td>Base Price</td>
+                    <td>₹${designData.product.price.toFixed(2)}</td>
                   </tr>
-                  `: ''}
-                <tr>
-                  <td>Tax</td>
-                  <td>₹${currentDesignTax.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td>Total Price</td>
-                  <td>₹${(designModalData.price + currentDesignTax).toFixed(2)}</td>
-                </tr>
-              </table>
-            </div>
-            <div class="action-buttons">
-              <button ${isDesignGenerating ? "disabled='true'": ''} class="${isDesignGenerating ? 'disabled' : ''}" onclick="downloadDesign('${defaultImageDirection === "back" ? designModalData.designImage?.back : designModalData.designImage?.front}')"><i class="fa fa-download"></i> Download ${defaultImageDirection === "back" ? "Back" : "Front"} Design</button>
-              ${(defaultImageDirection === "back" ? designModalData.designImage?.front : designModalData.designImage?.back) ? `
-              <button ${isDesignGenerating ? "disabled='true'": ''} class="${isDesignGenerating ? 'disabled' : ''}" onclick="downloadDesign('${defaultImageDirection === "back" ? designModalData.designImage?.front : designModalData.designImage?.back}')"><i class="fa fa-download"></i> Download ${defaultImageDirection === "back" ? "Front" : "Back"} Design</button>
-              `: ''}
-              <button ${isDesignGenerating ? "disabled='true'": ''} class="delete-design ${isDesignGenerating ? 'disabled' : ''}" onclick="openDeleteConfirmation(this,'${designModalData.designName}', '${designModalData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
-            </div>
-            <p>Publish:</p>
-            <div style="display: flex; gap: 0.4rem; align-items: center;">₹ 
-              <input type="number" inputmode="numeric" class="shop-price" value='${(designModalData.price * 1.05).toFixed(2)}' placeholder="₹" />
-              <p style="font-size: 0.84rem">Enter retail price for your shop. <br /> You can change it later in your shop settings:</p>
-            </div>
-            <div class="publish-buttons">
-              <button id="add-shopify" onclick="addToShopify(this, '${designModalData.designSKU}')" ${designModalData.isAddedToShopify || isDesignGenerating ? 'class="disabled" disabled="true"' : ''}><i class="fa-brands fa-shopify"></i>${designModalData.isAddedToShopify ? ' Added to Shopify ✅' : ' Add to Shopify'}</button>
-              <button id="add-woocommerce" onclick="addToWooCommerce(this, '${designModalData.designSKU}')" ${designModalData.isAddedToWoocommerce || isDesignGenerating ? 'class="disabled" disabled="true"' : ''}><img src="images/WooCommerce_logo.svg" width="30" alt=""> ${designModalData.isAddedToWoocommerce ? 'Added to WC ☑️' : 'Add to WooCommerce'}</button>
+                  <tr>
+                    <td>Print Price</td>
+                    <td>₹${(designData.price - designData.product.price - (designData.neckLabel ? 10 : 0)).toFixed(2)}</td>
+                  </tr>
+                  ${designData.neckLabel ? `
+                    <tr>
+                      <td>Neck label Price</td>
+                      <td>₹10</td>
+                    </tr>
+                    `: ''}
+                  <tr>
+                    <td>Tax</td>
+                    <td>₹${currentDesignTax.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td>Total Price</td>
+                    <td>₹${(designData.price + currentDesignTax).toFixed(2)}</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="action-buttons">
+                <button ${isDesignGenerating ? "disabled='true'" : ''} class="${isDesignGenerating ? 'disabled' : ''}" id="download-front-btn" onclick="downloadCurrentDesign('front')"><i class="fa fa-download"></i> Download Front Design</button>
+                <button ${isDesignGenerating ? "disabled='true'" : ''} class="${isDesignGenerating ? 'disabled' : ''}" id="download-back-btn" onclick="downloadCurrentDesign('back')"><i class="fa fa-download"></i> Download Back Design</button>
+                <button ${isDesignGenerating ? "disabled='true'" : ''} class="delete-design ${isDesignGenerating ? 'disabled' : ''}" onclick="openDeleteConfirmation(this,'${designData.designName}', '${designData.designSKU}')"><i class="fa fa-trash"></i> Delete Design</button>
+              </div>
+              <p>Publish:</p>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">₹ 
+                <input type="number" inputmode="numeric" class="shop-price" value='${(designData.price * 1.05).toFixed(2)}' placeholder="₹" />
+                <p style="font-size: 0.84rem">Enter retail price for your shop. <br /> You can change it later in your shop settings:</p>
+              </div>
+              <div class="publish-buttons">
+                <button id="add-shopify" onclick="addToShopify(this, '${designData.designSKU}')" ${designData.isAddedToShopify || isDesignGenerating ? 'class="disabled" disabled="true"' : ''}><i class="fa-brands fa-shopify"></i>${designData.isAddedToShopify ? ' Added to Shopify ✅' : ' Add to Shopify'}</button>
+                <button id="add-woocommerce" onclick="addToWooCommerce(this, '${designData.designSKU}')" ${designData.isAddedToWoocommerce || isDesignGenerating ? 'class="disabled" disabled="true"' : ''}><img src="images/WooCommerce_logo.svg" width="30" alt=""> ${designData.isAddedToWoocommerce ? 'Added to WC ☑' : 'Add to WooCommerce'}</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      `;
+        `;
+
       document.querySelector("main").insertAdjacentHTML("beforeend", designModalDOMString);
+
+      // Set initial download button visibility
+      const frontBtn = document.getElementById('download-front-btn');
+      const backBtn = document.getElementById('download-back-btn');
+
+      if (frontBtn && (!designData.designImage?.front || designData.designImage.front === 'false')) {
+        frontBtn.style.display = 'none';
+      }
+
+      if (backBtn && (!designData.designImage?.back || designData.designImage.back === 'false')) {
+        backBtn.style.display = 'none';
+      }
 
       const closeModalButton = document.querySelector(".modal-close");
       closeModalButton.addEventListener("click", (e) => {
         document.querySelector("main").removeChild(document.querySelector(".product-modal-wrapper"))
-      })
+      });
+    }
+
+    // Function to handle color selection
+    const selectColor = (selectedColor, groupId) => {
+      if (!groupId) return; // Standalone design, no color switching
+
+      // Handle grouped data as an object with groupId keys
+      const designs = designsResponseData.grouped && typeof designsResponseData.grouped === 'object'
+        ? designsResponseData.grouped[groupId]
+        : null;
+      if (!designs || !Array.isArray(designs)) return;
+
+      // Find available sizes for the selected color
+      const availableSizes = designs
+        .filter(design => design.product.color === selectedColor)
+        .map(design => design.product.size);
+
+      // Update size options to show only available sizes for this color
+      const sizeOptionsContainer = document.querySelector('.size-options');
+      const currentSize = document.querySelector('.size-option.selected')?.dataset.size;
+
+      // Check if current size is available in new color, otherwise pick first available
+      const targetSize = availableSizes.includes(currentSize) ? currentSize : availableSizes[0];
+
+      sizeOptionsContainer.innerHTML = availableSizes.map(size => `
+          <div class="size-option ${size === targetSize ? 'selected' : ''}" 
+               data-size="${size}" 
+               onclick="selectSize('${size}', '${groupId}')">
+            <div class="size-circle">${size}</div>
+          </div>
+        `).join('');
+
+      // Find and switch to the target variant
+      const targetVariant = designs.find(design =>
+        design.product.color === selectedColor &&
+        design.product.size === targetSize
+      );
+
+      if (targetVariant) {
+        updateModalContent(targetVariant, designs);
+        updateSelectionUI('color', selectedColor);
+      }
+    }
+
+    // Function to handle size selection
+    const selectSize = (selectedSize, groupId) => {
+      if (!groupId) return; // Standalone design, no size switching
+
+      // Handle grouped data as an object with groupId keys
+      const designs = designsResponseData.grouped && typeof designsResponseData.grouped === 'object'
+        ? designsResponseData.grouped[groupId]
+        : null;
+      if (!designs || !Array.isArray(designs)) return;
+
+      const currentColor = document.querySelector('.color-option.selected')?.dataset.color;
+      const targetVariant = designs.find(design =>
+        design.product.color === currentColor &&
+        design.product.size === selectedSize
+      );
+
+      if (targetVariant) {
+        updateModalContent(targetVariant, designs);
+        updateSelectionUI('size', selectedSize);
+      }
+    }
+
+    // Function to update modal content when variant changes
+    const updateModalContent = (designData, allVariants) => {
+      // Update current design data for downloads
+      currentModalDesign = designData;
+
+      const currentDesignTax = (designData.price + (designData.neckLabel ? 10 : 0)) * 0.05;
+      const shouldShowBackByDefault = !(designData.designImage?.front && designData.designImage?.front != "false");
+      const defaultImageDirection = shouldShowBackByDefault ? "back" : "front";
+      const otherSideImage = defaultImageDirection === "back" ? designData.designImage?.front : designData.designImage?.back;
+
+      // Update image
+      const imageElement = document.getElementById('modal-design-image');
+      if (imageElement && designData.designImage) {
+        const newImageSrc = defaultImageDirection === "back" ? designData.designImage?.back : designData.designImage?.front;
+        imageElement.src = newImageSrc;
+
+        // Update hover effects
+        if (otherSideImage && otherSideImage != "false") {
+          imageElement.onmouseover = () => imageElement.src = otherSideImage;
+          imageElement.onmouseout = () => imageElement.src = newImageSrc;
+        }
+      }
+
+      // Update download button visibility and state
+      const frontBtn = document.getElementById('download-front-btn');
+      const backBtn = document.getElementById('download-back-btn');
+
+      if (frontBtn) {
+        if (designData.designImage?.front && designData.designImage.front !== 'false') {
+          frontBtn.style.display = 'inline-block';
+          frontBtn.classList.remove('disabled');
+          frontBtn.removeAttribute('disabled');
+        } else {
+          frontBtn.style.display = 'none';
+        }
+      }
+
+      if (backBtn) {
+        if (designData.designImage?.back && designData.designImage.back !== 'false') {
+          backBtn.style.display = 'inline-block';
+          backBtn.classList.remove('disabled');
+          backBtn.removeAttribute('disabled');
+        } else {
+          backBtn.style.display = 'none';
+        }
+      }
+
+      // Update text content
+      document.getElementById('modal-design-name').textContent = designData.designName;
+      document.getElementById('modal-product-name').textContent = designData.product.name;
+      document.getElementById('modal-design-sku').textContent = `SKU: ${designData.designSKU}`;
+      document.getElementById('modal-design-description').textContent = designData.description || "User generated design";
+      document.getElementById('modal-price').textContent = `Price: ₹${(parseFloat(designData.price.toFixed(2)) + parseFloat(currentDesignTax)).toFixed(2)}`;
+
+      // Update price breakdown
+      const priceBreakdownHTML = `
+          <tr>
+            <td>Base Price</td>
+            <td>₹${designData.product.price.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>Print Price</td>
+            <td>₹${(designData.price - designData.product.price - (designData.neckLabel ? 10 : 0)).toFixed(2)}</td>
+          </tr>
+          ${designData.neckLabel ? `
+            <tr>
+              <td>Neck label Price</td>
+              <td>₹10</td>
+            </tr>
+            `: ''}
+          <tr>
+            <td>Tax</td>
+            <td>₹${currentDesignTax.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>Total Price</td>
+            <td>₹${(designData.price + currentDesignTax).toFixed(2)}</td>
+          </tr>
+        `;
+      document.getElementById('modal-price-breakdown').innerHTML = priceBreakdownHTML;
+
+      // Update shop price input
+      document.querySelector('.shop-price').value = (designData.price * 1.05).toFixed(2);
+
+      // Update buttons
+      const shopifyBtn = document.getElementById('add-shopify');
+      const woocommerceBtn = document.getElementById('add-woocommerce');
+
+      shopifyBtn.onclick = () => addToShopify(shopifyBtn, designData.designSKU);
+      woocommerceBtn.onclick = () => addToWooCommerce(woocommerceBtn, designData.designSKU);
+
+      if (designData.isAddedToShopify) {
+        shopifyBtn.classList.add('disabled');
+        shopifyBtn.disabled = true;
+        shopifyBtn.innerHTML = '<i class="fa-brands fa-shopify"></i> Added to Shopify ✅';
+      } else {
+        shopifyBtn.classList.remove('disabled');
+        shopifyBtn.disabled = false;
+        shopifyBtn.innerHTML = '<i class="fa-brands fa-shopify"></i> Add to Shopify';
+      }
+
+      if (designData.isAddedToWoocommerce) {
+        woocommerceBtn.classList.add('disabled');
+        woocommerceBtn.disabled = true;
+        woocommerceBtn.innerHTML = '<img src="images/WooCommerce_logo.svg" width="30" alt=""> Added to WC ☑';
+      } else {
+        woocommerceBtn.classList.remove('disabled');
+        woocommerceBtn.disabled = false;
+        woocommerceBtn.innerHTML = '<img src="images/WooCommerce_logo.svg" width="30" alt=""> Add to WooCommerce';
+      }
+    }
+
+    // Function to update selection UI
+    const updateSelectionUI = (type, selectedValue) => {
+      if (type === 'color') {
+        document.querySelectorAll('.color-option').forEach(option => {
+          option.classList.remove('selected');
+        });
+        document.querySelector(`[data-color="${selectedValue}"]`).classList.add('selected');
+      } else if (type === 'size') {
+        document.querySelectorAll('.size-option').forEach(option => {
+          option.classList.remove('selected');
+        });
+        document.querySelector(`[data-size="${selectedValue}"]`).classList.add('selected');
+      }
     }
 
     const createDesignCards = (data = designsResponseData) => {
-      const designCardsDOMString = data.designs.map(design => {
+      // Process grouped and standalone designs together
+      let allDesigns = [];
+
+      // Add one representative from each group
+      // Handle grouped data as an object with groupId keys
+      if (data.grouped && typeof data.grouped === 'object') {
+        Object.entries(data.grouped).forEach(([groupId, designs]) => {
+          if (designs && Array.isArray(designs) && designs.length > 0) {
+            const representative = designs[0]; // Use first design as representative
+            allDesigns.push({
+              ...representative,
+              isGrouped: true,
+              groupId: groupId,
+              totalVariants: designs.length,
+              allVariants: designs
+            });
+          }
+        });
+      }
+
+      // Add standalone designs
+      if (data.standalone && data.standalone.length > 0) {
+        allDesigns = allDesigns.concat(data.standalone.map(design => ({
+          ...design,
+          isGrouped: false,
+          groupId: null
+        })));
+      }
+
+
+      // Fallback to original designs array if no grouped/standalone data
+      if (allDesigns.length === 0 && data.designs) {
+        allDesigns = data.designs.map(design => ({
+          ...design,
+          isGrouped: false,
+          groupId: null
+        }));
+      }
+
+      const designCardsDOMString = allDesigns.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(design => {
+        // normalize image urls
         if (design.designImage?.front?.includes("printwear.in") && !design.designImage?.front?.includes("admin.printwear.in")) {
           design.designImage.front = design.designImage.front?.replace("printwear.in", "admin.printwear.in");
           design.designImage.back = design.designImage.back?.replace("printwear.in", "admin.printwear.in");
         }
-        design.designItems = design.designItems.map(item => {
+        design.designItems = (design.designItems || []).map(item => {
           if (item?.URL?.includes("printwear.in") && !item?.URL?.includes("admin.printwear.in")) {
-            return {
-              ...item,
-              URL: item.URL.replace("printwear.in", "admin.printwear.in")
-            }
-          } else {
-            return item
-          }
+            return { ...item, URL: item.URL.replace("printwear.in", "admin.printwear.in") }
+          } else return item
         })
-        const isDesignGenerating = !design.designImage && (design.designImageStatus?.front?.status === "processing" && design.designImageStatus?.front?.jobId) || (design.designImageStatus?.back?.status === "processing" && design.designImageStatus?.back?.jobId);
-        const shouldShowBackByDefault = !(design.designImage?.front && design.designImage?.front != "false")
-        const defaultImageDirection = shouldShowBackByDefault ? "back" : "front"
+
+        const isDesignGenerating = (!design.designImage?.front && design.designImageStatus?.front?.status === "processing" && design.designImageStatus?.front?.jobId) || 
+                                   (!design.designImage?.back && design.designImageStatus?.back?.status === "processing" && design.designImageStatus?.back?.jobId);
+
+        const cardImage = ((design.designImage && design.designImage.front && design.designImage.front != 'false') ? design.designImage.front : design.designImage?.back || '');
+
+        // Show variant count for grouped designs
+        const variantIndicator = design.isGrouped && design.totalVariants > 1
+          ? `<div class="variant-indicator">${design.totalVariants} variants</div>`
+          : '';
+
         return `
-          <div class="design-card" data-aos="fade-up">
-            <div class="card-img">
-              ${isDesignGenerating ? '<div class="image-processing-overlay" style="flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column;"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>' : `
-              <img src="${(defaultImageDirection == "front") ? design.designImage.front : design.designImage.back}">
-              `}
+            <div class="design-card" data-aos="fade-up">
+              <div class="card-img">
+                ${isDesignGenerating && !cardImage ? '<div class="image-processing-overlay" style="flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column;"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>' : `
+                <img src="${cardImage}">
+                `}
+                ${variantIndicator}
+              </div>
+              <div class="name-price">
+                <div style="display:flex; gap: 2px; justify-content: space-between; align-items: center">
+                  <h3>${design.designName}</h3>
+                  <p class='name-sku'>${design.designSKU}</p>
+                </div>
+                <p style="opacity: 0.8; font-size: 0.6rem">${design.product.style}</p>
+                ${design.isGrouped ? `<p style="font-size: 0.65rem; color: #666; margin-top: 2px;">${design.totalVariants} colors & sizes available</p>` : ''}
+              </div>
+              <div class="details">
+                <div class="view-btn">
+                  <button onclick="openModal('${design.designSKU}', ${design.groupId ? `'${design.groupId}'` : 'null'})">View</button>
+                </div>
+                <p style="font-size: 14px">₹${design.price.toFixed(2)}</p>
+              </div>
             </div>
-            <div class="name-price">
-              <div style="display:flex; gap: 2px; justify-content: space-between; align-items: center">
-                <h3>${design.designName}</h3>
-                <p class='name-sku'>${design.designSKU}</p>
-              </div>
-              <p style="opacity: 0.8; font-size: 0.6rem">${design.product.style}</p>
-              </div>
-            <div class="details">
-              <div class="view-btn">
-                <button onclick="openModal('${design.designSKU}')">View</button>
-              </div>
-              <p style="font-size: 14px">₹${design.price.toFixed(2)}</p>
-            </div>
-          </div>
-        `
+          `
       }).join('\n');
       designsContainer.innerHTML = designCardsDOMString;
-
-      /* designsContainer.addEventListener("click", (e) => {
-        const openModalButton = e.target.closest(".view-btn button");
-        if (openModalButton) {
-          openModal(openModalButton.dataset.designid);
-        }
-      }) */
     }
 
     const filterProductsByGender = (e, category) => {
-
       const filterByGenderButtons = document.querySelectorAll(".filter-button");
       filterByGenderButtons.forEach(filterBtn => filterBtn.classList.remove("filter-button-active"));
 
@@ -366,39 +766,101 @@
 
       if (category === "all") return createDesignCards();
 
-      const designsData = designsResponseData.designs.filter(design => design.product['gender'].toLowerCase().trim().includes(category.toLowerCase().trim()));
-      if (designsData.length < 1) return designsContainer.innerHTML = `No products found for filter: "${category}"`;
-      createDesignCards({ designs: designsData })
+      // Filter both standalone and grouped designs
+      let filteredData = { standalone: [], grouped: {} };
+
+      if (designsResponseData.standalone) {
+        filteredData.standalone = designsResponseData.standalone.filter(design =>
+          design.product['gender'].toLowerCase().trim() === category.toLowerCase().trim()
+        );
+      }
+
+      // Handle grouped data as an object with groupId keys
+      if (designsResponseData.grouped && typeof designsResponseData.grouped === 'object') {
+        Object.entries(designsResponseData.grouped).forEach(([groupId, designs]) => {
+          if (designs && Array.isArray(designs)) {
+            const matchingDesigns = designs.filter(design =>
+              design.product['gender'].toLowerCase().trim() === category.toLowerCase().trim()
+            );
+            if (matchingDesigns.length > 0) {
+              filteredData.grouped[groupId] = designs; // Include the whole group if any design matches
+            }
+          }
+        });
+      }
+
+      // Fallback to original designs array
+      if (designsResponseData.designs) {
+        const designsData = designsResponseData.designs.filter(design => design.product['gender'].toLowerCase().trim() === category.toLowerCase().trim());
+        filteredData.designs = designsData;
+      }
+
+      if (filteredData.standalone.length === 0 && Object.keys(filteredData.grouped).length === 0 && (!filteredData.designs || filteredData.designs.length === 0)) {
+        return designsContainer.innerHTML = `No products found for filter: "${category}"`;
+      }
+
+      createDesignCards(filteredData);
     }
 
     const fetchDesignsData = async () => {
       try {
         const designsFetchRequest = await fetch("/getdesigns");
-        designsResponseData = await designsFetchRequest.json();
 
+        designsResponseData = await designsFetchRequest.json();
+        const { designs, standalone, grouped } = designsResponseData;
         const maleFilterPattern = new RegExp(/\bmen\b|\bmens\b/i);
         const femaleFilterPattern = new RegExp(/\bwomen\b|\bwomens\b/i);
 
-        designsResponseData.designs = designsResponseData.designs.map(design => {
-          if (maleFilterPattern.test(design.product.name)) design.product['gender'] = "men";
-          else if (femaleFilterPattern.test(design.product.name)) design.product['gender'] = "women";
-          else design.product['gender'] = "unisex";
-          return design
-        }).reverse()
+        // Add gender property to designs
+        if (designsResponseData.designs) {
+          designsResponseData.designs = designsResponseData.designs.map(design => {
+            if (maleFilterPattern.test(design.product.name)) design.product['gender'] = "men";
+            else if (femaleFilterPattern.test(design.product.name)) design.product['gender'] = "women";
+            else design.product['gender'] = "unisex";
+            return design;
+          })
+        }
 
-        console.log(designsResponseData);
+        // Add gender property to standalone designs
+        if (designsResponseData.standalone) {
+          designsResponseData.standalone = designsResponseData.standalone.map(design => {
+            if (maleFilterPattern.test(design.product.name)) design.product['gender'] = "men";
+            else if (femaleFilterPattern.test(design.product.name)) design.product['gender'] = "women";
+            else design.product['gender'] = "unisex";
+            return design;
+          })
+        }
 
-        if (designsResponseData.designs.length > 0) {
+        // Add gender property to grouped designs
+        // Handle grouped data as an object with groupId keys
+        if (designsResponseData.grouped && typeof designsResponseData.grouped === 'object') {
+          Object.entries(designsResponseData.grouped).forEach(([groupId, designs]) => {
+            if (designs && Array.isArray(designs)) {
+              designsResponseData.grouped[groupId] = designs.map(design => {
+                if (maleFilterPattern.test(design.product.name)) design.product['gender'] = "men";
+                else if (femaleFilterPattern.test(design.product.name)) design.product['gender'] = "women";
+                else design.product['gender'] = "unisex";
+                return design;
+              });
+            }
+          });
+        }
+
+        console.log("Fetched data:", designsResponseData);
+
+        if ((designsResponseData.standalone && designsResponseData.standalone.length > 0) ||
+          (designsResponseData.grouped && typeof designsResponseData.grouped === 'object' && Object.keys(designsResponseData.grouped).length > 0) ||
+          (designsResponseData.designs && designsResponseData.designs.length > 0)) {
           return createDesignCards();
         }
         designsContainer.innerHTML = "<p> No designs yet! </p>";
       } catch (error) {
         designsContainer.innerHTML = `
-          <p>
-            There was an error trying to fetch data. <br>
-            ${error}
-          </p>
-        `;
+            <p>
+              There was an error trying to fetch data. <br>
+              ${error}
+            </p>
+          `;
         console.log(error);
       }
     }

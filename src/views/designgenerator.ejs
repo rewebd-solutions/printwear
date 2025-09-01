@@ -21,8 +21,8 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
 	<!-- Goole fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 	<!-- Google tag (gtag.js) -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-H19W9PLCHF">
@@ -58,7 +58,9 @@
 			</div>
 			<!-- Color Options Will Be Displayed -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-1"></i> <h4>Choose a color</h4></div>
+				<div class="right-box-steps"><i class="fa fa-circle-1"></i>
+					<h4>Choose a color</h4>
+				</div>
 				<div class="color-list">
 					<span class="loader"></span>
 				</div>
@@ -66,10 +68,12 @@
 
 			<!-- Size options will be displayed -->
 			<div class="steps-container">
-				<div class="right-box-steps" id="size-choice-title-container"><i class="fa fa-circle-2"></i> <h4>Choose a size</h4></div>
+				<div class="right-box-steps" id="size-choice-title-container"><i class="fa fa-circle-2"></i>
+					<h4>Choose a size</h4>
+				</div>
 				<div class="size-list"></div>
 			</div>
-			
+
 			<!-- Design Side -->
 			<div class="steps-container">
 				<div class="right-box-steps"><i class="fa fa-circle-3"></i>
@@ -78,7 +82,8 @@
 				<div class="list sides-list">
 					<h3>Sides</h3>
 					<div>
-						<button id="front-side" onclick="changeSide(event, 'front')" class="side-btn active-btn">Front</button>
+						<button id="front-side" onclick="changeSide(event, 'front')"
+							class="side-btn active-btn">Front</button>
 						<button id="back-side" onclick="changeSide(event, 'back')" class="side-btn">Back</button>
 					</div>
 				</div>
@@ -191,60 +196,126 @@
 			<!-- Upload design image input -->
 			<div class="steps-container">
 				<div class="right-box-steps">
-					<i class="fa fa-circle-4"></i> <h4>Choose your design</h4>
-					<input type="search" name="design-search" id="design-search" class="design-name-input" placeholder="Search for your designs..."/>
+					<i class="fa fa-circle-4"></i>
+					<h4>Choose your design</h4>
+					<input type="search" name="design-search" id="design-search" class="design-name-input"
+						placeholder="Search for your designs..." />
 				</div>
 				<div class="user-design-images">
-					
+
 				</div>
-				<div style="display: grid;/* align-items: center; */gap:  1rem;align-items: center;grid-template-columns: 1fr auto 1fr;"><hr style="/* width: 200px; */height: 1px;">OR<hr style="/* width: 200px; */height: 1px;"></div>
+				<div
+					style="display: grid;/* align-items: center; */gap:  1rem;align-items: center;grid-template-columns: 1fr auto 1fr;">
+					<hr style="/* width: 200px; */height: 1px;">OR
+					<hr style="/* width: 200px; */height: 1px;">
+				</div>
 				<div>
-					<label for="design-input" onclick="openDesignUploadModal('image', event)" class="design-input-label">
+					<label for="design-input" onclick="openDesignUploadModal('image', event)"
+						class="design-input-label">
 						<i class="fa fa-file-upload"></i>
 						Upload Design
 					</label>
 					<!-- <input id="design-input" type="file" multiple="true" accept=".png, .jpg, .jpeg" style="display: none" /> -->
 				</div>
 			</div>
-			
+
 			<!-- Upload label input -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-5"></i> <h4>Choose your label</h4></div>
+				<div class="right-box-steps"><i class="fa fa-circle-5"></i>
+					<h4>Choose your label</h4>
+				</div>
 				<div>
 					<input type="checkbox" id="label-check" onchange="includeLabel(event.target.checked)" />
 					<label for="label-check">Include label</label>
 				</div>
 				<div class="user-label-images">
-					
+
 				</div>
-				<div style="display: grid; gap: 1rem;align-items: center;grid-template-columns: 1fr auto 1fr;"><hr style="height: 1px;">OR<hr style="height: 1px;"></div>
+				<div style="display: grid; gap: 1rem;align-items: center;grid-template-columns: 1fr auto 1fr;">
+					<hr style="height: 1px;">OR
+					<hr style="height: 1px;">
+				</div>
 				<div>
-					<label for="design-input" onclick="openDesignUploadModal('label', event)" class="design-input-label">
+					<label for="design-input" onclick="openDesignUploadModal('label', event)"
+						class="design-input-label">
 						<i class="fa fa-file-upload"></i>
 						Upload Label
 					</label>
 					<!-- <input id="design-input" type="file" multiple="true" accept=".png, .jpg, .jpeg" style="display: none" /> -->
 				</div>
 			</div>
-			
+
 			<!-- Enter design name -->
 			<div class="steps-container">
-				<div class="right-box-steps"><i class="fa fa-circle-6"></i><h4>Name your design</h4></div>
+				<div class="right-box-steps"><i class="fa fa-circle-6"></i>
+					<h4>Name your design</h4>
+				</div>
 				<input type="text" placeholder="My top design..." id="design-name" class="design-name-input" required />
 				<h4>Enter unique SKU</h4>
-				<input type="text" oninput="modifySKUInput(event)" placeholder="DESIGN-001, FANCY-2, etc." id="sku-name" class="design-name-input" />
+				<input type="text" oninput="modifySKUInput(event)" placeholder="DESIGN-001, FANCY-2, etc." id="sku-name"
+					class="design-name-input" />
 			</div>
+
+			<!-- Variants Selection -->
+			<div class="steps-container" id="variants-selection" style="display: none;">
+				<div class="right-box-steps"><i class="fa fa-palette"></i>
+					<h4>Select Variants</h4>
+				</div>
+				<p style="margin-bottom: 1rem; color: #666;">Choose which color and size combinations you want to create
+					as separate designs:</p>
+
+				<!-- Selected variants counter -->
+				<div id="selected-variants-count"
+					style="margin-bottom: 1rem; padding: 0.5rem; background: #e8f4f8; border-radius: 4px; border-left: 4px solid #2196F3;">
+					<span id="selected-count-text">0 variants selected</span>
+				</div>
+
+				<!-- Variants grid -->
+				<div id="variants-grid"
+					style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 1rem;">
+					<!-- Variant checkboxes will be populated here -->
+				</div>
+
+				<!-- Select/Deselect all buttons -->
+				<div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+					<button type="button" onclick="selectAllVariants()"
+						style="padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+						Select All
+					</button>
+					<button type="button" onclick="deselectAllVariants()"
+						style="padding: 0.5rem 1rem; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+						Deselect All
+					</button>
+					<button type="button" onclick="selectCurrentColorSizes()"
+						style="padding: 0.5rem 1rem; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+						Select Current Color (All Sizes)
+					</button>
+				</div>
+			</div>
+
 			<!-- Save Image -->
 			<div class="action-buttons">
-				<button onclick="downloadDesign()" class="download-button"><i class="fa-regular fa-download"></i> Download Design</button>
-				<button onclick="saveDesign()" class="save-button"><i class="fa-regular fa-page"></i> Save Design</button>
+				<div style="margin-bottom: 1rem;">
+					<label for="variant-mode-toggle"
+						style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+						<input type="checkbox" id="variant-mode-toggle" onchange="toggleVariantMode()"
+							style="transform: scale(1.2);">
+						<span>Create variants for all colors/sizes</span>
+						<i class="fa fa-info-circle"
+							title="Enable this to create separate designs for every color and size combination"></i>
+					</label>
+				</div>
+				<button onclick="downloadDesign()" class="download-button"><i class="fa-regular fa-download"></i>
+					Download Design</button>
+				<button onclick="saveDesign()" class="save-button"><i class="fa-regular fa-page"></i> Save
+					Design</button>
 			</div>
 		</div>
-	</div>	
-	<% var userName = userName;  %>
-	<script>
-		var userName = '<%= userName %>'
-	</script>
-	<script src="/js/vendor/aos.min.js"></script>
-	<script src="/js/fabric-designer.js"></script>
+	</div>
+	<% var userName=userName; %>
+		<script>
+			var userName = '<%= userName %>'
+		</script>
+		<script src="/js/vendor/aos.min.js"></script>
+		<script src="/js/fabric-designer.js"></script>
 </body>

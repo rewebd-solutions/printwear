@@ -3,6 +3,8 @@ var Product = {};
 
 var productData = {};
 
+let userDesignResponse = {};
+
 /* Canvas Object - fabric.Canvas */
 let fabricCanvas = null;
 
@@ -21,8 +23,8 @@ let canvasState = {
 /** storing design image ids and names so that i can switch em back when changing sides */
 var designImages = {
   front: null,
-  back: null
-}
+  back: null,
+};
 
 /* Design Image Dimensions */
 let designImg, designImageWidth, designImageHeight;
@@ -47,13 +49,25 @@ var isNeckLabelSelected = false;
 
 var savedState = {
   front: false,
-  back: false
-}
+  back: false,
+};
 
 // Design ID from backend before save has been triggered once
 var dbDesignId = null;
 
 var saveDesignResponse = null;
+
+// Track front design selection for back design validation
+var frontSelection = null;
+
+//Track back design selection for front design validation
+var backSelection = null;
+
+// Array to store design variants for bulk saving
+var designVariants = [];
+
+// Flag to track if we're creating variants or single design
+var isCreatingVariants = false;
 
 /* Notfy - Notification Snackbar */
 var notyf = new Notyf();
@@ -77,7 +91,7 @@ const fetchProductData = async () => {
           Redirecting now! Please wait!
         </div>
       </div>
-      `
+      `,
       );
       notyf.error({
         message: "style paramater not defined in URL",
@@ -101,7 +115,7 @@ const fetchProductData = async () => {
     const productDataRequest = await fetch("/getzohoproducts");
     const productDataResponse = await productDataRequest.json();
     productData = productDataResponse[productStyle];
-    
+
     productData.name = productStyle;
 
     const sizeOrder = {
@@ -117,13 +131,15 @@ const fetchProductData = async () => {
       "6XL": 9,
     };
 
-    const productColorsForDescription = Object.keys(productData.colors)
+    const productColorsForDescription = Object.keys(productData.colors);
     /* Modify Product Object */
     Product = {
       ...productData,
       brand: productData.brand,
       name: productData.name,
-      description: productData.description + `\n Available in ${productColorsForDescription.length} colors and ${Object.keys(productData.colors[productColorsForDescription[0]].sizes).length} sizes`,
+      description:
+        productData.description +
+        `\n Available in ${productColorsForDescription.length} colors and ${Object.keys(productData.colors[productColorsForDescription[0]].sizes).length} sizes`,
       category: productData.group,
       colors: Object.keys(productData.colors).map((color, i) => {
         return {
@@ -150,7 +166,7 @@ const fetchProductData = async () => {
         };
       }),
     };
-    
+
     /* First Available Color = Current Color by default */
     currentColor = Product.colors.find((color) => color.frontImage != "")?._id; // declare currentColor here like global var
 
@@ -158,8 +174,12 @@ const fetchProductData = async () => {
     renderColors();
     loadMockupImage();
     displaySizes();
+
+    // Update variants grid if in variant mode
+    if (isCreatingVariants) {
+      populateVariantsGrid();
+    }
   } catch (error) {
-    
     notyf.error({
       message: "There was an error trying to fetch product details!",
       dismissible: true,
@@ -208,8 +228,12 @@ const disableOrderButton = (state, text = "Adding to order...") => {
 /** Disable function for switching sides when saving */
 const disableSideSwitch = (state) => {
   const sideBtns = document.querySelectorAll(".sides-list button");
-  sideBtns.forEach(sideBtn => state ? sideBtn.classList.add("disabled") : sideBtn.classList.remove("disabled"))
-}
+  sideBtns.forEach((sideBtn) =>
+    state
+      ? sideBtn.classList.add("disabled")
+      : sideBtn.classList.remove("disabled"),
+  );
+};
 
 /* Change Current Color and Current Image */
 const changeMockup = (e, color, id) => {
@@ -217,8 +241,6 @@ const changeMockup = (e, color, id) => {
 
   let selectedMockup = Product.colors.find((color) => color._id === id);
   const element = document.getElementById(`${color}-${id}`);
-
-  
 
   renderColorBorder(color, id);
   globalProductID = null;
@@ -242,7 +264,7 @@ const renderColorBorder = (color, id) => {
   const colorButtons = document.querySelectorAll(".color-circle");
   const currentColor = document.getElementById(`${color}-${id}`);
   colorButtons.forEach(
-    (colorButton) => (colorButton.style.border = "2px solid #6a6969")
+    (colorButton) => (colorButton.style.border = "2px solid #6a6969"),
   );
   currentColor.style.border = "3px solid red";
 };
@@ -253,7 +275,7 @@ const renderColors = () => {
   parent.innerHTML = "";
   Product.colors.map((color) => {
     const innerHTML = `${
-      (color.colorImage.front || color.colorImage.back)
+      color.colorImage.front || color.colorImage.back
         ? `
     <div class="color-options" onclick="changeMockup(event, '${
       color.colorName
@@ -275,8 +297,8 @@ const renderColors = () => {
 
 const openSizeChart = () => {
   document.querySelector(".App").insertAdjacentHTML(
-          "afterend",
-          `
+    "afterend",
+    `
           <!-- Modal for size chart -->
           <div class="warning-moda-wrapper">
             <div class="warning-modal">
@@ -287,24 +309,26 @@ const openSizeChart = () => {
               <img src="images/size-charts/${Product.name}.png" alt="Size chart">
             </div>
           </div>
-        `
-        );
-}
+        `,
+  );
+};
 
 /* Load First Mockup Image */
 const loadMockupImage = () => {
   const image = document.getElementById("mockup-image");
   image.src = Product.colors.find(
-    (color) => color._id === currentColor
+    (color) => color._id === currentColor,
   ).colorImage.front;
   const descriptionUL = document.getElementById("product-desc");
   const sizeChartLink = document.getElementById("size-choice-title-container");
-  descriptionUL.innerHTML = Product.description.split("\n").map(desc => `<li>${desc}</li>`).join("\n");
+  descriptionUL.innerHTML = Product.description
+    .split("\n")
+    .map((desc) => `<li>${desc}</li>`)
+    .join("\n");
 
-  sizeChartLink.innerHTML += "<p class='size-chart-link' onclick=\"openSizeChart()\">Size Chart</p>"
+  sizeChartLink.innerHTML +=
+    "<p class='size-chart-link' onclick=\"openSizeChart()\">Size Chart</p>";
 };
-
-
 
 /* Caculate dimensions of Active Canvas Objects */
 const calculateTotalHeight = () => {
@@ -322,7 +346,7 @@ const calculateTotalWidth = () => {
   let totalWidth = object
     ? object.getScaledWidth() * Product.pixelToInchRatio
     : 0;
-  
+
   return totalWidth;
 };
 
@@ -335,7 +359,7 @@ const calculateTotalArea = () => {
         obj.getScaledHeight() *
         obj.getScaledWidth() *
         Product.pixelToInchRatio *
-        Product.pixelToInchRatio
+        Product.pixelToInchRatio,
     )
     .reduce((prev, curr) => prev + curr, 0);
   return totalArea;
@@ -357,10 +381,11 @@ designHeightInput.oninput = (e) => {
   const heightInInches = e.target.value / Product.pixelToInchRatio;
   if (heightInInches <= 0 || !fabricCanvas.getObjects()[0]) return;
   fabricCanvas.getObjects()[0].scaleToHeight(heightInInches);
-  designWidthInput.value = fabricCanvas.getObjects()[0].getScaledWidth() * Product.pixelToInchRatio
-  updateStats(false)
+  designWidthInput.value =
+    fabricCanvas.getObjects()[0].getScaledWidth() * Product.pixelToInchRatio;
+  updateStats(false);
   fabricCanvas.renderAll();
-}
+};
 
 designWidthInput.oninput = (e) => {
   const widthInInches = e.target.value / Product.pixelToInchRatio;
@@ -368,9 +393,9 @@ designWidthInput.oninput = (e) => {
   fabricCanvas.getObjects()[0].scaleToHeight(widthInInches);
   designHeightInput.value =
     fabricCanvas.getObjects()[0].getScaledHeight() * Product.pixelToInchRatio;
-    updateStats(false)
+  updateStats(false);
   fabricCanvas.renderAll();
-}
+};
 
 /* Change Direction Name in Stats */
 const changeStatName = () => {
@@ -387,7 +412,6 @@ const changeStatName = () => {
 };
 
 const updateStats = (shouldUpdateInput = true) => {
-  
   changeStatName();
 
   if (!designImg && !canvasState.front && !canvasState.back) {
@@ -405,29 +429,32 @@ const updateStats = (shouldUpdateInput = true) => {
       canvasState[designDirection == "front" ? "back" : "front"] &&
       canvasState[designDirection == "front" ? "back" : "front"].objects.reduce(
         (ttl, curr) =>
-          ttl +
-          (curr.height * curr.scaleY) / Product.inchToPixelRatio,
-        0
+          ttl + (curr.height * curr.scaleY) / Product.inchToPixelRatio,
+        0,
       );
     const imageWidthInInches =
       canvasState[designDirection == "front" ? "back" : "front"] &&
       canvasState[designDirection == "front" ? "back" : "front"].objects.reduce(
         (ttl, curr) =>
-          ttl +
-          (curr.width * curr.scaleX) / Product.inchToPixelRatio,
-        0
+          ttl + (curr.width * curr.scaleX) / Product.inchToPixelRatio,
+        0,
       );
-    const imageAreaInInches = imageWidthInInches * imageHeightInInches * Product.pixelToInchRatio * Product.pixelToInchRatio
+    const imageAreaInInches =
+      imageWidthInInches *
+      imageHeightInInches *
+      Product.pixelToInchRatio *
+      Product.pixelToInchRatio;
     let printingPrice =
-    imageHeightInInches <= 8.0 &&
-    imageWidthInInches <= 8.0 &&
-    imageHeightInInches > 0 &&
-    imageWidthInInches > 0
-      ? 70.0
-      : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
-      ? 70.0
-      : imageAreaInInches * 1;
-    priceTable.children[8].children[1].innerHTML = "₹" + ((isNeckLabelSelected? 10: 0) + printingPrice + variantPrice);
+      imageHeightInInches <= 8.0 &&
+      imageWidthInInches <= 8.0 &&
+      imageHeightInInches > 0 &&
+      imageWidthInInches > 0
+        ? 70.0
+        : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
+          ? 70.0
+          : imageAreaInInches * 1;
+    priceTable.children[8].children[1].innerHTML =
+      "₹" + ((isNeckLabelSelected ? 10 : 0) + printingPrice + variantPrice);
     return;
   }
 
@@ -442,9 +469,9 @@ const updateStats = (shouldUpdateInput = true) => {
     imageWidthInInches > 0
       ? 70.0
       : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
-      ? 70.0
-      : imageAreaInInches * 1;
-  if(shouldUpdateInput) {
+        ? 70.0
+        : imageAreaInInches * 1;
+  if (shouldUpdateInput) {
     designHeightInput.value = imageHeightInInches;
     designWidthInput.value = imageWidthInInches;
   }
@@ -489,7 +516,7 @@ const changeSize = (e, size, id) => {
   e.target.style.background = "red";
   e.target.style.color = "white";
   e.target.style.transform = "scale(1.1)";
-  
+
   globalProductID = id; // check b4 downloading or saving if this is checked
 
   variantPrice = Product.colors
@@ -530,7 +557,7 @@ const setPixelRatio = (productID) => {
   currentProductVariant = Product.colors
     .find((color) => color._id === currentColor)
     .sizes.find((size) => size.id === productID);
-  
+
   Product.pixelToInchRatio = currentProductVariant.dimensions.length / 500;
   Product.inchToPixelRatio = 500 / currentProductVariant.dimensions.length;
   addFabricCanvasToTemplateDiv();
@@ -594,14 +621,15 @@ const loadState = () => {
   if (!fabricCanvas) return;
   if (canvasState[designDirection] === null) fabricCanvas.clear();
   else fabricCanvas.loadFromJSON(canvasState[designDirection], updateStats);
-  fabricCanvas.getObjects().forEach(obj => obj.setControlsVisibility({
-    mb: false,
-    mt: false,
-    mr: false,
-    ml: false,
-  }));
+  fabricCanvas.getObjects().forEach((obj) =>
+    obj.setControlsVisibility({
+      mb: false,
+      mt: false,
+      mr: false,
+      ml: false,
+    }),
+  );
   updateStats();
-  
 };
 
 /** remove design image function */
@@ -613,19 +641,19 @@ const deleteDesignImage = () => {
   document
     .querySelectorAll(".user-design-image")
     .forEach((element) => element.classList.remove("active-selection"));
-    const removeBtn = document.querySelector(".remove-design");
+  const removeBtn = document.querySelector(".remove-design");
   if (removeBtn) {
     removeBtn.removeEventListener("click", handleImageRemove);
     removeBtn.remove();
   }
-  updateStats()
-}
+  updateStats();
+};
 
 const handleImageRemove = (e) => {
   e.stopPropagation();
   deleteDesignImage();
   const idToDelete = e.target.parentElement.getAttribute("data-id");
-}
+};
 
 /* Add Image to Canvas */
 const addImageToCanvas = async (e, el, imageURL, imageId) => {
@@ -637,20 +665,20 @@ const addImageToCanvas = async (e, el, imageURL, imageId) => {
 
   designImages[designDirection] = imageId;
 
-  document
-    .querySelectorAll(".user-design-image")
-    .forEach((element) => {
-      element.classList.remove("active-selection")
-      const removeBtn = document.querySelector(".remove-design")
-      if (removeBtn) {
-        removeBtn.removeEventListener("click", handleImageRemove);
-        removeBtn.remove()
-      };
-    });
+  document.querySelectorAll(".user-design-image").forEach((element) => {
+    element.classList.remove("active-selection");
+    const removeBtn = document.querySelector(".remove-design");
+    if (removeBtn) {
+      removeBtn.removeEventListener("click", handleImageRemove);
+      removeBtn.remove();
+    }
+  });
   el.classList.add("active-selection");
   el.innerHTML += `<button class="remove-design"><i class="fa fa-close"></i></button>`;
 
-  document.querySelector(".remove-design").addEventListener("click", handleImageRemove)
+  document
+    .querySelector(".remove-design")
+    .addEventListener("click", handleImageRemove);
 
   const blobReq = await fetch(imageURL);
   const blobRes = await blobReq.blob();
@@ -660,7 +688,7 @@ const addImageToCanvas = async (e, el, imageURL, imageId) => {
     fabric.Image.fromURL(imageURL, (designImage) => {
       designImage.scaleToHeight(100);
       designImage.minScaleLimit = 0.01;
-      
+
       /* Updating Sizes */
       designImageHeight = designImage.getScaledHeight();
       designImageWidth = designImage.getScaledWidth();
@@ -698,18 +726,36 @@ const addImageToCanvas = async (e, el, imageURL, imageId) => {
 /* Change Design Area Side */
 const changeSide = (e, side) => {
   /* Storing canvas state */
-  disableButton(savedState.side, "Saved")
+  disableButton(savedState.side, "Saved");
   if (fabricCanvas) canvasState[designDirection] = fabricCanvas.toJSON();
 
   sideChangeButtons.forEach((sideBtn) =>
-    sideBtn.classList.remove("active-btn")
+    sideBtn.classList.remove("active-btn"),
   );
   e.target.classList.add("active-btn");
 
   let selectedMockup = Product.colors.find(
-    (mockup) => mockup._id === currentColor
+    (mockup) => mockup._id === currentColor,
   );
+  // Store the previous design direction before changing
+  const previousDirection = designDirection;
   designDirection = side;
+
+  // If we're switching from front to back and front was saved, preserve frontSelection
+  if (previousDirection === "front" && savedState.front && !frontSelection) {
+    frontSelection = {
+      color: currentColor,
+      variantId: globalProductID,
+    };
+  }
+  // If we're switching from back to front and back was saved, preserve backSelection
+  if (previousDirection === "back" && savedState.back && !backSelection) {
+    backSelection = {
+      color: currentColor,
+      variantId: globalProductID,
+    };
+  }
+
   if (designDirection === "front")
     document.getElementById("mockup-image").src =
       selectedMockup.colorImage.front == ""
@@ -721,29 +767,56 @@ const changeSide = (e, side) => {
         ? "images/warning.png"
         : selectedMockup.colorImage.back;
 
-  document
-    .querySelectorAll(".user-design-image")
-    .forEach((element) => {
-      element.classList.remove("active-selection")
-      const removeBtn = document.querySelector(".remove-design");
-      if (removeBtn) {
-        removeBtn.removeEventListener("click", handleImageRemove);
-        removeBtn.remove();
-      }
-    });
-  
-    if (designImages[designDirection]) {
-      const currDes = document.querySelector(`[data-id='${designImages[designDirection]}']`)
-      currDes.classList.add("active-selection");
-      currDes.innerHTML += `<button class="remove-design"><i class="fa fa-close"></i></button>`;
-      document
-        .querySelector(".remove-design")
-        .addEventListener("click", handleImageRemove);
+  document.querySelectorAll(".user-design-image").forEach((element) => {
+    element.classList.remove("active-selection");
+    const removeBtn = document.querySelector(".remove-design");
+    if (removeBtn) {
+      removeBtn.removeEventListener("click", handleImageRemove);
+      removeBtn.remove();
+    }
+  });
+
+  if (designImages[designDirection]) {
+    const currDes = document.querySelector(
+      `[data-id='${designImages[designDirection]}']`,
+    );
+    currDes.classList.add("active-selection");
+    currDes.innerHTML += `<button class="remove-design"><i class="fa fa-close"></i></button>`;
+    document
+      .querySelector(".remove-design")
+      .addEventListener("click", handleImageRemove);
   }
 
-  
   loadState();
   // changeStatName();
+};
+
+/* Function to programmatically switch design sides (used by modal buttons) */
+const switchDesignSide = (side) => {
+  // Find the side button and simulate a click
+  const sideButtons = document.querySelectorAll('[onclick*="changeSide"]');
+  let targetButton = null;
+
+  sideButtons.forEach((button) => {
+    const onclickAttr = button.getAttribute("onclick");
+    if (onclickAttr && onclickAttr.includes(`'${side}'`)) {
+      targetButton = button;
+    }
+  });
+
+  if (targetButton) {
+    // Create a fake event object
+    const fakeEvent = { target: targetButton };
+    changeSide(fakeEvent, side);
+
+    // Add visual feedback
+    notyf.success(
+      `Switched to ${side} side! Now you can create your ${side} design.`,
+    );
+  } else {
+    console.error(`Could not find button for side: ${side}`);
+    notyf.error(`Could not switch to ${side} side`);
+  }
 };
 
 const checkAndAddOrderButton = async () => {
@@ -753,15 +826,16 @@ const checkAndAddOrderButton = async () => {
   const orderId = hasBeenRedirected ? searchParams.get("id") : null;
 
   if (hasBeenRedirected && orderId) {
-    document.querySelector(".action-buttons").innerHTML += 
+    document.querySelector(".action-buttons").innerHTML +=
       `<button onclick="addToOrder()" class="order-button"><i class="fa-regular fa-list"></i> Add to order</button>`;
   }
-}
+};
 
 const addToOrder = async () => {
   disableOrderButton(true);
 
-  const latestDesign = saveDesignResponse && saveDesignResponse?.designs?.at(-1);
+  const latestDesign =
+    saveDesignResponse && saveDesignResponse?.designs?.at(-1);
   if (!dbDesignId || !latestDesign._id) {
     disableOrderButton(false);
     return notyf.error("Save design before adding to order!");
@@ -780,22 +854,20 @@ const addToOrder = async () => {
       }),
     });
     const addToOrderRes = await addToOrderReq.json();
-    
-  
+
     if (!addToOrderReq.ok) {
       throw new Error("Couldn't add design to order");
     }
-  
+
     notyf.success("Added to orders, redirecting to order page");
     setTimeout(() => {
       location.href = "/placeorder";
     }, 2000);
-    
   } catch (error) {
-    console.log("🚀 ~ addToOrder ~ error:", error)
+    console.log("🚀 ~ addToOrder ~ error:", error);
     notyf.error(error.message);
   }
-}
+};
 
 /* Download Image */
 const downloadDesign = () => {
@@ -828,14 +900,14 @@ const downloadDesign = () => {
 
   // Use a short delay to ensure the browser has updated the DOM with the transform
   setTimeout(() => {
-    
-
     /* tried html2canvas, which yeets a canvas again.. no use */
-    html2canvas(node, { userCORS: true, allowTaint: true, scale: 1.0 }).then(x => console.log(x)).catch(x => console.log(x))
+    html2canvas(node, { userCORS: true, allowTaint: true, scale: 1.0 })
+      .then((x) => console.log(x))
+      .catch((x) => console.log(x));
 
     domtoimage.toBlob(node, config).then(function (blob) {
       // Restore original transformation
-      
+
       window.saveAs(
         blob,
         userName +
@@ -845,11 +917,11 @@ const downloadDesign = () => {
           new Date().toLocaleTimeString() +
           "-" +
           designDirection +
-          ".png"
+          ".png",
       );
 
       canvasContainer.forEach(
-        (item) => (item.style.border = "2px dashed black")
+        (item) => (item.style.border = "2px dashed black"),
       );
     });
   }, 100);
@@ -858,8 +930,33 @@ const downloadDesign = () => {
 /* Save to Cloud */
 const saveDesign = async () => {
   // lot of repeating code, can be optimized later
-  if (!designImg && !confirm("No design selected! You are creating a plain shirt design. Do you want to continue?")) {
+
+  // Validation: if saving back side, ensure front was saved and color+size match and a design exists
+  if (designDirection === "back") {
+    // ensure some design/image is selected on back
+    if (!designImages.back) {
+      notyf.error(
+        "Please select or upload a design for the back before saving.",
+      );
+      return;
+    }
+  }
+
+  if (
+    !designImg &&
+    !confirm(
+      "No design selected! You are creating a plain shirt design. Do you want to continue?",
+    )
+  ) {
     return;
+  }
+
+  // If saving front, remember the current color & variant for later back-side validation if backSelection is null
+  if (designDirection === "front") {
+    frontSelection = {
+      color: currentColor,
+      variantId: globalProductID,
+    };
   }
   if (!globalProductID) return notyf.error("Select a size before continuing!");
   let isSaveSuccessful = false;
@@ -878,10 +975,10 @@ const saveDesign = async () => {
 
   /* Remove Border for Final Image Rendering */
   const canvasContainer = document.querySelectorAll(".canvas-container > *");
-  
+
   try {
     disableButton(true);
-    disableOrderButton("Add to order",true);
+    disableOrderButton("Add to order", true);
     disableSideSwitch(true);
     if (canvasContainer)
       canvasContainer.forEach((item) => (item.style.border = "none"));
@@ -902,10 +999,22 @@ const saveDesign = async () => {
     but since, they changed it to have only one image, comment the below block, query select active desing,
     send the URL to the formData, then send the design image blob separately. */
 
+    let activeSelection = document.querySelector(".active-selection");
     let designImageURL =
-      designImg && document.querySelector(".active-selection").children[0].src;
+      designImg && activeSelection ? activeSelection.children[0].src : "";
     let designImageName =
-      designImg && document.querySelector(".active-selection").children[1].innerText;
+      designImg && activeSelection ? activeSelection.children[1].innerText : "";
+
+    //again check designimge exists or not if not return
+    if (!designImageURL) {
+      if (
+        !confirm(
+          "No design selected! You are creating a plain shirt design. Do you want to continue?",
+        )
+      ) {
+        return;
+      }
+    }
 
     let submitProduct = Product.colors
       .find((x) => x._id === currentColor)
@@ -940,34 +1049,33 @@ const saveDesign = async () => {
         width: parseFloat(calculateTotalWidth().toFixed(3)),
         height: parseFloat(calculateTotalHeight().toFixed(3)),
         top: parseFloat(
-          (fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio).toFixed(
-            3
-          )
+          (
+            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
         ),
         left: parseFloat(
           (
             fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
-          ).toFixed(3)
+          ).toFixed(3),
         ),
-      }
+      };
     } else {
       designModelObject.backDesignDimensions = {
         width: parseFloat(calculateTotalWidth().toFixed(3)),
         height: parseFloat(calculateTotalHeight().toFixed(3)),
         top: parseFloat(
-          (fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio).toFixed(
-            3
-          )
+          (
+            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
         ),
         left: parseFloat(
           (
             fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
-          ).toFixed(3)
+          ).toFixed(3),
         ),
-      }
+      };
     }
-    
-    
+
     const formData = new FormData();
     formData.append("productData", JSON.stringify(designModelObject));
     formData.append("neckLabel", neckLabelId);
@@ -975,7 +1083,7 @@ const saveDesign = async () => {
     formData.append("designImageURL", designImageURL);
     formData.append("designImageName", designImageName);
     formData.append("designId", dbDesignId);
-    
+
     const saveDesignRequest = await fetch("/createdesign", {
       method: "POST",
       body: formData,
@@ -1032,11 +1140,495 @@ const saveDesign = async () => {
     disableButton(false);
     disableSideSwitch(false);
     if (canvasContainer)
-    canvasContainer.forEach(
-      (item) => (item.style.border = "2px dashed black")
-    );
-  } 
+      canvasContainer.forEach(
+        (item) => (item.style.border = "2px dashed black"),
+      );
+  }
   return isSaveSuccessful;
+};
+
+/* Function to collect selected variants from user selection */
+const collectSelectedVariants = () => {
+  const selectedCheckboxes = document.querySelectorAll(
+    ".variant-checkbox:checked",
+  );
+
+  if (selectedCheckboxes.length === 0) {
+    notyf.error("Please select at least one variant to create!");
+    return [];
+  }
+
+  const designName = document.getElementById("design-name").value.trim();
+  const SKU = document.getElementById("sku-name").value.trim();
+
+  if (!designName) {
+    notyf.error("Give your design a name");
+    return [];
+  }
+
+  const variants = [];
+
+  selectedCheckboxes.forEach((checkbox) => {
+    const [colorIndex, sizeIndex] = checkbox.value.split("-").map(Number);
+    const color = Product.colors[colorIndex];
+    const size = color.sizes[sizeIndex];
+
+    const variantData = {
+      productId: Product._id,
+      product: {
+        id: size.id,
+        name: size.name,
+        style: Product.name,
+        color: color.colorName,
+        hex: color.hex,
+        size: size.size,
+        SKU: size.sizeSku,
+        price: size.price,
+        baseImage: {
+          front: color.colorImage.front,
+          back: color.colorImage.back,
+        },
+        dimensions: size.dimensions,
+        gender: Product.gender,
+      },
+      designName: designName,
+      designSKU: SKU,
+      price: parseFloat(calculateTotalArea().toFixed(2)),
+      designDimensions: {
+        width: parseFloat(calculateTotalWidth().toFixed(3)),
+        height: parseFloat(calculateTotalHeight().toFixed(3)),
+        top: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+        left: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+      },
+      backDesignDimensions: {
+        width: parseFloat(calculateTotalWidth().toFixed(3)),
+        height: parseFloat(calculateTotalHeight().toFixed(3)),
+        top: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+        left: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+      },
+      designItems: designImg
+        ? [
+            {
+              itemName:
+                document.querySelector(".active-selection")?.children[1]
+                  ?.innerText || "Design Image",
+              URL:
+                document.querySelector(".active-selection")?.children[0]?.src ||
+                "",
+            },
+          ]
+        : [],
+      neckLabel: neckLabelId,
+      variantType: "color",
+      backPrice: 0, // Will be calculated on backend
+      frontPrice: 0, // Will be calculated on backend
+    };
+
+    variants.push(variantData);
+  });
+
+  console.log(`Collected ${variants.length} selected variants`);
+  return variants;
+};
+
+/* Save all design variants as separate designs */
+const saveDesignVariants = async () => {
+  try {
+    // Validation: if saving back side, ensure front was saved and color+size match and a design exists
+    if (designDirection === "back") {
+      if (!designImages.back) {
+        notyf.error(
+          "Please select or upload a design for the back before saving.",
+        );
+        return;
+      }
+    }
+
+    if (!globalProductID) {
+      notyf.error("Please select a size before creating variants!");
+      return;
+    }
+
+    if (
+      !designImg &&
+      !confirm(
+        "No design selected! You are creating plain shirt variants. Do you want to continue?",
+      )
+    ) {
+      return;
+    }
+
+    const variants = collectSelectedVariants();
+    if (variants.length === 0) {
+      return;
+    }
+
+    const designNameEl = document.getElementById("design-name");
+    if (!designNameEl || !designNameEl.value.trim()) {
+      notyf.error("Give your design a name");
+      return;
+    }
+
+    if (fabricCanvas.getActiveObject()) {
+      fabricCanvas.discardActiveObject().renderAll();
+    }
+
+    disableButton(true);
+    disableOrderButton(true);
+    disableSideSwitch(true);
+
+    // Check if this is updating existing variants
+    const isUpdatingExistingVariants = !!saveDesignResponse?.groupId;
+
+    if (isUpdatingExistingVariants) {
+      notyf.success(
+        `Updating ${variants.length} design variants with back design...`,
+      );
+    } else {
+      notyf.success(`Creating ${variants.length} design variants...`);
+    }
+
+    const canvasContainer = document.querySelectorAll(".canvas-container > *");
+    if (canvasContainer)
+      canvasContainer.forEach((item) => (item.style.border = "none"));
+
+    // Get design image data exactly like saveDesign function does
+    let designImageURL =
+      designImg && document.querySelector(".active-selection").children[0].src;
+    let designImageName =
+      designImg &&
+      document.querySelector(".active-selection").children[1].innerText;
+
+    let submitProduct = Product.colors
+      .find((x) => x._id === currentColor)
+      ?.sizes?.find((size) => size.id === globalProductID);
+
+    if (!submitProduct) {
+      throw new Error(
+        "No product variant selected. Please select a size before creating variants.",
+      );
+    }
+
+    const SKU = document.getElementById("sku-name");
+
+    const constructedProductData = {
+      productId: Product._id,
+      product: {
+        id: submitProduct.id,
+        name: submitProduct.name,
+        style: Product.name,
+        color: Product.colors.find((x) => x._id === currentColor).colorName,
+        hex: Product.colors.find((x) => x._id === currentColor).hex,
+        size: submitProduct.size,
+        SKU: submitProduct.sizeSku,
+        price: submitProduct.price,
+        baseImage: {
+          front: Product.colors.find((x) => x._id === currentColor).colorImage
+            .front,
+          back: Product.colors.find((x) => x._id === currentColor).colorImage
+            .back,
+        },
+        dimensions: submitProduct.dimensions,
+        gender: Product.gender,
+        productId: Product._id,
+      },
+      designName: designNameEl.value,
+      designSKU: SKU.value,
+      price: parseFloat(calculateTotalArea().toFixed(2)),
+    };
+
+    // Add design dimensions based on current direction (exactly like saveDesign)
+    if (designDirection === "front") {
+      constructedProductData.designDimensions = {
+        width: parseFloat(calculateTotalWidth().toFixed(3)),
+        height: parseFloat(calculateTotalHeight().toFixed(3)),
+        top: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+        left: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+      };
+    } else {
+      constructedProductData.backDesignDimensions = {
+        width: parseFloat(calculateTotalWidth().toFixed(3)),
+        height: parseFloat(calculateTotalHeight().toFixed(3)),
+        top: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.top ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+        left: parseFloat(
+          (
+            fabricCanvas.getObjects()?.[0]?.left ?? 0 * Product.pixelToInchRatio
+          ).toFixed(3),
+        ),
+      };
+    }
+
+    // Build FormData exactly like saveDesign (no designImageFile blob)
+    const formData = new FormData();
+    formData.append("productData", JSON.stringify(constructedProductData));
+    formData.append("variants", JSON.stringify(variants));
+    formData.append("parentDesignId", dbDesignId || "");
+    formData.append("designImageURL", designImageURL || "");
+    formData.append("designImageName", designImageName || "");
+    formData.append("direction", designDirection);
+    formData.append("neckLabel", neckLabelId || "");
+
+    // If updating existing variants, pass the groupId
+    if (isUpdatingExistingVariants) {
+      formData.append("groupId", saveDesignResponse?.groupId || "");
+      console.log(
+        `Updating existing variant group: ${saveDesignResponse?.groupId || "unknown"}`,
+      );
+    }
+
+    console.log(Object.fromEntries(formData));
+
+    // POST multipart to server (same as saveDesign pattern - no blob attachment)
+    const saveVariantsRequest = await fetch("/createdesignvariants", {
+      method: "POST",
+      body: formData,
+    });
+
+    const saveVariantsResponse = await saveVariantsRequest.json();
+
+    if (!saveVariantsRequest.ok) {
+      const errorMessage =
+        saveVariantsResponse.error ||
+        saveVariantsResponse.details ||
+        "Failed to save variants";
+      throw new Error(errorMessage);
+    }
+
+    if (saveVariantsResponse?.groupId) {
+      // Initialize saveDesignResponse if it's null
+      if (!saveDesignResponse) {
+        saveDesignResponse = {};
+      }
+      saveDesignResponse.groupId = saveVariantsResponse.groupId;
+    }
+
+    if (isUpdatingExistingVariants) {
+      notyf.success(
+        `Successfully updated ${saveVariantsResponse.variants?.length || 0} variants with back design!`,
+      );
+    } else {
+      notyf.success(
+        saveVariantsResponse.message || "Variants created successfully!",
+      );
+    }
+
+    document.querySelector(".save-button").innerHTML =
+      isUpdatingExistingVariants ? "Variants Updated!" : "Variants Saved!";
+    savedState[designDirection] = true;
+
+    if (
+      designDirection === "front" &&
+      saveVariantsResponse.variants &&
+      saveVariantsResponse.variants.length > 0
+    ) {
+      if (!dbDesignId) {
+        dbDesignId = saveVariantsResponse.variants[0]._id; // Use first variant's ID
+      }
+      scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      document.querySelector(".App").insertAdjacentHTML(
+        "afterend",
+        `
+          <!-- modal for variant save -->
+          <div class="warning-moda-wrapper">
+            <div class="warning-modal">
+              <button onclick="document.querySelector('.warning-moda-wrapper').remove()"
+                style="margin-left: auto;padding: 0.4rem 0.8rem; cursor: pointer; border: none; outline: 1px solid silver; border-radius: 100%;"><i class="fa fa-xmark"></i></button>
+                Design variants for ${designDirection} saved successfully!<br />
+                <img src="images/tuto.png" alt="Instruction to save back image">
+                <br />
+                To save ${designDirection == "front" ? "back" : "front"} design variants, click ${designDirection == "front" ? "Back" : "Front"} button as shown in the image and save variants again
+                If already saved Ignore this!
+                </div>
+          </div>
+        `,
+      );
+    } else if (!dbDesignId && saveVariantsResponse.variants?.length > 0) {
+      dbDesignId = saveVariantsResponse.variants[0]._id;
+    }
+
+    if (canvasContainer)
+      canvasContainer.forEach(
+        (item) => (item.style.border = "2px dashed black"),
+      );
+
+    disableButton(false);
+    disableOrderButton(false);
+    disableSideSwitch(false);
+
+    return saveVariantsResponse;
+  } catch (error) {
+    console.error("Error saving variants:", error);
+    notyf.error(error.message || "Failed to save design variants");
+    disableButton(false);
+    disableOrderButton(false);
+    disableSideSwitch(false);
+    const canvasContainer = document.querySelectorAll(".canvas-container > *");
+    if (canvasContainer)
+      canvasContainer.forEach(
+        (item) => (item.style.border = "2px dashed black"),
+      );
+    throw error;
+  }
+};
+
+/* Toggle between single design and variant creation modes */
+const toggleVariantMode = () => {
+  isCreatingVariants = !isCreatingVariants;
+
+  const saveButton = document.querySelector(".save-button");
+  const downloadButton = document.querySelector(".download-button");
+  const variantsSelection = document.getElementById("variants-selection");
+
+  if (isCreatingVariants) {
+    saveButton.innerHTML =
+      '<i class="fa-regular fa-page"></i> Save Selected Variants';
+    saveButton.onclick = saveDesignVariants;
+    downloadButton.style.display = "none"; // Hide download in variant mode
+    variantsSelection.style.display = "block"; // Show variants selection
+    populateVariantsGrid();
+    notyf.success(
+      "Variant mode enabled: Select which color/size combinations to create",
+    );
+  } else {
+    saveButton.innerHTML = '<i class="fa-regular fa-page"></i> Save Design';
+    saveButton.onclick = saveDesign;
+    downloadButton.style.display = "inline-block";
+    variantsSelection.style.display = "none"; // Hide variants selection
+    notyf.success("Single design mode enabled");
+  }
+};
+
+/* Populate the variants selection grid */
+const populateVariantsGrid = () => {
+  if (!Product || !Product.colors) {
+    document.getElementById("variants-grid").innerHTML =
+      "<p style='text-align: center; color: #666;'>No product selected</p>";
+    return;
+  }
+
+  const variantsGrid = document.getElementById("variants-grid");
+  let gridHTML = "";
+
+  Product.colors.forEach((color, colorIndex) => {
+    gridHTML += `
+      <div style="margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px;">
+          <div style="width: 20px; height: 20px; background-color: ${color.hex}; border-radius: 50%; border: 2px solid #ddd;"></div>
+          <strong>${color.colorName}</strong>
+          <button type="button" onclick="toggleColorSelection(${colorIndex})" style="margin-left: auto; padding: 0.25rem 0.5rem; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.8rem;">
+            Toggle All
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem; margin-left: 1rem;">
+    `;
+
+    color.sizes.forEach((size, sizeIndex) => {
+      gridHTML += `
+        <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: white;" 
+               onmouseover="this.style.background='#f0f0f0'" 
+               onmouseout="this.style.background='white'">
+          <input type="checkbox" class="variant-checkbox" value="${colorIndex}-${sizeIndex}" onchange="updateSelectedCount()">
+          <div style="flex: 1;">
+            <div style="font-weight: 500;">${size.size}</div>
+            <div style="font-size: 0.8rem; color: #666;">₹${size.price}</div>
+          </div>
+        </label>
+      `;
+    });
+
+    gridHTML += `
+        </div>
+      </div>
+    `;
+  });
+
+  variantsGrid.innerHTML = gridHTML;
+  updateSelectedCount();
+};
+
+/* Update the selected variants count */
+const updateSelectedCount = () => {
+  const selectedCheckboxes = document.querySelectorAll(
+    ".variant-checkbox:checked",
+  );
+  const countElement = document.getElementById("selected-count-text");
+  countElement.textContent = `${selectedCheckboxes.length} variants selected`;
+};
+
+/* Select all variants */
+const selectAllVariants = () => {
+  const checkboxes = document.querySelectorAll(".variant-checkbox");
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = true;
+  });
+  updateSelectedCount();
+};
+
+/* Deselect all variants */
+const deselectAllVariants = () => {
+  const checkboxes = document.querySelectorAll(".variant-checkbox");
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+  updateSelectedCount();
+};
+
+/* Select all sizes for the current color */
+const selectCurrentColorSizes = () => {
+  if (!Product || currentColor === undefined) {
+    notyf.error("No color currently selected");
+    return;
+  }
+
+  const checkboxes = document.querySelectorAll(
+    `.variant-checkbox[value^="${currentColor}-"]`,
+  );
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = true;
+  });
+  updateSelectedCount();
+  notyf.success(`Selected all sizes for current color`);
+};
+
+/* Toggle all sizes for a specific color */
+const toggleColorSelection = (colorIndex) => {
+  const checkboxes = document.querySelectorAll(
+    `.variant-checkbox[value^="${colorIndex}-"]`,
+  );
+  const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
+
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = !allChecked;
+  });
+  updateSelectedCount();
 };
 
 /* Set Design Position */
@@ -1050,7 +1642,7 @@ const setPosition = (e, position) => {
   const canvasHeight = fabricCanvas.height;
 
   positionChangeButtons.forEach((positionBtn) =>
-    positionBtn.classList.remove("active-btn")
+    positionBtn.classList.remove("active-btn"),
   );
   e.target.classList.add("active-btn");
 
@@ -1101,21 +1693,26 @@ const populateUserDesigns = (data = userDesignResponse) => {
   userDesignsWrapper.innerHTML = "";
   if (!data || data.images.length === 0)
     return (userDesignsWrapper.innerHTML = "No uploads yet!");
-  userDesignsWrapper.innerHTML = data.images.map((imageItem) => {
-    let currentImage = new Image();
-    currentImage.src = imageItem.url;
+  userDesignsWrapper.innerHTML = data.images
+    .map((imageItem) => {
+      let currentImage = new Image();
+      currentImage.src = imageItem.url;
 
-     return `
+      return `
     <div class="user-design-image" onclick="addImageToCanvas(event, this, this.children[0].src, '${imageItem._id}')" data-id='${imageItem._id}'>
       <img src="${imageItem.url}" alt="" loading="lazy">
       <p>${imageItem.name}</p>
     </div>`;
-    // currentImage.addEventListener("load", () => {
-    // })
-  }).reverse().join('\n');
+      // currentImage.addEventListener("load", () => {
+      // })
+    })
+    .reverse()
+    .join("\n");
 
   if (designImages[designDirection])
-      document.querySelector(`[data-id='${designImages[designDirection]}']`).classList.add("active-selection")
+    document
+      .querySelector(`[data-id='${designImages[designDirection]}']`)
+      .classList.add("active-selection");
 };
 
 const fetchUserDesigns = async () => {
@@ -1126,26 +1723,28 @@ const fetchUserDesigns = async () => {
       populateUserDesigns();
     }
   } catch (error) {
-    
     notyf.error("Something went wrong!");
   }
 };
 
 const populateUserLabels = (data = userLabelsResponse) => {
   userLabelsWrapper.innerHTML = "";
-  
+
   if (!data || data.labels.length == 0)
     return (userLabelsWrapper.innerHTML = "No labels yet!");
-  userLabelsWrapper.innerHTML = data.labels.map((imageItem) => {
-    let currentImage = new Image();
-    currentImage.src = imageItem.url;
+  userLabelsWrapper.innerHTML = data.labels
+    .map((imageItem) => {
+      let currentImage = new Image();
+      currentImage.src = imageItem.url;
 
-    return `
+      return `
     <div class="user-label-image" onclick="selectLabel(this, '${imageItem._id}')">
       <img src="${imageItem.url}" loading="lazy" alt="${imageItem.name}">
       <p>${imageItem.name}</p>
     </div>`;
-  }).reverse().join('\n');
+    })
+    .reverse()
+    .join("\n");
 };
 
 const fetchUserLabels = async () => {
@@ -1156,7 +1755,6 @@ const fetchUserLabels = async () => {
       populateUserLabels();
     }
   } catch (error) {
-    
     notyf.error("Something went wrong in fetching labels!");
   }
 };
@@ -1203,16 +1801,16 @@ document.addEventListener(
       handleImageRemove(e);
     }
   },
-  false
+  false,
 );
 
 document.querySelector("#design-search").addEventListener("input", (e) => {
   const searchKey = e.target.value.trim();
   if (searchKey == "") return populateUserDesigns();
   const searchDesigns = userDesignResponse.images.filter((design) =>
-    design.name.toLowerCase().includes(searchKey.toLowerCase())
+    design.name.toLowerCase().includes(searchKey.toLowerCase()),
   );
-  
+
   if (searchDesigns.length == 0)
     return (userDesignsWrapper.innerHTML = "Invalid Search");
   populateUserDesigns({ images: searchDesigns });
