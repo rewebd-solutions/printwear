@@ -164,8 +164,9 @@ p {
   display: flex;
   border-radius: 6px;
 }
+
 .card-img img {
-  width:  100%;
+  width: 100%;
   object-fit: scale-down;
 }
 
@@ -360,6 +361,7 @@ p {
     opacity: 0;
     transform: translateY(30px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -459,7 +461,8 @@ p {
   font-weight: 700;
 }
 
-.product-colors, .product-sizes {
+.product-colors,
+.product-sizes {
   display: flex;
   align-items: center;
   gap: 0.2rem;
@@ -477,7 +480,8 @@ p {
   gap: 0.5rem
 }
 
-.color-circle, .size-circle {
+.color-circle,
+.size-circle {
   width: 20px;
   height: 20px;
   border-radius: 100%;
@@ -611,7 +615,8 @@ button#add-woocommerce:hover {
   background-color: white;
 }
 
-#name-search, .shop-price {
+#name-search,
+.shop-price {
   padding: 0.2rem 0.5rem;
   font-size: 1rem;
   border-radius: 5px;
@@ -621,7 +626,7 @@ button#add-woocommerce:hover {
   height: 2.25rem;
 }
 
-.shop-price { 
+.shop-price {
   width: 6rem;
 }
 
@@ -694,7 +699,8 @@ input::placeholder {
   position: relative;
 }
 
-.variant-summary, .single-variant-info {
+.variant-summary,
+.single-variant-info {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1198,26 +1204,30 @@ input::placeholder {
   margin: 1rem 0;
 }
 
-.color-selection, .size-selection {
+.color-selection,
+.size-selection {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
 }
 
-.color-selection p, .size-selection p {
+.color-selection p,
+.size-selection p {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
   color: #333;
 }
 
-.color-options, .size-options {
+.color-options,
+.size-options {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
 }
 
-.color-option, .size-option {
+.color-option,
+.size-option {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1231,14 +1241,16 @@ input::placeholder {
   min-width: 70px;
 }
 
-.color-option:hover, .size-option:hover {
+.color-option:hover,
+.size-option:hover {
   border-color: #F05A30;
   background: #fef7f5;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(240, 90, 48, 0.2);
 }
 
-.color-option.selected, .size-option.selected {
+.color-option.selected,
+.size-option.selected {
   border-color: #F05A30;
   background: #F05A30;
   color: white;
@@ -1320,4 +1332,114 @@ input::placeholder {
   background: rgba(248, 249, 250, 0.9);
   color: #666;
   gap: 0.5rem;
+}
+
+/* Pagination Styles */
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+  padding: 0 1rem;
+}
+
+.results-per-page {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.results-per-page select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+.pagination-info span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.pagination-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 2rem 0;
+  padding: 1rem;
+}
+
+.pagination-nav button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-nav button:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.pagination-nav button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.page-btn {
+  min-width: 40px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.page-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.page-btn.active {
+  background: #d84a20;
+  color: white;
+  border-color: #d84a20;
+}
+
+.page-ellipsis {
+  padding: 0.5rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .pagination-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pagination-nav {
+    gap: 0.25rem;
+  }
+
+  .pagination-nav button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .page-btn {
+    min-width: 35px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
 }

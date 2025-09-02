@@ -69,6 +69,220 @@ var designVariants = [];
 // Flag to track if we're creating variants or single design
 var isCreatingVariants = false;
 
+// Function to disable UI elements when switching sides after save
+const disableUIElementsAfterSave = () => {
+  // Check if either front or back has been saved
+  const hasAnySideSaved = savedState.front || savedState.back;
+
+  if (hasAnySideSaved) {
+    // Disable variant mode toggle
+    const variantToggle = document.getElementById("variant-mode-toggle");
+    if (variantToggle) {
+      variantToggle.disabled = true;
+      variantToggle.parentElement.style.opacity = "0.5";
+      variantToggle.parentElement.style.pointerEvents = "none";
+    }
+
+    // Disable color selection
+    const colorButtons = document.querySelectorAll(".color-circle");
+    colorButtons.forEach(button => {
+      button.style.pointerEvents = "none";
+      button.style.opacity = "0.5";
+    });
+
+    // Disable size selection - enhanced to cover all size elements
+    const sizeButtons = document.querySelectorAll(".size-list button, .size-list .size-option, .size-list select, .size-list input");
+    sizeButtons.forEach(button => {
+      button.disabled = true;
+      button.style.pointerEvents = "none";
+      button.style.opacity = "0.5";
+    });
+
+    // Also disable the entire size list container
+    const sizeContainer = document.querySelector(".size-list");
+    if (sizeContainer) {
+      sizeContainer.style.pointerEvents = "none";
+      sizeContainer.style.opacity = "0.5";
+    }
+
+    // Disable design name input
+    const designNameInput = document.getElementById("design-name");
+    if (designNameInput) {
+      designNameInput.disabled = true;
+      designNameInput.style.opacity = "0.5";
+      designNameInput.style.pointerEvents = "none";
+    }
+
+    // Hide variants selection if it's visible
+    const variantsSelection = document.getElementById("variants-selection");
+    if (variantsSelection && isCreatingVariants) {
+      variantsSelection.style.display = "none";
+      // Reset to single design mode
+      isCreatingVariants = false;
+      const saveButton = document.querySelector(".save-button");
+      if (saveButton) {
+        saveButton.innerHTML = '<i class="fa-regular fa-page"></i> Save Design';
+        saveButton.onclick = saveDesign;
+      }
+    }
+  }
+
+  // Handle save button and messages based on current side
+  updateSaveButtonState();
+
+  // Remove any existing indicator
+  const existingIndicator = document.querySelector(".design-side-indicator");
+  if (existingIndicator) {
+    existingIndicator.remove();
+  }
+};
+
+// New function to handle save button state based on current side
+const updateSaveButtonState = () => {
+  const saveButton = document.querySelector(".save-button");
+  const currentSideIsSaved = savedState[designDirection];
+  const bothSidesSaved = savedState.front && savedState.back;
+
+  // Remove any existing saved message
+  const existingSavedMessage = document.querySelector(".design-saved-message");
+  if (existingSavedMessage) {
+    existingSavedMessage.remove();
+  }
+
+  if (currentSideIsSaved) {
+    // Current side is already saved - hide save button and show message
+    if (saveButton) {
+      saveButton.style.display = "none";
+    }
+
+    // Create and show saved message
+    const savedMessage = document.createElement("div");
+    savedMessage.className = "design-saved-message";
+
+    if (bothSidesSaved) {
+      savedMessage.innerHTML = `
+        <div style="
+          background: #d4edda; 
+          border: 1px solid #c3e6cb; 
+          color: #155724; 
+          padding: 1rem; 
+          border-radius: 8px; 
+          text-align: center;
+          margin: 1rem 0;
+          font-size: 0.95rem;
+          line-height: 1.4;
+        ">
+          <i class="fa fa-check-circle" style="color: #28a745; font-size: 1.2em; margin-right: 0.5rem;"></i>
+          <strong>Design Completed!</strong><br>
+          Both front and back designs have been saved. This design is now locked.<br>
+          <small style="color: #0d5a1a; margin-top: 0.5rem; display: block;">
+            <i class="fa fa-lightbulb" style="margin-right: 0.3rem;"></i>
+            To create a new design, go to <strong>Product Gallery</strong> and select a different product.
+          </small>
+        </div>
+      `;
+    } else {
+      const otherSide = designDirection === "front" ? "back" : "front";
+      savedMessage.innerHTML = `
+        <div style="
+          background: #fff3cd; 
+          border: 1px solid #ffeaa7; 
+          color: #856404; 
+          padding: 1rem; 
+          border-radius: 8px; 
+          text-align: center;
+          margin: 1rem 0;
+          font-size: 0.95rem;
+          line-height: 1.4;
+        ">
+          <i class="fa fa-info-circle" style="color: #f39c12; font-size: 1.2em; margin-right: 0.5rem;"></i>
+          <strong>${designDirection.charAt(0).toUpperCase() + designDirection.slice(1)} Design Already Saved!</strong><br>
+          Switch to the <strong>${otherSide}</strong> side to add another design.<br>
+          <small style="color: #6c4e00; margin-top: 0.5rem; display: block;">
+            <i class="fa fa-lightbulb" style="margin-right: 0.3rem;"></i>
+            Click "${otherSide.charAt(0).toUpperCase() + otherSide.slice(1)}" button above to switch sides.
+          </small>
+        </div>
+      `;
+    }
+
+    if (saveButton && saveButton.parentNode) {
+      saveButton.parentNode.insertBefore(savedMessage, saveButton.nextSibling);
+    }
+  } else {
+    // Current side is not saved - show save button
+    if (saveButton) {
+      saveButton.style.display = "block";
+      saveButton.innerHTML = '<i class="fa-regular fa-page"></i> Save Design';
+      saveButton.onclick = isCreatingVariants ? saveDesignVariants : saveDesign;
+    }
+  }
+};
+
+// Function to enable UI elements (if needed for reset)
+const enableUIElementsAfterReset = () => {
+  // Enable variant mode toggle
+  const variantToggle = document.getElementById("variant-mode-toggle");
+  if (variantToggle) {
+    variantToggle.disabled = false;
+    variantToggle.parentElement.style.opacity = "1";
+    variantToggle.parentElement.style.pointerEvents = "auto";
+  }
+
+  // Enable color selection
+  const colorButtons = document.querySelectorAll(".color-circle");
+  colorButtons.forEach(button => {
+    button.style.pointerEvents = "auto";
+    button.style.opacity = "1";
+  });
+
+  // Enable size selection - enhanced to cover all size elements
+  const sizeButtons = document.querySelectorAll(".size-list button, .size-list .size-option, .size-list select, .size-list input");
+  sizeButtons.forEach(button => {
+    button.disabled = false;
+    button.style.pointerEvents = "auto";
+    button.style.opacity = "1";
+  });
+
+  // Re-enable the entire size list container
+  const sizeContainer = document.querySelector(".size-list");
+  if (sizeContainer) {
+    sizeContainer.style.pointerEvents = "auto";
+    sizeContainer.style.opacity = "1";
+  }
+
+  // Enable design name input
+  const designNameInput = document.getElementById("design-name");
+  if (designNameInput) {
+    designNameInput.disabled = false;
+    designNameInput.style.opacity = "1";
+    designNameInput.style.pointerEvents = "auto";
+  }
+
+  // Restore save button
+  const saveButton = document.querySelector(".save-button");
+  if (saveButton) {
+    saveButton.style.display = "block";
+    saveButton.innerHTML = '<i class="fa-regular fa-page"></i> Save Design';
+    saveButton.onclick = saveDesign;
+  }
+
+  // Remove saved message
+  const savedMessage = document.querySelector(".design-saved-message");
+  if (savedMessage) {
+    savedMessage.remove();
+  }
+
+  // Update save button state based on current side
+  updateSaveButtonState();
+
+  // Remove indicator
+  const sideIndicator = document.querySelector(".design-side-indicator");
+  if (sideIndicator) {
+    sideIndicator.remove();
+  }
+};
+
 /* Notfy - Notification Snackbar */
 var notyf = new Notyf();
 /* Initialize Animate On Scroll */
@@ -237,6 +451,13 @@ const disableSideSwitch = (state) => {
 
 /* Change Current Color and Current Image */
 const changeMockup = (e, color, id) => {
+  // Prevent color changes if any side has been saved
+  const hasAnySideSaved = savedState.front || savedState.back;
+  if (hasAnySideSaved) {
+    notyf.error("Cannot change color after a design has been saved. You can only add designs to the other side.");
+    return;
+  }
+
   let mockupImageContainer = document.getElementById("mockup-image");
 
   let selectedMockup = Product.colors.find((color) => color._id === id);
@@ -274,21 +495,18 @@ const renderColors = () => {
   const parent = document.querySelector(".color-list");
   parent.innerHTML = "";
   Product.colors.map((color) => {
-    const innerHTML = `${
-      color.colorImage.front || color.colorImage.back
-        ? `
-    <div class="color-options" onclick="changeMockup(event, '${
-      color.colorName
-    }', ${color._id})">
+    const innerHTML = `${color.colorImage.front || color.colorImage.back
+      ? `
+    <div class="color-options" onclick="changeMockup(event, '${color.colorName
+      }', ${color._id})">
       <span class="color-circle" style="background: ${color.hex}; border: 
-      ${
-        color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
+      ${color._id === currentColor ? "3px solid red" : "2px solid #6a6969;"
       }" id="${color.colorName}-${color._id}"></span>
       <p>${color.colorName}</p>
     </div>
     `
-        : ``
-    }
+      : ``
+      }
     
     `;
     parent.innerHTML += innerHTML;
@@ -446,9 +664,9 @@ const updateStats = (shouldUpdateInput = true) => {
       Product.pixelToInchRatio;
     let printingPrice =
       imageHeightInInches <= 8.0 &&
-      imageWidthInInches <= 8.0 &&
-      imageHeightInInches > 0 &&
-      imageWidthInInches > 0
+        imageWidthInInches <= 8.0 &&
+        imageHeightInInches > 0 &&
+        imageWidthInInches > 0
         ? 70.0
         : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
           ? 70.0
@@ -464,9 +682,9 @@ const updateStats = (shouldUpdateInput = true) => {
 
   let printingPrice =
     imageHeightInInches <= 8.0 &&
-    imageWidthInInches <= 8.0 &&
-    imageHeightInInches > 0 &&
-    imageWidthInInches > 0
+      imageWidthInInches <= 8.0 &&
+      imageHeightInInches > 0 &&
+      imageWidthInInches > 0
       ? 70.0
       : imageAreaInInches * 1 < 70.0 && imageAreaInInches * 1 > 0.5
         ? 70.0
@@ -498,7 +716,7 @@ const updateStats = (shouldUpdateInput = true) => {
     priceTable.children[7].children[1].innerHTML = "₹" + frontPrintingPrice;
     priceTable.children[8].children[1].innerHTML = isNeckLabelSelected
       ? "₹" +
-        (printingPrice + frontPrintingPrice + variantPrice + 10).toFixed(2)
+      (printingPrice + frontPrintingPrice + variantPrice + 10).toFixed(2)
       : "₹" + (printingPrice + frontPrintingPrice + variantPrice).toFixed(2);
   }
 };
@@ -788,6 +1006,10 @@ const changeSide = (e, side) => {
   }
 
   loadState();
+
+  // Disable UI elements if any side has been saved
+  disableUIElementsAfterSave();
+
   // changeStatName();
 };
 
@@ -813,6 +1035,9 @@ const switchDesignSide = (side) => {
     notyf.success(
       `Switched to ${side} side! Now you can create your ${side} design.`,
     );
+
+    // Apply UI restrictions if any side has been saved
+    disableUIElementsAfterSave();
   } else {
     console.error(`Could not find button for side: ${side}`);
     notyf.error(`Could not switch to ${side} side`);
@@ -911,13 +1136,13 @@ const downloadDesign = () => {
       window.saveAs(
         blob,
         userName +
-          "_" +
-          designName.value +
-          "_" +
-          new Date().toLocaleTimeString() +
-          "-" +
-          designDirection +
-          ".png",
+        "_" +
+        designName.value +
+        "_" +
+        new Date().toLocaleTimeString() +
+        "-" +
+        designDirection +
+        ".png",
       );
 
       canvasContainer.forEach(
@@ -1106,6 +1331,9 @@ const saveDesign = async () => {
     savedState[designDirection] = true;
     disableSideSwitch(false);
 
+    // Disable UI elements after successful save
+    disableUIElementsAfterSave();
+
     if (!dbDesignId) {
       dbDesignId = saveDesignResponse.designs.at(-1)._id;
       scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -1120,11 +1348,9 @@ const saveDesign = async () => {
                 Design for ${designDirection} was saved successfully!<br />
                 <img src="images/tuto.png" alt="Instruction to save back image">
                 <br />
-                To save ${
-                  designDirection == "front" ? "back" : "front"
-                } design, click ${
-                  designDirection == "front" ? "Back" : "Front"
-                } button as shown in the image and save it again
+                To save ${designDirection == "front" ? "back" : "front"
+        } design, click ${designDirection == "front" ? "Back" : "Front"
+        } button as shown in the image and save it again
             </div>
           </div>
         `,
@@ -1225,15 +1451,15 @@ const collectSelectedVariants = () => {
       },
       designItems: designImg
         ? [
-            {
-              itemName:
-                document.querySelector(".active-selection")?.children[1]
-                  ?.innerText || "Design Image",
-              URL:
-                document.querySelector(".active-selection")?.children[0]?.src ||
-                "",
-            },
-          ]
+          {
+            itemName:
+              document.querySelector(".active-selection")?.children[1]
+                ?.innerText || "Design Image",
+            URL:
+              document.querySelector(".active-selection")?.children[0]?.src ||
+              "",
+          },
+        ]
         : [],
       neckLabel: neckLabelId,
       variantType: "color",
@@ -1446,6 +1672,9 @@ const saveDesignVariants = async () => {
       isUpdatingExistingVariants ? "Variants Updated!" : "Variants Saved!";
     savedState[designDirection] = true;
 
+    // Disable UI elements after successful save
+    disableUIElementsAfterSave();
+
     if (
       designDirection === "front" &&
       saveVariantsResponse.variants &&
@@ -1503,6 +1732,17 @@ const saveDesignVariants = async () => {
 
 /* Toggle between single design and variant creation modes */
 const toggleVariantMode = () => {
+  // Prevent toggling if any side has been saved
+  const hasAnySideSaved = savedState.front || savedState.back;
+  if (hasAnySideSaved) {
+    const variantToggle = document.getElementById("variant-mode-toggle");
+    if (variantToggle) {
+      variantToggle.checked = isCreatingVariants; // Reset to current state
+    }
+    notyf.error("Cannot change variant mode after a design has been saved. You can only add designs to the other side.");
+    return;
+  }
+
   isCreatingVariants = !isCreatingVariants;
 
   const saveButton = document.querySelector(".save-button");

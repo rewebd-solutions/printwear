@@ -1428,6 +1428,11 @@ exports.createdesignvariants = async (req, res) => {
 
         for (let existingDesign of existingGroupDesigns) {
           try {
+            // Update designSKU if custom SKU is provided
+            if (productData?.designSKU != "") {
+              existingDesign.designSKU = (productData?.product?.SKU || "") + "-" + productData?.designSKU;
+            }
+
             // Add front design dimensions + price
             existingDesign[
               direction === "front"
@@ -1485,6 +1490,17 @@ exports.createdesignvariants = async (req, res) => {
                 );
               }
             } else {
+              // Initialize designImage and designImageStatus if not exists
+              if (!existingDesign.designImage) {
+                existingDesign.designImage = { front: null, back: null };
+              }
+              if (!existingDesign.designImageStatus) {
+                existingDesign.designImageStatus = {
+                  front: { status: "processing" },
+                  back: { status: "processing" },
+                };
+              }
+
               existingDesign.designImageStatus[direction] = {
                 status: "completed",
               };
@@ -1519,7 +1535,7 @@ exports.createdesignvariants = async (req, res) => {
         }
 
         console.log("🚀 ~ groupedJobData:", groupedJobData)
-        
+
         try {
           await Promise.all(
             Object.keys(groupedJobData).map(async (color) => {
@@ -1617,12 +1633,14 @@ exports.createdesignvariants = async (req, res) => {
         const variantUniqueSKU =
           variant.product?.SKU +
           "-" +
-          (variant?.designSKU != ""
+          (variant?.designSKU && variant?.designSKU != ""
             ? variant.designSKU
-            : otpGen.generate(5, {
-              lowerCaseAlphabets: false,
-              specialChars: false,
-            }));
+            : productData?.designSKU && productData?.designSKU != ""
+              ? productData.designSKU
+              : otpGen.generate(5, {
+                lowerCaseAlphabets: false,
+                specialChars: false,
+              }));
 
         const printCharges =
           designImageHeight <= 8.0 && designImageWidth <= 8.0
@@ -1693,6 +1711,16 @@ exports.createdesignvariants = async (req, res) => {
               },
             ]
             : [],
+          // Initialize designImage object to prevent undefined errors
+          designImage: {
+            front: null,
+            back: null,
+          },
+          // Initialize designImageStatus object
+          designImageStatus: {
+            front: { status: "processing" },
+            back: { status: "processing" },
+          },
           neckLabel:
             variant.neckLabel && variant.neckLabel !== "null"
               ? variant.neckLabel

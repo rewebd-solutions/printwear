@@ -54,10 +54,36 @@
         <button class="filter-button" onclick="filterProductsByGender(event, 'women')">Women</button>
         <button class="filter-button" onclick="filterProductsByGender(event, 'unisex')">Unisex</button>
       </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-controls">
+        <div class="results-per-page">
+          <label for="itemsPerPage">Items per page:</label>
+          <select id="itemsPerPage" onchange="changeItemsPerPage(event)">
+            <option value="12">12</option>
+            <option value="24">24</option>
+            <option value="48">48</option>
+          </select>
+        </div>
+        <div class="pagination-info">
+          <span id="pagination-info-text">Showing 0 - 0 of 0 designs</span>
+        </div>
+      </div>
     </div>
 
     <div class="designs-wrapper">
       <span class="loader"></span>
+    </div>
+
+    <!-- Pagination Navigation -->
+    <div class="pagination-nav" id="pagination-nav" style="display: none;">
+      <button id="prev-btn" onclick="goToPreviousPage()" disabled>
+        <i class="fa fa-chevron-left"></i> Previous
+      </button>
+      <div class="page-numbers" id="page-numbers"></div>
+      <button id="next-btn" onclick="goToNextPage()" disabled>
+        Next <i class="fa fa-chevron-right"></i>
+      </button>
     </div>
 
   </main>
@@ -71,8 +97,105 @@
     var designsResponseData = {};
     var currentModalDesign = null; // Store current design data for downloads
 
+    // Pagination variables
+    let currentPage = 1;
+    let itemsPerPage = 12;
+    let totalDesigns = 0;
+    let currentFilteredData = null;
+    let totalPages = 1;
+
+    // Pagination functions
+    const updatePaginationInfo = () => {
+      const start = (currentPage - 1) * itemsPerPage + 1;
+      const end = Math.min(currentPage * itemsPerPage, totalDesigns);
+      document.getElementById('pagination-info-text').textContent =
+        `Showing ${start} - ${end} of ${totalDesigns} designs`;
+    };
+
+    const updatePaginationNav = () => {
+      const paginationNav = document.getElementById('pagination-nav');
+      const pageNumbers = document.getElementById('page-numbers');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      if (totalPages <= 1) {
+        paginationNav.style.display = 'none';
+        return;
+      }
+
+      paginationNav.style.display = 'flex';
+
+      // Update prev/next buttons
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+
+      // Generate page numbers
+      let pageNumbersHTML = '';
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+      if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+
+      if (startPage > 1) {
+        pageNumbersHTML += `<button class="page-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+          pageNumbersHTML += `<span class="page-ellipsis">...</span>`;
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbersHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          pageNumbersHTML += `<span class="page-ellipsis">...</span>`;
+        }
+        pageNumbersHTML += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+      }
+
+      pageNumbers.innerHTML = pageNumbersHTML;
+    };
+
+    const goToPage = (page) => {
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      createDesignCards(currentFilteredData);
+    };
+
+    const goToPreviousPage = () => {
+      if (currentPage > 1) {
+        goToPage(currentPage - 1);
+      }
+    };
+
+    const goToNextPage = () => {
+      if (currentPage < totalPages) {
+        goToPage(currentPage + 1);
+      }
+    };
+
+    const changeItemsPerPage = (event) => {
+      itemsPerPage = parseInt(event.target.value);
+      currentPage = 1;
+      createDesignCards(currentFilteredData);
+    };
+
+    const paginateData = (allDesigns) => {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return allDesigns.slice(startIndex, endIndex);
+    };
+
     const searchDesigns = (dataKey, searchKey) => {
-      if (searchKey === '') return createDesignCards();
+      if (searchKey === '') {
+        currentFilteredData = designsResponseData;
+        currentPage = 1;
+        return createDesignCards();
+      }
 
       let filteredData = { standalone: [], grouped: [], designs: [] };
 
@@ -111,9 +234,14 @@
       }
 
       if (filteredData.standalone.length === 0 && Object.keys(filteredData.grouped).length === 0 && filteredData.designs.length === 0) {
-        return designsContainer.innerHTML = 'No designs found matching your search';
+        designsContainer.innerHTML = 'No designs found matching your search';
+        document.getElementById('pagination-nav').style.display = 'none';
+        document.getElementById('pagination-info-text').textContent = 'Showing 0 - 0 of 0 designs';
+        return;
       }
 
+      currentFilteredData = filteredData;
+      currentPage = 1;
       createDesignCards(filteredData);
     }
 
@@ -296,8 +424,8 @@
       currentModalDesign = designData;
 
       const currentDesignTax = (designData.price + (designData.neckLabel ? 10 : 0)) * 0.05;
-      const isDesignGenerating = (!(designData.designImage?.front) && designData.designImageStatus?.front?.status === "processing" && designData.designImageStatus?.front?.jobId) || 
-                                 (!(designData.designImage?.back) && designData.designImageStatus?.back?.status === "processing" && designData.designImageStatus?.back?.jobId);
+      const isDesignGenerating = (!(designData.designImage?.front) && designData.designImageStatus?.front?.status === "processing" && designData.designImageStatus?.front?.jobId) ||
+        (!(designData.designImage?.back) && designData.designImageStatus?.back?.status === "processing" && designData.designImageStatus?.back?.jobId);
       const shouldShowBackByDefault = !(designData.designImage?.front && designData.designImage?.front != "false");
       const defaultImageDirection = shouldShowBackByDefault ? "back" : "front";
       const otherSideImage = defaultImageDirection === "back" ? designData.designImage?.front : designData.designImage?.back;
@@ -669,6 +797,9 @@
     }
 
     const createDesignCards = (data = designsResponseData) => {
+      // Store current filtered data
+      currentFilteredData = data;
+
       // Process grouped and standalone designs together
       let allDesigns = [];
 
@@ -698,7 +829,6 @@
         })));
       }
 
-
       // Fallback to original designs array if no grouped/standalone data
       if (allDesigns.length === 0 && data.designs) {
         allDesigns = data.designs.map(design => ({
@@ -708,7 +838,26 @@
         }));
       }
 
-      const designCardsDOMString = allDesigns.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(design => {
+      // Sort all designs by creation date
+      const sortedDesigns = allDesigns.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      // Update pagination variables
+      totalDesigns = sortedDesigns.length;
+      totalPages = Math.ceil(totalDesigns / itemsPerPage);
+
+      // Get paginated data
+      const paginatedDesigns = paginateData(sortedDesigns);
+
+      // Update pagination UI
+      updatePaginationInfo();
+      updatePaginationNav();
+
+      if (paginatedDesigns.length === 0) {
+        designsContainer.innerHTML = "<p> No designs yet! </p>";
+        return;
+      }
+
+      const designCardsDOMString = paginatedDesigns.map(design => {
         // normalize image urls
         if (design.designImage?.front?.includes("printwear.in") && !design.designImage?.front?.includes("admin.printwear.in")) {
           design.designImage.front = design.designImage.front?.replace("printwear.in", "admin.printwear.in");
@@ -720,8 +869,8 @@
           } else return item
         })
 
-        const isDesignGenerating = (!design.designImage?.front && design.designImageStatus?.front?.status === "processing" && design.designImageStatus?.front?.jobId) || 
-                                   (!design.designImage?.back && design.designImageStatus?.back?.status === "processing" && design.designImageStatus?.back?.jobId);
+        const isDesignGenerating = (!design.designImage?.front && design.designImageStatus?.front?.status === "processing" && design.designImageStatus?.front?.jobId) ||
+          (!design.designImage?.back && design.designImageStatus?.back?.status === "processing" && design.designImageStatus?.back?.jobId);
 
         const cardImage = ((design.designImage && design.designImage.front && design.designImage.front != 'false') ? design.designImage.front : design.designImage?.back || '');
 
@@ -763,7 +912,11 @@
 
       e.target.classList.add("filter-button-active");
 
-      if (category === "all") return createDesignCards();
+      if (category === "all") {
+        currentFilteredData = designsResponseData;
+        currentPage = 1;
+        return createDesignCards();
+      }
 
       // Filter both standalone and grouped designs
       let filteredData = { standalone: [], grouped: {} };
@@ -795,9 +948,14 @@
       }
 
       if (filteredData.standalone.length === 0 && Object.keys(filteredData.grouped).length === 0 && (!filteredData.designs || filteredData.designs.length === 0)) {
-        return designsContainer.innerHTML = `No products found for filter: "${category}"`;
+        designsContainer.innerHTML = `No products found for filter: "${category}"`;
+        document.getElementById('pagination-nav').style.display = 'none';
+        document.getElementById('pagination-info-text').textContent = 'Showing 0 - 0 of 0 designs';
+        return;
       }
 
+      currentFilteredData = filteredData;
+      currentPage = 1;
       createDesignCards(filteredData);
     }
 
@@ -850,9 +1008,14 @@
         if ((designsResponseData.standalone && designsResponseData.standalone.length > 0) ||
           (designsResponseData.grouped && typeof designsResponseData.grouped === 'object' && Object.keys(designsResponseData.grouped).length > 0) ||
           (designsResponseData.designs && designsResponseData.designs.length > 0)) {
+          // Initialize pagination
+          currentFilteredData = designsResponseData;
+          currentPage = 1;
           return createDesignCards();
         }
         designsContainer.innerHTML = "<p> No designs yet! </p>";
+        document.getElementById('pagination-nav').style.display = 'none';
+        document.getElementById('pagination-info-text').textContent = 'Showing 0 - 0 of 0 designs';
       } catch (error) {
         designsContainer.innerHTML = `
             <p>
@@ -860,6 +1023,8 @@
               ${error}
             </p>
           `;
+        document.getElementById('pagination-nav').style.display = 'none';
+        document.getElementById('pagination-info-text').textContent = 'Showing 0 - 0 of 0 designs';
         console.log(error);
       }
     }
