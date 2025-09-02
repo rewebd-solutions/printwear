@@ -10,7 +10,7 @@ const pubSub = new PubSub({
   },
   projectId: process.env.GOOGLE_PROJECT_ID,
 });
-const topicName = "generate-design"
+const topicName = "dev-generate-design"
 
 async function setup() {
   // 1️⃣ Ensure Topic exists

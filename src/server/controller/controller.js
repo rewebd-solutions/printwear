@@ -559,15 +559,15 @@ exports.dashboard = async (req, res) => {
 
     const totalExpense = orderHistory?.orderData
       ? orderHistory?.orderData.reduce(
-          (total, curr) => total + curr.totalAmount,
-          0,
-        )
+        (total, curr) => total + curr.totalAmount,
+        0,
+      )
       : 0;
     const totalRetail = orderHistory?.orderData
       ? orderHistory?.orderData.reduce(
-          (total, curr) => total + (curr.retailPrice ?? 0),
-          0,
-        )
+        (total, curr) => total + (curr.retailPrice ?? 0),
+        0,
+      )
       : 0;
     console.log(
       "🚀 ~ exports.dashboard= ~ totalExpense:",
@@ -997,9 +997,9 @@ exports.createdesign = async (req, res) => {
       (req.body.productData.designSKU != ""
         ? req.body.productData.designSKU
         : otpGen.generate(5, {
-            lowerCaseAlphabets: false,
-            specialChars: false,
-          }));
+          lowerCaseAlphabets: false,
+          specialChars: false,
+        }));
 
     const designImageHeight =
       req.body.direction === "front"
@@ -1023,7 +1023,7 @@ exports.createdesign = async (req, res) => {
         return res.status(404).json({ message: "Design could not be found!" });
       const currentDirectionDesign =
         currentDesign.designs.at(currentDesignIndex).designImage?.[
-          currentDirection
+        currentDirection
         ];
       if (currentDirectionDesign && currentDesignIndex != "false")
         return res.status(403).json({ message: "Design already saved!" });
@@ -1042,6 +1042,12 @@ exports.createdesign = async (req, res) => {
           : 0;
       currentDesign.designs.at(currentDesignIndex).neckLabel =
         req.body.neckLabel != "null" ? req.body.neckLabel : undefined;
+
+      // Update designSKU if custom SKU is provided
+      if (req.body.productData.designSKU != "") {
+        currentDesign.designs.at(currentDesignIndex).designSKU = uniqueSKU;
+      }
+
       currentDesign.designs.at(currentDesignIndex)[
         currentDirection == "front" ? "frontPrice" : "backPrice"
       ] = parseFloat(printCharges.toFixed(2));
@@ -1051,9 +1057,9 @@ exports.createdesign = async (req, res) => {
           : "backDesignDimensions"
       ] = {
         ...req.body.productData[
-          currentDirection == "front"
-            ? "designDimensions"
-            : "backDesignDimensions"
+        currentDirection == "front"
+          ? "designDimensions"
+          : "backDesignDimensions"
         ],
       };
       currentDesign.designs.at(currentDesignIndex).designItems.push({
@@ -1092,27 +1098,27 @@ exports.createdesign = async (req, res) => {
       price: parseFloat(
         parseFloat(designImageWidth) == 0
           ? req.body.productData.product.price +
-              0 +
-              (req.body.neckLabel == "null" ? 0 : 10)
+          0 +
+          (req.body.neckLabel == "null" ? 0 : 10)
           : req.body.productData.product.price +
-              (designImageHeight <= 8.0 &&
-              designImageHeight &&
-              designImageWidth <= 8.0
-                ? 70.0
-                : req.body.productData.price * 1 < 70.0
-                  ? 70.0
-                  : req.body.productData.price * 1) +
-              (req.body.neckLabel == "null" ? 0 : 10),
+          (designImageHeight <= 8.0 &&
+            designImageHeight &&
+            designImageWidth <= 8.0
+            ? 70.0
+            : req.body.productData.price * 1 < 70.0
+              ? 70.0
+              : req.body.productData.price * 1) +
+          (req.body.neckLabel == "null" ? 0 : 10),
       ).toFixed(2),
       [req.body.direction == "front" ? "frontPrice" : "backPrice"]: parseFloat(
         designImageWidth == 0
           ? 0
           : (designImageHeight <= 8.0 && designImageWidth <= 8.0
+            ? 70.0
+            : req.body.productData.price * 1 < 70.0
               ? 70.0
-              : req.body.productData.price * 1 < 70.0
-                ? 70.0
-                : req.body.productData.price * 1
-            ).toFixed(2),
+              : req.body.productData.price * 1
+          ).toFixed(2),
       ),
       designItems: [
         {
@@ -1222,6 +1228,17 @@ exports.createdesignvariants = async (req, res) => {
         ? productData?.designDimensions?.width || 0
         : productData?.backDesignDimensions?.width || 0;
 
+    // Generate unique SKU (similar to createdesign function)
+    let uniqueSKU =
+      (productData?.product?.SKU || "") +
+      "-" +
+      (productData?.designSKU != ""
+        ? productData?.designSKU
+        : otpGen.generate(5, {
+          lowerCaseAlphabets: false,
+          specialChars: false,
+        }));
+
     // Handle existing design update (from createdesign functionality)
     if (designId && designId !== "null") {
       const currentDirection = direction;
@@ -1244,7 +1261,7 @@ exports.createdesignvariants = async (req, res) => {
 
       const currentDirectionDesign =
         currentDesign.designs.at(currentDesignIndex).designImage?.[
-          currentDirection
+        currentDirection
         ];
 
       if (currentDirectionDesign && currentDesignIndex !== -1) {
@@ -1269,6 +1286,12 @@ exports.createdesignvariants = async (req, res) => {
       // Update existing design
       currentDesign.designs.at(currentDesignIndex).neckLabel =
         neckLabel && neckLabel !== "null" ? neckLabel : undefined;
+
+      // Update designSKU if custom SKU is provided
+      if (productData?.designSKU != "") {
+        currentDesign.designs.at(currentDesignIndex).designSKU = uniqueSKU;
+      }
+
       currentDesign.designs.at(currentDesignIndex)[
         currentDirection === "front" ? "frontPrice" : "backPrice"
       ] = parseFloat(printCharges.toFixed(2));
@@ -1278,9 +1301,9 @@ exports.createdesignvariants = async (req, res) => {
           : "backDesignDimensions"
       ] = {
         ...productData[
-          currentDirection === "front"
-            ? "designDimensions"
-            : "backDesignDimensions"
+        currentDirection === "front"
+          ? "designDimensions"
+          : "backDesignDimensions"
         ],
       };
 
@@ -1421,7 +1444,7 @@ exports.createdesignvariants = async (req, res) => {
               parseFloat((designImageWidth > 0 ? printCharges : 0).toFixed(2));
             existingDesign.price +=
               existingDesign[
-                direction === "front" ? "frontPrice" : "backPrice"
+              direction === "front" ? "frontPrice" : "backPrice"
               ];
 
             // Attach front design item
@@ -1592,9 +1615,9 @@ exports.createdesignvariants = async (req, res) => {
           (variant?.designSKU != ""
             ? variant.designSKU
             : otpGen.generate(5, {
-                lowerCaseAlphabets: false,
-                specialChars: false,
-              }));
+              lowerCaseAlphabets: false,
+              specialChars: false,
+            }));
 
         const printCharges =
           designImageHeight <= 8.0 && designImageWidth <= 8.0
@@ -1659,11 +1682,11 @@ exports.createdesignvariants = async (req, res) => {
           ),
           designItems: designImageURL
             ? [
-                {
-                  itemName: designImageName || "Design Element",
-                  URL: designImageURL,
-                },
-              ]
+              {
+                itemName: designImageName || "Design Element",
+                URL: designImageURL,
+              },
+            ]
             : [],
           neckLabel:
             variant.neckLabel && variant.neckLabel !== "null"
@@ -2823,12 +2846,12 @@ exports.payshoporder = async (req, res) => {
           "",
         streetLandmark: wooCommerceOrderRes.shipping?.address_1
           ? wooCommerceOrderRes.shipping?.address_1 +
-            " " +
-            wooCommerceOrderRes.shipping?.address_2
+          " " +
+          wooCommerceOrderRes.shipping?.address_2
           : wooCommerceOrderRes.billing?.address_1
             ? wooCommerceOrderRes.billing?.address_1 +
-              " " +
-              wooCommerceOrderRes.billing?.address_2
+            " " +
+            wooCommerceOrderRes.billing?.address_2
             : "",
         city:
           wooCommerceOrderRes.shipping?.city ??
@@ -3033,7 +3056,7 @@ exports.recharge = async (req, res) => {
     return res.render("recharge", {
       data: { userName: req.userName, walletData: wallet, mode: paymentMode },
     });
-  } catch (error) {}
+  } catch (error) { }
 };
 
 // endpoint for creating cashfree link
@@ -3690,9 +3713,9 @@ exports.placeorder = async (req, res) => {
     console.log(error);
     console.log(
       "Failed to create order for: " +
-        req.userId +
-        " Order Id: " +
-        req.body.customerOrderId,
+      req.userId +
+      " Order Id: " +
+      req.body.customerOrderId,
     );
     res.status(500).json({ message: "Internal server Error" });
   }
@@ -4409,7 +4432,7 @@ exports.createshiporder = async (req, res) => {
       console.log(error);
       console.log(
         "[WH]: Failed to update wallet for: " +
-          `Couldn't find user with email: ${rawData.payload.payment.entity.email}`,
+        `Couldn't find user with email: ${rawData.payload.payment.entity.email}`,
       );
     }
   }

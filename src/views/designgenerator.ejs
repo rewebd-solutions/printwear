@@ -265,29 +265,24 @@
 					as separate designs:</p>
 
 				<!-- Selected variants counter -->
-				<div id="selected-variants-count"
-					style="margin-bottom: 1rem; padding: 0.5rem; background: #e8f4f8; border-radius: 4px; border-left: 4px solid #2196F3;">
+				<div id="selected-variants-count" class="variants-counter">
 					<span id="selected-count-text">0 variants selected</span>
 				</div>
 
 				<!-- Variants grid -->
-				<div id="variants-grid"
-					style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 1rem;">
+				<div id="variants-grid" class="variants-grid">
 					<!-- Variant checkboxes will be populated here -->
 				</div>
 
 				<!-- Select/Deselect all buttons -->
-				<div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-					<button type="button" onclick="selectAllVariants()"
-						style="padding: 0.5rem 1rem; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+				<div class="variants-buttons">
+					<button type="button" onclick="selectAllVariants()" class="variant-btn select-all-btn">
 						Select All
 					</button>
-					<button type="button" onclick="deselectAllVariants()"
-						style="padding: 0.5rem 1rem; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+					<button type="button" onclick="deselectAllVariants()" class="variant-btn deselect-all-btn">
 						Deselect All
 					</button>
-					<button type="button" onclick="selectCurrentColorSizes()"
-						style="padding: 0.5rem 1rem; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+					<button type="button" onclick="selectCurrentColorSizes()" class="variant-btn select-current-btn">
 						Select Current Color (All Sizes)
 					</button>
 				</div>
@@ -300,7 +295,7 @@
 						style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
 						<input type="checkbox" id="variant-mode-toggle" onchange="toggleVariantMode()"
 							style="transform: scale(1.2);">
-						<span>Create variants for all colors/sizes</span>
+						<span>Create variants for your designs</span>
 						<i class="fa fa-info-circle"
 							title="Enable this to create separate designs for every color and size combination"></i>
 					</label>

@@ -520,3 +520,101 @@ i.left {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Variants Selection Styles */
+.variants-counter {
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  background: #fff3f0;
+  border-radius: 5px;
+  border-left: 4px solid #e74015;
+  box-shadow: 0 0 5px rgba(231, 64, 21, 0.1);
+}
+
+.variants-counter span {
+  color: #e74015;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.variants-grid {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ffb8a1;
+  border-radius: 5px;
+  padding: 1rem;
+  background: #fefefe;
+  box-shadow: inset 0 1px 3px rgba(231, 64, 21, 0.05);
+}
+
+.variants-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.variants-grid::-webkit-scrollbar-track {
+  background: #ffeee9;
+  border-radius: 3px;
+}
+
+.variants-grid::-webkit-scrollbar-thumb {
+  background: #ff7653;
+  border-radius: 3px;
+}
+
+.variants-grid::-webkit-scrollbar-thumb:hover {
+  background: #e74015;
+}
+
+.variants-buttons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.variant-btn {
+  padding: 0.6rem 1.2rem !important;
+  border: none !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  width: auto !important;
+}
+
+.select-all-btn {
+  background: #e74015 !important;
+  color: white !important;
+}
+
+.select-all-btn:hover {
+  background: #d13510 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(231, 64, 21, 0.3) !important;
+}
+
+.deselect-all-btn {
+  background: #ff7653 !important;
+  color: white !important;
+}
+
+.deselect-all-btn:hover {
+  background: #ff5a2e !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(255, 118, 83, 0.3) !important;
+}
+
+.select-current-btn {
+  background: #ffb8a1 !important;
+  color: #8b3d1f !important;
+  border: 1px solid #ff9c7a !important;
+}
+
+.select-current-btn:hover {
+  background: #ff9c7a !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(255, 188, 161, 0.4) !important;
+}
