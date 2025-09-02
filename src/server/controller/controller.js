@@ -1367,6 +1367,8 @@ exports.createdesignvariants = async (req, res) => {
     let targetGroupId = groupId;
     let existingGroupDesigns = [];
 
+    let groupedJobData = {}
+
     if (groupId && groupId !== "null" && groupId.trim() !== "") {
       // Check if the groupId exists in user's designs
       existingGroupDesigns = userDesignDocument.designs.filter(
@@ -1449,22 +1451,11 @@ exports.createdesignvariants = async (req, res) => {
                 angle: req.body.angle
               };
 
-              try {
-                const publishedJobId = await publishJob(jobData);
-                if (!existingDesign.designImageStatus)
-                  existingDesign.designImageStatus = {};
-                existingDesign.designImageStatus[direction] = {
-                  jobId: publishedJobId,
-                  status: "processing",
-                };
-                console.log(
-                  `✓ Updated existing variant with ${direction} design: ${existingDesign.designSKU} (Job: ${publishedJobId})`,
-                );
-              } catch (jobErr) {
-                console.error(
-                  `Failed to create publishJob for existing variant ${existingDesign.designSKU}:`,
-                  jobErr,
-                );
+              if (!groupedJobData[existingDesign.product.color]) {
+                groupedJobData[existingDesign.product.color] = jobData;
+                groupedJobData[existingDesign.product.color].mongoId = [jobData.mongoId];
+              } else {
+                groupedJobData[existingDesign.product.color].mongoId.push(jobData.mongoId);
               }
             } else {
               existingDesign.designImageStatus[direction] = {
@@ -1500,6 +1491,31 @@ exports.createdesignvariants = async (req, res) => {
           }
         }
 
+        for (const color in groupedJobData) {
+          const job = groupedJobData[color];
+          try {
+            const publishedJobId = await publishJob(job);
+            job.mongoId.forEach((mongoId) => {
+              const lastDesign = userDesignDocument.designs.find(
+                (design) => design._id == mongoId,
+              );
+              if (lastDesign) {
+                lastDesign.designImageStatus = {
+                  [job.direction]: {
+                    jobId: publishedJobId,
+                    status: "processing",
+                  },
+                };
+              }
+            });
+          } catch (jobErr) {
+            console.error(
+              `Failed to create publishJob for color ${color}:`,
+              jobErr,
+            );
+          }
+        }
+
         await userDesignDocument.save();
 
         console.log(
@@ -1524,6 +1540,8 @@ exports.createdesignvariants = async (req, res) => {
       targetGroupId = new mongoose.Types.ObjectId().toString();
       console.log(`Created new groupId: ${targetGroupId}`);
     }
+
+    groupedJobData = {}
 
     // Continue with creating new variants (front design or new group creation)
     for (let i = 0; i < variants.length; i++) {
@@ -1613,7 +1631,7 @@ exports.createdesignvariants = async (req, res) => {
           0;
         const totalPrice =
           parseFloat(designImageWidth) == 0
-            ? basePrice + 0 + (neckLabel == "null" ? 0 : 10)
+            ? basePrice + 0 + neckLabelCharges
             : basePrice + printCharges + neckLabelCharges;
 
         // Determine if this is a variant or master
@@ -1687,20 +1705,11 @@ exports.createdesignvariants = async (req, res) => {
             angle: req.body.angle
           };
 
-          try {
-            const publishedJobId = await publishJob(jobData);
-            lastDesign.designImageStatus = {
-              [direction]: { jobId: publishedJobId, status: "processing" },
-            };
-            console.log(
-              `✓ Variant ${i + 1} saved with publishJob: ${variantUniqueSKU} (Job: ${publishedJobId})`,
-            );
-          } catch (jobErr) {
-            console.error(
-              `Failed to create publishJob for variant ${i + 1}:`,
-              jobErr,
-            );
-            // continue; variant still created without processed image
+          if (groupedJobData[variant.product.color]) {
+            groupedJobData[variant.product.color].mongoId.push(jobData.mongoId);
+          } else {
+            groupedJobData[variant.product.color] = jobData;
+            groupedJobData[variant.product.color].mongoId = [jobData.mongoId];
           }
         } else {
           lastDesign.designImage[direction] =
@@ -1735,6 +1744,28 @@ exports.createdesignvariants = async (req, res) => {
           size: variant.product?.size || variant.size?.size || variant.size,
           error: variantError.message,
         });
+      }
+    }
+
+    for (const color in groupedJobData) {
+      const job = groupedJobData[color];
+      try {
+        const publishedJobId = await publishJob(job);
+        job.mongoId.forEach((mongoId) => {
+          const lastDesign = userDesignDocument.designs.find(
+            (design) => design._id == mongoId
+          );
+          if (lastDesign) {
+            lastDesign.designImageStatus = {
+              [job.direction]: {
+                jobId: publishedJobId,
+                status: "processing",
+              },
+            };
+          }
+        });
+      } catch (jobErr) {
+        console.error(`Failed to create publishJob for color ${color}:`, jobErr);
       }
     }
 

@@ -677,7 +677,7 @@
       if (data.grouped && typeof data.grouped === 'object') {
         Object.entries(data.grouped).forEach(([groupId, designs]) => {
           if (designs && Array.isArray(designs) && designs.length > 0) {
-            const representative = designs[0]; // Use first design as representative
+            const representative = designs.find(des => des.designImage?.front || des.designImage?.back) || designs[0]; // Use first design as representative
             allDesigns.push({
               ...representative,
               isGrouped: true,
