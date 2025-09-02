@@ -734,7 +734,7 @@
             <div class="design-card" data-aos="fade-up">
               <div class="card-img">
                 ${isDesignGenerating && !cardImage ? '<div class="image-processing-overlay" style="flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column;"><i class="fa fa-spinner fa-spin"></i> Processing image...</div>' : `
-                <img src="${cardImage}">
+                <img src="${cardImage}" loading="lazy">
                 `}
                 ${variantIndicator}
               </div>
@@ -744,7 +744,6 @@
                   <p class='name-sku'>${design.designSKU}</p>
                 </div>
                 <p style="opacity: 0.8; font-size: 0.6rem">${design.product.style}</p>
-                ${design.isGrouped ? `<p style="font-size: 0.65rem; color: #666; margin-top: 2px;">${design.totalVariants} colors & sizes available</p>` : ''}
               </div>
               <div class="details">
                 <div class="view-btn">
