@@ -49,6 +49,7 @@ steps:
       - 'GOOGLE_CLIENT_EMAIL=${_GOOGLE_CLIENT_EMAIL}'
       - 'GOOGLE_PRIVATE_KEY=${_GOOGLE_PRIVATE_KEY}'
       - 'GOOGLE_PROJECT_ID=${_GOOGLE_PROJECT_ID}'
+      - 'PUBSUB_DESIGN_TOPIC=${_PUBSUB_DESIGN_TOPIC}'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
