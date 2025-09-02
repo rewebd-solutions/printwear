@@ -214,7 +214,10 @@ const updateSaveButtonState = () => {
     if (saveButton) {
       saveButton.style.display = "block";
       saveButton.innerHTML = '<i class="fa-regular fa-page"></i> Save Design';
-      saveButton.onclick = isCreatingVariants ? saveDesignVariants : saveDesign;
+      // If toggles are disabled, always use saveDesignVariants
+      const variantToggle = document.getElementById("variant-mode-toggle");
+      const togglesDisabled = variantToggle && variantToggle.disabled;
+      saveButton.onclick = togglesDisabled ? saveDesignVariants : (isCreatingVariants ? saveDesignVariants : saveDesign);
     }
   }
 };
