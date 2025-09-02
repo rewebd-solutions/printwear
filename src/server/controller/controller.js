@@ -1074,7 +1074,7 @@ exports.createdesign = async (req, res) => {
         designImageURL: req.body.designImageURL,
         uploadFilePath: `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
         mongoId: currentDesign.designs.at(currentDesignIndex)._id,
-        angle: req.body.angle
+        angle: req.body.angle,
       };
       const publishedJobId = await publishJob(jobData);
       currentDesign.designs.at(currentDesignIndex).designImageStatus[
@@ -1151,7 +1151,7 @@ exports.createdesign = async (req, res) => {
       designImageURL: req.body.designImageURL,
       uploadFilePath: `designs/${req.userId + "_" + req.body.productData.designName + "_" + req.body.direction + "_" + uniqueSKU}.png`,
       mongoId: designSave.designs.at(-1)._id,
-      angle: req.body.angle
+      angle: req.body.angle,
     };
 
     const publishedJobId = await publishJob(jobData);
@@ -1303,7 +1303,7 @@ exports.createdesignvariants = async (req, res) => {
         designImageURL: designImageURL,
         uploadFilePath: `designs/${req.userId}_${productData.designName}_${direction}_${uniqueSKU}.png`,
         mongoId: currentDesign.designs.at(currentDesignIndex)._id,
-        angle: req.body.angle
+        angle: req.body.angle,
       };
 
       try {
@@ -1367,7 +1367,7 @@ exports.createdesignvariants = async (req, res) => {
     let targetGroupId = groupId;
     let existingGroupDesigns = [];
 
-    let groupedJobData = {}
+    let groupedJobData = {};
 
     if (groupId && groupId !== "null" && groupId.trim() !== "") {
       // Check if the groupId exists in user's designs
@@ -1448,14 +1448,18 @@ exports.createdesignvariants = async (req, res) => {
                 designImageURL,
                 uploadFilePath: `designs/${req.userId}_${existingDesign.designName}_${direction}_${existingDesign.designSKU}.png`,
                 mongoId: existingDesign._id,
-                angle: req.body.angle
+                angle: req.body.angle,
               };
 
               if (!groupedJobData[existingDesign.product.color]) {
                 groupedJobData[existingDesign.product.color] = jobData;
-                groupedJobData[existingDesign.product.color].mongoId = [jobData.mongoId];
+                groupedJobData[existingDesign.product.color].mongoId = [
+                  jobData.mongoId,
+                ];
               } else {
-                groupedJobData[existingDesign.product.color].mongoId.push(jobData.mongoId);
+                groupedJobData[existingDesign.product.color].mongoId.push(
+                  jobData.mongoId,
+                );
               }
             } else {
               existingDesign.designImageStatus[direction] = {
@@ -1491,29 +1495,30 @@ exports.createdesignvariants = async (req, res) => {
           }
         }
 
-        for (const color in groupedJobData) {
-          const job = groupedJobData[color];
-          try {
-            const publishedJobId = await publishJob(job);
-            job.mongoId.forEach((mongoId) => {
-              const lastDesign = userDesignDocument.designs.find(
-                (design) => design._id == mongoId,
-              );
-              if (lastDesign) {
-                lastDesign.designImageStatus = {
-                  [job.direction]: {
-                    jobId: publishedJobId,
-                    status: "processing",
-                  },
-                };
-              }
-            });
-          } catch (jobErr) {
-            console.error(
-              `Failed to create publishJob for color ${color}:`,
-              jobErr,
-            );
-          }
+        console.log("🚀 ~ groupedJobData:", groupedJobData)
+        
+        try {
+          await Promise.all(
+            Object.keys(groupedJobData).map(async (color) => {
+              const job = groupedJobData[color];
+              const publishedJobId = await publishJob(job);
+              job.mongoId.forEach((mongoId) => {
+                const lastDesign = userDesignDocument.designs.find(
+                  (design) => design._id == mongoId,
+                );
+                if (lastDesign) {
+                  lastDesign.designImageStatus = {
+                    [job.direction]: {
+                      jobId: publishedJobId,
+                      status: "processing",
+                    },
+                  };
+                }
+              });
+            }),
+          );
+        } catch (jobErr) {
+          console.error(`Failed to create publishJob:`, jobErr);
         }
 
         await userDesignDocument.save();
@@ -1541,7 +1546,7 @@ exports.createdesignvariants = async (req, res) => {
       console.log(`Created new groupId: ${targetGroupId}`);
     }
 
-    groupedJobData = {}
+    groupedJobData = {};
 
     // Continue with creating new variants (front design or new group creation)
     for (let i = 0; i < variants.length; i++) {
@@ -1702,7 +1707,7 @@ exports.createdesignvariants = async (req, res) => {
             designImageURL: designImageURL,
             uploadFilePath: `designs/${req.userId}_${lastDesign.designName}_${direction}_${variantUniqueSKU}.png`,
             mongoId: lastDesign._id,
-            angle: req.body.angle
+            angle: req.body.angle,
           };
 
           if (groupedJobData[variant.product.color]) {
@@ -1747,26 +1752,29 @@ exports.createdesignvariants = async (req, res) => {
       }
     }
 
-    for (const color in groupedJobData) {
-      const job = groupedJobData[color];
-      try {
-        const publishedJobId = await publishJob(job);
-        job.mongoId.forEach((mongoId) => {
-          const lastDesign = userDesignDocument.designs.find(
-            (design) => design._id == mongoId
-          );
-          if (lastDesign) {
-            lastDesign.designImageStatus = {
-              [job.direction]: {
-                jobId: publishedJobId,
-                status: "processing",
-              },
-            };
-          }
-        });
-      } catch (jobErr) {
-        console.error(`Failed to create publishJob for color ${color}:`, jobErr);
-      }
+    console.log("🚀 ~ groupedJobData:", groupedJobData)
+    try {
+      await Promise.all(
+        Object.keys(groupedJobData).map(async (color) => {
+          const job = groupedJobData[color];
+          const publishedJobId = await publishJob(job);
+          job.mongoId.forEach((mongoId) => {
+            const lastDesign = userDesignDocument.designs.find(
+              (design) => design._id == mongoId,
+            );
+            if (lastDesign) {
+              lastDesign.designImageStatus = {
+                [job.direction]: {
+                  jobId: publishedJobId,
+                  status: "processing",
+                },
+              };
+            }
+          });
+        }),
+      );
+    } catch (jobErr) {
+      console.error(`Failed to create publishJob:`, jobErr);
     }
 
     // Persist all created variants
